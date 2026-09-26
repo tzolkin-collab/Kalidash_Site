@@ -1,0 +1,185 @@
+{
+  "type": "excalidraw",
+  "version": 2,
+  "source": "https://excalidraw.com",
+  "elements": [
+    {
+      "id": "monorepo_box",
+      "type": "rectangle",
+      "x": 80, "y": 60, "width": 880, "height": 520,
+      "strokeColor": "#1e1e1e", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 2, "strokeStyle": "dashed",
+      "roughness": 0, "opacity": 100,
+      "roundness": {"type": 3}
+    },
+    {
+      "id": "monorepo_text",
+      "type": "text",
+      "x": 100, "y": 80, "width": 250, "height": 25,
+      "text": "Kalidash (Monorepo pnpm + turbo)",
+      "fontSize": 20, "fontFamily": 2, "textAlign": "left", "verticalAlign": "top",
+      "strokeColor": "#1e1e1e"
+    },
+    {
+      "id": "fe_cliente_box",
+      "type": "rectangle",
+      "x": 120, "y": 140, "width": 270, "height": 200,
+      "strokeColor": "#d35400", "backgroundColor": "#fdf1e8",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid",
+      "roughness": 0, "opacity": 100,
+      "roundness": {"type": 3}
+    },
+    {
+      "id": "fe_cliente_text",
+      "type": "text",
+      "x": 130, "y": 155, "width": 250, "height": 160,
+      "text": "FE CLIENTE (apps/site)\n[Next.js SSR/ISR — Vercel (Free)]\n\n• Site Institucional (SEO)\n• Landing Pages de Captação\n• Blog (CMS Proprietário via ISR)",
+      "fontSize": 18, "fontFamily": 2, "textAlign": "left", "verticalAlign": "top",
+      "strokeColor": "#d35400"
+    },
+    {
+      "id": "fe_admin_box",
+      "type": "rectangle",
+      "x": 410, "y": 140, "width": 270, "height": 330,
+      "strokeColor": "#0b6623", "backgroundColor": "#e6f4ea",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid",
+      "roughness": 0, "opacity": 100,
+      "roundness": {"type": 3}
+    },
+    {
+      "id": "fe_admin_text",
+      "type": "text",
+      "x": 420, "y": 155, "width": 250, "height": 280,
+      "text": "FE ADMIN (apps/admin)\n[Vite SPA + PWA — Vercel (Free)]\n\n(Atuais)\n• Dashboard & Inbound\n• CRM (Leads/Pipelines)\n• Gestão de Projetos\n• Chaves de API (Gerador)\n\n(A Adicionar)\n• Blog/CMS (Tiptap)\n• Webhooks (Automação)\n• Auditoria (Logs Viewer)\n• Financeiro (MRR/Contratos)\n• Auth/SSO (Acessos 2FA)",
+      "fontSize": 18, "fontFamily": 2, "textAlign": "left", "verticalAlign": "top",
+      "strokeColor": "#0b6623"
+    },
+    {
+      "id": "be_master_box",
+      "type": "rectangle",
+      "x": 700, "y": 140, "width": 240, "height": 200,
+      "strokeColor": "#005a9e", "backgroundColor": "#e1f0fa",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid",
+      "roughness": 0, "opacity": 100,
+      "roundness": {"type": 3}
+    },
+    {
+      "id": "be_master_text",
+      "type": "text",
+      "x": 710, "y": 155, "width": 220, "height": 160,
+      "text": "BE MASTER (apps/api)\n[Go — Vultr SP ($5/mês)]\n\n• Lógica de Negócios\n• Valida API Keys (CORS)\n• Recebe Leads do Connect\n• Dispara Webhooks",
+      "fontSize": 18, "fontFamily": 2, "textAlign": "left", "verticalAlign": "top",
+      "strokeColor": "#005a9e"
+    },
+    {
+      "id": "packages_box",
+      "type": "rectangle",
+      "x": 120, "y": 480, "width": 820, "height": 80,
+      "strokeColor": "#c239b3", "backgroundColor": "#fbe5f8",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid",
+      "roughness": 0, "opacity": 100,
+      "roundness": {"type": 3}
+    },
+    {
+      "id": "packages_text",
+      "type": "text",
+      "x": 130, "y": 505, "width": 800, "height": 40,
+      "text": "Pacotes Compartilhados: @kalidash/ui, @kalidash/config, @kalidash/tsconfig",
+      "fontSize": 18, "fontFamily": 2, "textAlign": "center", "verticalAlign": "top",
+      "strokeColor": "#c239b3"
+    },
+    {
+      "id": "db_box",
+      "type": "rectangle",
+      "x": 700, "y": 360, "width": 240, "height": 110,
+      "strokeColor": "#f1c40f", "backgroundColor": "#fef9e7",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid",
+      "roughness": 0, "opacity": 100,
+      "roundness": {"type": 3}
+    },
+    {
+      "id": "db_text",
+      "type": "text",
+      "x": 710, "y": 375, "width": 220, "height": 80,
+      "text": "BD Centralizado\n[MySQL — Vultr SP ($0, mesma VPS)]\n\n• Sem Redis (Modelo Shopify)",
+      "fontSize": 18, "fontFamily": 2, "textAlign": "left", "verticalAlign": "top",
+      "strokeColor": "#f1c40f"
+    },
+    {
+      "id": "arrow_admin_api",
+      "type": "arrow",
+      "x": 680, "y": 240, "width": 20, "height": 0,
+      "strokeColor": "#000000", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 2, "strokeStyle": "solid",
+      "roughness": 0, "opacity": 100,
+      "points": [[0, 0], [20, 0]],
+      "startArrowhead": null, "endArrowhead": "arrow"
+    },
+    {
+      "id": "arrow_api_db",
+      "type": "arrow",
+      "x": 820, "y": 340, "width": 0, "height": 20,
+      "strokeColor": "#000000", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 2, "strokeStyle": "solid",
+      "roughness": 0, "opacity": 100,
+      "points": [[0, 0], [0, 20]],
+      "startArrowhead": null, "endArrowhead": "arrow"
+    },
+    {
+      "id": "ext_client_box",
+      "type": "rectangle",
+      "x": 1050, "y": 140, "width": 250, "height": 160,
+      "strokeColor": "#8e44ad", "backgroundColor": "#f5eef8",
+      "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid",
+      "roughness": 0, "opacity": 100,
+      "roundness": {"type": 3}
+    },
+    {
+      "id": "ext_client_text",
+      "type": "text",
+      "x": 1060, "y": 160, "width": 230, "height": 120,
+      "text": "Sites de Clientes\n(Sistemas Externos)\n\n• Carregam connect.js\n• Capturam Formulários",
+      "fontSize": 18, "fontFamily": 2, "textAlign": "left", "verticalAlign": "top",
+      "strokeColor": "#8e44ad"
+    },
+    {
+      "id": "arrow_ext_api",
+      "type": "arrow",
+      "x": 1050, "y": 240, "width": -110, "height": 0,
+      "strokeColor": "#000000", "backgroundColor": "transparent",
+      "fillStyle": "solid", "strokeWidth": 2, "strokeStyle": "solid",
+      "roughness": 0, "opacity": 100,
+      "points": [[0, 0], [-110, 0]],
+      "startArrowhead": null, "endArrowhead": "arrow"
+    },
+    {
+      "id": "ext_client_post_text",
+      "type": "text",
+      "x": 945, "y": 210, "width": 100, "height": 20,
+      "text": "POST /api/logs",
+      "fontSize": 14, "fontFamily": 2, "textAlign": "center", "verticalAlign": "top",
+      "strokeColor": "#000000"
+    },
+    {
+      "id": "cost_box",
+      "type": "rectangle",
+      "x": 80, "y": 610, "width": 1220, "height": 60,
+      "strokeColor": "#1e1e1e", "backgroundColor": "#f0f0f0",
+      "fillStyle": "solid", "strokeWidth": 2, "strokeStyle": "solid",
+      "roughness": 0, "opacity": 100,
+      "roundness": {"type": 3}
+    },
+    {
+      "id": "cost_text",
+      "type": "text",
+      "x": 100, "y": 625, "width": 1180, "height": 30,
+      "text": "CUSTO MENSAL TOTAL:  Vercel $0 + Vercel $0 + Vultr SP $5 (Go + MySQL na mesma VPS)  =  $5/mês (~R$29)",
+      "fontSize": 18, "fontFamily": 2, "textAlign": "center", "verticalAlign": "top",
+      "strokeColor": "#1e1e1e"
+    }
+  ],
+  "appState": {
+    "viewBackgroundColor": "#ffffff"
+  },
+  "files": {}
+}

@@ -1,0 +1,36 @@
+# Dependências e builds
+node_modules/
+.next/
+dist/
+.turbo/
+.vercel/
+*.tsbuildinfo
+coverage/
+
+# Binários Go
+*.exe
+*.test
+*.out
+
+# Segredos (use .env.example como modelo)
+.env
+.env.*
+!.env.example
+
+# Arquivos com credenciais escritas no código. Trocar por variáveis de ambiente
+# (DSN / DSN_PRISMA) e só então remover estas linhas.
+apps/api/scripts/test.go
+apps/studio/seed.mjs
+
+# Arquivo morto: só docs-v1 (versão anterior dos docs) vai para o repositório
+.archive/*
+!.archive/docs-v1/
+
+# Remanescente do Sanity Studio (descartado); cópia completa em .archive/studio-kalidash
+studio-kalidash/
+
+# Temporários
+scratch/
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,395 @@
+package main
+
+import (
+	"bytes"
+	"database/sql"
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"time"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
+)
+
+var db *sql.DB
+
+// Opportunity representa o card principal no Kanban e Tabela
+type Opportunity struct {
+	ID            string    `json:"id"`
+	Title         string    `json:"title"`
+	Value         *float64  `json:"value"`
+	Stage         string    `json:"stage"` // correspondia ao column_id
+	Priority      string    `json:"priority"`
+	Tags          []string  `json:"tags"`
+	
+	// Dados Relacionais
+	CompanyID     *string   `json:"companyId,omitempty"`
+	CompanyName   *string   `json:"companyName,omitempty"`
+	CompanyLogo   *string   `json:"companyLogo,omitempty"`
+	
+	ContactID     *string   `json:"contactId,omitempty"`
+	ContactName   *string   `json:"contactName,omitempty"`
+	ContactAvatar *string   `json:"contactAvatar,omitempty"`
+	
+	OwnerID       *string   `json:"ownerId,omitempty"`
+	OwnerName     *string   `json:"ownerName,omitempty"`
+	OwnerAvatar   *string   `json:"ownerAvatar,omitempty"`
+	
+	CreatedAt     time.Time `json:"created_at"`
+}
+
+type Note struct {
+	ID            string    `json:"id"`
+	Content       string    `json:"content"`
+	Type          string    `json:"type"`
+	OpportunityID string    `json:"opportunityId"`
+	AuthorName    *string   `json:"authorName,omitempty"`
+	AuthorAvatar  *string   `json:"authorAvatar,omitempty"`
+	CreatedAt     time.Time `json:"created_at"`
+}
+
+func initDB() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Aviso: arquivo .env não encontrado.")
+	}
+
+	dsn := os.Getenv("DSN")
+	if dsn == "" {
+		log.Fatal("❌ ERRO: A variável DSN não está configurada no .env!")
+	}
+
+	db, err = sql.Open("mysql", dsn)
+	if err != nil {
+		log.Fatal("❌ Erro ao instanciar conexão MySQL:", err)
+	}
+
+	if err := db.Ping(); err != nil {
+		log.Fatal("❌ Erro ao conectar com o banco de dados:", err)
+	}
+	
+	fmt.Println("✅ Banco de Dados conectado (MySQL) via DSN!")
+}
+
+func enableCORS(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		next(w, r)
+	}
+}
+
+func handleOpportunities(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		// JOIN com Company, Contact e User (Owner)
+		query := `
+			SELECT 
+				o.id, o.title, o.value, o.stage, o.priority, o.tags, o.createdAt,
+				o.companyId, c.name as companyName, c.logoUrl as companyLogo,
+				o.contactId, p.name as contactName, p.avatarUrl as contactAvatar,
+				o.ownerId, u.name as ownerName, u.avatarUrl as ownerAvatar
+			FROM Opportunity o
+			LEFT JOIN Company c ON o.companyId = c.id
+			LEFT JOIN Contact p ON o.contactId = p.id
+			LEFT JOIN User u ON o.ownerId = u.id
+			ORDER BY o.createdAt DESC
+		`
+		
+		rows, err := db.Query(query)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
+		var opps []Opportunity
+		for rows.Next() {
+			var o Opportunity
+			var tagsJSON []byte
+			var createdAt string
+
+			if err := rows.Scan(
+				&o.ID, &o.Title, &o.Value, &o.Stage, &o.Priority, &tagsJSON, &createdAt,
+				&o.CompanyID, &o.CompanyName, &o.CompanyLogo,
+				&o.ContactID, &o.ContactName, &o.ContactAvatar,
+				&o.OwnerID, &o.OwnerName, &o.OwnerAvatar,
+			); err != nil {
+				log.Println("Scan err:", err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			
+			if tagsJSON != nil {
+				json.Unmarshal(tagsJSON, &o.Tags)
+			}
+			parsedTime, _ := time.Parse("2006-01-02 15:04:05.999", createdAt)
+			o.CreatedAt = parsedTime
+			
+			opps = append(opps, o)
+		}
+		
+		if opps == nil {
+			opps = []Opportunity{}
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(opps)
+
+	case http.MethodPost:
+		// Cria Oportunidade Avulsa (sem contatos ainda para simplicidade de demonstração)
+		var newOpp Opportunity
+		if err := json.NewDecoder(r.Body).Decode(&newOpp); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		newOpp.ID = fmt.Sprintf("%d", time.Now().UnixNano())
+		newOpp.CreatedAt = time.Now()
+
+		tagsJSON, _ := json.Marshal(newOpp.Tags)
+		if newOpp.Priority == "" {
+			newOpp.Priority = "MEDIUM"
+		}
+
+		insertQuery := `INSERT INTO Opportunity (id, title, value, stage, priority, tags, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+		_, err := db.Exec(insertQuery, newOpp.ID, newOpp.Title, newOpp.Value, newOpp.Stage, newOpp.Priority, tagsJSON, newOpp.CreatedAt, newOpp.CreatedAt)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(newOpp)
+
+	case http.MethodPut:
+		var opp Opportunity
+		if err := json.NewDecoder(r.Body).Decode(&opp); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		
+		updateQuery := `UPDATE Opportunity SET title = ?, value = ?, updatedAt = ? WHERE id = ?`
+		res, err := db.Exec(updateQuery, opp.Title, opp.Value, time.Now(), opp.ID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		affected, _ := res.RowsAffected()
+		if affected == 0 {
+			http.Error(w, "Oportunidade não encontrada", http.StatusNotFound)
+			return
+		}
+		
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(opp)
+
+	default:
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+	}
+}
+
+func handleMoveOpportunity(w http.ResponseWriter, r *http.Request) {
+	var payload struct {
+		ID    string `json:"lead_id"` // mantido lead_id no payload pra compatibilidade rápida
+		Stage string `json:"column_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	updateQuery := `UPDATE Opportunity SET stage = ? WHERE id = ?`
+	res, err := db.Exec(updateQuery, payload.Stage, payload.ID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	affected, _ := res.RowsAffected()
+	if affected == 0 {
+		http.Error(w, "Oportunidade não encontrada", http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, `{"status":"success"}`)
+}
+
+func handleNotes(w http.ResponseWriter, r *http.Request) {
+	oppID := r.URL.Query().Get("opportunityId")
+	if oppID == "" {
+		http.Error(w, "opportunityId is required", http.StatusBadRequest)
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		query := `
+			SELECT n.id, n.content, n.type, n.opportunityId, n.createdAt,
+			       u.name, u.avatarUrl
+			FROM Note n
+			LEFT JOIN User u ON n.authorId = u.id
+			WHERE n.opportunityId = ?
+			ORDER BY n.createdAt DESC
+		`
+		rows, err := db.Query(query, oppID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
+		var notes []Note
+		for rows.Next() {
+			var n Note
+			var createdAt string
+			if err := rows.Scan(&n.ID, &n.Content, &n.Type, &n.OpportunityID, &createdAt, &n.AuthorName, &n.AuthorAvatar); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			parsedTime, _ := time.Parse("2006-01-02 15:04:05.999", createdAt)
+			n.CreatedAt = parsedTime
+			notes = append(notes, n)
+		}
+		if notes == nil {
+			notes = []Note{}
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(notes)
+
+	case http.MethodPost:
+		var n Note
+		if err := json.NewDecoder(r.Body).Decode(&n); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		n.ID = fmt.Sprintf("%d", time.Now().UnixNano())
+		n.CreatedAt = time.Now()
+		if n.Type == "" {
+			n.Type = "NOTE"
+		}
+
+		// Insert Note
+		insertQuery := `INSERT INTO Note (id, content, type, opportunityId, createdAt) VALUES (?, ?, ?, ?, ?)`
+		_, err := db.Exec(insertQuery, n.ID, n.Content, n.Type, n.OpportunityID, n.CreatedAt)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(n)
+	default:
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+	}
+}
+
+func handleSendEmail(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		OpportunityID string `json:"opportunityId"`
+		Subject       string `json:"subject"`
+		Body          string `json:"body"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	resendKey := os.Getenv("RESEND_API_KEY")
+	if resendKey == "" {
+		http.Error(w, "API Key do Resend não configurada na VPS", http.StatusInternalServerError)
+		return
+	}
+
+	// Buscar o email do contato vinculado a essa oportunidade
+	var toEmail sql.NullString
+	query := `
+		SELECT c.email 
+		FROM Opportunity o
+		JOIN Contact c ON o.contactId = c.id
+		WHERE o.id = ?
+	`
+	err := db.QueryRow(query, req.OpportunityID).Scan(&toEmail)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Oportunidade não encontrada ou não possui contato vinculado", http.StatusNotFound)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+	if !toEmail.Valid || toEmail.String == "" {
+		http.Error(w, "O contato desta oportunidade não possui um email cadastrado", http.StatusBadRequest)
+		return
+	}
+
+	// Enviar via Resend
+	resendPayload := map[string]interface{}{
+		"from":    "Kalidash CRM <onboarding@resend.dev>",
+		"to":      []string{toEmail.String},
+		"subject": req.Subject,
+		"html":    req.Body,
+	}
+	
+	payloadBytes, _ := json.Marshal(resendPayload)
+	httpReq, _ := http.NewRequest("POST", "https://api.resend.com/emails", bytes.NewBuffer(payloadBytes))
+	httpReq.Header.Set("Authorization", "Bearer "+resendKey)
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		http.Error(w, "Erro ao conectar com Resend: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		http.Error(w, "Erro na API do Resend", resp.StatusCode)
+		return
+	}
+
+	// Sucesso! Grava a nota do tipo EMAIL na timeline
+	noteID := fmt.Sprintf("%d", time.Now().UnixNano())
+	content := fmt.Sprintf("Assunto: %s\n\n%s", req.Subject, req.Body)
+	insertQuery := `INSERT INTO Note (id, content, type, opportunityId, createdAt) VALUES (?, ?, ?, ?, ?)`
+	_, err = db.Exec(insertQuery, noteID, content, "EMAIL", req.OpportunityID, time.Now())
+	
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, `{"status":"success", "message": "Email enviado e logado com sucesso!"}`)
+}
+
+func main() {
+	initDB()
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api/leads", enableCORS(handleOpportunities)) // mantendo a rota por compatibilidade
+	mux.HandleFunc("/api/leads/move", enableCORS(handleMoveOpportunity))
+	mux.HandleFunc("/api/leads/notes", enableCORS(handleNotes))
+	mux.HandleFunc("/api/emails/send", enableCORS(handleSendEmail))
+
+	port := ":8080"
+	fmt.Printf("🚀 API do Kalidash (Go + MySQL) rodando em http://localhost%s\n", port)
+	
+	if err := http.ListenAndServe(port, mux); err != nil {
+		log.Fatalf("Erro ao iniciar API: %v", err)
+	}
+}

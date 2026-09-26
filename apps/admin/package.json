@@ -1,0 +1,42 @@
+{
+  "name": "@kalidash/admin",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@arco-themes/react-easy-email-theme": "^0.0.3",
+    "@tiptap/extension-color": "^3.31.3",
+    "@tiptap/extension-image": "^3.31.3",
+    "@tiptap/extension-text-style": "^3.31.3",
+    "@tiptap/pm": "^3.31.3",
+    "@tiptap/react": "^3.31.3",
+    "@tiptap/starter-kit": "^3.31.3",
+    "cheerio": "^1.2.0",
+    "easy-email-core": "^4.17.1",
+    "easy-email-editor": "^4.17.1",
+    "easy-email-extensions": "^4.17.1",
+    "final-form": "^5.0.1",
+    "lucide-react": "^1.48.0",
+    "mjml": "^5.4.1",
+    "mjml-browser": "^4.10.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-final-form": "^7.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "oxlint": "^1.81.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0",
+    "vite-plugin-node-polyfills": "^0.28.0"
+  }
+}

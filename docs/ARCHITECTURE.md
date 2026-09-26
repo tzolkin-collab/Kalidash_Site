@@ -1,0 +1,464 @@
+# Kalidash — Documento de Arquitetura e Transparência
+
+> **Referência:** SOLYD  
+> **Versão:** 2.0 — reescrita em 26/09/2026 (a v1.0 está em `.archive/docs-v1/`)  
+> **Status:** Em construção — admin/CRM primeiro
+
+---
+
+## Escopo
+
+**O que é:** o site institucional da Kalidash mais um `/admin`, um PWA de **uso interno**, com CRM, blog e um integrador de LPs e formulários que a própria Kalidash lança.
+
+**O que não é:** SaaS, plataforma para terceiros ou sistema multi-tenant. Há **um único espaço de dados** e **vários usuários internos** com perfis (Admin, Gerente, Vendedor).
+
+> **Nota histórica:** a v1.0 deste documento descrevia uma plataforma multi-tenant (contas, planos free/pro/enterprise, painel Master × Tenant, isolamento por cliente). Isso nunca foi o escopo e foi removido. A fonte de verdade do escopo são o `ADMIN-MOCK.md` do site v1.0 (`.archive/v1.0_site/docs/`) e os pedidos de 01/09/2026: integrador de formulários por token, aba Leads além de Clientes, "projetos conectados" e painel de chaves de API.
+
+---
+
+## Status por módulo (26/09/2026)
+
+| Módulo | Onde | Status | Observação |
+|---|---|---|---|
+| CRM — Kanban e tabela | admin + api | **Parcial** | A UI cria oportunidades e move de coluna; a API também edita título e valor. O Kanban mostra 3 colunas (INBOUND, QUALIFICATION, WON). Sem login. |
+| Ficha da oportunidade (gaveta lateral) | admin | **Parcial** | Visão Geral e notas funcionam. As abas Anotações e Tarefas são placeholders. |
+| Construtor de funil | admin | **Parcial** | Tela pronta, sem persistência (estado local). |
+| Editor de e-mail e templates | admin | **Parcial** | Templates e regras de automação em estado local. O envio de teste usa um contrato incompatível com a API. O preview de MJML só existe no `vite dev`. |
+| Envio de e-mail por oportunidade | api | **Parcial** | Via Resend (provisório). A meta é a Gmail API. |
+| Leads (entrada) e Clientes | admin | Planejado | |
+| Entrada de leads (`connect.js`, API direta, webhook) | api | Planejado | Contrato já desenhado no v1.0 (`connect.ts`). |
+| Projetos conectados, Integrações e Chaves | admin + api | Planejado | Já existia como mock no v1.0. |
+| Login e perfis | api + admin | Planejado | Google OAuth do Workspace. Hoje a API está aberta. |
+| Blog / CMS | admin + site | Planejado | Tiptap instalado no admin, sem telas. O v1.0 arquivado usava Sanity. |
+| Dashboard e analytics | admin | Planejado | |
+| Equipe e Configurações | admin + api | Planejado | |
+| Webhooks de saída e auditoria | api | Planejado | |
+| Notificações (WebSocket, Web Push, PWA) | api + admin | Planejado | O admin ainda não é PWA. |
+| Google Meet, Gmail e Drive | api | Planejado | |
+| Site institucional | site | Planejado | `apps/site` é boilerplate. O Motion do v1.0 está arquivado como referência. A copy está no Google Doc "Copy site - MVP". |
+| Valor das oportunidades | admin + api | **Parcial** | Cada oportunidade tem `value` e o Kanban soma o valor por coluna. Faltam valor ganho por período, ticket médio, previsão ponderada e o campo em `Decimal`. Não há módulo Financeiro separado. |
+
+*Status levantado por leitura do código em 26/09/2026. Nada foi executado nem testado para montar esta tabela.*
+
+---
+
+## Visão Geral
+
+Monorepo (pnpm + turbo) com três aplicações e um pacote de schema.
+
+| Aplicação | Papel | Stack | Hospedagem |
+|---|---|---|---|
+| Site — `apps/site` | Público: SEO, blog, formulários | Next.js (SSR/ISR) | Vercel (plano Pro para uso comercial) |
+| Admin — `apps/admin` | Interno: CRM, blog, integrações | Vite + React (SPA + PWA) | Vercel ou Cloudflare Pages (estático) |
+| API — `apps/api` | Lógica, auth, ingestão de leads, webhooks | Go (`net/http`) | VPS Vultr ou DigitalOcean, à escolha da Kalidash |
+| Banco | Persistência | MySQL | VPS (hoje no EasyPanel) |
+| Schema — `apps/studio` | Fonte do schema e Prisma Studio | Prisma | — |
+
+### Custo estimado (preços consultados em 26/09/2026)
+
+| Item | Custo | Observação |
+|---|---|---|
+| VPS Vultr, São Paulo, 1 vCPU / 1GB | US$ 5/mês | Tem datacenter no Brasil. Fonte secundária: a página oficial bloqueou a consulta. O plano de 2GB precisa ser confirmado no site da Vultr. |
+| VPS DigitalOcean, 1GB / 2GB | US$ 6 / US$ 12 por mês | Sem datacenter no Brasil (regiões: EUA, Europa, Ásia e Sydney). |
+| EasyPanel (se for mantido na VPS nova) | — | A documentação do EasyPanel pede **no mínimo 2GB de RAM** na instalação. Com ele, o plano de 1GB não serve. |
+| CDN do `connect.js` | **~US$ 0** | Ver abaixo. |
+| Site e admin na Vercel | US$ 0 (Hobby) **não vale** | O plano Hobby é "personal, non-commercial use". Para uma empresa, o Pro custa US$ 20/mês por assento. |
+| Admin no Cloudflare Pages | US$ 0 | Estático, uso comercial permitido, requisições estáticas ilimitadas. |
+
+Ordem de grandeza: **US$ 5 a 12/mês** de VPS, mais **US$ 0 a 20/mês** de hospedagem do site e do admin.
+
+**Custo do CDN do `connect.js`:** o arquivo tem ~5KB compactado, então 100 mil carregamentos por mês são ~0,5GB, e 1 milhão são ~5GB. Nesse volume o custo é praticamente zero em qualquer opção:
+- Cloudflare Pages: requisições estáticas gratuitas e ilimitadas.
+- Cloudflare R2 com domínio próprio: 10GB de storage, 1M de operações de escrita e 10M de leitura por mês grátis; saída de dados gratuita. Passando disso, US$ 0,36 por milhão de leituras.
+- Vercel (arquivo em `public/` do site): 100GB/mês no Hobby e 1TB no Pro.
+- Na própria VPS, atrás do Cloudflare (plano grátis): os planos de 1GB da Vultr e da DigitalOcean incluem cerca de 1TB de tráfego por mês.
+
+O que importa é manter a **URL estável e versionada** (por exemplo `/v1/connect.js`), porque ela fica colada em páginas fora do repositório.
+
+### Como o schema e a API se relacionam
+
+- O **Prisma** (`apps/studio/prisma/schema.prisma`) é a fonte do schema.
+- A **API em Go** lê e escreve com SQL cru (`database/sql`), usando os nomes de tabelas e colunas criados pelo Prisma (`Opportunity`, `createdAt`…).
+- Consequência: mudou o schema no Prisma, é preciso atualizar as queries em `apps/api/main.go`. Ainda não há pasta de migrations versionadas.
+
+---
+
+## Stack Principal
+
+### Site público (`apps/site`)
+
+**Tecnologia:** Next.js com TypeScript (SSR/ISR). **Hospedagem:** Vercel.
+
+O Google recebe um HTML vazio de um SPA. Com Next.js, o HTML já vai pronto com todo o conteúdo. A diferença de indexação é de **minutos vs semanas**. Para o blog, o ISR gera a página do post novo na primeira visita, sem build manual.
+
+| Métrica | SPA (Vite) | SSR (Next.js) |
+|---|---|---|
+| Tempo para indexação no Google | Dias a semanas | Minutos |
+| LCP | 2–4s | 0,5–1,2s |
+| Preview em redes sociais (OG) | Caixa branca | Título + imagem + descrição |
+| HTML entregue ao crawler | `<div id="root"></div>` | Conteúdo completo |
+
+**Páginas previstas** (Google Doc "Copy site - MVP"): Home, Sobre nós, AI Culture, Advisory, Execução, Cases, Soluções e Blog.
+
+### Painel Admin (`apps/admin`)
+
+**Tecnologia:** Vite com React e TypeScript (SPA + PWA). **Hospedagem:** Vercel (estático), migrável para Cloudflare Pages ou Netlify.
+
+O painel é 100% interativo (Kanban, gráficos, notificações em tempo real). SSR é peso morto aqui. O Vite gera arquivos estáticos que custam zero para hospedar, o HMR é instantâneo e o PWA é um plugin pronto (`vite-plugin-pwa`).
+
+| Métrica | Next.js no Admin | Vite no Admin |
+|---|---|---|
+| Tempo de build | 30–60s | 2–4s |
+| Bundle (runtime incluso) | ~85KB gzip | ~44KB gzip |
+| Deploy | Precisa de servidor Node.js | Pasta `dist/` estática |
+| PWA | Conflita com o Service Worker do Next | Plugin pronto |
+
+**PWA (planejado):** instalável no celular e no desktop, notificações push ("Novo lead capturado"), cache offline da interface.
+
+**Páginas do admin:**
+
+| Página | Função | Ferramentas (open-source, previstas) |
+|---|---|---|
+| Dashboard | KPIs, volume de captação, funil por origem, valor do pipeline | Recharts, TanStack Query, date-fns |
+| Leads e Clientes | Entrada de leads (vindos dos integradores ou do formulário interno) e carteira de clientes | TanStack Table |
+| CRM (pipeline) | Kanban, tabela e ficha lateral da oportunidade | Drag-and-drop, React Hook Form |
+| Projetos conectados | LPs e sites com o Connect instalado, com formulários rastreados e métricas de cada um | — |
+| Integrações e Chaves | Emitir token, gerar snippet, mapear campos, escopos | Prism.js |
+| Blog / CMS | Editor WYSIWYG, upload de imagem, rascunho e publicação | Tiptap |
+| E-mails | Templates e automações | easy-email |
+| Equipe e Configurações | Perfis, convites, webhooks, auditoria | — |
+
+### API (`apps/api`)
+
+**Tecnologia:** Go, `net/http`. **Hospedagem:** VPS.
+
+Uma VPS pequena com Go aguenta milhares de requisições por segundo, consome ~10MB de RAM parado, implanta como um único binário e dispara webhooks assíncronos com uma linha (`go disparar()`), sem fila externa.
+
+| Métrica | Node.js (Express) | Go (`net/http`) |
+|---|---|---|
+| RAM (idle) | ~50–80MB | ~8–12MB |
+| Throughput em VPS pequena | ~500 req/s | ~5.000–10.000 req/s |
+| Deploy | Node + npm + PM2 | 1 binário |
+| Webhooks assíncronos | Fila externa (Redis/BullMQ) | `go funcao()` nativo |
+
+---
+
+## Banco de Dados
+
+### MySQL sem Redis
+
+**Tecnologia:** MySQL 8+ (InnoDB), em VPS. **Acesso:** Go (SQL cru) e Prisma (schema e Studio), ambos pelo mesmo banco.
+
+Redis resolve um problema que ainda não temos. O Go já é rápido o bastante para que 1ms (Redis) contra 3ms (MySQL direto) seja imperceptível. Adicionar Redis hoje traria invalidação de cache, mais RAM e mais um serviço para monitorar.
+
+**Quando adicionar Redis:** quando uma query específica medir mais de 100ms e for chamada centenas de vezes por segundo, ou para filas de webhook, se as Goroutines não bastarem.
+
+### Modelo de dados — implementado
+
+Definido em `apps/studio/prisma/schema.prisma`:
+
+| Tabela | Campos principais |
+|---|---|
+| `User` | `name`, `email` (único), `avatarUrl`, `role` (hoje `ADMIN` ou `MEMBER`) |
+| `Company` | `name`, `logoUrl`, `website` |
+| `Contact` | `name`, `email`, `phone`, `avatarUrl`, `companyId` (opcional) |
+| `Opportunity` | `title`, `value`, `stage`, `priority`, `tags` (JSON), `companyId`, `contactId`, `ownerId` (todos opcionais) |
+| `Note` | `content`, `type` (`NOTE`, `CALL`, `EMAIL`, `MEETING`, `TASK`), `opportunityId`, `authorId` |
+
+**Etapas do funil** (`Opportunity.stage`): `INBOUND` → `QUALIFICATION` → `PROPOSAL` → `NEGOTIATION` → `WON` / `LOST`. O construtor de funil permite personalizar.
+
+### Modelo de dados — proposto (ainda não existe)
+
+| Tabela / campo | Para quê |
+|---|---|
+| `User` + `googleSub`, `isActive`, `lastLoginAt`; `role` = `ADMIN`, `MANAGER` ou `SELLER` | Login com Google e perfis (ver `auth-study.md`) |
+| `Project` (`name`, `url`, `stack`, `status`) | Projeto conectado: uma LP ou site com o Connect instalado |
+| `ProjectForm` (`projectId`, `name`, `selector`, `fieldMap`) | Formulário rastreado dentro de um projeto |
+| `ApiKey` (`projectId`, `name`, `prefix`, `keyHash`, `env`, `scopes`, `revokedAt`, `lastUsedAt`) | Chaves com escopo. O token completo aparece uma vez, no momento da emissão. |
+| `LeadSubmission` (`projectId`, `formId`, `payload`, atribuição, `opportunityId`) | Guarda cada envio (payload bruto, UTMs, `page_url`, IP) e liga à oportunidade criada ou atualizada |
+| `Opportunity` + `projectId`, `lostReason`, `expectedCloseDate`; `value` de `Float` para `Decimal(12,2)` | Origem do lead, motivo da perda, previsão de fechamento e valores exatos nas somas e relatórios (com `Float` a soma de centavos acumula erro) |
+| `Session` | Refresh tokens do login |
+| `AuditLog` | Trilha de auditoria |
+| `Post` | Blog (rascunho, publicado, slug, imagem de capa) |
+
+O esquema completo e os campos definitivos serão fechados junto com a implementação. Isto é uma proposta.
+
+---
+
+## Segurança
+
+### Camada 1 — Rede
+
+```
+  Internet                VPS
+┌──────────┐        ┌──────────────────────────┐
+│ Atacante │──✖──>  │  MySQL (porta 3306)      │
+│          │        │  só aceita a API          │
+└──────────┘        │                          │
+                    │  Go API (porta 443) ◄────│── Única porta pública
+                    └──────────────────────────┘
+```
+
+- O MySQL deve aceitar conexões **apenas da API** (bind local ou lista de IPs permitidos).
+- Firewall bloqueando tudo, exceto 443 (HTTPS) e 22 (SSH com chave pública).
+
+### Camada 2 — Acesso ao banco (mínimo privilégio)
+
+| Usuário MySQL | Permissões | Usado por |
+|---|---|---|
+| `kalidash_api` | `SELECT, INSERT, UPDATE` (+ `DELETE` onde o negócio exigir) | API Go no dia a dia |
+| `kalidash_migrate` | `ALL PRIVILEGES` | Apenas para mudanças de schema (Prisma) |
+| `kalidash_readonly` | `SELECT` | Backup e relatórios |
+
+### Camada 3 — Dados
+
+| Dado | Tratamento | Motivo |
+|---|---|---|
+| Token de chave de API | Hash SHA-256; só o prefixo fica visível | Nunca guardar a chave em texto limpo |
+| Telefone e campos extras do formulário | Criptografia AES-256-GCM (planejado; hoje `Contact.phone` está em texto) | Ilegível se alguém copiar o dump |
+| E-mail | Texto limpo | Necessário para busca e deduplicação |
+
+A chave de criptografia vive em variável de ambiente, nunca no código.
+
+### Camada 4 — Aplicação (o Go como guardião)
+
+| Ameaça | Proteção |
+|---|---|
+| SQL Injection | 100% prepared statements (já é assim no código atual) |
+| Flood / bot | Rate limiter por IP na captação: 5 leads/min. Acima disso, `429`. |
+| XSS armazenado | Sanitização com whitelist de tags antes de salvar |
+| Spoofing de origem | Validação de `Origin` + rate limit + Turnstile (opcional) |
+| Payload gigante | Limite de tamanho por request |
+| CORS | Restrito aos domínios do admin e dos projetos conectados |
+
+### Camada 5 — Autenticação do painel
+
+Google OAuth do Workspace, com JWT de curta duração (15 min) e refresh token em cookie `httpOnly`. Detalhes em [auth-study.md](./auth-study.md).
+
+### Camada 6 — Backups (regra 3-2-1)
+
+- **3** cópias dos dados (produção + 2 backups), em **2** mídias diferentes, com **1** cópia fora do provedor.
+- `mysqldump` diário com `--single-transaction`, compactado e enviado por `rclone` para storage externo.
+- **Teste de restauração mensal.** Backup que não é testado não é backup.
+
+### Camada 7 — LGPD
+
+| Exigência | Implementação |
+|---|---|
+| Direito de exclusão | Exclusão do lead com anonimização |
+| Consentimento | O Connect só envia se o checkbox de consentimento estiver marcado (quando configurado) |
+| Registro de tratamento | Tabela `AuditLog` |
+| Minimização | Capturar apenas os campos mapeados no snippet |
+| Portabilidade | Exportação em CSV/JSON |
+
+### Pendências de segurança conhecidas (26/09/2026)
+
+1. **API sem autenticação**, com CORS `*`. Qualquer cliente que alcance a API lê e altera oportunidades.
+2. **`/api/emails/send` aberto.** Usa a chave do Resend e aceita assunto e HTML arbitrários.
+3. **Sem `.gitignore` e sem repositório no monorepo.** `apps/api/.env` (com o DSN) e os `.exe` entrariam no primeiro commit.
+4. **Banco acessado por host remoto na porta 3306.** Confirmar se há restrição por IP; caso contrário, o banco está exposto.
+
+---
+
+## CMS Proprietário (Blog)
+
+**Editor:** Tiptap (MIT). O Sanity do site v1.0 foi descartado para eliminar dependência externa e custo.
+
+```
+Admin (PWA)                    API (Go)                     Site (Next.js)
+    │                              │                             │
+    ├─ Escreve no Tiptap           │                             │
+    ├─ Upload de imagem ───────>   ├─ Comprime para WebP         │
+    │                              ├─ Gera 3 tamanhos            │
+    │                              ├─ Salva no storage           │
+    ├─ Clica "Publicar" ───────>   ├─ Sanitiza HTML (whitelist)  │
+    │                              ├─ Gera slug único            │
+    │                              ├─ Salva no MySQL             │
+    │                              ├─ Dispara revalidação ────>  ├─ ISR regenera a página
+    │                              │                             ├─ Google indexa o HTML completo
+```
+
+---
+
+## Ciclo de vida do lead
+
+```
+┌─────────┐   ┌───────────────┐   ┌──────────┐   ┌─────────────┐   ┌─────┐
+│ INBOUND │──>│ QUALIFICATION │──>│ PROPOSAL │──>│ NEGOTIATION │──>│ WON │
+│ (Entrada)│  │ (Qualificação)│   │ (Proposta)│  │ (Negociação)│   │     │
+└────┬────┘   └───────────────┘   └──────────┘   └─────────────┘   └─────┘
+     │
+     └────────────────────────────────────────────────────────────>┌──────┐
+                                                                   │ LOST │
+                                                                   └──────┘
+```
+
+| Etapa | Quem move | O que acontece |
+|---|---|---|
+| **INBOUND** | Automático (Connect, API ou webhook) | Lead entra. Notificação no painel. Aparece na primeira coluna do Kanban. |
+| **QUALIFICATION** | Vendedor | Primeiro contato feito. Notas na ficha. |
+| **PROPOSAL** | Vendedor | Proposta enviada. Valor e previsão de fechamento. |
+| **NEGOTIATION** | Vendedor | Em negociação. |
+| **WON** | Vendedor | Fechado. Confirma o valor final da oportunidade. Pode disparar webhook de saída. |
+| **LOST** | Vendedor | Perdido. Exige o motivo (preço, concorrência, sem interesse, timing). |
+
+**Regras de negócio**
+- **Atribuição:** o lead entra sem dono e qualquer vendedor pode pegar para si. Com round-robin ligado pelo gerente, o próximo vendedor da fila recebe automaticamente (`ownerId`).
+- **SLA de primeiro contato:** timer no card ("2h sem resposta"), configurável.
+- **Deduplicação:** o mesmo e-mail não cria um card novo. O card existente recebe uma nota "Nova conversão na página X" e volta ao topo de INBOUND.
+- **Visibilidade:** Admin e Gerente veem todo o funil; o Vendedor vê só o que está atribuído a ele.
+
+**Valor das oportunidades** (como nos CRMs de mercado; não há módulo Financeiro separado)
+- Cada oportunidade tem um **valor em R$**, informado na criação e editável em qualquer etapa. Em `WON`, confirma-se o valor final.
+- O Kanban mostra o **total por coluna**, e a tabela permite ordenar e filtrar por valor.
+- O dashboard consolida: **valor em pipeline** (oportunidades abertas, por etapa e total), **valor ganho no período**, **valor perdido**, **ticket médio** e, opcionalmente, **previsão ponderada** (valor × probabilidade da etapa).
+- O valor segue a visibilidade do CRM: quem vê a oportunidade vê o valor dela (padrão a confirmar).
+
+---
+
+## Inbound (pipeline de captação)
+
+Como os leads chegam das LPs e dos formulários que a Kalidash lança.
+
+```
+   Visitante em uma LP ou site da Kalidash
+          │
+          ├─ 1. A página carrega connect.js (tag de script com o token)
+          ├─ 2. O Connect observa o formulário existente (seletor da config)
+          ├─ 3. Visitante preenche e envia
+          │
+          ▼
+   connect.js intercepta o submit
+          │
+          ├─ 4. Lê os campos mapeados (nome, e-mail, telefone, empresa, cargo, interesse, mensagem)
+          ├─ 5. Coleta atribuição: UTMs, referrer, device, page_url
+          ├─ 6. Só envia se o consentimento estiver marcado (quando configurado)
+          ├─ 7. POST para a API com o token do projeto
+          │
+          ▼
+   API Go
+          │
+          ├─ 8.  Rate limit por IP
+          ├─ 9.  Token → SHA-256 → busca a chave; existe, não está revogada, tem o escopo forms:write?
+          ├─ 10. Origin bate com o domínio do projeto conectado?
+          ├─ 11. Valida e sanitiza os campos
+          ├─ 12. Cria ou atualiza Contact/Company e abre (ou reativa) a Opportunity em INBOUND
+          ├─ 13. Grava a LeadSubmission (payload, atribuição, projeto, formulário)
+          │
+          ├─ 14. Em paralelo (Goroutines): WebSocket para o painel, Web Push, webhooks de saída
+          │
+          └─ 15. Retorna 201 ao connect.js
+```
+
+**Métricas do dashboard**
+
+| Métrica | Cálculo | Visualização |
+|---|---|---|
+| Leads no período | Contagem de oportunidades criadas, com filtro opcional por projeto conectado | Card |
+| Leads hoje | Criados hoje, com variação vs. ontem | Card |
+| Taxa de conversão | `WON` / total | Rosca |
+| Leads por origem | Agrupado por `utm_source` e projeto | Barras |
+| Leads por página | Agrupado por `page_url` | Tabela |
+| Tempo médio de resposta | Entrada em INBOUND até a saída da etapa | Indicador |
+| Volume diário | Últimos 30 dias | Linha |
+| Valor em pipeline | Soma de `value` das oportunidades abertas, por etapa e total | Card + barras por etapa |
+| Valor ganho no período | Soma de `value` das oportunidades `WON` no período | Card |
+| Ticket médio | Valor ganho ÷ nº de oportunidades `WON` | Indicador |
+| Previsão ponderada (opcional) | Soma de `value` × probabilidade de cada etapa | Indicador |
+
+---
+
+## Connect.js (o script de captura)
+
+Um script leve que se cola na LP. **Ele não renderiza nem estiliza formulário**: o markup e o CSS são da página. Ele lê os inputs que já existem, segundo um mapa declarado na config, e envia **sempre o mesmo JSON**.
+
+### Snippet
+
+```html
+<!-- Kalidash Connect -->
+<script
+  src="https://cdn.kalidash.com.br/connect.js"
+  data-token="kld_live_…"
+  defer
+></script>
+<script type="application/json" data-kalidash-config>
+{
+  "form": "#form-contato",
+  "map": { "nome": "#nome", "email": "#email", "empresa": "#empresa", "interesse": "#interesse" },
+  "attribution": true,
+  "consent": "#aceite"
+}
+</script>
+```
+
+O domínio do CDN é o do código v1.0 (`cdn.kalidash.com.br`) e deve ser confirmado.
+
+### Contrato do payload (sempre os mesmos campos)
+
+```json
+{
+  "token": "kld_live_…",
+  "form": "#form-contato",
+  "lead": {
+    "nome": "…", "email": "…", "telefone": null, "empresa": "…",
+    "cargo": null, "interesse": "…", "mensagem": null
+  },
+  "attribution": { "utm_source": "…", "utm_medium": "…", "utm_campaign": "…", "referrer": "…", "device": "…", "page_url": "…" },
+  "context": { "submittedAt": "…", "consent": true }
+}
+```
+
+Campos ausentes viram `null`. Campos fora do mapa viajam como extras.
+
+### Chaves e escopos
+
+Formato: `kld_live_<32 hex>` ou `kld_test_<32 hex>`. Depois da emissão, só o prefixo (18 caracteres) fica visível.
+
+| Escopo | Para quê | Pode ir no HTML? |
+|---|---|---|
+| `forms:write` | Criar leads a partir do Connect (o mínimo do snippet) | Sim |
+| `analytics:write` | Pageview, sessão e origem | Sim |
+| `ads:read` | Sincronizar custo e CPL de mídia paga | Não |
+| `leads:read` | Consultar a base pelo servidor | **Nunca** |
+
+### Segurança do Connect
+
+| Ameaça | Proteção |
+|---|---|
+| Chave visível no HTML | É uma chave pública, só com `forms:write` e `analytics:write`: não lê, não altera e não deleta |
+| Spoofing de origem | Validação de `Origin` + rate limit por IP |
+| Flood de requisições falsas | 5 leads/min por IP. Acima disso, `429`. |
+| Bot / spam | Cloudflare Turnstile (opcional) |
+| Interceptação | HTTPS (TLS 1.3) |
+
+---
+
+## Princípio Kalidash
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    PRINCÍPIO KALIDASH                    │
+│                                                         │
+│   "Cada peça no sistema precisa justificar sua          │
+│    existência. Se ela não resolve um problema            │
+│    que já existe, ela É o problema."                     │
+│                                                         │
+│   ✅ Vite Admin  → Leve, rápido, sem servidor           │
+│   ✅ Next.js Site → SEO obrigatório, ISR nativo         │
+│   ✅ Go API      → 10x menos RAM, 10x mais throughput   │
+│   ✅ MySQL puro  → Simples, confiável, barato           │
+│   ❌ Redis       → Problema que ainda não temos         │
+│   ❌ Sanity      → Dependência que não precisamos       │
+│   ❌ Multi-tenant → Não é o escopo                      │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Decisões em aberto
+
+1. **E-mail:** a meta é a Gmail API (o e-mail sai da caixa do vendedor). O Resend com `onboarding@resend.dev` no código é provisório.
+2. **VPS:** Vultr (São Paulo) ou DigitalOcean, conforme a preferência da Kalidash. Se mantiver o EasyPanel, o plano precisa ter pelo menos 2GB de RAM. A DigitalOcean não tem datacenter no Brasil.
+3. **Hospedagem do site e do admin:** o plano Hobby da Vercel é só para uso pessoal e não comercial. Escolher entre Vercel Pro (US$ 20/mês por assento) e Cloudflare Pages para o admin estático (US$ 0).
+4. **Domínio do CDN do Connect** (`cdn.kalidash.com.br` no código v1.0) e onde o arquivo fica hospedado. O custo é ~US$ 0 em qualquer opção.
+5. **Editor de e-mail:** manter no escopo do admin ou adiar. Hoje está fora dos módulos do plano original.
