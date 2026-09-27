@@ -842,7 +842,11 @@ textarea.inline-input { resize: vertical; }
 .tag-input { width: 160px; }
 .list-field { display: flex; flex-direction: column; gap: 6px; padding: 3px 0; }
 .list-row { display: flex; align-items: center; gap: 6px; }
-.list-label { max-width: 110px; }
+/* Sem isto os dois inputs dividiam o espaço igual (min-width:auto do flexbox), espremendo o
+   valor (e-mail, telefone) do mesmo jeito que o rótulo curto ("Pessoal", "Trabalho"). */
+.list-row .inline-input { min-width: 0; }
+.list-row .inline-input:not(.list-label) { flex: 1.6; }
+.list-label { max-width: 110px; flex: 1; }
 .list-actions { display: flex; gap: 6px; }
 .doc-field { position: relative; }
 .doc-reveal { position: absolute; right: 0; top: 4px; }
