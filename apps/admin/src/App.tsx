@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Moon, Settings, Sun } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
+import Clients from './pages/Clients';
 import Leads from './pages/Leads';
 import Opportunities from './pages/Opportunities';
 import PeopleCompanies from './pages/PeopleCompanies';
@@ -75,6 +76,9 @@ export default function App() {
       break;
     case 'pessoas-empresas':
       page = <PeopleCompanies />;
+      break;
+    case 'clientes':
+      page = <Clients />;
       break;
     case 'emails':
       page = <Emails />;
