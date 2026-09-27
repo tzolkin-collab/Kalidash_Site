@@ -264,7 +264,16 @@ export default function Opportunities() {
 
   return (
     <div className={`crm-scope crm-fs-${settings.fontSize} opp-page`}>
-      <header className="header animate-header" style={{ padding: '32px 40px 16px', borderBottom: 'none', position: 'relative', zIndex: 50 }}>
+      <header
+        className="header animate-header"
+        style={{ padding: '32px 40px 16px', borderBottom: 'none', position: 'relative', zIndex: 50 }}
+        // A animação de entrada fica presa no elemento pra sempre (fill: forwards), e isso por si
+        // só cria um contexto de empilhamento — combinado com position:relative + z-index, o
+        // cabeçalho passava por cima do overlay de um popup central (Peek), mesmo perdendo o
+        // clique pra ele: z-index "vence" no acerto de clique, mas não na pintura. Tirando a
+        // classe quando a animação termina, o cabeçalho volta a ser um z-index normal.
+        onAnimationEnd={(e) => e.currentTarget.classList.remove('animate-header')}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative' }}>
           <button className="mobile-menu-btn" onClick={openMenu} aria-label="Abrir menu"><Menu size={24} /></button>
 
