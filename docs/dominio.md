@@ -173,4 +173,4 @@ Hoje há 4 registros: 2 em Entrada, 1 em Qualificação, 1 Ganho.
 4. Um formulário alimenta uma só pipeline; uma pipeline tem várias fontes.
 5. Os concorrentes de referência são todos os CRMs consultados.
 
-Falta só uma decisão de **interface**, que faz parte da fase 0 do [plano de implementação](./plano-schema.md#10-ordem-de-implementação): a ficha da oportunidade como **painel lateral** ou como **modal**.
+A decisão de **interface** também está fechada (27/09/2026): a ficha da oportunidade abre como **painel lateral ou popup central, à escolha de cada pessoa**, em "Configurar visualização", que também define o tamanho da fonte e as colunas da Lista.

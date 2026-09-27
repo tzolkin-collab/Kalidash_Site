@@ -16,32 +16,34 @@
 
 ---
 
-## Status por módulo (26/09/2026)
+## Status por módulo (27/09/2026)
 
 | Módulo | Onde | Status | Observação |
 |---|---|---|---|
-| CRM — Kanban e tabela | admin + api | **Parcial** | A UI cria oportunidades e move de coluna; a API também edita título e valor. O Kanban mostra 3 colunas (INBOUND, QUALIFICATION, WON). Sem login. |
-| Ficha da oportunidade (gaveta lateral) | admin | **Parcial** | Visão Geral e notas funcionam. As abas Anotações e Tarefas são placeholders. |
-| Construtor de funil | admin | **Parcial** | Tela pronta, sem persistência (estado local). |
-| Editor de e-mail e templates | admin | **Parcial** | Templates e regras de automação em estado local. O envio de teste usa um contrato incompatível com a API. O preview de MJML só existe no `vite dev`. |
+| CRM — Kanban e tabela | admin + api | **Parcial** | A UI cria oportunidades e move de coluna; a API também edita título e valor. O Kanban mostra 3 colunas (INBOUND, QUALIFICATION, WON). A lista tem busca, filtro por estágio, paginação, colunas editáveis (inclusive campos de `customData`) e "Ver leads" (leads de exemplo). Sem login. |
+| Ficha da oportunidade (painel lateral ou popup) | admin | **Parcial** | Painel lateral ou popup central, à escolha; edição de título e valor corrigida; Visão Geral e notas funcionam. As abas Tarefas e E-mails são placeholders. |
+| Construtor de funil | admin | **Tela pronta, sem API** | Cria a pipeline a partir do template (etapas e requisitos iniciais) em estado local. |
+| Editor de e-mail e templates | admin | **Parcial** | Editor visual com canvas, preview desktop/mobile e traduções funcionando no `vite dev` e no build. Templates em estado local e histórico de envio de exemplo. As regras de automação foram para a página Automações. O envio de teste usa um contrato incompatível com a API. |
 | Envio de e-mail por oportunidade | api | **Parcial** | Via Resend (provisório). A meta é a Gmail API. |
-| Leads, Pessoas & Empresas e Clientes | admin + api | Planejado | Definição v2 em [dominio.md](./dominio.md). |
-| Pipelines (funil por oferta), fontes e painel de configurações | admin + api | Planejado | Hoje os funis existem só no código. |
-| Tarefas, requisitos de etapa e campos personalizados | admin + api | Planejado | Inclui a página Tarefas (galeria de funis e workflow de cada um). |
-| E-mails (templates) e Automações, em páginas separadas | admin + api | Planejado | O editor de e-mail existe em estado parcial. |
+| Leads, Pessoas & Empresas e Clientes | admin + api | **Tela pronta, sem API** | Páginas com dados de exemplo: fonte obrigatória no lead, CPF e CNPJ (inclusive alfanumérico) validados, deduplicação, empresa "em análise" sem CNPJ, stakeholders. Definição v2 em [dominio.md](./dominio.md). |
+| Pipelines (funil por oferta), fontes e painel de configurações | admin + api | **Tela pronta, sem API** | Painel dedicado (engrenagem em Oportunidades): etapas, fontes com "Conectar fonte", tarefas, campos personalizados e tags. Hoje os funis existem só no código. |
+| Tarefas, requisitos de etapa e campos personalizados | admin + api | **Tela pronta, sem API** | Galeria de funis e página do workflow (React Flow), com edição de requisitos e "seguir um registro". |
+| E-mails (templates) e Automações, em páginas separadas | admin + api | **Tela pronta, sem API** | E-mails (modelos e histórico) e Automações (catálogo, manuais e gerenciadas, execuções) são páginas próprias. |
 | Entrada de leads (`connect.js`, API direta, webhook) | api | Planejado | Contrato já desenhado no v1.0 (`connect.ts`). |
-| Projetos conectados, Integrações e Chaves | admin + api | Planejado | Já existia como mock no v1.0. |
+| Projetos conectados, Integrações e Chaves | admin + api | **Tela pronta, sem API** | Projetos com métricas, snippet e página de exemplo, emissão e revogação de chaves (o token de exemplo não existe no servidor). |
 | Login e perfis | api + admin | Planejado | Google OAuth do Workspace. Hoje a API está aberta. |
-| Blog / CMS | admin + site | Planejado | Tiptap instalado no admin, sem telas. O v1.0 arquivado usava Sanity. |
-| Dashboard e analytics | admin | Planejado | |
-| Equipe e Configurações | admin + api | Planejado | |
-| Webhooks de saída e auditoria | api | Planejado | |
+| Blog / CMS | admin + site | **Tela pronta, sem API** | Lista e editor (Tiptap) com SEO e agendamento, em dados de exemplo. O site ainda não consome. O v1.0 arquivado usava Sanity. |
+| Dashboard e analytics | admin | **Parcial** | Métricas reais calculadas de `/api/leads` (valor em aberto e ganho, conversão, funil por etapa). Leads, tarefas e origem entram com as fases 3 e 4. |
+| Equipe e Configurações | admin + api | **Tela pronta, sem API** | Página com perfil, equipe e perfis (Admin, Gerente, Vendedor), webhooks e auditoria, em dados de exemplo. |
+| Webhooks de saída e auditoria | api | Planejado | A tela existe em Configurações; falta a API e o disparo em segundo plano. |
 | Notificações (WebSocket, Web Push, PWA) | api + admin | Planejado | O admin ainda não é PWA. |
 | Google Meet, Gmail e Drive | api | Planejado | |
 | Site institucional | site | Planejado | `apps/site` é boilerplate. O Motion do v1.0 está arquivado como referência. A copy está no Google Doc "Copy site - MVP". |
 | Valor das oportunidades | admin + api | **Parcial** | Cada oportunidade tem `value` e o Kanban soma o valor por coluna. Faltam valor ganho por período, ticket médio, previsão ponderada e o campo em `Decimal`. Não há módulo Financeiro separado. |
 
-*Status levantado por leitura do código em 26/09/2026. Nada foi executado nem testado para montar esta tabela.*
+**Tela pronta, sem API** significa que a interface existe e funciona com dados de exemplo em memória (`apps/admin/src/mocks`): nada é gravado e recarregar a página restaura o exemplo. Cada tela mostra um aviso disso e a fase do [plano de schema](./plano-schema.md#10-ordem-de-implementação) em que será ligada à API.
+
+*Status de 27/09/2026, conferido no navegador (dev e build) para as telas do admin. A API e o banco não mudaram.*
 
 ---
 
@@ -127,9 +129,9 @@ O painel é 100% interativo (Kanban, gráficos, notificações em tempo real). S
 | CRM (pipeline) | Kanban, tabela e ficha lateral da oportunidade | Drag-and-drop, React Hook Form |
 | Projetos conectados | LPs e sites com o Connect instalado, com formulários rastreados e métricas de cada um | — |
 | Integrações e Chaves | Emitir token, gerar snippet, mapear campos, escopos | Prism.js |
-| Blog / CMS | Editor WYSIWYG, upload de imagem, rascunho e publicação | Tiptap |
+| Blog / CMS | admin + site | **Tela pronta, sem API** | Lista e editor (Tiptap) com SEO e agendamento, em dados de exemplo. O site ainda não consome. O v1.0 arquivado usava Sanity. |
 | E-mails | Templates e automações | easy-email |
-| Equipe e Configurações | Perfis, convites, webhooks, auditoria | — |
+| Equipe e Configurações | admin + api | **Tela pronta, sem API** | Página com perfil, equipe e perfis (Admin, Gerente, Vendedor), webhooks e auditoria, em dados de exemplo. |
 
 ### API (`apps/api`)
 

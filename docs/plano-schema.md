@@ -267,7 +267,7 @@ model EmailTemplate { id String @id @default(uuid()) name String subject String 
 
 | Fase | Entrega | Depende de |
 |---|---|---|
-| **0** | Consertar a edição no popup (título e valor) e decidir modal ou painel lateral. | — |
+| **0** | ✅ Feita em 27/09/2026: edição de título e valor consertada; ficha em painel lateral **ou** popup, à escolha. As telas das fases 2 a 6 (e o painel de pipelines) já existem com dados de exemplo e esperam a API. | — |
 | **1** | Schema base, seed, API de pipelines, etapas e oportunidades com paginação e contagem. Some o funil escrito no código. | 0 |
 | **2** | Pessoas e Empresas: documento, CNPJ alfanumérico, "em análise", tags, stakeholders. Páginas Pessoas & Empresas e Clientes. | 1 |
 | **3** | Leads: registro, página Leads, **Ver leads** no Kanban e na Lista, qualificar (botão e arrastar), fontes. | 2 |
