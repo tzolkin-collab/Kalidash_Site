@@ -386,10 +386,13 @@ func main() {
 	mux.HandleFunc("/api/leads/notes", enableCORS(handleNotes))
 	mux.HandleFunc("/api/emails/send", enableCORS(handleSendEmail))
 
-	port := ":8080"
-	fmt.Printf("🚀 API do Kalidash (Go + MySQL) rodando em http://localhost%s\n", port)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	fmt.Printf("🚀 API do Kalidash (Go + MySQL) rodando em http://localhost:%s\n", port)
 	
-	if err := http.ListenAndServe(port, mux); err != nil {
+	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatalf("Erro ao iniciar API: %v", err)
 	}
 }
