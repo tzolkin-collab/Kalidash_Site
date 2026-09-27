@@ -27,7 +27,7 @@ const EditorLayout = StandardLayout as unknown as ComponentType<{
 const getBlock = (type: BasicType | AdvancedType) => BlockManager.getBlockByType(type)!;
 
 export default function Emails() {
-  const [activeTab, setActiveTab] = useState<'templates' | 'history'>('templates');
+  const [activeTab, setActiveTab] = useState<'inbox' | 'templates' | 'history'>('inbox');
 
   // Real State for Templates
   const [templates, setTemplates] = useState([
@@ -232,12 +232,25 @@ export default function Emails() {
         actions={activeTab === 'templates' ? <button type="button" className="btn btn-solid" onClick={createNewTemplate}><Plus size={14} /> Criar template</button> : undefined}
       />
       <Tabs
-        tabs={[{ id: 'templates' as const, label: 'Modelos visuais', count: templates.length }, { id: 'history' as const, label: 'Histórico de envio', count: emailLog.length }]}
+        tabs={[{ id: 'inbox' as const, label: 'Caixa de Entrada' }, { id: 'templates' as const, label: 'Modelos visuais', count: templates.length }, { id: 'history' as const, label: 'Histórico de envio', count: emailLog.length }]}
         value={activeTab}
-        onChange={(id) => setActiveTab(id as 'templates' | 'history')}
+        onChange={(id) => setActiveTab(id as 'inbox' | 'templates' | 'history')}
       />
 
-      {activeTab === 'templates' ? (
+      {activeTab === 'inbox' ? (
+        <div style={{ padding: '60px 24px', textAlign: 'center', background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border-subtle)', marginTop: 24, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{ width: 64, height: 64, background: 'var(--bg-body)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+            <Mail size={32} className="text-muted" opacity={0.5} />
+          </div>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>Caixa de entrada desconectada</h2>
+          <p style={{ color: 'var(--text-secondary)', maxWidth: 420, marginBottom: 24, lineHeight: 1.5 }}>
+            Conecte sua conta de e-mail (Google Workspace ou Microsoft 365) via OAuth para centralizar as mensagens dos seus leads aqui.
+          </p>
+          <button className="btn btn-solid" onClick={() => alert('Em breve: Redirecionamento para a página de Integrações (Google/Microsoft OAuth).')}>
+            Conectar conta de e-mail
+          </button>
+        </div>
+      ) : activeTab === 'templates' ? (
         <div className="template-grid">
           {templates.map((tpl) => (
             <button type="button" key={tpl.id} className="template-card" onClick={() => openEditor(tpl.id)}>
