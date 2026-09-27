@@ -4,7 +4,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import GlobalDragHandle from 'tiptap-extension-global-drag-handle';
 import ImageResize from 'tiptap-extension-resize-image';
-import { Bold, Heading2, Heading3, Italic, List, ListOrdered, Plus, Quote, Redo2, Undo2, Image as ImageIcon, ImagePlus, Crop } from 'lucide-react';
+import { Bold, Heading2, Heading3, Italic, List, ListOrdered, Plus, Quote, Redo2, Undo2, Image as ImageIcon, ImagePlus } from 'lucide-react';
 import type { Post, PostStatus } from '../domain';
 import { formatDate } from '../lib/format';
 import { newId, useStore } from '../lib/store';
@@ -14,7 +14,6 @@ import { teamStore } from '../mocks/team';
 import { Badge, EmptyState, Field, Page, PageHeader, Pagination, PopupDialog, SampleBanner, SearchBox, Tabs } from '../components/ui';
 import type { Tone } from '../components/ui';
 import { CustomSelect } from '../components/ui';
-import Peek from '../components/Peek';
 import { useShell } from '../lib/shell';
 // @ts-ignore
 import siteStyles from '../../../../apps/site/src/app/blog/[slug]/article.module.css';
@@ -22,8 +21,6 @@ import siteStyles from '../../../../apps/site/src/app/blog/[slug]/article.module
 const STATUS_LABEL: Record<PostStatus, string> = { PUBLISHED: 'Publicado', DRAFT: 'Rascunho', SCHEDULED: 'Agendado' };
 const STATUS_TONE: Record<PostStatus, Tone> = { PUBLISHED: 'success', DRAFT: 'neutral', SCHEDULED: 'info' };
 type Filter = 'ALL' | PostStatus;
-
-const slugify = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 /** "2026-10-05T12:00:00Z" -> valor de <input type="datetime-local"> no horário local. */
 const toLocalInput = (iso?: string) => {
@@ -265,7 +262,7 @@ function PostEditor({ post, onBack, onSave }: { post: Post; onBack: () => void; 
                 </span>
 
                 {coverImage ? (
-                  <div style={{ position: 'relative', width: '100%', marginBottom: '80px', group: 'cover' }}>
+                  <div style={{ position: 'relative', width: '100%', marginBottom: '80px' }}>
                     <img 
                       src={coverImage} 
                       alt="Capa" 
