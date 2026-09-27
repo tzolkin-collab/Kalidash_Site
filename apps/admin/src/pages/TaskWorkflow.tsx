@@ -219,8 +219,6 @@ export default function TaskWorkflow({ pipelineId }: { pipelineId: string }) {
         </ReactFlow>
       </div>
 
-      </div>
-
       {searchOpen && (
         <PopupDialog title="Seguir um registro" description="Busque por um lead ou oportunidade para ver seu progresso." onClose={() => { setSearchOpen(false); setSearchQuery(''); }}>
           <div className="p-4" style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '400px' }}>
