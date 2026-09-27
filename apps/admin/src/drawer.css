@@ -179,8 +179,6 @@
 
 .peek-header {
   padding: 4px 32px 20px;
-  border-bottom: 1px solid var(--border-subtle);
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 4%, var(--bg-surface)), var(--bg-surface) 74%);
 }
 
 .peek-title,

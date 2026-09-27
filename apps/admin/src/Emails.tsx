@@ -234,7 +234,7 @@ export default function Emails() {
       <Tabs
         tabs={[{ id: 'templates' as const, label: 'Modelos visuais', count: templates.length }, { id: 'history' as const, label: 'Histórico de envio', count: emailLog.length }]}
         value={activeTab}
-        onChange={setActiveTab}
+        onChange={(id) => setActiveTab(id as 'templates' | 'history')}
       />
 
       {activeTab === 'templates' ? (

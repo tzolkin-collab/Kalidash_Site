@@ -78,7 +78,7 @@ export default function Clients() {
       <Tabs
         tabs={[{ id: 'all' as View, label: 'Todos', count: counts.all }, { id: 'companies' as View, label: 'Empresas', count: counts.companies }, { id: 'people' as View, label: 'Pessoas', count: counts.people }]}
         value={view}
-        onChange={setView}
+        onChange={(id) => setView(id as View)}
       />
       <div className="toolbar"><SearchBox value={search} onChange={setSearch} placeholder="Buscar cliente, documento ou contato…" /></div>
 
