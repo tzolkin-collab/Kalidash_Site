@@ -4,6 +4,7 @@ import { Moon, Settings, Sun } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import Leads from './pages/Leads';
 import Opportunities from './pages/Opportunities';
+import PeopleCompanies from './pages/PeopleCompanies';
 import { NAV_GROUPS, isActive } from './nav';
 import { useHashRoute } from './lib/router';
 import { ShellContext } from './lib/shell';
@@ -71,6 +72,9 @@ export default function App() {
       break;
     case 'oportunidades':
       page = <Opportunities />;
+      break;
+    case 'pessoas-empresas':
+      page = <PeopleCompanies />;
       break;
     case 'emails':
       page = <Emails />;

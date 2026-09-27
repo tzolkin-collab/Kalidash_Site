@@ -315,6 +315,15 @@
 .detail-list dd { margin: 0; overflow-wrap: anywhere; }
 .quote { margin: 0; padding: 10px 14px; border-left: 3px solid var(--border-focus); background: var(--bg-surface-hover); border-radius: 0 6px 6px 0; font-size: 14px; line-height: 1.5; }
 
+/* ---------- Pessoas, empresas e stakeholders ---------- */
+.form-error { padding: 8px 12px; border: 1px solid rgba(239, 68, 68, 0.5); border-radius: 6px; background: rgba(239, 68, 68, 0.07); color: #ef4444; font-size: 13px; }
+.task-callout { display: flex; gap: 10px; padding: 10px 12px; border: 1px solid rgba(217, 119, 6, 0.5); border-radius: 8px; background: rgba(245, 158, 11, 0.08); font-size: 13px; }
+.task-callout svg { flex-shrink: 0; margin-top: 2px; color: #d97706; }
+.stake-list { list-style: none; margin: 0 0 12px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.stake-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--border-subtle); border-radius: 8px; }
+.stake-default { display: inline-flex; align-items: center; cursor: pointer; }
+.stake-add { display: grid; grid-template-columns: 1fr; gap: 8px; }
+
 /* ---------- E-mails: modelos ---------- */
 .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
 .template-card { display: flex; flex-direction: column; padding: 0; border: 1px solid var(--border-subtle); border-radius: 14px; overflow: hidden; background: var(--bg-surface); color: var(--text-primary); text-align: left; font: inherit; cursor: pointer; transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s; }
