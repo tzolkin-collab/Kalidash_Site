@@ -2,6 +2,7 @@
   "name": "@kalidash/studio",
   "version": "1.0.0",
   "scripts": {
+    "dev": "prisma studio",
     "pull": "prisma db pull",
     "studio": "prisma studio"
   },

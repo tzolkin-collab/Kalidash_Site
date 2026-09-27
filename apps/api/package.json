@@ -1,0 +1,7 @@
+{
+  "name": "@kalidash/api",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "go run main.go"
+  }
+}
