@@ -631,6 +631,9 @@ td:hover .badge-line .badge-text {
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
 }
 
 .follow { display: flex; align-items: center; gap: 8px; }
