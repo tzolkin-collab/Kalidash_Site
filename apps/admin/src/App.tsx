@@ -20,6 +20,8 @@ import { EmptyState, Page, PageHeader } from './components/ui';
 const Emails = lazy(() => import('./Emails'));
 // React Flow (workflow das tarefas) também só carrega quando preciso.
 const TaskWorkflow = lazy(() => import('./pages/TaskWorkflow'));
+// O editor de texto do Blog (TipTap) também.
+const Blog = lazy(() => import('./pages/Blog'));
 
 function NotFound({ path }: { path: string }) {
   return (
@@ -94,6 +96,9 @@ export default function App() {
       break;
     case 'automacoes':
       page = <Automations />;
+      break;
+    case 'blog':
+      page = <Blog />;
       break;
     case 'projetos':
       page = <Projects />;
