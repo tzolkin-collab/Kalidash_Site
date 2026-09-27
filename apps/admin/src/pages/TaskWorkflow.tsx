@@ -155,24 +155,26 @@ export default function TaskWorkflow({ pipelineId }: { pipelineId: string }) {
   };
 
   return (
-    <div className="wf-fullscreen">
-      <div className="page" style={{ paddingBottom: 0, flex: 'none' }}>
-        <PageHeader
-          back={{ label: 'Tarefas', to: '/tarefas' }}
-          title={pipeline.name}
-          actions={
-            <>
-              <label className="follow">
-                <span className="text-xs text-muted">Seguir um registro:</span>
-                <CustomSelect className="select select-sm" value={followId} onChange={(e) => setFollowId(e.target.value)}>
-                  <option value="">Nenhum</option>
-                  {records.map((r) => <option key={r.id} value={r.id}>{r.name} ({r.kind === 'lead' ? 'lead' : 'oportunidade'})</option>)}
-                </CustomSelect>
-              </label>
-              <button type="button" className="btn" onClick={() => navigate(`/oportunidades/pipelines/${pipeline.id}`)}><Settings size={14} /> Configurar</button>
-            </>
-          }
-        />
+    <div className="wf-fullscreen" style={{ position: 'relative' }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10, padding: '24px 40px', pointerEvents: 'none' }}>
+        <div style={{ pointerEvents: 'auto' }}>
+          <PageHeader
+            back={{ label: 'Tarefas', to: '/tarefas' }}
+            title={pipeline.name}
+            actions={
+              <>
+                <label className="follow">
+                  <span className="text-xs text-muted">Seguir um registro:</span>
+                  <CustomSelect className="select select-sm" value={followId} onChange={(e) => setFollowId(e.target.value)}>
+                    <option value="">Nenhum</option>
+                    {records.map((r) => <option key={r.id} value={r.id}>{r.name} ({r.kind === 'lead' ? 'lead' : 'oportunidade'})</option>)}
+                  </CustomSelect>
+                </label>
+                <button type="button" className="btn" onClick={() => navigate(`/oportunidades/pipelines/${pipeline.id}`)}><Settings size={14} /> Configurar</button>
+              </>
+            }
+          />
+        </div>
       </div>
 
       <div className="wf-canvas" role="region" aria-label={`Workflow de ${pipeline.name}`}>
