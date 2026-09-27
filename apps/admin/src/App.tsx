@@ -10,6 +10,7 @@ import Opportunities from './pages/Opportunities';
 import PeopleCompanies from './pages/PeopleCompanies';
 import PipelineSettings from './pages/PipelineSettings';
 import Projects from './pages/Projects';
+import SettingsPage from './pages/Settings';
 import Tasks from './pages/Tasks';
 import { NAV_GROUPS, isActive } from './nav';
 import { useHashRoute } from './lib/router';
@@ -102,6 +103,9 @@ export default function App() {
       break;
     case 'projetos':
       page = <Projects />;
+      break;
+    case 'configuracoes':
+      page = <SettingsPage />;
       break;
     case 'emails':
       page = <Emails />;
