@@ -7,15 +7,16 @@ type Props = {
   fontSize: FontSize;
   onClose: () => void;
   children: ReactNode;
+  label?: string;
 };
 
 /**
- * Contêiner da ficha da oportunidade, no estilo do Notion:
- *  - "side": painel lateral. A página atrás continua visível e clicável (clicar em outra
- *    linha troca a ficha).
- *  - "center": popup central, com fundo escurecido.
+ * Casca global de painel lateral ou popup central, no estilo do Notion. Toda ficha e todo painel
+ * de criar/editar usam esta mesma casca, seguindo a mesma preferência (Configurar visualização):
+ *  - "side": painel lateral. A página atrás continua visível e clicável.
+ *  - "center": popup central, com fundo escurecido, fecha ao clicar fora.
  */
-export default function OpportunityPeek({ mode, fontSize, onClose, children }: Props) {
+export default function Peek({ mode, fontSize, onClose, children, label = 'Painel' }: Props) {
   // Esc fecha, exceto quando se está digitando (o campo trata o próprio Esc).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -31,7 +32,7 @@ export default function OpportunityPeek({ mode, fontSize, onClose, children }: P
   if (mode === 'center') {
     return (
       <div className="peek-center-overlay" onClick={onClose}>
-        <div className={`peek-center crm-scope crm-fs-${fontSize}`} role="dialog" aria-modal="true" aria-label="Oportunidade" onClick={(e) => e.stopPropagation()}>
+        <div className={`peek-center crm-scope crm-fs-${fontSize}`} role="dialog" aria-modal="true" aria-label={label} onClick={(e) => e.stopPropagation()}>
           {children}
         </div>
       </div>
@@ -39,7 +40,7 @@ export default function OpportunityPeek({ mode, fontSize, onClose, children }: P
   }
 
   return (
-    <aside className={`peek-side crm-scope crm-fs-${fontSize}`} role="dialog" aria-label="Oportunidade">
+    <aside className={`peek-side crm-scope crm-fs-${fontSize}`} role="dialog" aria-label={label}>
       {children}
     </aside>
   );

@@ -51,3 +51,11 @@ export function formatDate(iso?: string): string | null {
   if (Number.isNaN(d.getTime()) || d.getFullYear() < 2000) return null;
   return d.toLocaleDateString('pt-BR');
 }
+
+export function formatDateTime(iso?: string): string | null {
+  const date = formatDate(iso);
+  if (!date || !iso || !/T\d{2}:\d{2}/.test(iso)) return date;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return date;
+  return `${date} · ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+}

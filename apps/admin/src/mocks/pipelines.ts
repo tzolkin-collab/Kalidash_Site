@@ -1,5 +1,7 @@
 import { createStore } from '../lib/store';
-import type { Pipeline, Requirement, Stage } from '../domain';
+import type { Pipeline, Requirement, Stage, Step } from '../domain';
+import { stepsFromTemplate } from '../lib/pipelineTemplate';
+import { TEMPLATE_IDS, templatesStore } from './templates';
 
 // Dados de exemplo (fase 1 e 4 do plano). Ver docs/dominio.md §3, §8 e §11.
 
@@ -19,6 +21,12 @@ const baseRequirements = (p: string): Requirement[] => [
   { id: `${p}:r-fonte`, stageId: `${p}:novos`, label: 'Definir fonte da pipeline', tag: 'Configuração', kind: 'ACTION', gate: 'NONE', assignee: 'Carol Sales', blocked: 0, overdue: 0 },
   { id: `${p}:r-cnpj`, stageId: `${p}:assinatura`, label: 'Informar CNPJ', tag: 'Dados da empresa', kind: 'FIELD', gate: 'ENTER', assignee: 'Vendedor responsável', blocked: 0, overdue: 0 },
 ];
+
+/** Passos da pipeline: cópia do template de venda e, se houver, do de pós-venda. */
+const stepsFor = (list: Stage[], sale: string, post?: string): Step[] => {
+  const find = (id: string) => templatesStore.get().find((t) => t.id === id)!;
+  return [...stepsFromTemplate(find(sale), list), ...(post ? stepsFromTemplate(find(post), list) : [])];
+};
 
 const q4 = 'q4';
 const b2b = 'b2b';
@@ -48,7 +56,11 @@ export const pipelinesStore = createStore<Pipeline[]>([
       { id: 'cf2', key: 'origem_campanha', label: 'Campanha de origem', type: 'text' },
       { id: 'cf3', key: 'numero_de_vagas', label: 'Número de vagas', type: 'number' },
     ],
-    taskTags: ['Dados do cliente', 'Dados da empresa', 'Comercial', 'Configuração'],
+    taskTags: ['Dados do cliente', 'Dados da empresa', 'Comercial', 'Configuração', 'Pós-venda'],
+    qualifyRequires: ['value'],
+    templateId: TEMPLATE_IDS.consultiva,
+    postSaleTemplateId: TEMPLATE_IDS.posVenda,
+    steps: stepsFor(stages(q4), TEMPLATE_IDS.consultiva, TEMPLATE_IDS.posVenda),
   },
   {
     id: b2b,
@@ -67,6 +79,9 @@ export const pipelinesStore = createStore<Pipeline[]>([
     values: { [`${b2b}:qualificacao`]: 12000, [`${b2b}:proposta`]: 9000, [`${b2b}:negociacao`]: 30000, [`${b2b}:ganho`]: 47000 },
     customFields: [{ id: 'cf4', key: 'tipo_de_parceria', label: 'Tipo de parceria', type: 'select', options: ['Indicação', 'Revenda', 'Co-marketing'] }],
     taskTags: ['Dados da empresa', 'Jurídico', 'Comercial', 'Configuração'],
+    qualifyRequires: [],
+    templateId: TEMPLATE_IDS.parcerias,
+    steps: stepsFor(stages(b2b), TEMPLATE_IDS.parcerias),
   },
   {
     id: exp,
@@ -79,6 +94,9 @@ export const pipelinesStore = createStore<Pipeline[]>([
     values: { [`${exp}:qualificacao`]: 22000 },
     customFields: [],
     taskTags: ['Dados do cliente', 'Comercial', 'Configuração'],
+    qualifyRequires: [],
+    templateId: TEMPLATE_IDS.inbound,
+    steps: stepsFor(stages(exp), TEMPLATE_IDS.inbound),
   },
 ]);
 

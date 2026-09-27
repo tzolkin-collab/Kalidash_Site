@@ -1,15 +1,23 @@
 import { useMemo, useState } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { Bold, Heading2, Heading3, Italic, List, ListOrdered, Plus, Quote, Redo2, Undo2 } from 'lucide-react';
+import Image from '@tiptap/extension-image';
+import GlobalDragHandle from 'tiptap-extension-global-drag-handle';
+import ImageResize from 'tiptap-extension-resize-image';
+import { Bold, Heading2, Heading3, Italic, List, ListOrdered, Plus, Quote, Redo2, Undo2, Image as ImageIcon, ImagePlus, Crop } from 'lucide-react';
 import type { Post, PostStatus } from '../domain';
 import { formatDate } from '../lib/format';
 import { newId, useStore } from '../lib/store';
 import { usePaged } from '../lib/usePaged';
 import { postsStore } from '../mocks/posts';
 import { teamStore } from '../mocks/team';
-import { Badge, EmptyState, Field, Page, PageHeader, Pagination, SampleBanner, SearchBox, Tabs } from '../components/ui';
+import { Badge, EmptyState, Field, Page, PageHeader, Pagination, PopupDialog, SampleBanner, SearchBox, Tabs } from '../components/ui';
 import type { Tone } from '../components/ui';
+import { CustomSelect } from '../components/ui';
+import Peek from '../components/Peek';
+import { useShell } from '../lib/shell';
+// @ts-ignore
+import siteStyles from '../../../../apps/site/src/app/blog/[slug]/article.module.css';
 
 const STATUS_LABEL: Record<PostStatus, string> = { PUBLISHED: 'Publicado', DRAFT: 'Rascunho', SCHEDULED: 'Agendado' };
 const STATUS_TONE: Record<PostStatus, Tone> = { PUBLISHED: 'success', DRAFT: 'neutral', SCHEDULED: 'info' };
@@ -25,12 +33,12 @@ const toLocalInput = (iso?: string) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
-export default function Blog() {
+export default function Blog({ postId }: { postId?: string }) {
   const [posts, setPosts] = useStore(postsStore);
   const [team] = useStore(teamStore);
   const [filter, setFilter] = useState<Filter>('ALL');
   const [search, setSearch] = useState('');
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const shell = useShell();
 
   const counts = useMemo(() => ({
     ALL: posts.length,
@@ -47,12 +55,12 @@ export default function Blog() {
   }, [posts, filter, search]);
 
   const paged = usePaged(filtered, 10);
-  const editing = posts.find((p) => p.id === editingId);
+  
+  // Use postId from props or route, fallback to undefined
+  const editing = postId && postId !== 'novo' ? posts.find((p) => p.id === postId) : (postId === 'novo' ? { id: 'novo', title: '', slug: '', excerpt: '', body: '', tags: [], status: 'DRAFT', author: team[0]?.name ?? 'Equipe', updatedAt: new Date().toISOString() } as Post : undefined);
 
   const create = () => {
-    const post: Post = { id: newId('post'), title: '', slug: '', excerpt: '', body: '', tags: [], status: 'DRAFT', author: team[0]?.name ?? 'Equipe', updatedAt: new Date().toISOString() };
-    setPosts((prev) => [post, ...prev]);
-    setEditingId(post.id);
+    shell.navigate('/blog/novo');
   };
 
   if (editing) {
@@ -61,11 +69,17 @@ export default function Blog() {
         key={editing.id}
         post={editing}
         onBack={() => {
-          // Rascunho vazio que ninguém preencheu não fica na lista
-          if (!editing.title.trim() && !editing.body.trim()) setPosts((prev) => prev.filter((p) => p.id !== editing.id));
-          setEditingId(null);
+          shell.navigate('/blog');
         }}
-        onSave={(next) => setPosts((prev) => prev.map((p) => (p.id === next.id ? { ...next, updatedAt: new Date().toISOString() } : p)))}
+        onSave={(next) => {
+          if (editing.id === 'novo') {
+            const finalPost = { ...next, id: newId('post') };
+            setPosts((prev) => [finalPost, ...prev]);
+            shell.navigate(`/blog/${finalPost.id}`);
+          } else {
+            setPosts((prev) => prev.map((p) => (p.id === next.id ? { ...next, updatedAt: new Date().toISOString() } : p)));
+          }
+        }}
       />
     );
   }
@@ -92,7 +106,7 @@ export default function Blog() {
             <thead><tr><th>Artigo</th><th>Status</th><th>Autor</th><th>Tags</th><th>Atualizado</th></tr></thead>
             <tbody>
               {paged.rows.map((p) => (
-                <tr key={p.id} className="clickable" onClick={() => setEditingId(p.id)}>
+                <tr key={p.id} className="clickable" onClick={() => shell.navigate(`/blog/${p.id}`)}>
                   <td><div className="cell-stack"><span className="cell-primary">{p.title || 'Sem título'}</span><span className="text-xs text-muted mono">/blog/{p.slug || '…'}</span></div></td>
                   <td>
                     <Badge tone={STATUS_TONE[p.status]}>{STATUS_LABEL[p.status]}</Badge>
@@ -117,9 +131,10 @@ export default function Blog() {
 
 function PostEditor({ post, onBack, onSave }: { post: Post; onBack: () => void; onSave: (p: Post) => void }) {
   const [title, setTitle] = useState(post.title);
-  const [slug, setSlug] = useState(post.slug);
-  const [slugTouched, setSlugTouched] = useState(post.slug !== '');
+  const [slug, setSlug] = useState(post.slug || 'p-' + Math.random().toString(36).substr(2, 6));
   const [excerpt, setExcerpt] = useState(post.excerpt);
+  const [coverImage, setCoverImage] = useState(post.coverImage || '');
+  const [coverCrop, setCoverCrop] = useState(50); // percentage for object-position
   const [tags, setTags] = useState(post.tags.join(', '));
   const [status, setStatus] = useState<PostStatus>(post.status);
   const [publishAt, setPublishAt] = useState(toLocalInput(post.publishAt));
@@ -127,13 +142,21 @@ function PostEditor({ post, onBack, onSave }: { post: Post; onBack: () => void; 
   const [seoDescription, setSeoDescription] = useState(post.seoDescription ?? '');
   const [saved, setSaved] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+  const [imageDialog, setImageDialog] = useState<'body' | 'cover' | null>(null);
+  const [imageUrl, setImageUrl] = useState('');
   const touch = () => { setSaved(false); setDirty(true); };
 
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [
+      StarterKit, 
+      Image.configure({ inline: true }),
+      ImageResize,
+      GlobalDragHandle.configure({ dragHandleWidth: 20, scrollTreshold: 100 })
+    ],
     content: post.body,
     shouldRerenderOnTransaction: true,
-    editorProps: { attributes: { class: 'post-editor-area', 'aria-label': 'Corpo do artigo' } },
+    editorProps: { attributes: { class: 'post-editor-area blog-preview-body', 'aria-label': 'Corpo do artigo' } },
     onUpdate: () => { setSaved(false); setDirty(true); },
   });
 
@@ -147,13 +170,14 @@ function PostEditor({ post, onBack, onSave }: { post: Post; onBack: () => void; 
       tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
       publishAt: status === 'SCHEDULED' ? new Date(publishAt).toISOString() : undefined,
       seoTitle: seoTitle.trim() || undefined, seoDescription: seoDescription.trim() || undefined,
+      coverImage: coverImage.trim() || undefined,
     });
     setSaved(true);
     setDirty(false);
   };
 
   const leave = () => {
-    if (dirty && !window.confirm('Há alterações não salvas. Sair mesmo assim?')) return;
+    if (dirty) { setLeaveDialogOpen(true); return; }
     onBack();
   };
 
@@ -164,16 +188,35 @@ function PostEditor({ post, onBack, onSave }: { post: Post; onBack: () => void; 
   const shownTitle = seoTitle || title || 'Título do artigo';
   const shownDescription = seoDescription || excerpt || 'A descrição que aparece no Google.';
 
+  const addImage = () => {
+    setImageUrl('');
+    setImageDialog('body');
+  };
+
+  const addImageFromDialog = () => {
+    const url = imageUrl.trim();
+    if (!url) return;
+    if (imageDialog === 'cover') setCoverImage(url);
+    else editor?.chain().focus().setImage({ src: url }).run();
+    touch();
+    setImageDialog(null);
+  };
+
   return (
     <Page>
       <PageHeader
         title={title || 'Novo artigo'}
         subtitle={<><Badge tone={STATUS_TONE[status]}>{STATUS_LABEL[status]}</Badge> {saved && <span className="text-muted">Salvo agora.</span>}</>}
-        actions={<><button type="button" className="btn" onClick={leave}>Voltar à lista</button><button type="button" className="btn btn-solid" disabled={!canSave} onClick={save}>Salvar</button></>}
+        actions={
+          <>
+            <button type="button" className="btn" onClick={leave}>Voltar</button>
+            <button type="button" className="btn btn-solid" disabled={!canSave} onClick={save}>Salvar</button>
+          </>
+        }
       />
+      
       <div className="editor-layout">
         <div className="form-stack">
-          <Field label="Título"><input className="input title-input" value={title} onChange={(e) => { setTitle(e.target.value); touch(); if (!slugTouched) setSlug(slugify(e.target.value)); }} placeholder="O título do artigo" /></Field>
           <div className="editor-box">
             <div className="tool-row" role="toolbar" aria-label="Formatação">
               {tool('Negrito', Bold, () => editor?.chain().focus().toggleBold().run(), editor?.isActive('bold') ?? false)}
@@ -183,24 +226,84 @@ function PostEditor({ post, onBack, onSave }: { post: Post; onBack: () => void; 
               {tool('Lista', List, () => editor?.chain().focus().toggleBulletList().run(), editor?.isActive('bulletList') ?? false)}
               {tool('Lista numerada', ListOrdered, () => editor?.chain().focus().toggleOrderedList().run(), editor?.isActive('orderedList') ?? false)}
               {tool('Citação', Quote, () => editor?.chain().focus().toggleBlockquote().run(), editor?.isActive('blockquote') ?? false)}
+              {tool('Imagem', ImageIcon, addImage, false)}
               <span className="tool-sep" />
               {tool('Desfazer', Undo2, () => editor?.chain().focus().undo().run(), false, !editor?.can().undo())}
               {tool('Refazer', Redo2, () => editor?.chain().focus().redo().run(), false, !editor?.can().redo())}
             </div>
-            <EditorContent editor={editor} />
+
+            <div className={siteStyles.page}>
+              <header>
+                <a href="#" style={{ pointerEvents: 'none' }}>← Blog</a>
+                <a href="#" style={{ pointerEvents: 'none' }}>Kalidash</a>
+              </header>
+              <article>
+                <p>
+                  {tags.split(',')[0] || 'Kalidash'} · {formatDate(new Date().toISOString())}
+                </p>
+                <input 
+                  value={title} 
+                  onChange={(e) => { setTitle(e.target.value); touch(); }} 
+                  placeholder="Título da publicação"
+                  style={{ 
+                    width: '100%', border: 'none', background: 'transparent', outline: 'none',
+                    margin: '26px 0 34px', fontSize: 'clamp(3rem, 7vw, 7rem)', fontWeight: 500, lineHeight: 0.94, letterSpacing: '-0.07em', color: 'inherit', fontFamily: 'inherit'
+                  }} 
+                />
+                <textarea 
+                  value={excerpt} 
+                  onChange={(e) => { setExcerpt(e.target.value); touch(); }} 
+                  placeholder="Resumo do artigo..."
+                  className={siteStyles.excerpt}
+                  style={{ 
+                    width: '100%', border: 'none', background: 'transparent', outline: 'none', resize: 'none', fontFamily: 'inherit'
+                  }}
+                  rows={2}
+                />
+                <span style={{ display: 'block', margin: '30px 0 70px', fontSize: '0.8rem' }}>
+                  {post.author}
+                </span>
+
+                {coverImage ? (
+                  <div style={{ position: 'relative', width: '100%', marginBottom: '80px', group: 'cover' }}>
+                    <img 
+                      src={coverImage} 
+                      alt="Capa" 
+                      className={siteStyles.cover}
+                      style={{ maxHeight: '600px', objectFit: 'cover', objectPosition: `50% ${coverCrop}%`, display: 'block' }} 
+                    />
+                    <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 8 }}>
+                      <input 
+                        type="range" min="0" max="100" value={coverCrop} 
+                        onChange={(e) => { setCoverCrop(Number(e.target.value)); touch(); }}
+                        style={{ width: 100 }} title="Ajustar corte (Cima/Baixo)"
+                      />
+                      <button onClick={() => { setCoverImage(''); touch(); }} className="btn btn-sm">Remover Capa</button>
+                    </div>
+                  </div>
+                ) : (
+                  <button onClick={() => { setImageUrl(''); setImageDialog('cover'); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', padding: '40px', border: '2px dashed #d9d1df', borderRadius: '12px', background: 'transparent', color: '#625969', cursor: 'pointer', marginBottom: '80px', fontSize: '1.1rem' }}>
+                    <ImagePlus size={24} /> Adicionar foto de capa
+                  </button>
+                )}
+
+                <div className={siteStyles.body}>
+                  <EditorContent editor={editor} />
+                </div>
+              </article>
+            </div>
           </div>
-          <Field label="Resumo" hint="Aparece nas listagens do site."><textarea className="textarea" value={excerpt} onChange={(e) => { setExcerpt(e.target.value); touch(); }} /></Field>
         </div>
 
         <aside className="form-stack editor-side">
           <div className="panel-card form-stack">
             <Field label="Status">
-              <select className="select" value={status} onChange={(e) => { setStatus(e.target.value as PostStatus); touch(); }}>
+              <CustomSelect className="select" value={status} onChange={(e) => { setStatus(e.target.value as PostStatus); touch(); }}>
                 {(Object.keys(STATUS_LABEL) as PostStatus[]).map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
-              </select>
+              </CustomSelect>
             </Field>
             {status === 'SCHEDULED' && <Field label="Publicar em" hint={scheduleMissing ? 'Escolha a data e a hora.' : undefined}><input className="input" type="datetime-local" value={publishAt} onChange={(e) => { setPublishAt(e.target.value); touch(); }} /></Field>}
-            <Field label="Endereço (slug)" hint={`/blog/${slug || '…'}`}><input className="input mono" value={slug} onChange={(e) => { setSlugTouched(true); setSlug(slugify(e.target.value)); touch(); }} /></Field>
+            <Field label="Endereço (slug)" hint={`/blog/${slug || '…'}`}><input className="input mono" value={slug} onChange={(e) => { setSlug(e.target.value); touch(); }} /></Field>
             <Field label="Tags" hint="Separe por vírgula."><input className="input" value={tags} onChange={(e) => { setTags(e.target.value); touch(); }} /></Field>
           </div>
 
@@ -216,6 +319,25 @@ function PostEditor({ post, onBack, onSave }: { post: Post; onBack: () => void; 
           </div>
         </aside>
       </div>
+
+      {leaveDialogOpen && <PopupDialog
+        eyebrow="ALTERAÇÕES DO ARTIGO"
+        tone="warning"
+        title="Sair sem salvar?"
+        description="As alterações feitas neste artigo serão descartadas."
+        onClose={() => setLeaveDialogOpen(false)}
+        footer={<><button type="button" className="btn" onClick={() => setLeaveDialogOpen(false)}>Continuar editando</button><button type="button" className="btn btn-danger" onClick={() => { setLeaveDialogOpen(false); onBack(); }}>Sair sem salvar</button></>}
+      />}
+
+      {imageDialog && <PopupDialog
+        eyebrow={imageDialog === 'cover' ? 'IMAGEM DE CAPA' : 'EDITOR DO ARTIGO'}
+        title={imageDialog === 'cover' ? 'Adicionar capa' : 'Adicionar imagem'}
+        description="Cole o endereço público da imagem que será exibida no artigo."
+        onClose={() => setImageDialog(null)}
+        footer={<><button type="button" className="btn" onClick={() => setImageDialog(null)}>Cancelar</button><button type="button" className="btn btn-solid" disabled={!imageUrl.trim()} onClick={addImageFromDialog}>Adicionar imagem</button></>}
+      >
+        <Field label="URL da imagem"><input className="input" type="url" autoFocus value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') addImageFromDialog(); }} placeholder="https://exemplo.com/imagem.webp" /></Field>
+      </PopupDialog>}
     </Page>
   );
 }

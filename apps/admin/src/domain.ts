@@ -43,6 +43,10 @@ export type Requirement = {
   blocked: number;
   /** Tarefas deste requisito que passaram do prazo. */
   overdue: number;
+  /** Caminho simples (D9): notifica o responsável por push quando a tarefa nasce. */
+  notifyAssignee?: boolean;
+  /** Caminho avançado (D9): id da automação criada a partir desta tarefa, se houver. */
+  linkedAutomationId?: string;
 };
 
 export type CustomFieldType = 'text' | 'number' | 'date' | 'select' | 'boolean';
@@ -68,34 +72,145 @@ export type Pipeline = {
   values: Record<string, number>;
   customFields: CustomField[];
   taskTags: string[];
+  /** O que o Qualificar precisa perguntar na hora (D5). */
+  qualifyRequires: ('value' | 'owner')[];
+  /** Template de venda de que esta pipeline foi copiada, e o de pós-venda encadeado ao ganho. */
+  templateId?: string;
+  postSaleTemplateId?: string;
+  /** Passos do ciclo de vida: cópia editável do template. É o que roda. */
+  steps: Step[];
+  archivedAt?: string;
 };
 
-export type Lifecycle = 'LEAD' | 'PROSPECT' | 'CLIENT';
+export type StepAction = {
+  id: string;
+  actionId: string;
+  /** Texto livre da ação (ex.: "Informar CNPJ|Dados da empresa" para criar tarefa). */
+  detail: string;
+  delayDays: number;
+};
+
+export type StepPhase = 'sale' | 'post-sale';
+
+/** Um passo liga um evento a ações. Sem ramificação: condição simples e lista de ações. */
+export type Step = {
+  id: string;
+  /** Identifica o passo no template de origem, para comparar depois. */
+  key: string;
+  phase: StepPhase;
+  name: string;
+  triggerId: string;
+  /** Condição: só vale para esta etapa. */
+  stageId?: string;
+  /** Condição: só vale para este campo (evento campo.mudou e empresa.criada). */
+  fieldKey?: string;
+  onlyIfEmpty?: boolean;
+  actions: StepAction[];
+  enabled: boolean;
+};
+
+export type TemplateStep = Omit<Step, 'stageId'> & { stageName?: string };
+
+export type LifecycleTemplate = {
+  id: string;
+  name: string;
+  description: string;
+  kind: 'SALE' | 'POST_SALE';
+  builtIn: boolean;
+  version: number;
+  stages: { name: string; kind: StageKind; color: string }[];
+  requirements: { label: string; tag: string; kind: RequirementKind; gate: RequirementGate; stageName: string; assignee?: string; dueDays?: number }[];
+  steps: TemplateStep[];
+};
+
+/** INACTIVE: perdeu, descartou ou foi marcado à mão. Só avança sozinho: Lead, Em negociação, Cliente. */
+export type Lifecycle = 'LEAD' | 'PROSPECT' | 'CLIENT' | 'INACTIVE';
+
+export type ContactPoint = { value: string; label: string };
+
+export type Stakeholder = { personId: string; description: string; tag: string };
+
+export type EntityKind = 'lead' | 'person' | 'company' | 'opportunity' | 'pipeline';
+
+export type TaskItem = {
+  id: string;
+  entity: EntityKind;
+  entityId: string;
+  entityName: string;
+  title: string;
+  tag: string;
+  assignee?: string;
+  dueAt?: string;
+  done: boolean;
+  doneAt?: string;
+  source: 'manual' | 'passo' | 'requisito';
+  /** Nas nascidas de um requisito: liga de volta pra ele, para checar o gate. */
+  requirementId?: string;
+  createdAt: string;
+};
+
+export type ChangeKind = 'create' | 'edit' | 'archive' | 'restore' | 'reveal' | 'lifecycle' | 'event' | 'qualify' | 'discard';
+
+export type ChangeEntry = {
+  id: string;
+  at: string;
+  actor: string;
+  entity: EntityKind;
+  entityId: string;
+  entityName: string;
+  kind: ChangeKind;
+  field?: string;
+  from?: string;
+  to?: string;
+  note?: string;
+};
 
 export type Person = {
   id: string;
   name: string;
+  /** E-mail e telefone principais; os demais ficam em extraEmails e extraPhones. */
   email: string;
   phone: string;
-  /** CPF. */
+  extraEmails: ContactPoint[];
+  extraPhones: ContactPoint[];
+  /** CPF. Sensível: aparece mascarado e só quem tem permissão revela. */
   document?: string;
-  companyId?: string;
+  /** Cargo. As empresas da pessoa vêm dos stakeholders de cada empresa. */
   role?: string;
   tags: string[];
   lifecycle: Lifecycle;
+  /** Cliente de antes do sistema, marcado à mão. */
+  legacyClient?: boolean;
+  inactiveReason?: string;
+  firstWonAt?: string;
+  lgpdBasis?: string;
+  lgpdAt?: string;
+  customData?: Record<string, unknown>;
+  archivedAt?: string;
   createdAt: string;
 };
 
 export type Company = {
   id: string;
   name: string;
+  legalName?: string;
   /** CNPJ (alfanumérico desde 31/07/2026). Sem ele a empresa fica "em análise". */
   document?: string;
   status: 'ACTIVE' | 'REVIEW';
   defaultContactId?: string;
-  stakeholders: { personId: string; description: string; tag: string }[];
+  /** Campo de relação: todas as pessoas cadastradas nesta empresa. */
+  stakeholders: Stakeholder[];
   lifecycle: Lifecycle;
   segment: string;
+  sizeRange?: string;
+  website?: string;
+  city?: string;
+  state?: string;
+  legacyClient?: boolean;
+  inactiveReason?: string;
+  firstWonAt?: string;
+  customData?: Record<string, unknown>;
+  archivedAt?: string;
   createdAt: string;
 };
 
@@ -106,18 +221,32 @@ export type Lead = {
   name: string;
   email: string;
   phone?: string;
+  personId?: string;
+  companyId?: string;
   pipelineId: string;
   stageId: string;
   origin: LeadOrigin;
   /** Inbound: nome da fonte. Outbound: quem da equipe trouxe. */
   sourceName: string;
+  owner?: string;
+  estimatedValue?: number;
+  expectedCloseAt?: string;
   tags: string[];
   message?: string;
   status: 'ACTIVE' | 'QUALIFIED' | 'DISCARDED';
+  discardReason?: string;
+  /** Alguém já abriu este lead. */
+  wasSeen: boolean;
+  firstContactAt?: string;
+  convertedOpportunityId?: string;
+  /** Cliente que preencheu de novo. */
+  returningClient?: boolean;
+  customData?: Record<string, unknown>;
+  archivedAt?: string;
   createdAt: string;
 };
 
-export type AutomationCategory = 'Fontes' | 'Leads' | 'Oportunidades' | 'Pendências' | 'Notificações' | 'E-mails';
+export type AutomationCategory = 'Fontes' | 'Cadastros' | 'Leads' | 'Oportunidades' | 'Pendências' | 'Ciclo de vida' | 'Notificações' | 'E-mails';
 
 export type Automation = {
   id: string;
@@ -185,6 +314,7 @@ export type Post = {
   publishAt?: string;
   seoTitle?: string;
   seoDescription?: string;
+  coverImage?: string;
 };
 
 export type Role = 'ADMIN' | 'MANAGER' | 'SELLER';

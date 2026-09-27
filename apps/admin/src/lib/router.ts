@@ -3,7 +3,10 @@ import { useCallback, useEffect, useState } from 'react';
 // Roteamento por hash (#/leads, #/tarefas/q4). Sem dependência e sem configuração de servidor:
 // funciona em qualquer hospedagem estática e mantém o botão "voltar" do navegador.
 
-const read = () => window.location.hash.replace(/^#\/?/, '').split('?')[0];
+const read = () => {
+  const hash = window.location.hash.replace(/^#\/?/, '').split('?')[0];
+  return hash || window.location.pathname.replace(/^\/+|\/+$/g, '');
+};
 
 export function useHashRoute() {
   const [hash, setHash] = useState(read);

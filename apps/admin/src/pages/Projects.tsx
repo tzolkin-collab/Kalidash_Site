@@ -6,6 +6,7 @@ import { newId, useStore } from '../lib/store';
 import { SCOPE_INFO, apiKeysStore, projectsStore } from '../mocks/projects';
 import { Badge, EmptyState, Field, Page, PageHeader, SampleBanner, SidePanel, Tabs } from '../components/ui';
 import type { Tone } from '../components/ui';
+import { CustomSelect } from '../components/ui';
 
 type Tab = 'projects' | 'integrations' | 'keys';
 
@@ -167,7 +168,7 @@ function IntegrationsTab() {
         ) : (
           <>
             <Field label="Chave do snippet">
-              <select className="select" value={keyId} onChange={(e) => setKeyId(e.target.value)}>{usable.map((k) => <option key={k.id} value={k.id}>{k.name} ({k.prefix}…)</option>)}</select>
+              <CustomSelect className="select" value={keyId} onChange={(e) => setKeyId(e.target.value)}>{usable.map((k) => <option key={k.id} value={k.id}>{k.name} ({k.prefix}…)</option>)}</CustomSelect>
             </Field>
             <div className="code-box">
               <code>{snippet}</code>
@@ -309,8 +310,8 @@ function IssueKeyPanel({ onClose, onIssued }: { onClose: () => void; onIssued: (
       <div className="form-stack">
         <Field label="Nome"><input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex.: Connect da LP Consultoria" autoFocus /></Field>
         <div className="form-grid">
-          <Field label="Ambiente"><select className="select" value={env} onChange={(e) => setEnv(e.target.value as 'live' | 'test')}><option value="live">Produção (live)</option><option value="test">Teste (test)</option></select></Field>
-          <Field label="Projeto"><select className="select" value={project} onChange={(e) => setProject(e.target.value)}>{projects.map((p) => <option key={p.id}>{p.name}</option>)}</select></Field>
+          <Field label="Ambiente"><CustomSelect className="select" value={env} onChange={(e) => setEnv(e.target.value as 'live' | 'test')}><option value="live">Produção (live)</option><option value="test">Teste (test)</option></CustomSelect></Field>
+          <Field label="Projeto"><CustomSelect className="select" value={project} onChange={(e) => setProject(e.target.value)}>{projects.map((p) => <option key={p.id}>{p.name}</option>)}</CustomSelect></Field>
         </div>
         <fieldset className="scope-box">
           <legend className="field-label">Escopos</legend>

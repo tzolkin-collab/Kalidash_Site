@@ -18,6 +18,11 @@ export type Opportunity = {
   created_at?: string;
   /** Só no front: linha de lead exibida junto das oportunidades ("Ver leads"). */
   isLead?: boolean;
+  /** Criada no protótipo (qualificar um lead ou o formulário de nova oportunidade): não existe na API. */
+  isSample?: boolean;
+  origin?: 'INBOUND' | 'OUTBOUND';
+  leadId?: string;
+  ownerName?: string;
 
   // Campos personalizados: variáveis de um jsonb (a API ainda não os envia).
   customData?: Record<string, unknown>;
@@ -32,6 +37,5 @@ export type Opportunity = {
   contactAvatar?: string;
 
   ownerId?: string;
-  ownerName?: string;
   ownerAvatar?: string;
 };

@@ -38,3 +38,6 @@ export function formatCnpj(raw: string): string {
   const c = stripDoc(raw).slice(0, 14);
   return c.replace(/^(.{2})(.{0,3})(.{0,3})(.{0,4})(.{0,2}).*/, (_m, a, b, d, e, f) => [a, b && `.${b}`, d && `.${d}`, e && `/${e}`, f && `-${f}`].filter(Boolean).join(''));
 }
+
+/** CPF para listas: só os dois últimos dígitos aparecem. */
+export const maskCpf = (raw: string) => raw.replace(/\d(?=.*\d{2}$)/g, '•');

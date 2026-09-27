@@ -6,10 +6,8 @@ type Props = {
   settings: ViewSettings;
   onChange: (patch: Partial<ViewSettings>) => void;
   onReset: () => void;
-  /** As colunas só existem na Lista. */
-  view: 'kanban' | 'table';
-  editColumns: boolean;
-  onToggleEditColumns: () => void;
+  /** Só existe dentro de Oportunidades: colunas da Lista. Sem isso, a seção some. */
+  columnsSection?: { view: 'kanban' | 'table'; editColumns: boolean; onToggleEditColumns: () => void };
 };
 
 const OPEN_MODES: { value: OpenMode; label: string; Icon: typeof PanelRight }[] = [
@@ -23,8 +21,8 @@ const FONT_SIZES: { value: FontSize; label: string; sample: string }[] = [
   { value: 'lg', label: 'Grande', sample: '17px' },
 ];
 
-/** Botão "Configurar visualização" e o popover pequeno que ele abre. */
-export default function ViewSettingsPopover({ settings, onChange, onReset, view, editColumns, onToggleEditColumns }: Props) {
+/** Botão "Configurar visualização" e o popover pequeno que ele abre. Vale pra toda ficha e todo painel do app. */
+export default function ViewSettingsPopover({ settings, onChange, onReset, columnsSection }: Props) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -44,13 +42,13 @@ export default function ViewSettingsPopover({ settings, onChange, onReset, view,
     };
   }, [open]);
 
-  const canEditColumns = view === 'table';
+  const canEditColumns = columnsSection?.view === 'table';
 
   return (
     <div className="vs" ref={ref}>
       <button
         type="button"
-        className={`vs-trigger ${open || editColumns ? 'active' : ''}`}
+        className={`vs-trigger ${open || columnsSection?.editColumns ? 'active' : ''}`}
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="dialog"
         aria-expanded={open}
@@ -62,10 +60,11 @@ export default function ViewSettingsPopover({ settings, onChange, onReset, view,
       {open && (
         <div className="vs-popover" role="dialog" aria-label="Configurar visualização">
           <div className="vs-title">Configurar visualização</div>
+          <div className="vs-hint vs-intro">Vale para toda ficha e todo painel do Kalidash.</div>
 
           <div className="vs-section">
-            <div className="vs-label">Abrir oportunidade como</div>
-            <div className="vs-seg" role="radiogroup" aria-label="Abrir oportunidade como">
+            <div className="vs-label">Abrir fichas e painéis como</div>
+            <div className="vs-seg" role="radiogroup" aria-label="Abrir fichas e painéis como">
               {OPEN_MODES.map(({ value, label, Icon }) => (
                 <button
                   key={value}
@@ -99,26 +98,28 @@ export default function ViewSettingsPopover({ settings, onChange, onReset, view,
             </div>
           </div>
 
-          <div className="vs-section">
-            <div className="vs-label">Colunas</div>
-            <button
-              type="button"
-              className={`vs-toggle ${editColumns ? 'on' : ''}`}
-              onClick={() => { onToggleEditColumns(); if (!editColumns) setOpen(false); }}
-              disabled={!canEditColumns}
-              aria-pressed={editColumns}
-            >
-              <span className="vs-toggle-text">
-                <Columns3 size={14} /> Editar colunas
-              </span>
-              <span className="vs-switch" aria-hidden="true"><span className="vs-knob" /></span>
-            </button>
-            <div className="vs-hint">
-              {canEditColumns
-                ? 'Adicione ou remova colunas da Lista, inclusive campos personalizados.'
-                : 'Disponível na Lista. Troque a visão para editar as colunas.'}
+          {columnsSection && (
+            <div className="vs-section">
+              <div className="vs-label">Colunas</div>
+              <button
+                type="button"
+                className={`vs-toggle ${columnsSection.editColumns ? 'on' : ''}`}
+                onClick={() => { columnsSection.onToggleEditColumns(); if (!columnsSection.editColumns) setOpen(false); }}
+                disabled={!canEditColumns}
+                aria-pressed={columnsSection.editColumns}
+              >
+                <span className="vs-toggle-text">
+                  <Columns3 size={14} /> Editar colunas
+                </span>
+                <span className="vs-switch" aria-hidden="true"><span className="vs-knob" /></span>
+              </button>
+              <div className="vs-hint">
+                {canEditColumns
+                  ? 'Adicione ou remova colunas da Lista, inclusive campos personalizados.'
+                  : 'Disponível na Lista. Troque a visão para editar as colunas.'}
+              </div>
             </div>
-          </div>
+          )}
 
           <button type="button" className="vs-reset" onClick={onReset}>Restaurar padrão</button>
         </div>

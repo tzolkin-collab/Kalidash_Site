@@ -3,7 +3,7 @@ import type { Automation, AutomationCategory } from '../domain';
 
 // Dados de exemplo (fase 5 do plano). Ver docs/dominio.md §9.
 
-export const CATEGORIES: AutomationCategory[] = ['Fontes', 'Leads', 'Oportunidades', 'Pendências', 'Notificações', 'E-mails'];
+export const CATEGORIES: AutomationCategory[] = ['Fontes', 'Cadastros', 'Leads', 'Oportunidades', 'Pendências', 'Ciclo de vida', 'Notificações', 'E-mails'];
 
 export type CatalogItem = { id: string; label: string; category: AutomationCategory; detail: string };
 
@@ -11,9 +11,13 @@ export type CatalogItem = { id: string; label: string; category: AutomationCateg
 export const EVENTS: CatalogItem[] = [
   { id: 'formulario.enviado', label: 'Formulário enviado', category: 'Fontes', detail: 'Um formulário conectado recebeu um envio.' },
   { id: 'fonte.conectada', label: 'Fonte conectada a uma pipeline', category: 'Fontes', detail: 'Uma fonte passou a alimentar uma pipeline.' },
+  { id: 'pessoa.criada', label: 'Pessoa criada', category: 'Cadastros', detail: 'Uma pessoa foi cadastrada, à mão, por importação ou por uma fonte.' },
+  { id: 'empresa.criada', label: 'Empresa criada', category: 'Cadastros', detail: 'Uma empresa foi cadastrada. Sem CNPJ, ela fica em análise.' },
+  { id: 'campo.mudou', label: 'Campo mudou', category: 'Cadastros', detail: 'O valor de um campo de pessoa, empresa, lead ou oportunidade mudou (inclui preencher um campo vazio).' },
   { id: 'lead.criado', label: 'Lead criado', category: 'Leads', detail: 'Um lead entrou por fonte, cadastro manual ou importação.' },
   { id: 'lead.qualificado', label: 'Lead qualificado', category: 'Leads', detail: 'Um lead virou oportunidade.' },
   { id: 'lead.descartado', label: 'Lead descartado', category: 'Leads', detail: 'Um lead foi marcado como descartado.' },
+  { id: 'lead.sem_contato', label: 'Lead sem contato', category: 'Leads', detail: 'Passou dos dias combinados sem o primeiro contato.' },
   { id: 'oportunidade.criada', label: 'Oportunidade criada', category: 'Oportunidades', detail: 'Uma oportunidade nova entrou em uma pipeline.' },
   { id: 'oportunidade.mudou_de_etapa', label: 'Oportunidade mudou de etapa', category: 'Oportunidades', detail: 'Movida por arraste, botão ou automação.' },
   { id: 'oportunidade.ganha', label: 'Oportunidade ganha', category: 'Oportunidades', detail: 'Chegou a uma etapa do tipo Ganha.' },
@@ -36,12 +40,15 @@ export const ACTIONS: CatalogItem[] = [
   { id: 'tag.adicionar', label: 'Adicionar tag', category: 'Leads', detail: 'Marca o registro com uma tag.' },
   { id: 'oportunidade.mover', label: 'Mover de etapa', category: 'Oportunidades', detail: 'Respeita os requisitos que impedem entrar ou sair.' },
   { id: 'responsavel.atribuir', label: 'Atribuir responsável', category: 'Oportunidades', detail: 'Define o dono do registro.' },
-  { id: 'tarefa.criar', label: 'Criar tarefa', category: 'Pendências', detail: 'Abre uma pendência com tag, responsável e prazo.' },
+  { id: 'tarefa.criar', label: 'Criar tarefa', category: 'Pendências', detail: 'Abre uma pendência com tag, responsável e prazo. Formato: Título|Tag. O atraso vira o prazo da tarefa.' },
+  { id: 'tarefa.concluir', label: 'Concluir tarefa', category: 'Pendências', detail: 'Conclui a pendência aberta com este título no registro.' },
+  { id: 'ciclo.definir', label: 'Definir ciclo de vida', category: 'Ciclo de vida', detail: 'LEAD, PROSPECT (em negociação), CLIENT ou INACTIVE. Só avança sozinho.' },
   { id: 'notificar.equipe', label: 'Notificar alguém da equipe', category: 'Notificações', detail: 'Aviso dentro do admin.' },
   { id: 'webhook.chamar', label: 'Chamar webhook', category: 'Notificações', detail: 'POST em segundo plano, com nova tentativa progressiva.' },
   { id: 'email.enviar', label: 'Enviar e-mail com um modelo', category: 'E-mails', detail: 'Usa um modelo da página E-mails.' },
 ];
 
+export const eventLabel = (id: string) => EVENTS.find((e) => e.id === id)?.label ?? id;
 export const actionLabel = (id: string) => ACTIONS.find((a) => a.id === id)?.label ?? id;
 
 export type AutomationRow = Automation & { triggerId: string; actionId: string; detail: string; pipeline: string };
@@ -50,17 +57,14 @@ export const automationsStore = createStore<AutomationRow[]>([
   { id: 'au1', name: 'Criar lead a partir do formulário da LP Consultoria', category: 'Fontes', trigger: 'Formulário enviado', action: 'Criar lead', triggerId: 'formulario.enviado', actionId: 'lead.criar', detail: 'Pipeline Q4 Sales Pipeline, etapa Novos', pipeline: 'Q4 Sales Pipeline', origin: 'MANAGED', managedBy: 'Conectar fonte: Formulário da LP Consultoria', active: true, lastRun: '2026-09-27T07:58:00Z', runs: 47 },
   { id: 'au2', name: 'Importar contatos da planilha de parcerias', category: 'Fontes', trigger: 'Formulário enviado', action: 'Criar contato (pessoa)', triggerId: 'formulario.enviado', actionId: 'contato.criar', detail: 'Pipeline Parcerias B2B, etapa Novos', pipeline: 'Parcerias B2B', origin: 'MANAGED', managedBy: 'Conectar fonte: Importação de planilha', active: true, lastRun: '2026-09-22T16:20:00Z', runs: 12 },
   { id: 'au3', name: 'Tarefa "Informar CNPJ" ao entrar em Negociação', category: 'Pendências', trigger: 'Oportunidade mudou de etapa', action: 'Criar tarefa', triggerId: 'oportunidade.mudou_de_etapa', actionId: 'tarefa.criar', detail: 'Tag Dados da empresa, prazo de 3 dias', pipeline: 'Q4 Sales Pipeline', origin: 'MANAGED', managedBy: 'Marcar como tarefa: CNPJ da empresa', active: true, lastRun: '2026-09-25T10:12:00Z', runs: 9 },
-  { id: 'au4', name: 'Boas-vindas ao lead inbound', category: 'Leads', trigger: 'Lead criado', action: 'Enviar e-mail com um modelo', triggerId: 'lead.criado', actionId: 'email.enviar', detail: 'Modelo: Boas-vindas (Inbound)', pipeline: 'Todas', origin: 'MANUAL', active: true, lastRun: '2026-09-27T08:02:00Z', runs: 31 },
-  { id: 'au5', name: 'Avisar o vendedor quando um lead entra', category: 'Leads', trigger: 'Lead criado', action: 'Notificar alguém da equipe', triggerId: 'lead.criado', actionId: 'notificar.equipe', detail: 'Responsável pela pipeline', pipeline: 'Todas', origin: 'MANUAL', active: true, lastRun: '2026-09-27T07:58:00Z', runs: 47 },
   { id: 'au6', name: 'Resumo por e-mail ao ganhar', category: 'Oportunidades', trigger: 'Oportunidade ganha', action: 'Enviar e-mail com um modelo', triggerId: 'oportunidade.ganha', actionId: 'email.enviar', detail: 'Modelo: Follow-up Reunião', pipeline: 'Todas', origin: 'MANUAL', active: true, lastRun: '2026-09-25T10:15:00Z', runs: 6 },
-  { id: 'au7', name: 'Alerta de oportunidade parada', category: 'Oportunidades', trigger: 'Oportunidade parada na etapa', action: 'Notificar alguém da equipe', triggerId: 'oportunidade.parada', actionId: 'notificar.equipe', detail: 'Dono da oportunidade', pipeline: 'Todas', origin: 'MANUAL', active: true, lastRun: '2026-09-26T09:00:00Z', runs: 14 },
   { id: 'au8', name: 'Cobrar tarefas atrasadas', category: 'Pendências', trigger: 'Tarefa atrasada', action: 'Notificar alguém da equipe', triggerId: 'tarefa.atrasada', actionId: 'notificar.equipe', detail: 'Responsável da tarefa', pipeline: 'Todas', origin: 'MANUAL', active: true, lastRun: '2026-09-27T06:00:00Z', runs: 22 },
   { id: 'au9', name: 'Reenviar e-mails que falharam', category: 'E-mails', trigger: 'E-mail falhou', action: 'Enviar e-mail com um modelo', triggerId: 'email.falhou', actionId: 'email.enviar', detail: 'Mesmo modelo, uma nova tentativa', pipeline: 'Todas', origin: 'MANUAL', active: false, runs: 0 },
 ]);
 
-export type RunEntry = { id: string; at: string; automation: string; event: string; result: 'OK' | 'FAILED'; note: string };
+export type RunEntry = { id: string; at: string; automation: string; event: string; result: 'OK' | 'FAILED' | 'SCHEDULED'; note: string };
 
-export const runLog: RunEntry[] = [
+export const runsStore = createStore<RunEntry[]>([
   { id: 'r1', at: '2026-09-27T08:02:00Z', automation: 'Boas-vindas ao lead inbound', event: 'lead.criado', result: 'OK', note: 'E-mail enviado para renata.moura@exemplo.com.br' },
   { id: 'r2', at: '2026-09-27T07:58:00Z', automation: 'Criar lead a partir do formulário da LP Consultoria', event: 'formulario.enviado', result: 'OK', note: 'Lead "Renata Moura" criado em Novos' },
   { id: 'r3', at: '2026-09-27T07:58:00Z', automation: 'Avisar o vendedor quando um lead entra', event: 'lead.criado', result: 'OK', note: 'Notificação entregue a Diego Costa' },
@@ -69,4 +73,4 @@ export const runLog: RunEntry[] = [
   { id: 'r6', at: '2026-09-26T09:00:00Z', automation: 'Alerta de oportunidade parada', event: 'oportunidade.parada', result: 'OK', note: '"Mentoria Individual" parada há 8 dias em Qualificação' },
   { id: 'r7', at: '2026-09-25T10:15:00Z', automation: 'Resumo por e-mail ao ganhar', event: 'oportunidade.ganha', result: 'OK', note: 'E-mail enviado (Treinamento de Equipe)' },
   { id: 'r8', at: '2026-09-25T10:12:00Z', automation: 'Tarefa "Informar CNPJ" ao entrar em Negociação', event: 'oportunidade.mudou_de_etapa', result: 'OK', note: 'Tarefa criada para Marina Alves' },
-];
+]);

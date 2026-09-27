@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Background, Controls, Handle, MarkerType, Position, ReactFlow } from '@xyflow/react';
+import { Background, Controls, Handle, MarkerType, Position, ReactFlow, MiniMap } from '@xyflow/react';
 import type { Edge, Node, NodeProps } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Check, CircleDot, FileInput, Lock, Pencil, Plug, Plus, Settings, Trash2, TriangleAlert, Upload, User } from 'lucide-react';
@@ -9,7 +9,8 @@ import { useShell } from '../lib/shell';
 import { pipelinesStore } from '../mocks/pipelines';
 import { trackedRecords } from '../mocks/records';
 import type { TrackedRecord } from '../mocks/records';
-import { Badge, EmptyState, Field, Page, PageHeader, SampleBanner, SidePanel } from '../components/ui';
+import { Badge, EmptyState, Field, Page, PageHeader, SidePanel } from '../components/ui';
+import { CustomSelect } from '../components/ui';
 
 // Workflow do funil, da esquerda para a direita (docs/dominio.md §11): fontes entram, cada etapa é
 // um nó com seus requisitos, e Ganho e Perdido ficam no fim. Feito com React Flow (MIT).
@@ -116,7 +117,7 @@ function SourceNode({ data }: NodeProps<SourceNodeType>) {
 }
 
 // Fora do componente: o React Flow exige referência estável.
-const nodeTypes = { stage: StageNode, source: SourceNode };
+export const nodeTypes = { stage: StageNode, source: SourceNode };
 
 type PanelState = { mode: 'edit'; requirement: Requirement } | { mode: 'new'; stage: Stage } | null;
 
@@ -147,37 +148,31 @@ export default function TaskWorkflow({ pipelineId }: { pipelineId: string }) {
     updatePipeline((p) => ({ ...p, requirements: p.requirements.some((r) => r.id === req.id) ? p.requirements.map((r) => (r.id === req.id ? req : r)) : [...p.requirements, req] }));
     setPanel(null);
   };
+
   const removeRequirement = (id: string) => {
     updatePipeline((p) => ({ ...p, requirements: p.requirements.filter((r) => r.id !== id) }));
     setPanel(null);
   };
 
   return (
-    <Page>
-      <PageHeader
-        back={{ label: 'Tarefas', to: '/tarefas' }}
-        title={pipeline.name}
-        subtitle={`${pipeline.offer}. Clique numa tarefa para configurar o requisito; o cadeado marca as que impedem entrar ou sair da etapa.`}
-        actions={
-          <>
-            <label className="follow">
-              <span className="text-xs text-muted">Seguir um registro</span>
-              <select className="select select-sm" value={followId} onChange={(e) => setFollowId(e.target.value)}>
-                <option value="">Nenhum</option>
-                {records.map((r) => <option key={r.id} value={r.id}>{r.name} ({r.kind === 'lead' ? 'lead' : 'oportunidade'})</option>)}
-              </select>
-            </label>
-            <button type="button" className="btn" onClick={() => navigate(`/oportunidades/pipelines/${pipeline.id}`)}><Settings size={14} /> Configurar pipeline</button>
-          </>
-        }
-      />
-      <SampleBanner phase={4} />
-
-      <div className="wf-legend" aria-label="Legenda">
-        <span><Lock size={12} /> Impede entrar ou sair da etapa</span>
-        <span><span className="wf-legend-dot done" /> Cumprida</span>
-        <span><span className="wf-legend-dot blocking" /> Bloqueia o registro</span>
-        <span className="text-muted">Números em vermelho: registros parados. Em laranja: atrasadas.</span>
+    <div className="wf-fullscreen">
+      <div className="page" style={{ paddingBottom: 0, flex: 'none' }}>
+        <PageHeader
+          back={{ label: 'Tarefas', to: '/tarefas' }}
+          title={pipeline.name}
+          actions={
+            <>
+              <label className="follow">
+                <span className="text-xs text-muted">Seguir um registro:</span>
+                <CustomSelect className="select select-sm" value={followId} onChange={(e) => setFollowId(e.target.value)}>
+                  <option value="">Nenhum</option>
+                  {records.map((r) => <option key={r.id} value={r.id}>{r.name} ({r.kind === 'lead' ? 'lead' : 'oportunidade'})</option>)}
+                </CustomSelect>
+              </label>
+              <button type="button" className="btn" onClick={() => navigate(`/oportunidades/pipelines/${pipeline.id}`)}><Settings size={14} /> Configurar</button>
+            </>
+          }
+        />
       </div>
 
       <div className="wf-canvas" role="region" aria-label={`Workflow de ${pipeline.name}`}>
@@ -197,6 +192,20 @@ export default function TaskWorkflow({ pipelineId }: { pipelineId: string }) {
         >
           <Background gap={20} />
           <Controls showInteractive={false} />
+          <MiniMap
+            position="bottom-right"
+            nodeColor="#ffffff"
+            nodeStrokeColor="#94a3b8"
+            nodeStrokeWidth={2}
+            maskColor="rgba(0,0,0,0.05)"
+            style={{
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+              margin: '16px'
+            }}
+          />
         </ReactFlow>
       </div>
 
@@ -209,11 +218,11 @@ export default function TaskWorkflow({ pipelineId }: { pipelineId: string }) {
           onDelete={removeRequirement}
         />
       )}
-    </Page>
+    </div>
   );
 }
 
-function buildGraph(pipeline: Pipeline, followed: TrackedRecord | null, setPanel: (p: PanelState) => void) {
+export function buildGraph(pipeline: Pipeline, followed: TrackedRecord | null, setPanel: (p: PanelState) => void) {
   const nodes: (StageNodeType | SourceNodeType)[] = [];
   const edges: Edge[] = [];
 
@@ -316,11 +325,11 @@ function RequirementPanel({ pipeline, panel, onClose, onSave, onDelete }: { pipe
       <div className="form-stack">
         <Field label="Tarefa"><input className="input" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Ex.: Informar CNPJ" autoFocus /></Field>
         <div className="form-grid">
-          <Field label="Tag"><select className="select" value={tag} onChange={(e) => setTag(e.target.value)}>{tagOptions.map((t) => <option key={t}>{t}</option>)}</select></Field>
-          <Field label="Tipo"><select className="select" value={kind} onChange={(e) => setKind(e.target.value as RequirementKind)}>{(Object.keys(KIND_TEXT) as RequirementKind[]).map((k) => <option key={k} value={k}>{KIND_TEXT[k]}</option>)}</select></Field>
+          <Field label="Tag"><CustomSelect className="select" value={tag} onChange={(e) => setTag(e.target.value)}>{tagOptions.map((t) => <option key={t}>{t}</option>)}</CustomSelect></Field>
+          <Field label="Tipo"><CustomSelect className="select" value={kind} onChange={(e) => setKind(e.target.value as RequirementKind)}>{(Object.keys(KIND_TEXT) as RequirementKind[]).map((k) => <option key={k} value={k}>{KIND_TEXT[k]}</option>)}</CustomSelect></Field>
         </div>
         <Field label="Efeito na etapa" hint="Impede entrar: o registro não chega a esta etapa sem cumprir a tarefa. Impede sair: não sai daqui sem cumprir.">
-          <select className="select" value={gate} onChange={(e) => setGate(e.target.value as RequirementGate)}>{(Object.keys(GATE_TEXT) as RequirementGate[]).map((g) => <option key={g} value={g}>{GATE_TEXT[g]}</option>)}</select>
+          <CustomSelect className="select" value={gate} onChange={(e) => setGate(e.target.value as RequirementGate)}>{(Object.keys(GATE_TEXT) as RequirementGate[]).map((g) => <option key={g} value={g}>{GATE_TEXT[g]}</option>)}</CustomSelect>
         </Field>
         <div className="form-grid">
           <Field label="Responsável"><input className="input" value={assignee} onChange={(e) => setAssignee(e.target.value)} placeholder="Nome ou função" /></Field>

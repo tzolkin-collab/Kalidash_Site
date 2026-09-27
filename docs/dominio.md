@@ -102,7 +102,8 @@ Campo **explícito** de documento no formulário de lead e no cadastro:
 ## 8. Requisitos de etapa, pendências e campos personalizados
 
 - **Requisito de etapa:** o que uma etapa exige para o cliente avançar com a equipe. Tem dois tipos: **campo** (um campo de cadastro marcado como tarefa) e **ação** (tarefa avulsa, ex.: "Enviar proposta", "Reunião de diagnóstico").
-- **Marcar como tarefa:** em qualquer campo de cadastro (Pessoa, Empresa, Lead ou Oportunidade, **do sistema ou personalizado**), a pipeline liga "marcar como tarefa" numa etapa. Se o campo estiver vazio, a tarefa nasce com **tag**, responsável e prazo configuráveis. Preencher o campo conclui a tarefa. É uma **automação gerenciada** (categoria "Pendências").
+- **Marcar como tarefa:** em qualquer campo de cadastro (Pessoa, Empresa, Lead ou Oportunidade, **do sistema ou personalizado**), a pipeline liga "marcar como tarefa" numa etapa. Se o campo estiver vazio, a tarefa nasce com **tag**, responsável e prazo configuráveis. Preencher o campo conclui a tarefa.
+- **Tarefa não é automação.** Tarefa (o requisito) é do domínio da Oportunidade/pipeline: ela decide se o registro avança de etapa, e existe porque nem tudo é automático — alguém precisa fazer ou confirmar. Automação é resposta automática, sem gente no meio. "Marcar como tarefa" **não cria uma automação por trás dos panos**; ele **oferece** criar uma, já pronta, e a pessoa só escolhe o evento (a tarefa foi criada, atrasou ou foi concluída). Isso vira uma automação normal, visível em Automações, do jeito que a pessoa configurou — não uma regra adivinhada com o evento errado.
 - **Quando nasce:** na criação do registro (ex.: "Informar CNPJ") ou ao entrar na etapa.
 - **Bloqueio (opcional):** **impede entrar** na etapa, ou **impede sair** dela, enquanto a tarefa estiver aberta. Sem bloqueio, a tarefa só acompanha.
 - **Template padrão de cada pipeline:** "Informar CNPJ" (nasce no cadastro da empresa, **impede entrar em Assinatura do contrato**), "Definir fonte da pipeline" (configuração), e os dados faltantes que o time escolher.
@@ -113,7 +114,7 @@ Campo **explícito** de documento no formulário de lead e no cadastro:
 ## 9. Automações, e-mails e as três páginas
 
 - **E-mails** é uma página própria: gerenciar e montar templates (o editor visual), histórico de envio.
-- **Automações** é outra página própria: **catálogo de tudo o que o sistema permite**, classificado por categoria (Fontes, Leads, Oportunidades, Pendências, Notificações, E-mails e outras que vierem), com interface própria de criação e manutenção, usando a infraestrutura, os eventos e os dados da plataforma (`lead.criado`, `oportunidade.mudou_de_etapa`, `tarefa.concluida`, `formulario.enviado`…).
+- **Automações** é outra página própria: **catálogo de tudo o que o sistema permite**, classificado por categoria (Fontes, Leads, Oportunidades, Pendências, Notificações, E-mails e outras que vierem), com interface própria de criação e manutenção, usando a infraestrutura, os eventos e os dados da plataforma (`lead.criado`, `oportunidade.mudou_de_etapa`, `tarefa.concluida`, `formulario.enviado`…). O catálogo de eventos não é fechado: cada pipeline pode ganhar eventos próprios, vindos de um **webhook de entrada** (ex.: um pagamento confirmado) — ver [gatilhos-personalizados.md](./gatilhos-personalizados.md).
 - **Origem da automação:** manual (criada ali) ou **gerenciada** (criada por trás dos panos por "Conectar fonte" ou "Marcar como tarefa"). As gerenciadas aparecem na lista, e apagar a fonte apaga a automação dela.
 - Cada automação mostra estado, última execução e quantidade de execuções.
 
@@ -130,6 +131,7 @@ Campo **explícito** de documento no formulário de lead e no cadastro:
 | **E-mails** | Templates e histórico. |
 | **Automações** | O catálogo classificado. |
 | **Configurações das pipelines** (painel dedicado, fora do modal atual) | Ver, editar, excluir e criar pipelines (excluir uma com oportunidades exige movê-las antes). Etapas (nome, ordem, cor, tipo, probabilidade, dias para alerta). Fontes e **Conectar fonte**. Marcar campos como tarefa. Tags de tarefa e de contato. Campos personalizados. |
+| **Acompanhamento** 🟡 (futura, sem desenho ainda) | Calendário operacional da equipe inteira, ligado ao **Google Calendar** de cada pessoa via OAuth do Workspace: cada integrante abre, edita e cria eventos no próprio calendário de dentro do Kalidash (as mesmas possibilidades do Calendar comum) e associa esses eventos a registros da plataforma. É daqui que vêm prazos, atrasos, notificações push e tarefas personalizadas — ver [crm-integrations.md](./crm-integrations.md) §1 e [notificacoes.md](./notificacoes.md). |
 
 ### Oportunidades em detalhe
 

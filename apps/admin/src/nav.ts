@@ -15,19 +15,14 @@ export const NAV_GROUPS: NavGroup[] = [
       { path: '/tarefas', label: 'Tarefas', Icon: ListChecks },
       { path: '/pessoas-empresas', label: 'Pessoas & Empresas', Icon: Users },
       { path: '/clientes', label: 'Clientes', Icon: UserCheck },
-    ],
-  },
-  {
-    title: 'Comunicação',
-    items: [
       { path: '/emails', label: 'E-mails', Icon: Mail },
-      { path: '/automacoes', label: 'Automações', Icon: Zap },
     ],
   },
   {
     title: 'Conteúdo e conexões',
     items: [
       { path: '/blog', label: 'Blog', Icon: Newspaper },
+      { path: '/automacoes', label: 'Automações', Icon: Zap },
       { path: '/projetos', label: 'Projetos conectados', Icon: Plug },
     ],
   },

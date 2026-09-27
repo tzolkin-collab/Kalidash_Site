@@ -28,7 +28,11 @@ A arquitetura é dividida em site + admin + API em Go + banco MySQL em VPS. O st
 * [Bench dos dois admins: features e filosofia](./benchmark.md)
 * [Definição de domínio: leads, oportunidades, pessoas, empresas e clientes](./dominio.md) *(v2, confirmada)*
 * [Plano de schema e de migração](./plano-schema.md) *(rascunho, não aplicado)*
+* [Escopo: cadastro e edição de leads, pessoas, empresas, clientes e pipelines](./edicao-e-cadastro.md) *(decisões D1, D2, D8 tomadas; D4 em andamento)*
 * [Bench de dados: o que os outros CRMs guardam](./benchmark-dados.md)
+* [Bench: eventos padronizados, templates de ciclo de vida e tarefas por evento](./benchmark-ciclo-de-vida.md)
+* [Notificações: erros, avisos e notificações personalizáveis](./notificacoes.md)
+* [Gatilhos personalizados: webhooks de entrada e eventos por pipeline](./gatilhos-personalizados.md)
 * [Decisões Arquitetônicas (Vite vs Next, Go vs Node, MySQL sem Redis)](./architecture-decisions.md)
 * [Segurança do Banco de Dados & CMS Proprietário](./security-and-cms.md)
 * [Estudo de Autenticação (Google OAuth + Workspace)](./auth-study.md)

@@ -1,10 +1,12 @@
-import { useMemo } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { formatCurrency } from '../lib/format';
 import { useOpportunities } from '../lib/useOpportunities';
 import { useShell } from '../lib/shell';
 import { StageBadge } from '../components/cells';
 import { EmptyState, Page, PageHeader, StatCard } from '../components/ui';
+
+const AnalyticsChartGallery = lazy(() => import('../components/dashboard/AnalyticsChartGallery'));
 
 // Métricas calculadas na hora a partir de /api/leads (as oportunidades reais).
 // Leads, tarefas e origem entram quando as fases 3 e 4 do plano chegarem.
@@ -104,6 +106,10 @@ export default function Dashboard() {
           )}
         </section>
       </div>
+
+      <Suspense fallback={<div className="page-loading" role="status">Carregando modelos de gráfico…</div>}>
+        <AnalyticsChartGallery />
+      </Suspense>
     </Page>
   );
 }

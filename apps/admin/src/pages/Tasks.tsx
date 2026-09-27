@@ -1,33 +1,33 @@
 import { useMemo, useState } from 'react';
-import { AlertTriangle, ChevronRight, Lock, Plug } from 'lucide-react';
-import type { Pipeline, Stage } from '../domain';
+import { AlertTriangle, ChevronRight } from 'lucide-react';
+import { ReactFlow } from '@xyflow/react';
+import type { Pipeline } from '../domain';
 import { pipelineStats } from '../lib/pipelineStats';
 import { useShell } from '../lib/shell';
 import { useStore } from '../lib/store';
 import { pipelinesStore } from '../mocks/pipelines';
 import { Badge, EmptyState, Page, PageHeader, SampleBanner, SearchBox } from '../components/ui';
+import { buildGraph, nodeTypes } from './TaskWorkflow';
+import { CustomSelect } from '../components/ui';
 
-function MiniWorkflow({ pipeline }: { pipeline: Pipeline }) {
-  const reqsByStage = (s: Stage) => pipeline.requirements.filter((r) => r.stageId === s.id);
+function CardWorkflow({ pipeline }: { pipeline: Pipeline }) {
+  const { nodes, edges } = useMemo(() => buildGraph(pipeline, null, () => {}), [pipeline]);
   return (
-    <div className="mini-flow" aria-label="Miniatura do workflow">
-      <span className={`mini-source ${pipeline.sources.length === 0 ? 'empty' : ''}`} title={pipeline.sources.length ? pipeline.sources.map((s) => s.name).join(', ') : 'Sem fonte conectada'}>
-        <Plug size={11} /> {pipeline.sources.length}
-      </span>
-      {pipeline.stages.map((s) => {
-        const reqs = reqsByStage(s);
-        const gated = reqs.some((r) => r.gate !== 'NONE');
-        return (
-          <span key={s.id} className="mini-stage-wrap">
-            <ChevronRight size={11} className="mini-arrow" />
-            <span className="mini-stage" title={`${s.name}: ${reqs.length} ${reqs.length === 1 ? 'tarefa' : 'tarefas'}`}>
-              <span className="mini-dot" style={{ background: s.color }} />
-              <span className="mini-name">{s.name}</span>
-              {reqs.length > 0 && <span className="mini-count">{gated && <Lock size={9} />}{reqs.length}</span>}
-            </span>
-          </span>
-        );
-      })}
+    <div style={{ width: '800px', height: '180px', pointerEvents: 'none' }}>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        nodeTypes={nodeTypes}
+        nodesDraggable={false}
+        nodesConnectable={false}
+        elementsSelectable={false}
+        panOnDrag={false}
+        zoomOnScroll={false}
+        panOnScroll={false}
+        zoomOnDoubleClick={false}
+        fitView
+        proOptions={{ hideAttribution: true }}
+      />
     </div>
   );
 }
@@ -51,10 +51,10 @@ export default function Tasks() {
 
       <div className="toolbar">
         <SearchBox value={search} onChange={setSearch} placeholder="Buscar funil ou oferta…" />
-        <select className="select select-sm" value={tag} onChange={(e) => setTag(e.target.value)} aria-label="Filtrar por tag de tarefa">
+        <CustomSelect className="select select-sm" value={tag} onChange={(e) => setTag(e.target.value)} aria-label="Filtrar por tag de tarefa">
           <option value="">Todas as tags de tarefa</option>
           {tags.map((t) => <option key={t} value={t}>{t}</option>)}
-        </select>
+        </CustomSelect>
       </div>
 
       {filtered.length === 0 ? (
@@ -65,19 +65,30 @@ export default function Tasks() {
             const st = pipelineStats(p);
             return (
               <button key={p.id} type="button" className="funnel-card" onClick={() => navigate(`/tarefas/${p.id}`)}>
-                <div className="funnel-card-head">
-                  <div className="cell-stack">
-                    <span className="funnel-card-title">{p.name}</span>
-                    <span className="text-xs text-muted">{p.offer}</span>
-                  </div>
-                  {p.sources.length === 0 && <Badge tone="warning" title="Nenhuma fonte alimenta este funil"><AlertTriangle size={11} /> Sem fonte</Badge>}
+                <div className="bento-bg">
+                  <CardWorkflow pipeline={p} />
                 </div>
-                <MiniWorkflow pipeline={p} />
-                <div className="funnel-card-stats">
-                  <div><strong>{st.records}</strong><span>registros</span></div>
-                  <div><strong>{st.tasks}</strong><span>tarefas</span></div>
-                  <div className={st.overdue ? 'is-warn' : ''}><strong>{st.overdue}</strong><span>atrasadas</span></div>
-                  <div className={st.blocked ? 'is-danger' : ''}><strong>{st.blocked}</strong><span>bloqueados</span></div>
+                <div className="bento-content">
+                  <div className="bento-left">
+                    <div className="funnel-card-head">
+                      <div className="cell-stack">
+                        <span className="funnel-card-title">{p.name}</span>
+                        <span className="text-sm text-muted">{p.offer}</span>
+                      </div>
+                      {p.sources.length === 0 && <Badge tone="warning" title="Nenhuma fonte alimenta este funil"><AlertTriangle size={11} /> Sem fonte</Badge>}
+                    </div>
+                    <div className="funnel-card-stats">
+                      <div><strong>{st.records}</strong><span>registros</span></div>
+                      <div><strong>{st.tasks}</strong><span>tarefas</span></div>
+                      {st.overdue > 0 && <div className="is-warn"><strong>{st.overdue}</strong><span>atrasadas</span></div>}
+                      {st.blocked > 0 && <div className="is-danger"><strong>{st.blocked}</strong><span>bloqueados</span></div>}
+                    </div>
+                  </div>
+                  <div className="bento-right">
+                    <div className="bento-cta">
+                      Ver workflow <ChevronRight size={14} />
+                    </div>
+                  </div>
                 </div>
               </button>
             );

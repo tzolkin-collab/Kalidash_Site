@@ -14,7 +14,7 @@ import {
 import { startEditorDomTranslation } from './easy-email-dom-translate';
 import { API_URL } from './lib/api';
 import { emailLog } from './mocks/team';
-import { Badge, Page, PageHeader, SampleBanner, Tabs } from './components/ui';
+import { Badge, Field, Page, PageHeader, PopupDialog, SampleBanner, Tabs } from './components/ui';
 
 // A lib tipa "categories" como obrigatória, mas já traz um padrão em tempo de execução.
 // Passar [] esvaziaria o painel de blocos, então só ajustamos o tipo.
@@ -36,6 +36,10 @@ export default function Emails() {
   ]);
   
   const [editingTemplateId, setEditingTemplateId] = useState<number | null>(null);
+  const [testDialogOpen, setTestDialogOpen] = useState(false);
+  const [testEmail, setTestEmail] = useState('');
+  const [sendingTest, setSendingTest] = useState(false);
+  const [feedback, setFeedback] = useState<{ title: string; description: string; tone: 'success' | 'danger' } | null>(null);
 
   // Com o editor aberto, traduz os textos que a biblioteca escreve fora do t().
   const isEditing = editingTemplateId !== null;
@@ -103,10 +107,10 @@ export default function Emails() {
         >
           {({ values }) => {
             const handleSendTestEmail = async (currentValues: any) => {
+              if (!testEmail.trim()) return;
+              setSendingTest(true);
+              setTestDialogOpen(false);
               try {
-                const email = prompt('Digite o e-mail de teste:');
-                if (!email) return;
-
                 const mjmlString = JsonToMjml({
                   data: currentValues.content,
                   mode: 'production',
@@ -123,7 +127,7 @@ export default function Emails() {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
-                    to: email,
+                    to: testEmail.trim(),
                     subject: 'Teste de Template: ' + currentValues.subject,
                     body: html,
                     isHtml: true
@@ -131,13 +135,15 @@ export default function Emails() {
                 });
 
                 if (response.ok) {
-                  alert('E-mail de teste enviado com sucesso!');
+                  setFeedback({ title: 'E-mail de teste enviado', description: `Enviamos uma cópia para ${testEmail.trim()}.`, tone: 'success' });
                 } else {
-                  alert('Erro ao enviar e-mail de teste.');
+                  setFeedback({ title: 'Não foi possível enviar', description: 'A API não aceitou o envio. Verifique a conexão e se a rota de teste está habilitada.', tone: 'danger' });
                 }
               } catch (err) {
                 console.error(err);
-                alert('Erro ao compilar o e-mail (MJML). Veja o console.');
+                setFeedback({ title: 'Falha ao preparar o e-mail', description: 'Não foi possível compilar ou enviar este teste. Revise o conteúdo e tente novamente.', tone: 'danger' });
+              } finally {
+                setSendingTest(false);
               }
             };
 
@@ -173,10 +179,10 @@ export default function Emails() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '12px' }}>
-                    <button onClick={() => handleSendTestEmail(values)} style={{ background: '#2563eb', color: '#ffffff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontSize: '14px', fontWeight: 600, display: 'flex', gap: '8px', alignItems: 'center', cursor: 'pointer', boxShadow: 'var(--shadow-sm)' }}>
+                    <button onClick={() => { setTestEmail(''); setFeedback(null); setTestDialogOpen(true); }} disabled={sendingTest} style={{ background: '#2563eb', color: '#ffffff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontSize: '14px', fontWeight: 600, display: 'flex', gap: '8px', alignItems: 'center', cursor: 'pointer', boxShadow: 'var(--shadow-sm)', opacity: sendingTest ? 0.65 : 1 }}>
                       <Mail size={18} /> Enviar Teste
                     </button>
-                    <button onClick={() => { updateCurrentTemplate({ design: values }); alert('Template salvo com sucesso!'); }} style={{ background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', padding: '10px 20px', borderRadius: '8px', fontSize: '14px', fontWeight: 600, display: 'flex', gap: '8px', alignItems: 'center', cursor: 'pointer', boxShadow: 'var(--shadow-sm)' }}>
+                    <button onClick={() => { updateCurrentTemplate({ design: values }); setFeedback({ title: 'Layout salvo', description: 'O modelo foi atualizado nesta sessão.', tone: 'success' }); }} style={{ background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', padding: '10px 20px', borderRadius: '8px', fontSize: '14px', fontWeight: 600, display: 'flex', gap: '8px', alignItems: 'center', cursor: 'pointer', boxShadow: 'var(--shadow-sm)' }}>
                       <Save size={18} /> Salvar Layout
                     </button>
                   </div>
@@ -188,6 +194,27 @@ export default function Emails() {
                     <EmailEditor />
                   </EditorLayout>
                 </div>
+
+                {testDialogOpen && <PopupDialog
+                  eyebrow="ENVIO DE TESTE"
+                  title="Enviar uma prévia"
+                  description="Escolha o endereço que receberá uma cópia deste modelo."
+                  onClose={() => setTestDialogOpen(false)}
+                  footer={<><button type="button" className="btn" onClick={() => setTestDialogOpen(false)}>Cancelar</button><button type="submit" form="email-test-form" className="btn btn-solid" disabled={!testEmail.trim() || sendingTest}>{sendingTest ? 'Enviando…' : 'Enviar teste'}</button></>}
+                >
+                  <form id="email-test-form" onSubmit={(event) => { event.preventDefault(); void handleSendTestEmail(values); }}>
+                    <Field label="E-mail de destino"><input className="input" type="email" autoFocus required value={testEmail} onChange={(event) => setTestEmail(event.target.value)} placeholder="nome@empresa.com" /></Field>
+                  </form>
+                </PopupDialog>}
+
+                {feedback && <PopupDialog
+                  eyebrow={feedback.tone === 'success' ? 'AÇÃO CONCLUÍDA' : 'ENVIO DE E-MAIL'}
+                  tone={feedback.tone}
+                  title={feedback.title}
+                  description={feedback.description}
+                  onClose={() => setFeedback(null)}
+                  footer={<button type="button" className="btn btn-solid" onClick={() => setFeedback(null)}>Entendi</button>}
+                />}
               </div>
             );
           }}
@@ -218,7 +245,7 @@ export default function Emails() {
               <div className="template-info">
                 <h3 className="template-name">{tpl.name}</h3>
                 <p className="text-sm text-muted truncate">Assunto: {tpl.subject}</p>
-                <Badge>{tpl.tag}</Badge>
+                <Badge tone="info">{tpl.tag}</Badge>
               </div>
             </button>
           ))}

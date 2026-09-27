@@ -6,6 +6,12 @@
       "runtimeExecutable": "node",
       "runtimeArgs": ["apps/admin/node_modules/vite/bin/vite.js", "apps/admin", "--port", "5173", "--strictPort"],
       "port": 5173
+    },
+    {
+      "name": "kalidash-admin-build",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["apps/admin/node_modules/vite/bin/vite.js", "preview", "apps/admin", "--port", "4173", "--strictPort"],
+      "port": 4173
     }
   ]
 }

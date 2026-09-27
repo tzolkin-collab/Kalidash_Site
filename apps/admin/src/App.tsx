@@ -14,8 +14,9 @@ import SettingsPage from './pages/Settings';
 import Tasks from './pages/Tasks';
 import { NAV_GROUPS, isActive } from './nav';
 import { useHashRoute } from './lib/router';
-import { ShellContext } from './lib/shell';
+import { ShellContext, useShell } from './lib/shell';
 import { EmptyState, Page, PageHeader } from './components/ui';
+import ToastHost from './components/Toasts';
 
 // O editor de e-mail é pesado: só é baixado quando a página de E-mails é aberta.
 const Emails = lazy(() => import('./Emails'));
@@ -23,7 +24,6 @@ const Emails = lazy(() => import('./Emails'));
 const TaskWorkflow = lazy(() => import('./pages/TaskWorkflow'));
 // O editor de texto do Blog (TipTap) também.
 const Blog = lazy(() => import('./pages/Blog'));
-
 function NotFound({ path }: { path: string }) {
   return (
     <Page>
@@ -35,6 +35,12 @@ function NotFound({ path }: { path: string }) {
 
 function Loading() {
   return <div className="page-loading">Carregando…</div>;
+}
+
+function Redirect({ to }: { to: string }) {
+  const { navigate } = useShell();
+  useEffect(() => { navigate(to); }, [navigate, to]);
+  return <Loading />;
 }
 
 export default function App() {
@@ -57,12 +63,16 @@ export default function App() {
     const x = e.clientX;
     const y = e.clientY;
     const endRadius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    document.documentElement.classList.add('theme-transitioning');
     const transition = document.startViewTransition(() => setIsDarkMode((prev) => !prev));
     transition.ready.then(() => {
       document.documentElement.animate(
         { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`] },
-        { duration: 700, easing: 'cubic-bezier(0.645, 0.045, 0.355, 1)', pseudoElement: '::view-transition-new(root)' },
+        { duration: 400, easing: 'ease-out', pseudoElement: '::view-transition-new(root)' },
       );
+    });
+    transition.finished.finally(() => {
+      document.documentElement.classList.remove('theme-transitioning');
     });
   };
 
@@ -99,7 +109,7 @@ export default function App() {
       page = <Automations />;
       break;
     case 'blog':
-      page = <Blog />;
+      page = <Blog postId={second} />;
       break;
     case 'projetos':
       page = <Projects />;
@@ -109,6 +119,11 @@ export default function App() {
       break;
     case 'emails':
       page = <Emails />;
+      break;
+    case 'dom':
+    case 'ideias':
+      if (second === 'teste' && third === 'dashboard') page = <Redirect to="/dashboard" />;
+      else page = <NotFound path={path} />;
       break;
     default:
       page = <NotFound path={path} />;
@@ -162,6 +177,7 @@ export default function App() {
             <Suspense fallback={<Loading />}>{page}</Suspense>
           </main>
         </div>
+        <ToastHost />
       </div>
     </ShellContext.Provider>
   );

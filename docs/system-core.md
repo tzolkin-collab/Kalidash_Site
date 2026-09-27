@@ -51,6 +51,8 @@ Em Configurações > Segurança, o Admin vê a tabela de logs: *"Ontem às 14h, 
 
 ## 3. Sistema de Notificações (Motor de Engajamento)
 
+> A classificação por tipo (erros, avisos, notificações), o sino na barra lateral e a aba Configurações → Notificações estão em [notificacoes.md](./notificacoes.md). Aqui ficam as camadas de transporte.
+
 Para garantir que leads não esfriem, o Kalidash tem um sistema de notificação em 3 camadas, focado em **tempo real**.
 
 ### Camada 1: In-App (painel aberto)

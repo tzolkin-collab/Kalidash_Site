@@ -42,6 +42,8 @@ Ao clicar em um card ou linha, abre a ficha, **sem sair da página**. (Se a fich
 
 ## 3. Notificações e automações SLA
 
+> O aviso de etapa bloqueada (card treme, borda vermelha, toast) é o primeiro caso real da categoria "Aviso" — ver [notificacoes.md](../notificacoes.md).
+
 Vendas morrem se o lead esfriar.
 
 ### SLA

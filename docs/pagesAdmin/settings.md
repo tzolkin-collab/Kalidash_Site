@@ -6,6 +6,7 @@
 - **Webhooks (Outbound):** O Admin configura regras tipo "Sempre que um lead cair na coluna 'Ganho', envie um POST JSON para o HubSpot do cliente".
 - **Logs de Auditoria:** Tabela de segurança rastreando "Quem fez o quê" (Ex: *Usuário X revogou a Chave Y às 14:00*).
 - **Gestão de Equipe:** Adicionar vendedores, gerentes, definir os perfis (Admin, Gerente, Vendedor) e o que cada um vê. Ver [system-core.md](../system-core.md).
+- **Notificações:** liga ou desliga o push do navegador (a caixa interna, aberta pelo sino da barra lateral, nunca desliga). Ver [notificacoes.md](../notificacoes.md).
 
 ## ⚠️ Problemas Antecipados & Soluções
 

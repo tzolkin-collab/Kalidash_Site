@@ -1,7 +1,7 @@
 import type { Lifecycle } from '../domain';
 
-export const LIFECYCLE_LABEL: Record<Lifecycle, string> = { LEAD: 'Lead', PROSPECT: 'Em negociação', CLIENT: 'Cliente' };
-export const LIFECYCLE_TONE: Record<Lifecycle, 'neutral' | 'warning' | 'success'> = { LEAD: 'neutral', PROSPECT: 'warning', CLIENT: 'success' };
+export const LIFECYCLE_LABEL: Record<Lifecycle, string> = { LEAD: 'Lead', PROSPECT: 'Em negociação', CLIENT: 'Cliente', INACTIVE: 'Inativo' };
+export const LIFECYCLE_TONE: Record<Lifecycle, 'neutral' | 'warning' | 'success'> = { LEAD: 'neutral', PROSPECT: 'warning', CLIENT: 'success', INACTIVE: 'neutral' };
 
 /** Iniciais para o avatar (até duas letras). */
 export function initials(name: string) {

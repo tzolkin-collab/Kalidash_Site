@@ -17,7 +17,7 @@ import { leadsStore } from '../mocks/leads';
 import { pipelinesStore } from '../mocks/pipelines';
 import ColumnPicker from '../components/ColumnPicker';
 import OpportunityDetail from '../components/OpportunityDetail';
-import OpportunityPeek from '../components/OpportunityPeek';
+import Peek from '../components/Peek';
 import ViewSettingsPopover from '../components/ViewSettingsPopover';
 import { Badge, EmptyState, Pagination, SearchBox } from '../components/ui';
 
@@ -291,7 +291,8 @@ export default function Opportunities() {
           {isContextOpen && (
             <>
               <div style={{ position: 'fixed', inset: 0, zIndex: 100 }} onClick={() => setIsContextOpen(false)} />
-              <div style={{ position: 'absolute', top: '44px', left: '0', width: '280px', background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)', borderRadius: '12px', boxShadow: 'var(--shadow-modal)', zIndex: 101, display: 'flex', flexDirection: 'column', padding: '8px' }}>
+              <div className="context-menu">
+                <div className="context-menu-heading">Exibir oportunidades de</div>
                 <button className="ctx-item" onClick={() => { setSelectedContext(ALL); setIsContextOpen(false); }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Globe size={16} className="text-muted" />
@@ -299,8 +300,8 @@ export default function Opportunities() {
                   </div>
                   {selectedContext === ALL && <Check size={14} />}
                 </button>
-                <div style={{ margin: '8px 0', borderTop: '1px solid var(--border-subtle)' }} />
-                <div style={{ padding: '4px 12px', fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)' }}>Suas Pipelines</div>
+                <div className="context-menu-divider" />
+                <div className="context-menu-group">Suas pipelines</div>
                 {pipelines.map((p) => (
                   <button key={p.id} className="ctx-item" onClick={() => { setSelectedContext(p.name); setIsContextOpen(false); }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
@@ -310,7 +311,7 @@ export default function Opportunities() {
                     {selectedContext === p.name && <Check size={14} />}
                   </button>
                 ))}
-                <div style={{ margin: '8px 0', borderTop: '1px solid var(--border-subtle)' }} />
+                <div className="context-menu-divider" />
                 <button className="ctx-item" onClick={() => navigate('/oportunidades/pipelines')}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Settings size={16} className="text-muted" />
@@ -332,9 +333,7 @@ export default function Opportunities() {
             settings={settings}
             onChange={updateSettings}
             onReset={() => { resetSettings(); setEditColumns(false); }}
-            view={viewMode}
-            editColumns={editColumns}
-            onToggleEditColumns={() => setEditColumns((v) => !v)}
+            columnsSection={{ view: viewMode, editColumns, onToggleEditColumns: () => setEditColumns((v) => !v) }}
           />
           <div className="view-toggle" style={{ display: 'flex' }}>
             <button className={`view-toggle-btn ${viewMode === 'kanban' ? 'active' : ''}`} onClick={() => { setViewMode('kanban'); setEditColumns(false); }}>
@@ -440,7 +439,7 @@ export default function Opportunities() {
       )}
 
       {selectedOpp && (
-        <OpportunityPeek mode={settings.openMode} fontSize={settings.fontSize} onClose={closePeek}>
+        <Peek mode={settings.openMode} fontSize={settings.fontSize} onClose={closePeek}>
           <OpportunityDetail
             key={selectedOpp.id}
             opp={selectedOpp}
@@ -456,7 +455,7 @@ export default function Opportunities() {
             onAddColumn={addColumn}
             onToggleEditColumns={() => setEditColumns((v) => !v)}
           />
-        </OpportunityPeek>
+        </Peek>
       )}
     </div>
   );

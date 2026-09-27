@@ -42,11 +42,11 @@
   --border-focus: #404040;
   
   --text-primary: #f5f5f5;
-  --text-secondary: #a3a3a3;
-  --text-muted: #737373;
+  --text-secondary: #d4d4d4;
+  --text-muted: #a3a3a3;
   
-  --accent: #ffffff; 
-  --accent-text: #000000;
+  --accent: #635bff; 
+  --accent-text: #ffffff;
 
   /* Dark mode specific subtle shadows (mostly faint borders instead of drop shadow) */
   --shadow-sm: 0 0 0 1px rgba(255, 255, 255, 0.08);
@@ -102,6 +102,11 @@
   z-index: 9999;
 }
 
+/* Disable all normal CSS transitions while the view transition circle reveal is playing */
+.theme-transitioning * {
+  transition: none !important;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -127,7 +132,6 @@ body {
   color: var(--text-primary);
   height: 100vh;
   display: flex;
-  transition: background-color 0.1s, color 0.1s;
 }
 
 /* Typography */
@@ -240,7 +244,7 @@ body {
   display: flex;
   gap: 20px;
   padding: 24px;
-  overflow-x: auto;
+  overflow: auto;
   scroll-snap-type: x mandatory; /* Para mobile */
 }
 
@@ -428,7 +432,13 @@ body {
     top: 0;
     left: 0;
     height: 100%;
+    /* A animação de entrada (slideRightFade, forwards) prende o transform em translateX(0) pra
+       sempre depois de tocar — isso vencia esta regra e deixava a sidebar presa aberta no mobile.
+       Sem animação aqui, quem controla o transform é só esta regra e a de .mobile-open abaixo. */
+    animation: none;
+    opacity: 1;
     transform: translateX(-100%); /* Oculta a barra lateral */
+    transition: transform 0.3s ease;
     box-shadow: 4px 0 24px rgba(0,0,0,0.1);
   }
   .sidebar.mobile-open {
@@ -510,22 +520,20 @@ body {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  background-color: var(--bg-surface);
+  background-color: transparent;
 }
 
-/* Simulate border radius for tables */
 .data-table-wrapper {
-  background-color: var(--bg-surface);
-  border-radius: 8px;
-  overflow: hidden;
+  background-color: transparent;
+  border-radius: 0;
+  overflow: visible;
   box-shadow: none;
   border: none;
   margin-top: 16px;
 }
 
 .data-table thead {
-  background-color: var(--bg-surface);
-  border-bottom: 1px solid var(--border-subtle);
+  background-color: transparent;
 }
 
 .data-table th {
@@ -533,26 +541,29 @@ body {
   font-size: 12px;
   font-weight: 500;
   color: var(--text-muted);
-  text-transform: capitalize;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.data-table tbody tr {
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+}
+
+.data-table tbody tr:hover {
+  background-color: var(--bg-surface-hover);
 }
 
 .data-table td {
-  padding: 16px;
-  font-size: 14px;
+  padding: 14px 16px;
+  font-size: 13.5px;
   color: var(--text-primary);
+  background: transparent;
   border-bottom: 1px solid var(--border-subtle);
   vertical-align: middle;
 }
 
 .data-table tbody tr:last-child td {
   border-bottom: none;
-}
-
-.data-table tbody tr {
-  transition: background-color 0.1s;
-}
-.data-table tbody tr:hover {
-  background-color: var(--bg-surface-hover);
 }
 
 .view-toggle {

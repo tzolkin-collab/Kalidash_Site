@@ -1,9 +1,83 @@
-import { useEffect } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { ArrowLeft, ChevronLeft, ChevronRight, FlaskConical, Menu, Search, X } from 'lucide-react';
+import { ArrowLeft, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleAlert, CircleHelp, FlaskConical, Menu, Search, X } from 'lucide-react';
 import type { Lifecycle } from '../domain';
 import { LIFECYCLE_LABEL, LIFECYCLE_TONE } from '../lib/people';
 import { useShell } from '../lib/shell';
+import { useViewSettings } from '../lib/viewSettings';
+import Peek from './Peek';
+
+import { Children, isValidElement } from 'react';
+
+export function CustomSelect({ value, onChange, children, className = '', disabled, title, style, autoFocus, 'aria-label': ariaLabel }: { value: string; onChange: (e: { target: { value: string } }) => void; children: ReactNode; className?: string; disabled?: boolean; title?: string; style?: React.CSSProperties; autoFocus?: boolean; 'aria-label'?: string; }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (autoFocus) triggerRef.current?.focus(); }, []);
+
+  const options: { value: string; label: string; disabled?: boolean }[] = [];
+  
+  const extract = (nodes: ReactNode) => {
+    Children.forEach(nodes, (child) => {
+      if (!isValidElement(child)) return;
+      if (child.type === 'option') {
+        options.push({
+          value: String(child.props.value ?? child.props.children ?? ''),
+          label: child.props.children?.toString() ?? '',
+          disabled: child.props.disabled,
+        });
+      } else if (child.props && child.props.children) {
+        extract(child.props.children);
+      }
+    });
+  };
+  extract(children);
+
+  const selected = options.find((o) => o.value === String(value));
+
+  return (
+    <div className={`custom-select-wrapper ${className}`} ref={ref} title={title} style={style} aria-label={ariaLabel}>
+      <button ref={triggerRef} type="button" className={`custom-select-trigger ${open ? 'open' : ''}`} onClick={() => !disabled && setOpen(!open)} disabled={disabled}>
+        <span className="custom-select-value">{selected ? selected.label : <span className="text-muted">Selecione...</span>}</span>
+        <ChevronDown size={14} className="custom-select-icon" />
+      </button>
+      {open && !disabled && (
+        <div className="custom-select-popover">
+          <ul className="custom-select-list" role="listbox">
+            {options.map((o) => (
+              <li 
+                key={o.value} 
+                role="option" 
+                aria-selected={String(value) === o.value}
+                className={`custom-select-item ${String(value) === o.value ? 'selected' : ''} ${o.disabled ? 'disabled' : ''}`}
+                onClick={() => {
+                  if (o.disabled) return;
+                  onChange({ target: { value: o.value } });
+                  setOpen(false);
+                }}
+              >
+                {o.label}
+                {String(value) === o.value && <Check size={14} className="custom-select-check" />}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // Peças de interface compartilhadas pelas páginas do admin.
 
@@ -58,8 +132,20 @@ export function Tabs<T extends string>({ tabs, value, onChange }: { tabs: Tab<T>
 
 export type Tone = 'neutral' | 'success' | 'warning' | 'danger' | 'info' | 'accent';
 
-export function Badge({ tone = 'neutral', children, title }: { tone?: Tone; children: ReactNode; title?: string }) {
-  return <span className={`badge badge-${tone}`} title={title}>{children}</span>;
+export function Badge({ tone = 'neutral', variant = 'default', children, title }: { tone?: Tone; variant?: 'default' | 'line'; children: ReactNode; title?: string }) {
+  if (variant === 'line') {
+    return (
+      <span className={`badge-line badge-${tone}`} title={title}>
+        <span className="badge-text">{children}</span>
+      </span>
+    );
+  }
+
+  return (
+    <span className={`badge badge-${tone} badge-${variant}`} title={title}>
+      {children}
+    </span>
+  );
 }
 
 export function LifecycleBadge({ value }: { value: Lifecycle }) {
@@ -126,9 +212,9 @@ export function Pagination({ page, pageSize, total, onPage, onPageSize }: PagerP
       <div className="pager-controls">
         <label className="pager-size">
           Por página
-          <select className="select select-sm" value={pageSize} onChange={(e) => onPageSize(Number(e.target.value))}>
-            {[10, 20, 50].map((n) => <option key={n} value={n}>{n}</option>)}
-          </select>
+          <CustomSelect className="select-sm" value={String(pageSize)} onChange={(e) => onPageSize(Number(e.target.value))}>
+            {[10, 20, 50].map((n) => <option key={n} value={String(n)}>{n}</option>)}
+          </CustomSelect>
         </label>
         <button type="button" className="icon-btn" disabled={page <= 1} onClick={() => onPage(page - 1)} aria-label="Página anterior"><ChevronLeft size={16} /></button>
         <span className="text-muted">{page} / {pages}</span>
@@ -154,22 +240,16 @@ type PanelProps = {
   footer?: ReactNode;
 };
 
-/** Painel lateral modal, para criar e editar sem sair da página. */
+/**
+ * Painel de criar/editar, para não sair da página. Usa a mesma casca global da ficha (Peek):
+ * painel lateral ou popup central, conforme "Configurar visualização" — não tem chave própria,
+ * é sempre a preferência de quem está usando.
+ */
 export function SidePanel({ title, subtitle, onClose, children, footer }: PanelProps) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      const el = document.activeElement;
-      if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement) return;
-      onClose();
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
-
+  const { settings } = useViewSettings();
   return (
-    <div className="panel-overlay" onClick={onClose}>
-      <aside className="panel-side crm-scope crm-fs-md" role="dialog" aria-label={title} onClick={(e) => e.stopPropagation()}>
+    <Peek mode={settings.openMode} fontSize={settings.fontSize} onClose={onClose} label={title}>
+      <div className="panel-shell">
         <header className="panel-head">
           <div>
             <h2 className="panel-title">{title}</h2>
@@ -179,8 +259,8 @@ export function SidePanel({ title, subtitle, onClose, children, footer }: PanelP
         </header>
         <div className="panel-body">{children}</div>
         {footer && <footer className="panel-foot">{footer}</footer>}
-      </aside>
-    </div>
+      </div>
+    </Peek>
   );
 }
 
@@ -191,5 +271,70 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
       {children}
       {hint && <span className="field-hint">{hint}</span>}
     </label>
+  );
+}
+
+type PopupDialogProps = {
+  title: string;
+  description?: ReactNode;
+  eyebrow?: string;
+  tone?: 'accent' | 'success' | 'warning' | 'danger';
+  onClose: () => void;
+  children?: ReactNode;
+  footer?: ReactNode;
+};
+
+/** Diálogo compacto para confirmações, entradas rápidas e resultados de ações. */
+export function PopupDialog({ title, description, eyebrow = 'KALIDASH', tone = 'accent', onClose, children, footer }: PopupDialogProps) {
+  const titleId = useId();
+  const descriptionId = useId();
+  const dialogRef = useRef<HTMLElement>(null);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  const Icon = tone === 'success' ? CheckCircle2 : tone === 'warning' || tone === 'danger' ? CircleAlert : CircleHelp;
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        closeRef.current();
+        return;
+      }
+      if (event.key !== 'Tab' || !dialogRef.current) return;
+      const focusable = [...dialogRef.current.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), textarea:not(:disabled), select:not(:disabled), [href], [tabindex]:not([tabindex="-1"])')];
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    const dialog = dialogRef.current;
+    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    if (!dialog?.contains(previouslyFocused)) {
+      (dialog?.querySelector<HTMLElement>('[autofocus]') ?? dialog?.querySelector<HTMLElement>('.popup-footer button:not(:disabled)') ?? dialog?.querySelector<HTMLElement>('.popup-close'))?.focus();
+    }
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      if (previouslyFocused?.isConnected) previouslyFocused.focus();
+    };
+  }, []);
+
+  return (
+    <div className="popup-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <section ref={dialogRef} className={`popup-card popup-${tone}`} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined} tabIndex={-1}>
+        <header className="popup-header">
+          <span className="popup-symbol"><Icon size={19} /></span>
+          <div className="popup-heading-copy">
+            <span className="popup-eyebrow">{eyebrow}</span>
+            <h2 id={titleId} className="popup-title">{title}</h2>
+            {description && <p id={descriptionId} className="popup-description">{description}</p>}
+          </div>
+          <button type="button" className="popup-close" onClick={onClose} aria-label="Fechar"><X size={17} /></button>
+        </header>
+        {children && <div className="popup-body">{children}</div>}
+        {footer && <footer className="popup-footer">{footer}</footer>}
+      </section>
+    </div>
   );
 }

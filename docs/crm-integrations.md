@@ -5,7 +5,9 @@
 
 ---
 
-## 1. Google Meet (Agendamento de Reuniões)
+## 1. Google Meet e Calendar (Agendamento e Acompanhamento)
+
+> A ideia cresceu além de agendar uma reunião: vira a página **Acompanhamento** (futura, ver [dominio.md](./dominio.md) §10) — o calendário operacional de toda a equipe, com prazos, atrasos, notificações push e tarefas personalizadas nascendo dele. Sem desenho de tela ainda; a base de OAuth abaixo é a mesma.
 
 **Objetivo:** Permitir que o vendedor agende uma call com o Lead diretamente pela ficha do CRM, gerando o link do Meet automaticamente e disparando o invite.
 
@@ -48,6 +50,8 @@ Temos duas rotas aqui. A Rota A é mais "poderosa", a Rota B é mais "simples".
 ---
 
 ## 3. Notificações (O motor de engajamento)
+
+> A classificação por tipo (erros, avisos, notificações) e o sino da barra lateral estão em [notificacoes.md](./notificacoes.md). Aqui ficam os canais de envio.
 
 **Objetivo:** Avisar o vendedor imediatamente quando uma ação importante acontece (Novo Lead, Lead abriu o email, Reunião em 10 min).
 

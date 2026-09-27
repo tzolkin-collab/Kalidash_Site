@@ -6,6 +6,7 @@ import { newId, useStore } from '../lib/store';
 import { EVENTS } from '../mocks/automations';
 import { CURRENT_USER_ID, auditLog, teamStore, webhooksStore } from '../mocks/team';
 import { Badge, EmptyState, Field, Page, PageHeader, SampleBanner, SearchBox, SidePanel, Switch, Tabs } from '../components/ui';
+import { CustomSelect } from '../components/ui';
 
 type Tab = 'profile' | 'team' | 'webhooks' | 'audit';
 
@@ -86,9 +87,9 @@ function TeamTab() {
                 <tr key={m.id}>
                   <td><div className="cell-avatar"><span className="avatar">{initials(m.name)}</span><div className="cell-stack"><span className="cell-primary">{m.name}{m.id === CURRENT_USER_ID && <span className="text-muted"> (você)</span>}</span><span className="text-xs text-muted">{m.email}</span></div></div></td>
                   <td>
-                    <select className="select select-sm" value={m.role} disabled={isLastAdmin(m)} title={isLastAdmin(m) ? 'Não dá para tirar o perfil do último Admin' : undefined} onChange={(e) => setRole(m.id, e.target.value as Role)} aria-label={`Perfil de ${m.name}`}>
+                    <CustomSelect className="select select-sm" value={m.role} disabled={isLastAdmin(m)} title={isLastAdmin(m) ? 'Não dá para tirar o perfil do último Admin' : undefined} onChange={(e) => setRole(m.id, e.target.value as Role)} aria-label={`Perfil de ${m.name}`}>
                       {(Object.keys(ROLE_LABEL) as Role[]).map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
-                    </select>
+                    </CustomSelect>
                   </td>
                   <td><Badge tone={m.status === 'ACTIVE' ? 'success' : 'warning'}>{m.status === 'ACTIVE' ? 'Ativo' : 'Convite enviado'}</Badge></td>
                   <td className="text-muted">{when(m.lastAccess)}</td>
@@ -135,7 +136,7 @@ function InvitePanel({ onClose, onInvite, existing }: { onClose: () => void; onI
       <div className="form-stack">
         <Field label="Nome"><input className="input" value={name} onChange={(e) => setName(e.target.value)} autoFocus /></Field>
         <Field label="E-mail" hint={duplicate ? 'Esta pessoa já está na equipe.' : email && !emailOk ? 'Informe um e-mail válido.' : undefined}><input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
-        <Field label="Perfil"><select className="select" value={role} onChange={(e) => setRole(e.target.value as Role)}>{(Object.keys(ROLE_LABEL) as Role[]).map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}</select></Field>
+        <Field label="Perfil"><CustomSelect className="select" value={role} onChange={(e) => setRole(e.target.value as Role)}>{(Object.keys(ROLE_LABEL) as Role[]).map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}</CustomSelect></Field>
       </div>
     </SidePanel>
   );
@@ -189,7 +190,7 @@ function WebhookPanel({ onClose, onSave }: { onClose: () => void; onSave: (h: We
       <div className="form-stack">
         <Field label="Nome"><input className="input" value={name} onChange={(e) => setName(e.target.value)} autoFocus /></Field>
         <Field label="Quando isto acontecer">
-          <select className="select" value={event} onChange={(e) => setEvent(e.target.value)}>{EVENTS.map((e) => <option key={e.id} value={e.id}>{e.label} ({e.id})</option>)}</select>
+          <CustomSelect className="select" value={event} onChange={(e) => setEvent(e.target.value)}>{EVENTS.map((e) => <option key={e.id} value={e.id}>{e.label} ({e.id})</option>)}</CustomSelect>
         </Field>
         <Field label="Enviar um POST para" hint={url && !urlOk ? 'Use um endereço https completo.' : undefined}><input className="input mono" value={url} onChange={(e) => setUrl(e.target.value)} /></Field>
       </div>
