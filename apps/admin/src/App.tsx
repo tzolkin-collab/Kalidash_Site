@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Moon, Settings, Sun } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
+import Leads from './pages/Leads';
 import Opportunities from './pages/Opportunities';
 import { NAV_GROUPS, isActive } from './nav';
 import { useHashRoute } from './lib/router';
@@ -64,6 +65,9 @@ export default function App() {
     case undefined:
     case 'dashboard':
       page = <Dashboard />;
+      break;
+    case 'leads':
+      page = <Leads />;
       break;
     case 'oportunidades':
       page = <Opportunities />;

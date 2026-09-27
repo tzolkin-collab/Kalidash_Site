@@ -307,6 +307,14 @@
 .top-list li:last-child .top-item { border-bottom: none; }
 .top-item:hover { background: var(--bg-surface-hover); }
 
+/* ---------- Genéricos usados em várias telas ---------- */
+.notice { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; padding: 10px 14px; border: 1px solid rgba(16, 185, 129, 0.5); border-radius: 8px; background: rgba(16, 185, 129, 0.08); font-size: 13px; }
+.row-actions { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
+.detail-list { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 10px 12px; margin: 0; font-size: 14px; }
+.detail-list dt { color: var(--text-muted); font-size: 13px; }
+.detail-list dd { margin: 0; overflow-wrap: anywhere; }
+.quote { margin: 0; padding: 10px 14px; border-left: 3px solid var(--border-focus); background: var(--bg-surface-hover); border-radius: 0 6px 6px 0; font-size: 14px; line-height: 1.5; }
+
 /* ---------- E-mails: modelos ---------- */
 .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
 .template-card { display: flex; flex-direction: column; padding: 0; border: 1px solid var(--border-subtle); border-radius: 14px; overflow: hidden; background: var(--bg-surface); color: var(--text-primary); text-align: left; font: inherit; cursor: pointer; transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s; }
