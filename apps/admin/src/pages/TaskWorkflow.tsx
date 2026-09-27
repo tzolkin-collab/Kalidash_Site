@@ -2,14 +2,14 @@ import { useMemo, useState } from 'react';
 import { Background, Controls, Handle, MarkerType, Position, ReactFlow, MiniMap } from '@xyflow/react';
 import type { Edge, Node, NodeProps } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Check, CircleDot, FileInput, Lock, Pencil, Plug, Plus, Settings, Trash2, TriangleAlert, Upload, User } from 'lucide-react';
+import { Check, CircleDot, FileInput, Lock, Pencil, Plug, Plus, Settings, Trash2, TriangleAlert, Upload, User, Search } from 'lucide-react';
 import type { Pipeline, Requirement, RequirementGate, RequirementKind, Source, Stage } from '../domain';
 import { newId, useStore } from '../lib/store';
 import { useShell } from '../lib/shell';
 import { pipelinesStore } from '../mocks/pipelines';
 import { trackedRecords } from '../mocks/records';
 import type { TrackedRecord } from '../mocks/records';
-import { Badge, EmptyState, Field, Page, PageHeader, SidePanel } from '../components/ui';
+import { Badge, EmptyState, Field, Page, PageHeader, SidePanel, PopupDialog } from '../components/ui';
 import { CustomSelect } from '../components/ui';
 
 // Workflow do funil, da esquerda para a direita (docs/dominio.md §11): fontes entram, cada etapa é
@@ -27,9 +27,10 @@ type StageData = {
   reqState: (r: Requirement) => ReqState | null;
   onOpen: (r: Requirement) => void;
   onAdd: (stage: Stage) => void;
+  onEditStage: (stage: Stage) => void;
 };
 
-type SourceData = { source: Source | null };
+type SourceData = { source: Source | null; onEditSource: (source: Source | null) => void };
 
 type StageNodeType = Node<StageData, 'stage'>;
 type SourceNodeType = Node<SourceData, 'source'>;
@@ -47,7 +48,7 @@ function StageNode({ data }: NodeProps<StageNodeType>) {
   return (
     <div className={`wf-node wf-stage ${state ? `is-${state}` : ''}`} style={{ width: STAGE_W }}>
       <Handle type="target" position={Position.Left} />
-      <div className="wf-head" style={{ borderTopColor: stage.color }}>
+      <div className="wf-head" style={{ borderTopColor: stage.color, cursor: 'pointer' }} onClick={() => data.onEditStage(stage)}>
         <div className="wf-title">
           <span className="mini-dot" style={{ background: stage.color }} />
           <strong>{stage.name}</strong>
@@ -101,9 +102,9 @@ function StageNode({ data }: NodeProps<StageNodeType>) {
 }
 
 function SourceNode({ data }: NodeProps<SourceNodeType>) {
-  const { source } = data;
+  const { source, onEditSource } = data;
   return (
-    <div className={`wf-node wf-source ${source ? '' : 'is-missing'}`} style={{ width: 220 }}>
+    <div className={`wf-node wf-source ${source ? '' : 'is-missing'}`} style={{ width: 220, cursor: 'pointer' }} onClick={() => onEditSource(source)}>
       <div className="wf-source-icon">{source?.type === 'IMPORT' ? <Upload size={14} /> : source?.type === 'MANUAL' ? <Pencil size={14} /> : <Plug size={14} />}</div>
       <div className="cell-stack">
         <strong>{source ? source.name : 'Sem fonte conectada'}</strong>
@@ -119,13 +120,21 @@ function SourceNode({ data }: NodeProps<SourceNodeType>) {
 // Fora do componente: o React Flow exige referência estável.
 export const nodeTypes = { stage: StageNode, source: SourceNode };
 
-type PanelState = { mode: 'edit'; requirement: Requirement } | { mode: 'new'; stage: Stage } | null;
+type PanelState =
+  | { mode: 'edit_req'; requirement: Requirement }
+  | { mode: 'new_req'; stage: Stage }
+  | { mode: 'config_pipeline' }
+  | { mode: 'config_stage'; stage: Stage }
+  | { mode: 'config_source'; source: Source | null }
+  | null;
 
 export default function TaskWorkflow({ pipelineId }: { pipelineId: string }) {
   const { navigate, dark } = useShell();
   const [pipelines, setPipelines] = useStore(pipelinesStore);
   const pipeline = pipelines.find((p) => p.id === pipelineId);
   const [followId, setFollowId] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [panel, setPanel] = useState<PanelState>(null);
 
   const records = useMemo(() => trackedRecords.filter((r) => r.pipelineId === pipelineId), [pipelineId]);
@@ -164,13 +173,13 @@ export default function TaskWorkflow({ pipelineId }: { pipelineId: string }) {
           actions={
             <>
               <label className="follow">
-                <span className="text-xs text-muted">Seguir um registro:</span>
-                <CustomSelect className="select select-sm" value={followId} onChange={(e) => setFollowId(e.target.value)}>
-                  <option value="">Nenhum</option>
-                  {records.map((r) => <option key={r.id} value={r.id}>{r.name} ({r.kind === 'lead' ? 'lead' : 'oportunidade'})</option>)}
-                </CustomSelect>
+                <span className="text-xs text-muted">Seguir registro:</span>
+                <button type="button" className="btn btn-sm" onClick={() => setSearchOpen(true)}>
+                  <Search size={14} />
+                  {followed ? followed.name : 'Nenhum'}
+                </button>
               </label>
-              <button type="button" className="btn" onClick={() => navigate(`/oportunidades/pipelines/${pipeline.id}`)}><Settings size={14} /> Configurar</button>
+              <button type="button" className="btn" onClick={() => setPanel({ mode: 'config_pipeline' })}><Settings size={14} /> Configurar</button>
             </>
           }
         />
@@ -210,14 +219,65 @@ export default function TaskWorkflow({ pipelineId }: { pipelineId: string }) {
         </ReactFlow>
       </div>
 
-      {panel && (
+      </div>
+
+      {searchOpen && (
+        <PopupDialog title="Seguir um registro" description="Busque por um lead ou oportunidade para ver seu progresso." onClose={() => { setSearchOpen(false); setSearchQuery(''); }}>
+          <div className="p-4" style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '400px' }}>
+            <input 
+              className="input" 
+              placeholder="Pesquisar por nome..." 
+              value={searchQuery} 
+              onChange={e => setSearchQuery(e.target.value)} 
+              autoFocus 
+            />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', flex: 1 }}>
+              <button type="button" className={`btn ${followId === '' ? 'btn-solid' : ''}`} style={{ justifyContent: 'center' }} onClick={() => { setFollowId(''); setSearchOpen(false); setSearchQuery(''); }}>Parar de seguir</button>
+              {records.filter(r => r.name.toLowerCase().includes(searchQuery.toLowerCase())).map(r => (
+                <button key={r.id} type="button" className={`btn ${followId === r.id ? 'btn-solid' : ''}`} style={{ justifyContent: 'flex-start' }} onClick={() => { setFollowId(r.id); setSearchOpen(false); setSearchQuery(''); }}>
+                  <span style={{ minWidth: '80px', fontSize: '10px', textTransform: 'uppercase', opacity: 0.7 }}>{r.kind}</span>
+                  {r.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        </PopupDialog>
+      )}
+
+      {(panel?.mode === 'edit_req' || panel?.mode === 'new_req') && (
         <RequirementPanel
           pipeline={pipeline}
-          panel={panel}
+          panel={panel as any}
           onClose={() => setPanel(null)}
           onSave={saveRequirement}
           onDelete={removeRequirement}
         />
+      )}
+
+      {panel?.mode === 'config_pipeline' && (
+        <SidePanel title="Configurações do Funil" onClose={() => setPanel(null)}>
+          <div className="form-stack p-4">
+            <p className="text-sm text-muted">O editor visual de etapas agora fica direto no Canvas! Clique no cabeçalho de qualquer etapa ou fonte para abrir suas configurações.</p>
+            <Field label="Nome do funil"><input className="input" value={pipeline.name} onChange={e => updatePipeline(p => ({ ...p, name: e.target.value }))} /></Field>
+          </div>
+        </SidePanel>
+      )}
+
+      {panel?.mode === 'config_stage' && (
+        <SidePanel title="Configurar Etapa" subtitle={panel.stage.name} onClose={() => setPanel(null)}>
+          <div className="form-stack p-4">
+            <Field label="Nome da etapa"><input className="input" value={panel.stage.name} onChange={e => updatePipeline(p => ({ ...p, stages: p.stages.map(s => s.id === panel.stage.id ? { ...s, name: e.target.value } : s) }))} /></Field>
+            <Field label="Cor de destaque"><input type="color" className="input" style={{ width: '100px' }} value={panel.stage.color} onChange={e => updatePipeline(p => ({ ...p, stages: p.stages.map(s => s.id === panel.stage.id ? { ...s, color: e.target.value } : s) }))} /></Field>
+          </div>
+        </SidePanel>
+      )}
+
+      {panel?.mode === 'config_source' && (
+        <SidePanel title="Configurar Fonte" subtitle={panel.source ? panel.source.name : 'Nova fonte'} onClose={() => setPanel(null)}>
+          <div className="form-stack p-4">
+            <p className="text-sm text-muted">A integração de fontes externas (formulários, APIs) ficará disponível no módulo de Automações em breve.</p>
+          </div>
+        </SidePanel>
       )}
     </div>
   );
@@ -244,7 +304,7 @@ export function buildGraph(pipeline: Pipeline, followed: TrackedRecord | null, s
 
   const sources: (Source | null)[] = pipeline.sources.length ? pipeline.sources : [null];
   sources.forEach((s, i) => {
-    nodes.push({ id: `src-${s?.id ?? 'none'}`, type: 'source', position: { x: 0, y: i * 110 }, data: { source: s }, draggable: false });
+    nodes.push({ id: `src-${s?.id ?? 'none'}`, type: 'source', position: { x: 0, y: i * 110 }, data: { source: s, onEditSource: (src) => setPanel({ mode: 'config_source', source: src }) }, draggable: false });
   });
 
   const main = pipeline.stages.filter((s) => s.kind === 'LEAD' || s.kind === 'OPEN');
@@ -261,8 +321,9 @@ export function buildGraph(pipeline: Pipeline, followed: TrackedRecord | null, s
       data: {
         stage, requirements: reqs, records: pipeline.counts[stage.id] ?? 0, blocked: reqs.reduce((a, r) => a + r.blocked, 0), state,
         reqState: reqStateFor,
-        onOpen: (requirement) => setPanel({ mode: 'edit', requirement }),
-        onAdd: (st) => setPanel({ mode: 'new', stage: st }),
+        onOpen: (requirement) => setPanel({ mode: 'edit_req', requirement }),
+        onAdd: (st) => setPanel({ mode: 'new_req', stage: st }),
+        onEditStage: (st) => setPanel({ mode: 'config_stage', stage: st }),
       },
     };
   };
@@ -294,7 +355,7 @@ export function buildGraph(pipeline: Pipeline, followed: TrackedRecord | null, s
 
 function RequirementPanel({ pipeline, panel, onClose, onSave, onDelete }: { pipeline: Pipeline; panel: NonNullable<PanelState>; onClose: () => void; onSave: (r: Requirement) => void; onDelete: (id: string) => void }) {
   const [base] = useState<Requirement>(() =>
-    panel.mode === 'edit'
+    panel.mode === 'edit_req'
       ? panel.requirement
       : { id: newId('req'), stageId: panel.stage.id, label: '', tag: pipeline.taskTags[0] ?? 'Geral', kind: 'ACTION', gate: 'NONE', blocked: 0, overdue: 0 },
   );
@@ -312,12 +373,12 @@ function RequirementPanel({ pipeline, panel, onClose, onSave, onDelete }: { pipe
 
   return (
     <SidePanel
-      title={panel.mode === 'edit' ? 'Requisito da etapa' : 'Nova tarefa'}
+      title={panel.mode === 'edit_req' ? 'Requisito da etapa' : 'Nova tarefa'}
       subtitle={`${pipeline.name} · ${stage?.name ?? ''}`}
       onClose={onClose}
       footer={
         <>
-          {panel.mode === 'edit' && <button type="button" className="btn btn-danger" style={{ marginRight: 'auto' }} onClick={() => onDelete(base.id)}><Trash2 size={14} /> Excluir</button>}
+          {panel.mode === 'edit_req' && <button type="button" className="btn btn-danger" style={{ marginRight: 'auto' }} onClick={() => onDelete(base.id)}><Trash2 size={14} /> Excluir</button>}
           <button type="button" className="btn" onClick={onClose}>Cancelar</button>
           <button type="button" className="btn btn-solid" disabled={!valid} onClick={() => onSave({ ...base, label: label.trim(), tag, kind, gate, assignee: assignee.trim() || undefined, dueDays: dueDays === '' ? undefined : Math.max(0, Number(dueDays)) })}>Salvar</button>
         </>
