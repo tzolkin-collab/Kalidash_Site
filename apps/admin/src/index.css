@@ -463,10 +463,23 @@ body {
 
   .header {
     padding: 0 16px;
+    /* O cabeçalho de Oportunidades bota dois grupos de botões lado a lado (contexto + ações);
+       sem quebrar linha e com a altura travada em 64px, o segundo grupo empurra a página pra
+       rolar de lado. */
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 64px;
+    row-gap: 8px;
   }
-  
+
   .header h1, .header .text-base {
     font-size: 14px;
+  }
+
+  /* Rótulo de texto ao lado de ícone (Kanban/Lista, Nova Oportunidade…) — some no mobile,
+     fica só o ícone. Existia no JSX sem nunca ter sido definida. */
+  .hide-on-mobile {
+    display: none;
   }
 
   /* Ajuste no Modal de Configurações para Mobile */
