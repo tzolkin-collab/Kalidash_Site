@@ -156,7 +156,7 @@ export default function TaskWorkflow({ pipelineId }: { pipelineId: string }) {
 
   return (
     <div className="wf-fullscreen">
-      <div className="wf-toolbar" style={{ padding: '0 24px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-app)', flex: 'none', zIndex: 10 }}>
+      <div className="wf-toolbar" style={{ width: '100%', boxSizing: 'border-box', padding: '0 24px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-app)', flex: 'none', zIndex: 10 }}>
         <style>{`.wf-toolbar .page-header { padding: 12px 0; }`}</style>
         <PageHeader
           back={{ label: 'Tarefas', to: '/tarefas' }}
