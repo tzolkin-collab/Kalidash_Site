@@ -7,6 +7,10 @@ dist/
 *.tsbuildinfo
 coverage/
 
+# Service worker de dev escrito em disco pelo vite-plugin-pwa (devOptions.enabled) — é saída
+# de build, regenerada a cada `pnpm dev`, não deveria estar versionada.
+apps/admin/dev-dist/
+
 # Binários Go
 *.exe
 *.test
