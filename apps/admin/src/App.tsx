@@ -6,6 +6,7 @@ import Clients from './pages/Clients';
 import Leads from './pages/Leads';
 import Opportunities from './pages/Opportunities';
 import PeopleCompanies from './pages/PeopleCompanies';
+import Tasks from './pages/Tasks';
 import { NAV_GROUPS, isActive } from './nav';
 import { useHashRoute } from './lib/router';
 import { ShellContext } from './lib/shell';
@@ -13,6 +14,8 @@ import { EmptyState, Page, PageHeader } from './components/ui';
 
 // O editor de e-mail é pesado: só é baixado quando a página de E-mails é aberta.
 const Emails = lazy(() => import('./Emails'));
+// React Flow (workflow das tarefas) também só carrega quando preciso.
+const TaskWorkflow = lazy(() => import('./pages/TaskWorkflow'));
 
 function NotFound({ path }: { path: string }) {
   return (
@@ -61,7 +64,7 @@ export default function App() {
     [navigate, isDarkMode],
   );
 
-  const [root] = segments;
+  const [root, second] = segments;
   let page: ReactNode;
   switch (root) {
     case undefined:
@@ -73,6 +76,9 @@ export default function App() {
       break;
     case 'oportunidades':
       page = <Opportunities />;
+      break;
+    case 'tarefas':
+      page = second ? <TaskWorkflow key={second} pipelineId={second} /> : <Tasks />;
       break;
     case 'pessoas-empresas':
       page = <PeopleCompanies />;

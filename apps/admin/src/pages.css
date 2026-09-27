@@ -324,6 +324,68 @@
 .stake-default { display: inline-flex; align-items: center; cursor: pointer; }
 .stake-add { display: grid; grid-template-columns: 1fr; gap: 8px; }
 
+/* ---------- Tarefas: galeria de funis ---------- */
+.funnel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 16px; }
+.funnel-card { display: flex; flex-direction: column; gap: 14px; padding: 18px; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-surface); color: var(--text-primary); text-align: left; font: inherit; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; }
+.funnel-card:hover { border-color: var(--border-focus); box-shadow: var(--shadow-md); }
+.funnel-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.funnel-card-title { font-size: calc(16px * var(--crm-fs, 1)); font-weight: 700; }
+.funnel-card-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding-top: 12px; border-top: 1px solid var(--border-subtle); }
+.funnel-card-stats div { display: flex; flex-direction: column; }
+.funnel-card-stats strong { font-size: 18px; }
+.funnel-card-stats span { font-size: 12px; color: var(--text-muted); }
+.funnel-card-stats .is-warn strong { color: #d97706; }
+.funnel-card-stats .is-danger strong { color: #ef4444; }
+.mini-flow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 0; min-height: 52px; }
+.mini-source { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border-subtle); background: var(--bg-surface-hover); font-size: 11px; font-weight: 600; }
+.mini-source.empty { border-style: dashed; color: #d97706; border-color: rgba(217, 119, 6, 0.6); }
+.mini-stage-wrap { display: inline-flex; align-items: center; }
+.mini-arrow { color: var(--text-muted); margin: 0 1px; }
+.mini-stage { display: inline-flex; align-items: center; gap: 4px; padding: 3px 7px; border: 1px solid var(--border-subtle); border-radius: 6px; font-size: 11px; white-space: nowrap; }
+.mini-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.mini-count { display: inline-flex; align-items: center; gap: 2px; padding: 0 5px; border-radius: 8px; background: var(--bg-surface-hover); color: var(--text-muted); font-weight: 600; }
+
+/* ---------- Tarefas: workflow (React Flow) ---------- */
+.follow { display: flex; align-items: center; gap: 8px; }
+.wf-legend { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; margin-bottom: 12px; font-size: 12px; color: var(--text-secondary); }
+.wf-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.wf-legend-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border-focus); }
+.wf-legend-dot.done { background: #10b981; }
+.wf-legend-dot.blocking { background: #ef4444; }
+.wf-canvas { height: calc(100vh - 300px); min-height: 460px; border: 1px solid var(--border-subtle); border-radius: 12px; overflow: hidden; background: var(--bg-surface); }
+.wf-node { position: relative; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-surface); color: var(--text-primary); box-shadow: var(--shadow-sm); font-size: 13px; }
+.wf-node.is-todo { opacity: 0.55; }
+.wf-node.is-done { border-color: rgba(16, 185, 129, 0.6); }
+.wf-node.is-current { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.2); }
+.wf-head { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px 10px; border-top: 4px solid var(--border-subtle); border-radius: 12px 12px 0 0; border-bottom: 1px solid var(--border-subtle); }
+.wf-title { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.wf-check { color: #10b981; }
+.wf-counts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.wf-body { display: flex; flex-direction: column; gap: 6px; padding: 10px; }
+.wf-empty { padding: 6px 4px; font-size: 12px; color: var(--text-muted); }
+.wf-req { display: flex; align-items: flex-start; gap: 8px; width: 100%; padding: 8px; border: 1px solid var(--border-subtle); border-radius: 8px; background: var(--bg-surface); color: inherit; text-align: left; font: inherit; cursor: pointer; }
+.wf-req:hover { background: var(--bg-surface-hover); }
+.wf-req.is-done { border-color: rgba(16, 185, 129, 0.5); background: rgba(16, 185, 129, 0.06); }
+.wf-req.is-blocking { border-color: rgba(239, 68, 68, 0.6); background: rgba(239, 68, 68, 0.07); }
+.wf-req.is-todo { opacity: 0.7; }
+.wf-req-icon { margin-top: 2px; color: var(--text-muted); }
+.wf-req.is-done .wf-req-icon { color: #10b981; }
+.wf-req.is-blocking .wf-req-icon { color: #ef4444; }
+.wf-req-main { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.wf-req-label { font-weight: 600; }
+.wf-req-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); }
+.wf-assignee { display: inline-flex; align-items: center; gap: 3px; }
+.wf-lock { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; padding: 2px 5px; border-radius: 6px; background: var(--bg-surface-hover); border: 1px solid var(--border-subtle); font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); }
+.wf-req-nums { display: flex; flex-direction: column; gap: 2px; font-size: 11px; font-weight: 700; }
+.wf-req-nums .is-danger { color: #ef4444; }
+.wf-req-nums .is-warn { color: #d97706; }
+.wf-add { display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 6px; border: 1px dashed var(--border-focus); border-radius: 8px; background: transparent; color: var(--text-muted); font: inherit; font-size: 12px; cursor: pointer; }
+.wf-add:hover { color: var(--text-primary); background: var(--bg-surface-hover); }
+.wf-source { display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
+.wf-source.is-missing { border-style: dashed; border-color: rgba(217, 119, 6, 0.6); }
+.wf-source-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; background: var(--bg-surface-hover); border: 1px solid var(--border-subtle); flex-shrink: 0; }
+.wf-edge-active .react-flow__edge-path { stroke: var(--accent); stroke-width: 2.5; }
+
 /* ---------- E-mails: modelos ---------- */
 .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
 .template-card { display: flex; flex-direction: column; padding: 0; border: 1px solid var(--border-subtle); border-radius: 14px; overflow: hidden; background: var(--bg-surface); color: var(--text-primary); text-align: left; font: inherit; cursor: pointer; transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s; }
