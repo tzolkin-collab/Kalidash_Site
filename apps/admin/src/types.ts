@@ -16,6 +16,8 @@ export type Opportunity = {
   tags: string[];
   pipeline?: string;
   created_at?: string;
+  /** Só no front: linha de lead exibida junto das oportunidades ("Ver leads"). */
+  isLead?: boolean;
 
   // Campos personalizados: variáveis de um jsonb (a API ainda não os envia).
   customData?: Record<string, unknown>;

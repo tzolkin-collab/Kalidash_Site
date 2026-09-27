@@ -22,11 +22,11 @@ const priorityLabel = (priority: string) => PRIORITIES[priority] ?? priority;
 const dash = <span className="text-muted">—</span>;
 
 export const SYSTEM_COLUMNS: ColumnDef[] = [
-  { id: 'title', label: 'Oportunidade', group: 'system', removable: false, render: (o) => <div className="font-semibold">{o.title}</div> },
+  { id: 'title', label: 'Oportunidade', group: 'system', removable: false, render: (o) => <div className="font-semibold">{o.title}{o.isLead && <span className="badge badge-accent lead-badge">Lead</span>}</div> },
   { id: 'client', label: 'Cliente', group: 'system', removable: true, render: (o) => <ClientCell opp={o} /> },
   { id: 'stage', label: 'Estágio', group: 'system', removable: true, render: (o) => <StageBadge stage={o.stage} /> },
   { id: 'tags', label: 'Tags', group: 'system', removable: true, render: (o) => <Tags tags={o.tags} /> },
-  { id: 'value', label: 'Valor', group: 'system', removable: true, render: (o) => <span className="font-medium" style={{ whiteSpace: 'nowrap' }}>{formatCurrency(o.value)}</span> },
+  { id: 'value', label: 'Valor', group: 'system', removable: true, render: (o) => (o.isLead ? dash : <span className="font-medium" style={{ whiteSpace: 'nowrap' }}>{formatCurrency(o.value)}</span>) },
   { id: 'priority', label: 'Prioridade', group: 'system', removable: true, render: (o) => (o.priority ? <span className="tag">{priorityLabel(o.priority)}</span> : dash) },
   { id: 'owner', label: 'Dono', group: 'system', removable: true, render: (o) => <Owner opp={o} /> },
   { id: 'contact', label: 'Contato', group: 'system', removable: true, render: (o) => o.contactName ?? dash },
