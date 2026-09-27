@@ -395,6 +395,20 @@
 .template-name { margin: 0; font-size: calc(16px * var(--crm-fs, 1)); font-weight: 700; }
 .template-info .truncate { max-width: 100%; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+/* ---------- Automações ---------- */
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border: 1px solid var(--border-subtle); border-radius: 16px; background: transparent; color: var(--text-secondary); font: inherit; font-size: 13px; cursor: pointer; }
+.chip:hover { background: var(--bg-surface-hover); }
+.chip.active { background: var(--text-primary); border-color: var(--text-primary); color: var(--bg-app); font-weight: 600; }
+.chip.active .tab-count { background: transparent; border-color: currentColor; color: inherit; }
+.flow-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-weight: 500; }
+.catalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 16px; }
+.catalog-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.catalog-head { margin-bottom: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); }
+.catalog-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.catalog-list li { display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+@media (max-width: 640px) { .catalog { grid-template-columns: 1fr; } .catalog-cols { grid-template-columns: 1fr; } }
+
 /* ---------- Configurações das pipelines ---------- */
 .settings-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 24px; align-items: start; }
 .pipe-list { display: flex; flex-direction: column; gap: 6px; }

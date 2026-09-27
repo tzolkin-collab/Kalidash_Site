@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { Moon, Settings, Sun } from 'lucide-react';
 import PipelineBuilder from './PipelineBuilder';
 import Dashboard from './pages/Dashboard';
+import Automations from './pages/Automations';
 import Clients from './pages/Clients';
 import Leads from './pages/Leads';
 import Opportunities from './pages/Opportunities';
@@ -89,6 +90,9 @@ export default function App() {
       break;
     case 'clientes':
       page = <Clients />;
+      break;
+    case 'automacoes':
+      page = <Automations />;
       break;
     case 'emails':
       page = <Emails />;
