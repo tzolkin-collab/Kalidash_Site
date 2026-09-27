@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "kalidash-admin",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["apps/admin/node_modules/vite/bin/vite.js", "apps/admin", "--port", "5173", "--strictPort"],
+      "port": 5173
+    }
+  ]
+}
