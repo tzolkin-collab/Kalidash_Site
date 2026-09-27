@@ -157,7 +157,10 @@ body {
   display: flex;
   flex-direction: column;
   transition: transform 0.3s ease;
-  z-index: 40;
+  /* Precisa ficar acima de qualquer z-index que uma página use no próprio conteúdo (o cabeçalho
+     de Oportunidades usa 50) — sem isso, no mobile, o menu hambúrguer abre com o fundo escurecido
+     (.sidebar-backdrop) passando por baixo do cabeçalho da página, que fica sem escurecer. */
+  z-index: 100;
 }
 
 .main-content {
@@ -445,12 +448,13 @@ body {
     transform: translateX(0); /* Mostra a barra lateral */
   }
 
-  /* Fundo escuro atrás da sidebar no mobile */
+  /* Fundo escuro atrás da sidebar no mobile. Fica logo abaixo de .sidebar (100) mas acima do
+     z-index que uma página usa no próprio conteúdo — mesma razão do z-index da .sidebar acima. */
   .sidebar-backdrop {
     position: fixed;
     inset: 0;
     background-color: rgba(0,0,0,0.5);
-    z-index: 30;
+    z-index: 90;
     display: none;
   }
   .sidebar-backdrop.show {
