@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Moon, Settings, Sun } from 'lucide-react';
+import Dashboard from './pages/Dashboard';
 import Opportunities from './pages/Opportunities';
 import { NAV_GROUPS, isActive } from './nav';
 import { useHashRoute } from './lib/router';
@@ -61,6 +62,9 @@ export default function App() {
   let page: ReactNode;
   switch (root) {
     case undefined:
+    case 'dashboard':
+      page = <Dashboard />;
+      break;
     case 'oportunidades':
       page = <Opportunities />;
       break;
@@ -94,7 +98,7 @@ export default function App() {
                 <div key={group.title ?? i}>
                   {group.title && <div className="nav-group-title">{group.title}</div>}
                   {group.items.map(({ path: to, label, Icon }) => {
-                    const active = isActive(path === '/' ? '/oportunidades' : path, to);
+                    const active = isActive(path === '/' ? '/dashboard' : path, to);
                     return (
                       <a key={to} href={`#${to}`} className={`nav-link ${active ? 'active' : ''}`} aria-current={active ? 'page' : undefined} onClick={() => setIsMobileMenuOpen(false)}>
                         <Icon size={18} className="nav-icon" strokeWidth={active ? 2.5 : 2} /> {label}
