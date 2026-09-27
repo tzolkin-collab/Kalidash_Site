@@ -390,6 +390,9 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
+	if port[0] == ':' {
+		port = port[1:]
+	}
 	fmt.Printf("🚀 API do Kalidash (Go + MySQL) rodando em http://localhost:%s\n", port)
 	
 	if err := http.ListenAndServe(":"+port, mux); err != nil {
