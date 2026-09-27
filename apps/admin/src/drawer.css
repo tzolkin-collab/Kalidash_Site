@@ -386,6 +386,18 @@
   z-index: 150;
 }
 
+@media (max-width: 768px) {
+  /* "right: 0" supõe espaço sobrando à esquerda do gatilho — verdade no cabeçalho normal,
+     falso no de Oportunidades no mobile, onde este ícone é o primeiro à esquerda depois de
+     quebrar linha. Sem medir a posição real (não tem floating-ui aqui), inverte a âncora pro
+     único uso que existe hoje; se um dia aparecer perto da borda direita, isto quebra de novo. */
+  .vs-popover {
+    left: 0;
+    right: auto;
+    max-width: calc(100vw - 64px);
+  }
+}
+
 .vs-title { padding-bottom: 10px; border-bottom: 1px solid var(--border-subtle); font-size: 15px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-primary); }
 .vs-section { margin-top: 14px; padding-top: 13px; border-top: 1px solid var(--border-subtle); }
 .vs-label { margin-bottom: 8px; font-size: 10px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-muted); }
