@@ -25,7 +25,10 @@
 | Construtor de funil | admin | **Parcial** | Tela pronta, sem persistência (estado local). |
 | Editor de e-mail e templates | admin | **Parcial** | Templates e regras de automação em estado local. O envio de teste usa um contrato incompatível com a API. O preview de MJML só existe no `vite dev`. |
 | Envio de e-mail por oportunidade | api | **Parcial** | Via Resend (provisório). A meta é a Gmail API. |
-| Leads (entrada) e Clientes | admin | Planejado | |
+| Leads, Pessoas & Empresas e Clientes | admin + api | Planejado | Definição v2 em [dominio.md](./dominio.md). |
+| Pipelines (funil por oferta), fontes e painel de configurações | admin + api | Planejado | Hoje os funis existem só no código. |
+| Tarefas, requisitos de etapa e campos personalizados | admin + api | Planejado | Inclui a página Tarefas (galeria de funis e workflow de cada um). |
+| E-mails (templates) e Automações, em páginas separadas | admin + api | Planejado | O editor de e-mail existe em estado parcial. |
 | Entrada de leads (`connect.js`, API direta, webhook) | api | Planejado | Contrato já desenhado no v1.0 (`connect.ts`). |
 | Projetos conectados, Integrações e Chaves | admin + api | Planejado | Já existia como mock no v1.0. |
 | Login e perfis | api + admin | Planejado | Google OAuth do Workspace. Hoje a API está aberta. |
@@ -165,7 +168,9 @@ Definido em `apps/studio/prisma/schema.prisma`:
 | `Opportunity` | `title`, `value`, `stage`, `priority`, `tags` (JSON), `companyId`, `contactId`, `ownerId` (todos opcionais) |
 | `Note` | `content`, `type` (`NOTE`, `CALL`, `EMAIL`, `MEETING`, `TASK`), `opportunityId`, `authorId` |
 
-**Etapas do funil** (`Opportunity.stage`): `INBOUND` → `QUALIFICATION` → `PROPOSAL` → `NEGOTIATION` → `WON` / `LOST`. O construtor de funil permite personalizar.
+**Etapas do funil hoje:** `Opportunity.stage`, em texto (`INBOUND`, `QUALIFICATION`, `PROPOSAL`, `NEGOTIATION`, `WON`, `LOST`), e os funis existem só no código. Na v2 viram `Pipeline` e `Stage` configuráveis (ver [plano-schema.md](./plano-schema.md)).
+
+> **v2 (26/09/2026):** o modelo de Lead, Pipeline, Fonte, Stakeholder, Cliente, Tarefa e Automação está em [dominio.md](./dominio.md), e o desenho das tabelas em [plano-schema.md](./plano-schema.md). Isso **substitui** as linhas de `LeadSubmission` e de `Opportunity` da tabela abaixo. O lead deixa de ser a coluna INBOUND e passa a ser um registro próprio.
 
 ### Modelo de dados — proposto (ainda não existe)
 
@@ -175,8 +180,8 @@ Definido em `apps/studio/prisma/schema.prisma`:
 | `Project` (`name`, `url`, `stack`, `status`) | Projeto conectado: uma LP ou site com o Connect instalado |
 | `ProjectForm` (`projectId`, `name`, `selector`, `fieldMap`) | Formulário rastreado dentro de um projeto |
 | `ApiKey` (`projectId`, `name`, `prefix`, `keyHash`, `env`, `scopes`, `revokedAt`, `lastUsedAt`) | Chaves com escopo. O token completo aparece uma vez, no momento da emissão. |
-| `LeadSubmission` (`projectId`, `formId`, `payload`, atribuição, `opportunityId`) | Guarda cada envio (payload bruto, UTMs, `page_url`, IP) e liga à oportunidade criada ou atualizada |
-| `Opportunity` + `projectId`, `lostReason`, `expectedCloseDate`; `value` de `Float` para `Decimal(12,2)` | Origem do lead, motivo da perda, previsão de fechamento e valores exatos nas somas e relatórios (com `Float` a soma de centavos acumula erro) |
+| `LeadSubmission` (`sourceId`, `payload`, UTMs, `page_url`, `leadId`) | Guarda cada envio e liga ao **lead** criado ou atualizado (ver plano-schema.md) |
+| `Opportunity` (ver plano-schema.md: `pipelineId`, `stageId`, `origin`, `value` em `Decimal(12,2)`, motivo, previsão, tempo na etapa) | Etapas configuráveis, origem e valores exatos nas somas (com `Float` a soma de centavos acumula erro) |
 | `Session` | Refresh tokens do login |
 | `AuditLog` | Trilha de auditoria |
 | `Post` | Blog (rascunho, publicado, slug, imagem de capa) |
@@ -280,37 +285,36 @@ Admin (PWA)                    API (Go)                     Site (Next.js)
 
 ---
 
-## Ciclo de vida do lead
+## Ciclo de vida: lead, oportunidade e cliente
 
 ```
-┌─────────┐   ┌───────────────┐   ┌──────────┐   ┌─────────────┐   ┌─────┐
-│ INBOUND │──>│ QUALIFICATION │──>│ PROPOSAL │──>│ NEGOTIATION │──>│ WON │
-│ (Entrada)│  │ (Qualificação)│   │ (Proposta)│  │ (Negociação)│   │     │
-└────┬────┘   └───────────────┘   └──────────┘   └─────────────┘   └─────┘
-     │
-     └────────────────────────────────────────────────────────────>┌──────┐
-                                                                   │ LOST │
-                                                                   └──────┘
+Fonte ─> LEAD (coluna de leads) ──qualificar──> OPORTUNIDADE (etapas abertas) ──> GANHA ──> CLIENTE
+              │                                          │
+              └─ descartar (com motivo)                  └─ PERDIDA (com motivo)
 ```
 
-| Etapa | Quem move | O que acontece |
+Cada pipeline (o funil de uma oferta) tem etapas dos tipos **Lead**, **Aberta**, **Ganha** e **Perdida**, configuráveis. Definição completa em [dominio.md](./dominio.md).
+
+| Momento | Quem move | O que acontece |
 |---|---|---|
-| **INBOUND** | Automático (Connect, API ou webhook) | Lead entra. Notificação no painel. Aparece na primeira coluna do Kanban. |
-| **QUALIFICATION** | Vendedor | Primeiro contato feito. Notas na ficha. |
-| **PROPOSAL** | Vendedor | Proposta enviada. Valor e previsão de fechamento. |
-| **NEGOTIATION** | Vendedor | Em negociação. |
-| **WON** | Vendedor | Fechado. Confirma o valor final da oportunidade. Pode disparar webhook de saída. |
-| **LOST** | Vendedor | Perdido. Exige o motivo (preço, concorrência, sem interesse, timing). |
+| **Lead criado** | Automático (formulário conectado) ou manual/importação | Entra na primeira coluna de leads da pipeline. Notificação no painel. Só aparece no Kanban com **Ver leads**. |
+| **Lead em contato** | Vendedor | Primeiro contato feito. Notas na ficha. |
+| **Qualificar** | Vendedor (botão ou arrastar) | Cria a oportunidade na primeira etapa aberta e transfere notas, tarefas e e-mails. |
+| **Etapas abertas** | Vendedor | Configuráveis por pipeline (ex.: Qualificação, Proposta, Negociação). |
+| **Ganha** | Vendedor | Confirma o valor final. O **cliente** passa a ser a Empresa (ou a Pessoa, se não houver empresa). Pode disparar webhook de saída. |
+| **Perdida** | Vendedor | Exige o motivo (lista configurável). |
+| **Descartado** | Vendedor | Lead sem interesse, com motivo. Não conta como oportunidade perdida. |
 
 **Regras de negócio**
-- **Atribuição:** o lead entra sem dono e qualquer vendedor pode pegar para si. Com round-robin ligado pelo gerente, o próximo vendedor da fila recebe automaticamente (`ownerId`).
+- **Origem obrigatória:** todo lead tem uma **fonte** (inbound) ou um **contato interno** que o trouxe (outbound).
+- **Atribuição:** o lead entra sem dono e qualquer vendedor pode pegar para si. Com round-robin ligado pelo gerente, o próximo da fila recebe (`ownerId`).
 - **SLA de primeiro contato:** timer no card ("2h sem resposta"), configurável.
-- **Deduplicação:** o mesmo e-mail não cria um card novo. O card existente recebe uma nota "Nova conversão na página X" e volta ao topo de INBOUND.
-- **Visibilidade:** Admin e Gerente veem todo o funil; o Vendedor vê só o que está atribuído a ele.
+- **Deduplicação:** o mesmo e-mail, CPF ou CNPJ não cria pessoa ou empresa novas. Se já há lead aberto naquela pipeline, o envio é anexado a ele e ele volta ao topo da coluna.
+- **Visibilidade:** Admin e Gerente veem tudo; o Vendedor vê só o que está atribuído a ele.
 
 **Valor das oportunidades** (como nos CRMs de mercado; não há módulo Financeiro separado)
-- Cada oportunidade tem um **valor em R$**, informado na criação e editável em qualquer etapa. Em `WON`, confirma-se o valor final.
-- O Kanban mostra o **total por coluna**, e a tabela permite ordenar e filtrar por valor.
+- Cada oportunidade tem um **valor em R$**, informado na criação e editável em qualquer etapa. Ao ganhar, confirma-se o valor final.
+- O Kanban mostra **quantidade e valor por coluna**; os **leads ficam fora** dos totais. A lista permite ordenar e filtrar por valor.
 - O dashboard consolida: **valor em pipeline** (oportunidades abertas, por etapa e total), **valor ganho no período**, **valor perdido**, **ticket médio** e, opcionalmente, **previsão ponderada** (valor × probabilidade da etapa).
 - O valor segue a visibilidade do CRM: quem vê a oportunidade vê o valor dela (padrão a confirmar).
 
@@ -342,8 +346,8 @@ Como os leads chegam das LPs e dos formulários que a Kalidash lança.
           ├─ 9.  Token → SHA-256 → busca a chave; existe, não está revogada, tem o escopo forms:write?
           ├─ 10. Origin bate com o domínio do projeto conectado?
           ├─ 11. Valida e sanitiza os campos
-          ├─ 12. Cria ou atualiza Contact/Company e abre (ou reativa) a Opportunity em INBOUND
-          ├─ 13. Grava a LeadSubmission (payload, atribuição, projeto, formulário)
+          ├─ 12. Cria ou atualiza Pessoa e Empresa (dedupe por e-mail, CPF e CNPJ) e cria o **Lead** na pipeline da fonte
+          ├─ 13. Grava a LeadSubmission (payload, atribuição, fonte) e aplica os requisitos de etapa da pipeline
           │
           ├─ 14. Em paralelo (Goroutines): WebSocket para o painel, Web Push, webhooks de saída
           │
@@ -354,12 +358,13 @@ Como os leads chegam das LPs e dos formulários que a Kalidash lança.
 
 | Métrica | Cálculo | Visualização |
 |---|---|---|
-| Leads no período | Contagem de oportunidades criadas, com filtro opcional por projeto conectado | Card |
+| Leads no período | Contagem de **leads** criados, com filtro por pipeline, fonte e projeto conectado | Card |
 | Leads hoje | Criados hoje, com variação vs. ontem | Card |
-| Taxa de conversão | `WON` / total | Rosca |
+| Taxa lead → oportunidade | Leads convertidos ÷ leads criados | Rosca |
+| Taxa de ganho | Oportunidades ganhas ÷ oportunidades encerradas | Rosca |
 | Leads por origem | Agrupado por `utm_source` e projeto | Barras |
 | Leads por página | Agrupado por `page_url` | Tabela |
-| Tempo médio de resposta | Entrada em INBOUND até a saída da etapa | Indicador |
+| Tempo até o primeiro contato | Criação do lead até o primeiro contato | Indicador |
 | Volume diário | Últimos 30 dias | Linha |
 | Valor em pipeline | Soma de `value` das oportunidades abertas, por etapa e total | Card + barras por etapa |
 | Valor ganho no período | Soma de `value` das oportunidades `WON` no período | Card |
@@ -461,4 +466,5 @@ Formato: `kld_live_<32 hex>` ou `kld_test_<32 hex>`. Depois da emissão, só o p
 2. **VPS:** Vultr (São Paulo) ou DigitalOcean, conforme a preferência da Kalidash. Se mantiver o EasyPanel, o plano precisa ter pelo menos 2GB de RAM. A DigitalOcean não tem datacenter no Brasil.
 3. **Hospedagem do site e do admin:** o plano Hobby da Vercel é só para uso pessoal e não comercial. Escolher entre Vercel Pro (US$ 20/mês por assento) e Cloudflare Pages para o admin estático (US$ 0).
 4. **Domínio do CDN do Connect** (`cdn.kalidash.com.br` no código v1.0) e onde o arquivo fica hospedado. O custo é ~US$ 0 em qualquer opção.
-5. **Editor de e-mail:** manter no escopo do admin ou adiar. Hoje está fora dos módulos do plano original.
+5. **Editor de e-mail:** agora tem página própria (E-mails), separada de Automações. Falta persistir os templates.
+6. **Domínio do CRM:** os pontos abertos estão na seção 13 de [dominio.md](./dominio.md).

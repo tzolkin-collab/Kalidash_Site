@@ -1,86 +1,72 @@
-# 👥 CRM (Pipeline, Dados de Clientes e Notificações)
+# 👥 CRM (Oportunidades, Leads e Clientes)
 
-> O coração operacional do Kalidash. Onde os vendedores passam 90% do seu tempo. Projetado para zero atrito, velocidade em tempo real e visualização consolidada.
-
----
-
-## 1. Pipelines (Gestão Visual de Vendas)
-
-O sistema oferece duas visualizações nativas e intercambiáveis (com persistência da preferência do usuário em `localStorage`):
-
-### A. Visão Kanban (Arrastar e Soltar)
-Focada no fluxo de trabalho individual do vendedor.
-- **Estágios Padrão:** `INBOUND` (Entrada) ➔ `QUALIFICATION` (Qualificação) ➔ `PROPOSAL` (Proposta) ➔ `NEGOTIATION` (Negociação) ➔ `WON` (Ganho) / `LOST` (Perdido). São os valores de `Opportunity.stage` no schema; o construtor de funil permite personalizá-los.
-- **Regras de Negócio:**
-  - Leads recém-chegados via `connect.js` caem automaticamente na coluna `INBOUND`.
-  - Se um vendedor arrasta para `LOST`, um modal exige que ele marque o **Motivo da Perda** (Preço, Concorrência, Sem Interesse, Timing). Isso gera relatórios valiosos depois.
-  - Se arrastado para `WON`, o sistema abre um campo rápido para preencher o **Valor do Contrato**.
-
-### B. Visão Tabela (Data Grid)
-Focada no gestor e ações em massa.
-- Paginação, filtros avançados (ex: "Leads do projeto X criados nos últimos 7 dias que estão em Negociação").
-- Exportação para CSV.
-- Atribuição em massa ("Transferir esses 50 leads do Vendedor A para o Vendedor B").
+> **v2 (26/09/2026).** Segue a [definição de domínio](../dominio.md): o lead é um registro próprio, cada pipeline é o funil de uma oferta, e o cliente é um estado de Pessoa ou de Empresa. Schema em [plano-schema.md](../plano-schema.md).
 
 ---
 
-## 2. Dados de Clientes (A "Ficha do Lead")
+## 1. Oportunidades: pipelines e visões
 
-Quando o usuário clica em um card, a interface não muda de página. Um **Slide-over (painel lateral deslizante)** se abre à direita, mantendo o contexto do Kanban no fundo.
+**Cabeçalho da página:** seletor de pipeline (com a **engrenagem** ao lado, dica "Configurações das pipelines"), **Filtro**, botão **Ver leads**, alternador Kanban/Lista e "Nova oportunidade" (formulário de verdade, não um card fixo).
 
-### Anatomia da Ficha do Lead
-1. **Cabeçalho Fixo:** Nome, Estágio atual (dropdown para mudança rápida), Valor da Negociação e Botão Primário ("Agendar Call").
-2. **Aba Principal: "Timeline (Histórico)"**
-   - É a visão unificada (estilo feed de rede social) de tudo que aconteceu com esse lead, em ordem cronológica reversa:
-     - *[10:45]* Lead preencheu o formulário (Origem: Google Ads / UTMs).
-     - *[10:47]* Vendedor João enviou proposta via Email.
-     - *[11:00]* Lead respondeu o email (lido via Pub/Sub).
-     - *[11:30]* Reunião agendada para 14h.
-   - Na base da Timeline há um input (tipo chat) para o vendedor adicionar Notas Manuais rápidas.
-3. **Aba Secundária: "Dados Pessoais"**
-   - Telefone, Email, e os campos customizados que vieram pelo `extra_data` (ex: Cargo, Empresa, Faturamento).
-   - *Segurança:* Embora o Go armazene os dados criptografados, o painel Vite os recebe descriptografados na resposta da API e os exibe em texto claro (já que o vendedor tem permissão de leitura).
+### A. Visão Kanban (arrastar e soltar)
+- **Colunas:** as etapas **Abertas**, **Ganha** e **Perdida** da pipeline escolhida. São configuráveis por pipeline (nome, ordem, cor, probabilidade, dias para alerta).
+- **Ver leads:** ligado, abre à esquerda as **colunas de leads** (etapas do tipo Lead, padrão "Novos" e "Em contato"), com as tags dos leads. Os leads ficam **fora** dos totais de valor e têm aparência própria (selo "Lead", borda tracejada).
+- **Contagem e paginação:** cada coluna mostra quantidade e valor. Cada coluna carrega 20 cards por vez ("carregar mais").
+- **Cartão:** título, **cliente** (Empresa com ícone de prédio e o contato padrão abaixo; Pessoa com ícone de pessoa), tags, valor, dono e a **próxima tarefa**.
+- **Regras:**
+  - Arrastar um **lead** para uma etapa aberta o **qualifica** (cria a oportunidade). O botão "Qualificar" faz o mesmo.
+  - Arrastar para **Perdida** exige o **motivo** (lista configurável).
+  - Arrastar para **Ganha** pede o **valor final** e marca o cliente (Empresa, ou Pessoa se não houver empresa).
+  - Um requisito de etapa pode **impedir entrar** (ou sair) de uma etapa até uma tarefa ser cumprida. Ex.: empresa sem CNPJ **não entra em Assinatura do contrato**.
 
----
-
-## 3. Notificações e Automações SLA
-
-Vendas morrem se o lead esfriar. O CRM do Kalidash atua ativamente para impedir isso.
-
-### Sistema de SLA (Service Level Agreement)
-Gestores podem configurar regras de tempo de resposta.
-- Exemplo: "Leads novos devem ser contatados em até 2 horas".
-- **Visualização:** Se o SLA é quebrado, o card do lead no Kanban fica com uma borda vermelha e um ícone de `🔥 Fogo`, alertando a urgência.
-
-### Notificações em Tempo Real (O Circuito)
-Como os leads chegam o tempo todo pelo `connect.js`, o vendedor não pode ficar apertando `F5`.
-
-1. O Lead converte no site.
-2. O Backend Go salva no MySQL e dispara um evento **WebSocket** para o client Vite que está conectado.
-3. **Reação do Vite (PWA):**
-   - O card do novo lead **surge magicamente** no topo da coluna `INBOUND` com uma sutil animação verde de *highlight*.
-   - Um toque sonoro suave (opcional) avisa o vendedor.
-   - O selo de notificação na aba do navegador muda (ex: `(1) Kalidash`).
-4. **Se o Painel estiver fechado/minimizado:**
-   - O Service Worker intercepta um sinal Web Push do Go.
-   - Uma notificação nativa do Windows/Mac salta na tela do vendedor: *"🚀 Novo lead capturado: João da Silva (Google Ads)"*. Ao clicar, a PWA foca na tela e abre a Ficha do Lead direto.
+### B. Visão Lista
+- **Colunas:** Oportunidade, Cliente (com o tipo Empresa ou Pessoa), Etapa, Tags, Valor, Dono, Próxima tarefa.
+- **Ver leads:** ligado, os leads entram na lista **diferenciados** dos ativos (selo "Lead", linha mais clara e marca lateral tracejada).
+- **Contagem e paginação:** "1–20 de N", tamanho da página ajustável, ordenação por coluna.
+- Filtros avançados (ex.: "criadas nos últimos 7 dias, em Negociação"), exportação para CSV e ações em massa (transferir de vendedor).
 
 ---
 
-## 4. Roteamento de Leads (Atribuição)
+## 2. Ficha da oportunidade (o popup)
 
-Como decidir qual vendedor atende qual lead?
-- **Manual (Padrão):** O lead cai em uma "Piscina Geral" (coluna `INBOUND` sem dono, isto é, `ownerId` vazio). Qualquer vendedor pode pegar o lead para si ("Claim").
-- **Round-Robin (Automático):** Se ativado pelo gestor, o Backend Go distribui equitativamente: Lead 1 vai pro Vendedor A, Lead 2 pro Vendedor B, Lead 3 pro Vendedor C.
-- Quando um lead é atribuído, os demais vendedores param de enxergá-lo no Kanban deles: o Vendedor só vê as oportunidades em que `ownerId` é ele. O Admin e o Gerente continuam vendo tudo. Perfis em [system-core.md](../system-core.md).
+Ao clicar em um card ou linha, abre a ficha, **sem sair da página**. (Se a ficha é painel lateral ou modal, e a divisão final das abas, seguem em revisão.)
+
+1. **Cabeçalho fixo:** título, **etapa** (dropdown para mudar rápido), valor, prioridade, cliente (Empresa ou Pessoa) e "Agendar call".
+2. **Stakeholders:** o **contato padrão** e os **outros contatos**, cada um com **descrição** e **tags** de função (criadas pelo time). Mais de uma pessoa por oportunidade.
+3. **Linha do tempo (cronologia):** um feed único do que aconteceu, em ordem reversa: envio do formulário (com origem e UTM), notas, ligações, e-mails, reuniões, mudanças de etapa e de valor, **tarefas** (feitas e a fazer).
+4. **Tarefas da oportunidade:** as pendências (dado faltante e as manuais), com tag, prazo e responsável. Concluir uma de dado faltante abre o formulário da entidade.
+5. **Dados:** telefone, e-mail, documento e os campos personalizados.
+6. **Rodapé:** "Marcar como ganho" e "Marcar como perdido" (com motivo).
 
 ---
 
-## 5. Leads × Clientes
+## 3. Notificações e automações SLA
 
-O admin separa dois olhares sobre as pessoas e empresas que aparecem no funil:
+Vendas morrem se o lead esfriar.
 
-- **Leads:** a caixa de entrada. Reúne o que chegou pelos integradores de formulário (projetos conectados) ou pelo formulário interno. São clientes que ainda não avançaram no pipeline. Cada lead mostra a origem clicável (projeto, `page_url`, UTMs).
-- **Clientes:** a carteira. Empresas e contatos com negócio ganho ou em andamento, com ficha própria (contatos, oportunidades, notas e origem por UTMs).
+### SLA
+Gestores configuram regras de tempo de resposta (ex.: "leads novos contatados em até 2 horas"). Quebrado o SLA, o card ganha borda vermelha e um marcador de urgência.
 
-Quando um lead é qualificado, ele vira uma oportunidade do pipeline sem duplicar o cadastro (a deduplicação é por e-mail).
+### Notificações em tempo real
+1. O lead chega pelo formulário.
+2. A API salva no MySQL e dispara um evento **WebSocket** ao painel aberto.
+3. O card do novo lead aparece na **coluna de leads** com um destaque verde (se "Ver leads" estiver ligado), e o selo de notificação da aba muda (ex.: `(1) Kalidash`). A página **Leads** também recebe o item.
+4. Com o painel fechado, o Service Worker recebe um Web Push do Go e mostra uma notificação nativa ("Novo lead: João da Silva (Google Ads)"). Ao clicar, abre a ficha do lead.
+
+---
+
+## 4. Atribuição de leads
+
+- **Manual (padrão):** o lead cai numa **piscina geral** (sem dono). Qualquer vendedor pode pegar para si.
+- **Round-robin (opcional):** ligado pelo gerente, a API distribui em rodízio, por pipeline.
+- **Outbound:** o lead nasce com o **contato interno** que o trouxe.
+- O Vendedor só vê os leads e oportunidades em que `ownerId` é ele. Admin e Gerente veem tudo. Perfis em [system-core.md](../system-core.md).
+
+---
+
+## 5. Páginas de apoio
+
+- **Leads:** leads de todas as pipelines, com filtro por pipeline, fonte, origem e tags. Qualificar, Descartar (com motivo) e **Adicionar lead** (pede o contato interno que trouxe).
+- **Pessoas & Empresas:** cadastro completo, com contagem e paginação, documento (CPF/CNPJ alfanumérico), empresa **em análise** quando falta o CNPJ.
+- **Clientes:** página própria, com abas **Todos**, **Empresas** e **Pessoas**. Cliente é o estado de quem ganhou uma oportunidade.
+- **Tarefas:** a galeria de funis em cards; cada um abre a página do workflow, do começo ao fim (ver [dominio.md](../dominio.md#11-página-tarefas-galeria-de-funis-e-workflow)).

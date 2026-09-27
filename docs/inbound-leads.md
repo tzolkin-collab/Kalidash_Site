@@ -1,35 +1,40 @@
 # 📥 Inbound: Chegada de Leads e Formulários
 
-> Como o Kalidash recebe os leads das LPs e dos formulários que a própria Kalidash lança, de forma segura e sempre no mesmo formato. O admin é o "balde" central onde eles desaguam.
+> **v2 (26/09/2026).** Segue a [definição de domínio](./dominio.md): cada envio cria um **Lead** na pipeline cuja **fonte** é aquele formulário (e não uma oportunidade), e o documento (CPF/CNPJ) é um campo explícito.
+
+Como o Kalidash recebe os leads das LPs e dos formulários que a própria Kalidash lança, de forma segura e sempre no mesmo formato.
 
 ---
 
-## 1. As Três Portas de Entrada (Tipos de Conexão)
+## 1. Fonte, pipeline e "Conectar fonte"
 
-O Kalidash não obriga a página a usar um construtor de formulários próprio. A integração é feita com o formulário que a página **já tem**.
+Um lead só entra por uma **fonte** ligada a uma **pipeline** (o funil de uma oferta).
 
-Existem 3 formas de um lead chegar ao CRM:
+- Uma pipeline tem **várias fontes**. Um formulário alimenta **uma** pipeline (cada envio tem um destino certo).
+- **Conectar fonte** é um assistente simples, no painel "Configurações das pipelines": escolher o formulário, mapear os campos, dizer o que fazer com cada envio (criar ou atualizar a pessoa, criar a empresa se houver CNPJ, criar o lead em qual coluna, dono, tags). Ao salvar, cria uma **automação gerenciada** que aparece na página Automações, categoria "Fontes". Quem edita no assistente ou lá altera o mesmo registro.
+- Sem fonte, a pipeline avisa e gera a tarefa "Definir fonte da pipeline". O outbound entra pela fonte **manual** ou por **importação**, e sempre com o **contato interno** que trouxe o lead.
+
+## 2. As três portas de entrada
+
+A porta define **como** o envio chega; a fonte define **para onde** ele vai.
 
 ### A. Via `connect.js` (o método padrão)
-Para LPs e sites feitos em qualquer stack (Next.js, WordPress, Webflow, HTML puro). A página tem um formulário nativo e recebe a tag de script do Connect com o token do projeto.
-- **Como funciona:** o script observa o formulário indicado na config. No envio, lê os campos mapeados, coleta a atribuição (UTMs, referrer, device, `page_url`), monta o JSON e envia para a API. O markup e o CSS da página não são tocados.
-- **Segurança:** usa uma chave **pública**, com escopo só de escrita (`forms:write` e `analytics:write`). Ela pode ficar no HTML porque não lê, não altera e não deleta nada.
+Para LPs e sites em qualquer stack. A página tem um formulário nativo e recebe a tag de script com o token do projeto.
+- O script observa o formulário indicado na config. No envio, lê os campos mapeados, coleta a atribuição (UTMs, referrer, device, `page_url`), monta o JSON e envia para a API. O markup e o CSS da página não são tocados.
+- **Segurança:** chave **pública**, só de escrita (`forms:write` e `analytics:write`). Pode ficar no HTML porque não lê, não altera e não deleta nada.
 - Contrato e snippet completos em [ARCHITECTURE.md](./ARCHITECTURE.md#connectjs-o-script-de-captura).
 
 ### B. Via API direta (servidor para servidor)
-Para LPs que têm backend próprio (por exemplo, uma rota do Next.js que recebe o formulário e repassa).
-- **Como funciona:** o servidor da página faz um `POST` para a API do Kalidash com o mesmo payload do Connect.
-- **Segurança:** exige uma chave **secreta** no header `Authorization: Bearer <token>`. Essa chave nunca vai para o navegador.
+Para LPs com backend próprio. O servidor da página faz um `POST` com o mesmo payload. Exige chave **secreta** em `Authorization: Bearer <token>`, que nunca vai para o navegador.
 
 ### C. Via webhooks de entrada (Zapier, Typeform, Meta Lead Ads)
-Quando o formulário vive em uma ferramenta externa e não dá para colar o `connect.js`.
-- **Como funciona:** o Kalidash gera uma URL de webhook única para o projeto conectado (ex.: `https://api…/webhooks/in/<token-do-projeto>`). Ela é colada no Zapier ou no Gerenciador de Anúncios, e a API recebe o payload sempre que alguém preenche o cadastro.
+Quando o formulário vive numa ferramenta externa. A fonte gera uma URL de webhook única. Colada no Zapier ou no Gerenciador de Anúncios, a API recebe o payload a cada cadastro.
 
 ---
 
-## 2. O Payload (o que chega no servidor)
+## 3. O payload
 
-Qualquer que seja a porta de entrada, a API normaliza tudo para o **mesmo formato**, com os mesmos campos sempre presentes (vazios viram `null`):
+Qualquer que seja a porta, a API normaliza tudo para o mesmo formato, com os mesmos campos sempre presentes (vazios viram `null`):
 
 ```json
 {
@@ -40,6 +45,8 @@ Qualquer que seja a porta de entrada, a API normaliza tudo para o **mesmo format
     "nome": "João da Silva",
     "email": "joao@empresa.com",
     "telefone": "+5511999999999",
+    "documento": "12ABC34500016A",
+    "tem_cnpj": true,
     "empresa": "Empresa X",
     "cargo": "Diretor",
     "interesse": "AI Culture",
@@ -59,26 +66,30 @@ Qualquer que seja a porta de entrada, a API normaliza tudo para o **mesmo format
 }
 ```
 
-- O **projeto conectado** é identificado pelo token, não por um `project_id` no corpo.
-- Campos que existirem no formulário e estiverem **fora do mapa** viajam como extras e aparecem na Ficha do Lead.
-- Obrigatório: e-mail **ou** telefone.
-- Se o consentimento estiver configurado no projeto, o Connect não envia sem o checkbox marcado.
+- A **fonte** (e, por ela, a pipeline) é identificada pelo token do formulário, não por um id no corpo.
+- **`documento`** aceita CPF (11 dígitos) ou CNPJ (14 caracteres, **letras e números**, desde 31/07/2026). `tem_cnpj` marca a intenção quando o campo vem vazio.
+- Campos do formulário **fora do mapa** viajam como extras e aparecem na ficha.
+- Obrigatório: **nome** e ao menos um contato (e-mail ou telefone). Todo o resto é opcional.
+- Com consentimento configurado, o Connect não envia sem o checkbox marcado.
 
 ---
 
-## 3. O Funil de Segurança no Backend (Go)
+## 4. O que a API faz com o envio
 
-Os dados não vão direto para o banco. Passam por uma esteira de validação rápida:
+1. **Rate limiting:** o IP passou de 5 envios por minuto? `429`.
+2. **Chave, escopo e origem:** o token existe, não está revogado e tem `forms:write`? O header `Origin` bate com o domínio do projeto?
+3. **Sanitização** de tags HTML e validação de e-mail e documento (dígitos verificadores de CPF e do CNPJ alfanumérico).
+4. **Pessoa:** procura por e-mail e por CPF (**não duplica**); se não existir, cria com ciclo de vida Lead.
+5. **Empresa:**
+   - **CNPJ válido:** procura por CNPJ; se não existir, cria a Empresa, e a pessoa vira stakeholder.
+   - **Só o nome da empresa:** cria a Empresa **em análise**, com a tarefa "Informar CNPJ" não feita.
+   - **Marcou "tenho CNPJ" e não preencheu:** a mesma tarefa.
+6. **Lead:** cria na pipeline da fonte, na **primeira coluna de leads**, com origem `INBOUND`, dono conforme a atribuição e as tags do assistente. Se a pessoa já é **cliente**, o lead leva a marca "cliente retornando".
+7. **Envio bruto:** grava o payload e a atribuição em `LeadSubmission`.
+8. **Pendências:** aplica as regras da pipeline (campo marcado como tarefa e vazio gera a tarefa).
+9. **Tempo real:** notifica o painel (WebSocket e Web Push) e dispara as automações ligadas ao evento `formulario.enviado`.
+10. **Criptografia AES-256** de telefone, documento e campos extras antes do disco (planejada).
 
-1. **Rate limiting:** o IP passou de 5 leads por minuto? `429`. Evita spam no CRM.
-2. **Validação da chave e do escopo:** o token existe, não está revogado e tem `forms:write`? Se veio pelo Connect, o header `Origin` bate com o domínio do projeto conectado? Isso impede que alguém copie o script e o coloque em outro site.
-3. **Sanitização:** o Go remove tags HTML ocultas dos campos (`<script>…`) para evitar XSS no painel.
-4. **Criptografia AES-256 (planejada):** telefone e campos extras são criptografados antes de tocar no disco.
-5. **Deduplicação:** se `joao@empresa.com` já existe, o sistema não cria um card duplicado. Ele adiciona ao card existente uma nota "Nova conversão na página XYZ" e o devolve ao topo da coluna `INBOUND`, para alertar o vendedor.
-6. **Registro do envio:** o payload e a atribuição ficam gravados (`LeadSubmission`) e ligados à oportunidade criada ou atualizada.
+## 5. Conclusão
 
----
-
-## 4. Conclusão
-
-A "ingestão flexível" permite lançar quantas LPs e formulários a Kalidash precisar, em qualquer stack, sem mudar o CRM. Cada envio chega limpo, no mesmo formato, com a origem e a atribuição de campanha já anexadas, e cai como oportunidade em `INBOUND`.
+A "ingestão flexível" permite lançar quantas LPs e formulários a Kalidash precisar, em qualquer stack, sem mexer no CRM. Cada envio chega limpo, com origem e atribuição anexadas, cai como **lead** na pipeline certa e só vira oportunidade quando alguém qualifica.

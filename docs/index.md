@@ -25,6 +25,10 @@ A arquitetura é dividida em site + admin + API em Go + banco MySQL em VPS. O st
 ## 📐 Arquitetura e Decisões
 
 * [Arquitetura e Transparência (v2.0)](./ARCHITECTURE.md)
+* [Bench dos dois admins: features e filosofia](./benchmark.md)
+* [Definição de domínio: leads, oportunidades, pessoas, empresas e clientes](./dominio.md) *(v2, confirmada)*
+* [Plano de schema e de migração](./plano-schema.md) *(rascunho, não aplicado)*
+* [Bench de dados: o que os outros CRMs guardam](./benchmark-dados.md)
 * [Decisões Arquitetônicas (Vite vs Next, Go vs Node, MySQL sem Redis)](./architecture-decisions.md)
 * [Segurança do Banco de Dados & CMS Proprietário](./security-and-cms.md)
 * [Estudo de Autenticação (Google OAuth + Workspace)](./auth-study.md)
