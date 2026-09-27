@@ -1,11 +1,13 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Moon, Settings, Sun } from 'lucide-react';
+import PipelineBuilder from './PipelineBuilder';
 import Dashboard from './pages/Dashboard';
 import Clients from './pages/Clients';
 import Leads from './pages/Leads';
 import Opportunities from './pages/Opportunities';
 import PeopleCompanies from './pages/PeopleCompanies';
+import PipelineSettings from './pages/PipelineSettings';
 import Tasks from './pages/Tasks';
 import { NAV_GROUPS, isActive } from './nav';
 import { useHashRoute } from './lib/router';
@@ -64,7 +66,7 @@ export default function App() {
     [navigate, isDarkMode],
   );
 
-  const [root, second] = segments;
+  const [root, second, third] = segments;
   let page: ReactNode;
   switch (root) {
     case undefined:
@@ -75,7 +77,9 @@ export default function App() {
       page = <Leads />;
       break;
     case 'oportunidades':
-      page = <Opportunities />;
+      if (second === 'pipelines' && third === 'nova') page = <PipelineBuilder onBack={() => navigate('/oportunidades/pipelines')} />;
+      else if (second === 'pipelines') page = <PipelineSettings pipelineId={third} />;
+      else page = <Opportunities />;
       break;
     case 'tarefas':
       page = second ? <TaskWorkflow key={second} pipelineId={second} /> : <Tasks />;
