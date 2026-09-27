@@ -1,161 +1,32 @@
 import './setup-easy-email-i18n';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import { EmailEditorProvider, EmailEditor } from 'easy-email-editor';
 import 'easy-email-editor/lib/style.css';
 import { StandardLayout } from 'easy-email-extensions';
 import 'easy-email-extensions/lib/style.css';
 import '@arco-themes/react-easy-email-theme/css/arco.css';
 import { BlockManager, BasicType, AdvancedType, JsonToMjml } from 'easy-email-core';
-import { 
-  Save, Mail, FileText, Sparkles, Check, Plus, Trash2, ArrowLeft, MoreHorizontal, Eye 
+import mjml from 'mjml-browser';
+import {
+  Save, Mail, FileText, Sparkles, Check, Plus, Trash2, ArrowLeft, MoreHorizontal
 } from 'lucide-react';
+import { startEditorDomTranslation } from './easy-email-dom-translate';
+import { API_URL } from './lib/api';
 
-const TRANSLATIONS: Record<string, string> = {
-  'Configuration': 'Configuração',
-  'Attributes': 'Atributos',
-  'Typography': 'Tipografia',
-  'Margin': 'Margem',
-  'Padding': 'Preenchimento',
-  'Dimension': 'Dimensão',
-  'Dimensions': 'Dimensões',
-  'Action': 'Ação',
-  'Color': 'Cor',
-  'Background color': 'Cor de Fundo',
-  'Text color': 'Cor do Texto',
-  'Font family': 'Fonte',
-  'Font size': 'Tamanho da Fonte',
-  'Font weight': 'Peso da Fonte',
-  'Line height': 'Altura da Linha',
-  'Text align': 'Alinhamento de Texto',
-  'Letter spacing': 'Espaçamento de Letras',
-  'Width': 'Largura',
-  'Height': 'Altura',
-  'Align': 'Alinhamento',
-  'Link': 'Link',
-  'Href': 'URL do Link',
-  'Blank': 'Nova Janela',
-  'Target': 'Abrir em',
-  'Border': 'Borda',
-  'Border radius': 'Arredondamento',
-  'Border width': 'Espessura da Borda',
-  'Border style': 'Estilo da Borda',
-  'Border color': 'Cor da Borda',
-  'Source': 'Origem da Imagem',
-  'Content': 'Conteúdo',
-  'Background': 'Fundo',
-  'Layout': 'Estrutura',
-  'Text': 'Texto',
-  'Image': 'Imagem',
-  'Button': 'Botão',
-  'Divider': 'Divisor',
-  'Spacer': 'Espaçador',
-  'Social': 'Redes Sociais',
-  'Hero': 'Capa (Hero)',
-  'Wrapper': 'Container',
-  'Section': 'Seção',
-  'Column': 'Coluna',
-  'Group': 'Grupo',
-  'Setting': 'Ajustes',
-  'Blocks': 'Blocos',
-  'Apply': 'Aplicar',
-  'Underline': 'Sublinhado',
-  'Import font': 'Importar Fonte',
-  'Name': 'Nome',
-  'Subject': 'Assunto',
-  'Content background': 'Fundo do Conteúdo',
-  'User style': 'Estilo CSS Customizado',
-  'No repeat': 'Não Repetir',
-  'Repeat': 'Repetir',
-  'Background image': 'Imagem de Fundo',
-  'Background repeat': 'Repetição de Fundo',
-  'Background size': 'Tamanho do Fundo',
-  'Class name': 'Classe CSS',
-  'Left': 'Esquerda',
-  'Right': 'Direita',
-  'Center': 'Centro',
-  'Container background color': 'Cor de Fundo do Container',
-  'None': 'Nenhum',
-  'Overline': 'Linha Acima',
-  'Line through': 'Riscado',
-  'Text decoration': 'Decoração do Texto',
-  'Opacity': 'Opacidade',
-  'Text transform': 'Transformação de Texto',
-  'Direction': 'Direção',
-  'Please select': 'Selecione',
-  'Top': 'Cima',
-  'Bottom': 'Baixo',
-  'Dashed': 'Tracejada',
-  'Dotted': 'Pontilhada',
-  'Solid': 'Sólida',
-  'Style': 'Estilo',
-  'Normal': 'Normal',
-  'Italic': 'Itálico',
-  'Font style': 'Estilo da Fonte',
-  'Bold': 'Negrito',
-  'Inner padding': 'Espaçamento Interno',
-  'Button color': 'Cor do Botão',
-  'Vertical align': 'Alinhamento Vertical',
-  'Drag block': 'Arraste um Bloco'
-};
+// A lib tipa "categories" como obrigatória, mas já traz um padrão em tempo de execução.
+// Passar [] esvaziaria o painel de blocos, então só ajustamos o tipo.
+const EditorLayout = StandardLayout as unknown as ComponentType<{
+  compact?: boolean;
+  showSourceCode?: boolean;
+  children?: ReactNode;
+}>;
+
+const getBlock = (type: BasicType | AdvancedType) => BlockManager.getBlockByType(type)!;
 
 export default function Emails() {
   const [activeTab, setActiveTab] = useState<'templates' | 'automations'>('templates');
 
-  // Hack de Tradução Forçada (Substitui as strings Hardcoded da lib)
-  useEffect(() => {
-    if (activeTab !== 'templates') return;
-    
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach(mutation => {
-        if (mutation.type === 'characterData') {
-          const text = mutation.target.nodeValue?.trim();
-          if (text && TRANSLATIONS[text]) {
-            mutation.target.nodeValue = mutation.target.nodeValue?.replace(text, TRANSLATIONS[text]) || null;
-          }
-        } else if (mutation.type === 'childList') {
-          mutation.addedNodes.forEach(node => {
-            if (node.nodeType === Node.TEXT_NODE) {
-              const text = node.nodeValue?.trim();
-              if (text && TRANSLATIONS[text]) {
-                node.nodeValue = node.nodeValue?.replace(text, TRANSLATIONS[text]) || null;
-              }
-            } else if (node.nodeType === Node.ELEMENT_NODE) {
-              // Walk through text nodes
-              const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, null);
-              let textNode;
-              while ((textNode = walker.nextNode())) {
-                const text = textNode.nodeValue?.trim();
-                if (text && TRANSLATIONS[text]) {
-                  textNode.nodeValue = textNode.nodeValue?.replace(text, TRANSLATIONS[text]) || null;
-                }
-              }
-            }
-          });
-        }
-      });
-    });
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      characterData: true
-    });
-
-    // Roda uma vez no load inicial
-    setTimeout(() => {
-      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
-      let textNode;
-      while ((textNode = walker.nextNode())) {
-        const text = textNode.nodeValue?.trim();
-        if (text && TRANSLATIONS[text]) {
-          textNode.nodeValue = textNode.nodeValue?.replace(text, TRANSLATIONS[text]) || null;
-        }
-      }
-    }, 500);
-
-    return () => observer.disconnect();
-  }, [activeTab]);
-  
   // Real State for Templates
   const [templates, setTemplates] = useState([
     { id: 1, name: 'Boas-vindas (Inbound)', tag: 'Lead Frio', subject: 'Bem-vindo ao Kalidash!', design: null },
@@ -163,18 +34,26 @@ export default function Emails() {
   ]);
   
   const [editingTemplateId, setEditingTemplateId] = useState<number | null>(null);
+
+  // Com o editor aberto, traduz os textos que a biblioteca escreve fora do t().
+  const isEditing = editingTemplateId !== null;
+  useEffect(() => {
+    if (!isEditing) return;
+    return startEditorDomTranslation();
+  }, [isEditing]);
+
   const initialValues = {
     subject: 'Assunto do E-mail...',
     subTitle: 'Pré-visualização',
-    content: BlockManager.getBlockByType(BasicType.PAGE).create({
+    content: getBlock(BasicType.PAGE).create({
       children: [
-        BlockManager.getBlockByType(AdvancedType.WRAPPER).create({
+        getBlock(AdvancedType.WRAPPER).create({
           children: [
-            BlockManager.getBlockByType(AdvancedType.SECTION).create({
+            getBlock(AdvancedType.SECTION).create({
               children: [
-                BlockManager.getBlockByType(AdvancedType.COLUMN).create({
+                getBlock(AdvancedType.COLUMN).create({
                   children: [
-                    BlockManager.getBlockByType(AdvancedType.TEXT).create({
+                    getBlock(AdvancedType.TEXT).create({
                       data: {
                         value: {
                           content: '<h1>Bem-vindo!</h1><p>Arraste novos blocos aqui ou edite este texto.</p>',
@@ -233,35 +112,14 @@ export default function Emails() {
   if (editingTemplateId && currentTemplate) {
     const initialData = currentTemplate.design || initialValues;
 
-    const onBeforePreview = async (html: string, mergeTags: any, rawMjml?: string) => {
-      console.log("onBeforePreview triggered! rawMjml length:", rawMjml?.length);
-      if (!rawMjml) return html;
-      try {
-        const res = await fetch('/api/compile-mjml', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mjmlString: rawMjml }),
-        });
-        console.log("Remote API response status:", res.status);
-        if (res.ok) {
-          const data = await res.json();
-          console.log("Remote API returned HTML length:", data.html?.length);
-          return data.html || html;
-        }
-      } catch (err) {
-        console.error("Failed to compile MJML remotely:", err);
-      }
-      return html;
-    };
-
     return (
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, display: 'flex', flexDirection: 'column', background: 'var(--bg-app)' }}>
+      // email-editor-light: o editor de e-mail é sempre claro, mesmo com o app em modo escuro.
+      <div className="email-editor-light" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, display: 'flex', flexDirection: 'column', background: 'var(--bg-app)' }}>
         <EmailEditorProvider
           data={initialData}
           height={'100vh'}
           autoComplete
           dashed={false}
-          onBeforePreview={onBeforePreview}
         >
           {({ values }) => {
             const handleSendTestEmail = async (currentValues: any) => {
@@ -275,17 +133,19 @@ export default function Emails() {
                   context: currentValues.content,
                 });
 
-                // Como a compilação de MJML para HTML via 'mjml-browser' quebra o Vite,
-                // vamos enviar o MJML direto para o backend ou enviar mock HTML por agora.
-                const htmlMock = `<html><body><h1>Teste do Email</h1><p>${currentValues.subject}</p><p>O HTML real seria compilado no backend.</p></body></html>`;
+                // HTML final do e-mail, compilado aqui no navegador (mesmo motor do canvas).
+                const { html } = mjml(mjmlString);
 
-                const response = await fetch('http://localhost:8080/api/emails/send', {
+                // ATENÇÃO: a API (/api/emails/send) ainda não aceita este formato: ela espera
+                // opportunityId e ignora "to". O envio de teste só passa a funcionar quando a
+                // API ganhar uma rota própria para isso.
+                const response = await fetch(`${API_URL}/api/emails/send`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
                     to: email,
                     subject: 'Teste de Template: ' + currentValues.subject,
-                    body: htmlMock, // enviando um mock apenas para o email chegar
+                    body: html,
                     isHtml: true
                   })
                 });
@@ -344,9 +204,9 @@ export default function Emails() {
 
                 {/* Builder da Easy Email */}
                 <div style={{ flex: 1, overflow: 'hidden', background: 'var(--bg-app)', display: 'flex', flexDirection: 'column' }}>
-                  <StandardLayout compact={true} showSourceCode={false}>
+                  <EditorLayout compact={true} showSourceCode={false}>
                     <EmailEditor />
-                  </StandardLayout>
+                  </EditorLayout>
                 </div>
               </div>
             );

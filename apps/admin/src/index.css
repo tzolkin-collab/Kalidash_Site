@@ -54,6 +54,40 @@
   --shadow-modal: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 25px 50px -12px rgba(0, 0, 0, 0.7);
 }
 
+/* EDITOR DE E-MAIL: sempre claro, mesmo com o app em modo escuro.
+   Reaplica as variáveis do tema claro no escopo do editor. As variáveis do Arco Design
+   (--arco-*) ficam só no tema claro de propósito: não há versão escura delas. */
+.email-editor-light {
+  --bg-app: #ffffff;
+  --bg-sidebar: #ffffff;
+  --bg-surface: #ffffff;
+  --bg-surface-hover: #f9fafb;
+
+  --border-subtle: #e3e8ee;
+  --border-focus: #c4cdd5;
+
+  --text-primary: #1a1f36;
+  --text-secondary: #3c4257;
+  --text-muted: #697386;
+
+  --accent: #635bff;
+  --accent-text: #ffffff;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 2px 5px 0 rgba(60, 66, 87, 0.08), 0 1px 1px 0 rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 15px 35px rgba(60, 66, 87, 0.08), 0 5px 15px rgba(0, 0, 0, 0.05);
+  --shadow-modal: 0 50px 100px -20px rgba(50, 50, 93, 0.25), 0 30px 60px -30px rgba(0, 0, 0, 0.3), inset 0 -2px 6px 0 rgba(10, 37, 64, 0.35);
+
+  color: var(--text-primary);
+  color-scheme: light;
+}
+
+/* O editor traz um botão próprio de modo escuro (na pré-visualização). Não queremos. */
+.email-editor-light [title="Switch to dark mode"],
+.email-editor-light [title="Switch to light mode"] {
+  display: none !important;
+}
+
 /* View Transition API - Theme Toggle */
 ::view-transition-old(root),
 ::view-transition-new(root) {
@@ -73,6 +107,11 @@
   padding: 0;
   font-family: 'Source Sans 3', sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+  color: inherit;
 }
 
 body {

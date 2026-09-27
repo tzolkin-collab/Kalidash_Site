@@ -12,10 +12,5 @@
     "prettier": "^3.0.0",
     "turbo": "latest"
   },
-  "packageManager": "pnpm@9.0.0",
-  "pnpm": {
-    "patchedDependencies": {
-      "easy-email-editor@4.17.1": "patches/easy-email-editor@4.17.1.patch"
-    }
-  }
+  "packageManager": "pnpm@9.0.0"
 }
