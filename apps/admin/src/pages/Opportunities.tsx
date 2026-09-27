@@ -396,7 +396,7 @@ export default function Opportunities() {
             </div>
 
             <div className="table-scroll">
-              <table className="data-table">
+              <table className="data-table data-table-cards">
                 <thead>
                   <tr>
                     {visibleColumns.map((col) => (
@@ -421,7 +421,7 @@ export default function Opportunities() {
                       style={{ cursor: 'pointer' }}
                     >
                       {visibleColumns.map((col) => (
-                        <td key={col.id}>{col.render(opp)}</td>
+                        <td key={col.id} className={col.id === 'title' ? 'cell-block' : undefined} data-label={col.label}>{col.render(opp)}</td>
                       ))}
                       <td>
                         <button style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px', borderRadius: '4px' }} aria-label="Mais ações">

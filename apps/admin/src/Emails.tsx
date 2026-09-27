@@ -268,17 +268,17 @@ export default function Emails() {
           <SampleBanner phase={6}>O envio de teste e o histórico ainda não têm API: os envios abaixo são de exemplo.</SampleBanner>
           <div className="table-card">
             <div className="table-scroll">
-              <table className="data-table">
+              <table className="data-table data-table-cards">
                 <thead><tr><th>Quando</th><th>Para</th><th>Assunto</th><th>Modelo</th><th>Contexto</th><th>Status</th></tr></thead>
                 <tbody>
                   {emailLog.map((m) => (
                     <tr key={m.id}>
-                      <td className="text-muted">{new Date(m.at).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</td>
-                      <td>{m.to}</td>
-                      <td>{m.subject}</td>
-                      <td>{m.template}</td>
-                      <td className="text-muted">{m.context}</td>
-                      <td><Badge tone={m.status === 'SENT' ? 'success' : m.status === 'FAILED' ? 'danger' : 'warning'}>{m.status === 'SENT' ? 'Enviado' : m.status === 'FAILED' ? 'Falhou' : 'Na fila'}</Badge></td>
+                      <td className="text-muted" data-label="Quando">{new Date(m.at).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</td>
+                      <td data-label="Para">{m.to}</td>
+                      <td data-label="Assunto">{m.subject}</td>
+                      <td data-label="Modelo">{m.template}</td>
+                      <td className="text-muted" data-label="Contexto">{m.context}</td>
+                      <td data-label="Status"><Badge tone={m.status === 'SENT' ? 'success' : m.status === 'FAILED' ? 'danger' : 'warning'}>{m.status === 'SENT' ? 'Enviado' : m.status === 'FAILED' ? 'Falhou' : 'Na fila'}</Badge></td>
                     </tr>
                   ))}
                 </tbody>

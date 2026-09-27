@@ -363,23 +363,24 @@ function TasksTab({ pipeline, patch, presetField, onConsumePreset }: { pipeline:
       </div>
       <div className="table-card">
         <div className="table-scroll">
-          <table className="data-table">
+          <table className="data-table data-table-cards">
             <thead><tr><th>Tarefa</th><th>Etapa</th><th>Tag</th><th>Efeito</th><th>Responsável</th><th>Prazo</th><th>Avisos</th><th style={{ width: '48px' }}></th></tr></thead>
             <tbody>
               {pipeline.requirements.map((r) => {
                 const linked = automations.find((a) => a.id === r.linkedAutomationId);
                 return (
                   <tr key={r.id}>
-                    <td><span className="cell-primary">{r.label}</span><div className="text-xs text-muted">{r.kind === 'FIELD' ? 'Campo do cadastro' : 'Ação'}</div></td>
-                    <td>{stageName(r.stageId)}</td>
-                    <td><Badge tone="accent">{r.tag}</Badge></td>
-                    <td><Badge tone={r.gate === 'NONE' ? 'neutral' : 'warning'}>{GATE_LABEL[r.gate]}</Badge></td>
-                    <td>{r.assignee ?? <span className="text-muted">—</span>}</td>
-                    <td>{r.dueDays !== undefined ? `${r.dueDays} d` : <span className="text-muted">—</span>}</td>
-                    <td>
+                    <td className="cell-block" data-label="Tarefa"><span className="cell-primary">{r.label}</span><div className="text-xs text-muted">{r.kind === 'FIELD' ? 'Campo do cadastro' : 'Ação'}</div></td>
+                    <td data-label="Etapa">{stageName(r.stageId)}</td>
+                    <td data-label="Tag"><Badge tone="accent">{r.tag}</Badge></td>
+                    <td data-label="Efeito"><Badge tone={r.gate === 'NONE' ? 'neutral' : 'warning'}>{GATE_LABEL[r.gate]}</Badge></td>
+                    <td data-label="Responsável">{r.assignee ?? <span className="text-muted">—</span>}</td>
+                    <td data-label="Prazo">{r.dueDays !== undefined ? `${r.dueDays} d` : <span className="text-muted">—</span>}</td>
+                    <td data-label="Avisos">
                       <div className="tag-row">
                         {r.notifyAssignee && <Badge tone="info" title="Notifica o responsável por push quando a tarefa nasce"><Bell size={10} /> Push</Badge>}
                         {linked && <Badge tone="accent" title={linked.trigger}><Link2 size={10} /> Automação</Badge>}
+                        {!r.notifyAssignee && !linked && <span className="text-muted">—</span>}
                       </div>
                     </td>
                     <td><button type="button" className="icon-btn bare" onClick={() => remove(r)} aria-label={`Excluir ${r.label}`}><Trash2 size={14} /></button></td>

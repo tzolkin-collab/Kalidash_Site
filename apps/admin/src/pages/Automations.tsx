@@ -110,12 +110,12 @@ export default function Automations() {
 
           <div className="table-card">
             <div className="table-scroll">
-              <table className="data-table">
+              <table className="data-table data-table-cards">
                 <thead><tr><th>Automação</th><th>Quando → Então</th><th>Última execução</th><th>Execuções</th><th style={{ width: '70px' }}>Ativa</th></tr></thead>
                 <tbody>
                   {filtered.map((a) => (
                     <tr key={a.id} className="clickable" onClick={() => setEditing(a)} style={{ opacity: a.active ? 1 : 0.6 }}>
-                      <td>
+                      <td className="cell-block" data-label="Automação">
                         <div className="cell-stack">
                           <span className="cell-primary">{a.name}</span>
                           <span className="tag-row" style={{ marginTop: '4px' }}>
@@ -124,13 +124,13 @@ export default function Automations() {
                           </span>
                         </div>
                       </td>
-                      <td>
+                      <td className="cell-block" data-label="Quando → Então">
                         <div className="flow-line"><span>{a.trigger}</span><ArrowRight size={13} className="text-muted" /><span>{a.action}</span></div>
                         <div className="text-xs text-muted">{a.detail}</div>
                       </td>
-                      <td className="text-muted">{when(a.lastRun)}</td>
-                      <td>{a.runs}</td>
-                      <td onClick={(e) => e.stopPropagation()}><Switch checked={a.active} onChange={(v) => toggle(a, v)} label={`Ativar ${a.name}`} /></td>
+                      <td className="text-muted" data-label="Última execução">{when(a.lastRun)}</td>
+                      <td data-label="Execuções">{a.runs}</td>
+                      <td data-label="Ativa" onClick={(e) => e.stopPropagation()}><Switch checked={a.active} onChange={(v) => toggle(a, v)} label={`Ativar ${a.name}`} /></td>
                     </tr>
                   ))}
                   {filtered.length === 0 && <tr><td colSpan={5}><EmptyState title="Nenhuma automação aqui">Ajuste os filtros ou crie uma nova.</EmptyState></td></tr>}
@@ -176,16 +176,16 @@ export default function Automations() {
       {tab === 'runs' && (
         <div className="table-card">
           <div className="table-scroll">
-            <table className="data-table">
+            <table className="data-table data-table-cards">
               <thead><tr><th>Quando</th><th>Automação</th><th>Evento</th><th>Resultado</th><th>Detalhe</th></tr></thead>
               <tbody>
                 {runs.map((r) => (
                   <tr key={r.id}>
-                    <td className="text-muted">{when(r.at)}</td>
-                    <td>{r.automation}</td>
-                    <td><code className="mono">{r.event}</code></td>
-                    <td><Badge tone={r.result === 'OK' ? 'success' : r.result === 'SCHEDULED' ? 'info' : 'danger'}>{r.result === 'OK' ? 'Executada' : r.result === 'SCHEDULED' ? 'Agendada' : 'Falhou'}</Badge></td>
-                    <td className="text-muted">{r.note}</td>
+                    <td className="text-muted" data-label="Quando">{when(r.at)}</td>
+                    <td data-label="Automação">{r.automation}</td>
+                    <td data-label="Evento"><code className="mono">{r.event}</code></td>
+                    <td data-label="Resultado"><Badge tone={r.result === 'OK' ? 'success' : r.result === 'SCHEDULED' ? 'info' : 'danger'}>{r.result === 'OK' ? 'Executada' : r.result === 'SCHEDULED' ? 'Agendada' : 'Falhou'}</Badge></td>
+                    <td className="text-muted" data-label="Detalhe">{r.note}</td>
                   </tr>
                 ))}
               </tbody>
