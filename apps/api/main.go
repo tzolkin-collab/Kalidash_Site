@@ -74,6 +74,7 @@ func initDB() {
 	fmt.Println("✅ Banco de Dados conectado (MySQL) via DSN!")
 
 	ensureBlogSchema()
+	initStorage()
 }
 
 func enableCORS(next http.HandlerFunc) http.HandlerFunc {
@@ -389,6 +390,7 @@ func main() {
 	mux.HandleFunc("/api/emails/send", enableCORS(handleSendEmail))
 	mux.HandleFunc("/api/blog/articles", enableCORS(handleBlogArticles))
 	mux.HandleFunc("/api/blog/article", enableCORS(handleBlogArticleBySlug))
+	mux.HandleFunc("/api/blog/upload", enableCORS(handleBlogUpload))
 
 	port := os.Getenv("PORT")
 	if port == "" {
