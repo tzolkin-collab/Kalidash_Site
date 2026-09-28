@@ -70,8 +70,10 @@ func initDB() {
 	if err := db.Ping(); err != nil {
 		log.Fatal("❌ Erro ao conectar com o banco de dados:", err)
 	}
-	
+
 	fmt.Println("✅ Banco de Dados conectado (MySQL) via DSN!")
+
+	ensureBlogSchema()
 }
 
 func enableCORS(next http.HandlerFunc) http.HandlerFunc {
@@ -385,6 +387,8 @@ func main() {
 	mux.HandleFunc("/api/leads/move", enableCORS(handleMoveOpportunity))
 	mux.HandleFunc("/api/leads/notes", enableCORS(handleNotes))
 	mux.HandleFunc("/api/emails/send", enableCORS(handleSendEmail))
+	mux.HandleFunc("/api/blog/articles", enableCORS(handleBlogArticles))
+	mux.HandleFunc("/api/blog/article", enableCORS(handleBlogArticleBySlug))
 
 	port := os.Getenv("PORT")
 	if port == "" {
