@@ -28,18 +28,29 @@ export function CustomSelect({ value, onChange, children, className = '', disabl
   useEffect(() => { if (autoFocus) triggerRef.current?.focus(); }, []);
 
   const options: { value: string; label: string; disabled?: boolean }[] = [];
-  
+
+  // Um <option> com mais de um filho (ex.: {label} ({id})) chega aqui como array — "".toString()
+  // nisso junta tudo com vírgula ("Rótulo, (,id,)"), não concatena. Percorre e junta de verdade.
+  const flattenText = (node: ReactNode): string => {
+    if (node === null || node === undefined || typeof node === 'boolean') return '';
+    if (typeof node === 'string' || typeof node === 'number') return String(node);
+    if (Array.isArray(node)) return node.map(flattenText).join('');
+    if (isValidElement(node)) return flattenText((node.props as { children?: ReactNode }).children);
+    return '';
+  };
+
   const extract = (nodes: ReactNode) => {
     Children.forEach(nodes, (child) => {
       if (!isValidElement(child)) return;
       if (child.type === 'option') {
+        const props = child.props as { value?: unknown; children?: ReactNode; disabled?: boolean };
         options.push({
-          value: String(child.props.value ?? child.props.children ?? ''),
-          label: child.props.children?.toString() ?? '',
-          disabled: child.props.disabled,
+          value: String(props.value ?? flattenText(props.children)),
+          label: flattenText(props.children),
+          disabled: props.disabled,
         });
-      } else if (child.props && child.props.children) {
-        extract(child.props.children);
+      } else if (child.props && (child.props as { children?: ReactNode }).children) {
+        extract((child.props as { children?: ReactNode }).children);
       }
     });
   };
