@@ -761,14 +761,23 @@ td:hover .badge-line .badge-text {
 .editor-side { position: sticky; top: 0; }
 @media (max-width: 960px) { .editor-layout { grid-template-columns: 1fr; } .editor-side { position: static; } }
 .title-input { font-size: 20px; font-weight: 700; }
-.editor-box { border: 1px solid var(--border-subtle); border-radius: 10px; background: var(--bg-surface); overflow: hidden; }
+/* --font-manrope: o preview dentro do editor reaproveita o article.module.css real do
+   site (Blog.tsx importa direto de apps/site), que referencia essa variável — sem ela aqui
+   o preview cai no Source Sans 3 do admin e fica visualmente diferente do /blog real. */
+.editor-box { border: 1px solid var(--border-subtle); border-radius: 10px; background: var(--bg-surface); overflow: hidden; --font-manrope: 'Manrope', sans-serif; }
 .tool-row { display: flex; align-items: center; gap: 2px; padding: 6px; border-bottom: 1px solid var(--border-subtle); background: var(--bg-surface-hover); flex-wrap: wrap; }
 .tool-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: none; border-radius: 6px; background: transparent; color: var(--text-secondary); cursor: pointer; }
 .tool-btn:hover:not(:disabled) { background: var(--bg-surface); color: var(--text-primary); }
 .tool-btn.active { background: var(--bg-surface); color: var(--accent); box-shadow: var(--shadow-sm); }
 .tool-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 .tool-sep { width: 1px; height: 18px; margin: 0 6px; background: var(--border-subtle); }
-.post-editor-area { min-height: 360px; padding: 18px 20px; outline: none; font-size: 15px; line-height: 1.7; }
+.post-editor-area { min-height: 360px; padding: 18px 20px; outline: none; font-size: 15px; line-height: 1.7; font-family: inherit; }
+/* O preview do editor reaproveita o article.module.css real do site (Blog.tsx importa direto
+   de apps/site), cujo .page define var(--font-manrope) — mas o reset global "* { font-family:
+   'Source Sans 3' }" (index.css) casa DIRETO com cada elemento abaixo (article, .body, o
+   wrapper do Tiptap...), quebrando a herança de novo em cada nível, não só uma vez. Um
+   "inherit" isolado no .post-editor-area não bastava; precisa reforçar em toda a subárvore. */
+.editor-box :is(header, article), .editor-box :is(header, article) * { font-family: inherit; }
 .post-editor-area h2 { margin: 1.2em 0 0.4em; font-size: 1.4em; }
 .post-editor-area h3 { margin: 1em 0 0.3em; font-size: 1.15em; }
 .post-editor-area p { margin: 0 0 0.9em; }

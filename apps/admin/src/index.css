@@ -1,4 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&display=swap');
+/* Manrope: mesma fonte do /blog do site. O editor reaproveita o article.module.css real do
+   site (ver Blog.tsx), que já pede var(--font-manrope) — só faltava carregar a fonte e
+   definir a variável aqui, senão o preview do editor cai no Source Sans 3 do admin. */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 @import "./drawer.css";
 @import "./pages.css";
 
