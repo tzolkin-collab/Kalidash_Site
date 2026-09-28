@@ -29,3 +29,13 @@ export async function deleteArticle(id: string): Promise<void> {
   const res = await fetch(`${BASE}?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
   if (!res.ok) throw new Error(await res.text() || `Não foi possível excluir o artigo (${res.status}).`);
 }
+
+/** Sobe a imagem pro R2 (a API redimensiona e comprime) e devolve a URL pública. */
+export async function uploadImage(file: File): Promise<string> {
+  const form = new FormData();
+  form.append('file', file);
+  const res = await fetch(`${API_URL}/api/blog/upload`, { method: 'POST', body: form });
+  if (!res.ok) throw new Error(await res.text() || `Não foi possível subir a imagem (${res.status}).`);
+  const data = await res.json();
+  return data.url as string;
+}

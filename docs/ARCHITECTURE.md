@@ -32,7 +32,7 @@
 | Entrada de leads (`connect.js`, API direta, webhook) | api | Planejado | Contrato já desenhado no v1.0 (`connect.ts`). |
 | Projetos conectados, Integrações e Chaves | admin + api | **Tela pronta, sem API** | Projetos com métricas, snippet e página de exemplo, emissão e revogação de chaves (o token de exemplo não existe no servidor). |
 | Login e perfis | api + admin | Planejado | Google OAuth do Workspace. Hoje a API está aberta. |
-| Blog / CMS | admin + api + site | **Parcial** | Sem Sanity — lista e editor (Tiptap) gravam artigo real via Go API/MySQL (`/api/blog/articles`); o site (Next.js) consome com ISR, publicado/rascunho, destaque e categorias. Falta upload de imagem (hoje é URL colada à mão) e compressão/armazenamento (S3 ou similar) — ver `docs/security-and-cms.md`. |
+| Blog / CMS | admin + api + site | **Parcial** | Sem Sanity — lista e editor (Tiptap) gravam artigo real via Go API/MySQL (`/api/blog/articles`); o site (Next.js) consome com ISR, publicado/rascunho, destaque e categorias. Upload de imagem implementado (`/api/blog/upload`, redimensiona e comprime antes de subir pro Cloudflare R2) — falta só configurar as credenciais reais do bucket no `.env` da API. |
 | Dashboard e analytics | admin | **Parcial** | Métricas reais calculadas de `/api/leads` (valor em aberto e ganho, conversão, funil por etapa). Leads, tarefas e origem entram com as fases 3 e 4. |
 | Equipe e Configurações | admin + api | **Tela pronta, sem API** | Página com perfil, equipe e perfis (Admin, Gerente, Vendedor), webhooks e auditoria, em dados de exemplo. |
 | Webhooks de saída e auditoria | api | Planejado | A tela existe em Configurações; falta a API e o disparo em segundo plano. |

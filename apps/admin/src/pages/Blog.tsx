@@ -7,7 +7,7 @@ import ImageResize from 'tiptap-extension-resize-image';
 import { AlertTriangle, Bold, Heading2, Heading3, Italic, List, ListOrdered, Plus, Quote, Redo2, RefreshCw, Star, Trash2, Undo2, Image as ImageIcon, ImagePlus } from 'lucide-react';
 import type { Article } from '../domain';
 import { formatDate } from '../lib/format';
-import { createArticle, deleteArticle, listArticles, updateArticle } from '../lib/blog';
+import { createArticle, deleteArticle, listArticles, updateArticle, uploadImage } from '../lib/blog';
 import type { ArticleInput } from '../lib/blog';
 import { teamStore } from '../mocks/team';
 import { Badge, EmptyState, Field, Page, PageHeader, Pagination, PopupDialog, SearchBox, Switch, Tabs } from '../components/ui';
@@ -181,6 +181,8 @@ function ArticleEditor({ article, isNew, onBack, onSaved, onDeleted }: { article
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [imageDialog, setImageDialog] = useState<'body' | 'cover' | null>(null);
   const [imageUrl, setImageUrl] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const touch = () => { setSaved(false); setDirty(true); };
 
   const editor = useEditor({
@@ -235,16 +237,30 @@ function ArticleEditor({ article, isNew, onBack, onSaved, onDeleted }: { article
 
   const addImage = () => {
     setImageUrl('');
+    setUploadError(null);
     setImageDialog('body');
+  };
+
+  const applyImage = (url: string) => {
+    if (imageDialog === 'cover') setCoverImageUrl(url);
+    else editor?.chain().focus().setImage({ src: url }).run();
+    touch();
+    setImageDialog(null);
   };
 
   const addImageFromDialog = () => {
     const url = imageUrl.trim();
     if (!url) return;
-    if (imageDialog === 'cover') setCoverImageUrl(url);
-    else editor?.chain().focus().setImage({ src: url }).run();
-    touch();
-    setImageDialog(null);
+    applyImage(url);
+  };
+
+  const handleFileUpload = (file: File) => {
+    setUploading(true);
+    setUploadError(null);
+    uploadImage(file)
+      .then(applyImage)
+      .catch((e) => setUploadError(e instanceof Error ? e.message : 'Não foi possível subir a imagem.'))
+      .finally(() => setUploading(false));
   };
 
   return (
@@ -326,7 +342,7 @@ function ArticleEditor({ article, isNew, onBack, onSaved, onDeleted }: { article
                     </div>
                   </div>
                 ) : (
-                  <button onClick={() => { setImageUrl(''); setImageDialog('cover'); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', padding: '40px', border: '2px dashed #d9d1df', borderRadius: '12px', background: 'transparent', color: '#625969', cursor: 'pointer', marginBottom: '80px', fontSize: '1.1rem' }}>
+                  <button onClick={() => { setImageUrl(''); setUploadError(null); setImageDialog('cover'); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', padding: '40px', border: '2px dashed #d9d1df', borderRadius: '12px', background: 'transparent', color: '#625969', cursor: 'pointer', marginBottom: '80px', fontSize: '1.1rem' }}>
                     <ImagePlus size={24} /> Adicionar foto de capa
                   </button>
                 )}
@@ -396,11 +412,27 @@ function ArticleEditor({ article, isNew, onBack, onSaved, onDeleted }: { article
       {imageDialog && <PopupDialog
         eyebrow={imageDialog === 'cover' ? 'IMAGEM DE CAPA' : 'EDITOR DO ARTIGO'}
         title={imageDialog === 'cover' ? 'Adicionar capa' : 'Adicionar imagem'}
-        description="Cole o endereço público da imagem que será exibida no artigo."
+        description="Escolha um arquivo do computador — a API redimensiona e comprime sozinha antes de subir pro storage — ou cole o endereço de uma imagem já publicada em outro lugar."
         onClose={() => setImageDialog(null)}
-        footer={<><button type="button" className="btn" onClick={() => setImageDialog(null)}>Cancelar</button><button type="button" className="btn btn-solid" disabled={!imageUrl.trim()} onClick={addImageFromDialog}>Adicionar imagem</button></>}
+        footer={<button type="button" className="btn" onClick={() => setImageDialog(null)}>Cancelar</button>}
       >
-        <Field label="URL da imagem"><input className="input" type="url" autoFocus value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') addImageFromDialog(); }} placeholder="https://exemplo.com/imagem.webp" /></Field>
+        <div className="form-stack">
+          <label className="btn btn-solid" style={{ justifyContent: 'center', opacity: uploading ? 0.6 : 1, cursor: uploading ? 'default' : 'pointer' }}>
+            <input
+              type="file" accept="image/*" style={{ display: 'none' }} disabled={uploading}
+              onChange={(e) => { const file = e.target.files?.[0]; if (file) handleFileUpload(file); e.target.value = ''; }}
+            />
+            {uploading ? 'Enviando…' : <><ImagePlus size={14} /> Escolher arquivo do computador</>}
+          </label>
+          {uploadError && <p className="text-xs" style={{ color: '#ef4444', margin: 0 }}>{uploadError}</p>}
+          <div className="text-xs text-muted" style={{ textAlign: 'center' }}>ou</div>
+          <Field label="Colar uma URL">
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input className="input" type="url" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') addImageFromDialog(); }} placeholder="https://exemplo.com/imagem.webp" style={{ flex: 1 }} />
+              <button type="button" className="btn" disabled={!imageUrl.trim()} onClick={addImageFromDialog}>Usar</button>
+            </div>
+          </Field>
+        </div>
       </PopupDialog>}
     </Page>
   );
