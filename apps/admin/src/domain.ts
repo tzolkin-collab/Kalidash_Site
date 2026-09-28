@@ -299,22 +299,27 @@ export type ApiKey = {
   status: 'ACTIVE' | 'REVOKED';
 };
 
-export type PostStatus = 'PUBLISHED' | 'DRAFT' | 'SCHEDULED';
-
-export type Post = {
+/** Artigo do blog: espelha o struct Article do Go (apps/api/blog.go), que é quem manda de
+ * verdade — Sem Sanity, sem status/agendamento (não existia de fato). Só rascunho ou publicado. */
+export type Article = {
   id: string;
   title: string;
   slug: string;
   excerpt: string;
   body: string;
-  tags: string[];
-  status: PostStatus;
-  author: string;
-  updatedAt: string;
-  publishAt?: string;
+  coverImageUrl?: string;
+  /** 0–100: posição vertical da capa (object-position), tipo "onde centralizar o recorte". */
+  coverImagePos: number;
+  /** Post de destaque: ocupa o bloco grande na lista do site. */
+  featured: boolean;
+  published: boolean;
+  authorName: string;
+  categories: string[];
   seoTitle?: string;
   seoDescription?: string;
-  coverImage?: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt?: string;
 };
 
 export type Role = 'ADMIN' | 'MANAGER' | 'SELLER';

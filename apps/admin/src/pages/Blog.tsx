@@ -1,81 +1,97 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import GlobalDragHandle from 'tiptap-extension-global-drag-handle';
 import ImageResize from 'tiptap-extension-resize-image';
-import { Bold, Heading2, Heading3, Italic, List, ListOrdered, Plus, Quote, Redo2, Undo2, Image as ImageIcon, ImagePlus } from 'lucide-react';
-import type { Post, PostStatus } from '../domain';
+import { AlertTriangle, Bold, Heading2, Heading3, Italic, List, ListOrdered, Plus, Quote, Redo2, RefreshCw, Star, Trash2, Undo2, Image as ImageIcon, ImagePlus } from 'lucide-react';
+import type { Article } from '../domain';
 import { formatDate } from '../lib/format';
-import { newId, useStore } from '../lib/store';
-import { usePaged } from '../lib/usePaged';
-import { postsStore } from '../mocks/posts';
+import { createArticle, deleteArticle, listArticles, updateArticle } from '../lib/blog';
+import type { ArticleInput } from '../lib/blog';
 import { teamStore } from '../mocks/team';
-import { Badge, EmptyState, Field, Page, PageHeader, Pagination, PopupDialog, SampleBanner, SearchBox, Tabs } from '../components/ui';
-import type { Tone } from '../components/ui';
+import { Badge, EmptyState, Field, Page, PageHeader, Pagination, PopupDialog, SearchBox, Switch, Tabs } from '../components/ui';
+import { useStore } from '../lib/store';
+import { usePaged } from '../lib/usePaged';
 import { CustomSelect } from '../components/ui';
 import { useShell } from '../lib/shell';
 // @ts-ignore
 import siteStyles from '../../../../apps/site/src/app/blog/[slug]/article.module.css';
 
-const STATUS_LABEL: Record<PostStatus, string> = { PUBLISHED: 'Publicado', DRAFT: 'Rascunho', SCHEDULED: 'Agendado' };
-const STATUS_TONE: Record<PostStatus, Tone> = { PUBLISHED: 'success', DRAFT: 'neutral', SCHEDULED: 'info' };
-type Filter = 'ALL' | PostStatus;
+type Filter = 'ALL' | 'PUBLISHED' | 'DRAFT';
 
-/** "2026-10-05T12:00:00Z" -> valor de <input type="datetime-local"> no horário local. */
-const toLocalInput = (iso?: string) => {
-  if (!iso) return '';
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-};
+const blank = (authorName: string): Article => ({
+  id: 'novo', title: '', slug: '', excerpt: '', body: '', coverImagePos: 50, featured: false, published: false,
+  authorName, categories: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+});
 
 export default function Blog({ postId }: { postId?: string }) {
-  const [posts, setPosts] = useStore(postsStore);
   const [team] = useStore(teamStore);
+  const [articles, setArticles] = useState<Article[] | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>('ALL');
   const [search, setSearch] = useState('');
   const shell = useShell();
 
+  const reload = () => {
+    listArticles()
+      .then((list) => { setArticles(list); setLoadError(null); })
+      .catch((e) => setLoadError(e instanceof Error ? e.message : 'Não foi possível falar com a API.'));
+  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { reload(); }, []);
+
   const counts = useMemo(() => ({
-    ALL: posts.length,
-    PUBLISHED: posts.filter((p) => p.status === 'PUBLISHED').length,
-    DRAFT: posts.filter((p) => p.status === 'DRAFT').length,
-    SCHEDULED: posts.filter((p) => p.status === 'SCHEDULED').length,
-  }), [posts]);
+    ALL: articles?.length ?? 0,
+    PUBLISHED: articles?.filter((a) => a.published).length ?? 0,
+    DRAFT: articles?.filter((a) => !a.published).length ?? 0,
+  }), [articles]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return posts
-      .filter((p) => (filter === 'ALL' || p.status === filter) && (!q || `${p.title} ${p.slug} ${p.tags.join(' ')}`.toLowerCase().includes(q)))
+    return (articles ?? [])
+      .filter((a) => (filter === 'ALL' || (filter === 'PUBLISHED') === a.published) && (!q || `${a.title} ${a.slug} ${a.categories.join(' ')}`.toLowerCase().includes(q)))
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-  }, [posts, filter, search]);
+  }, [articles, filter, search]);
 
   const paged = usePaged(filtered, 10);
-  
-  // Use postId from props or route, fallback to undefined
-  const editing = postId && postId !== 'novo' ? posts.find((p) => p.id === postId) : (postId === 'novo' ? { id: 'novo', title: '', slug: '', excerpt: '', body: '', tags: [], status: 'DRAFT', author: team[0]?.name ?? 'Equipe', updatedAt: new Date().toISOString() } as Post : undefined);
 
-  const create = () => {
-    shell.navigate('/blog/novo');
-  };
+  const editing = postId && postId !== 'novo'
+    ? articles?.find((a) => a.id === postId)
+    : postId === 'novo' ? blank(team[0]?.name ?? 'Equipe') : undefined;
+
+  if (postId && postId !== 'novo' && articles && !editing) {
+    return (
+      <Page>
+        <PageHeader title="Artigo não encontrado" back={{ label: 'Blog', to: '/blog' }} />
+        <EmptyState title="Este artigo não existe mais">Pode ter sido excluído. Volte pro Blog e escolha outro.</EmptyState>
+      </Page>
+    );
+  }
+
+  if (postId && !editing) {
+    // Veio direto pra edição (link salvo, refresh) antes da lista carregar, ou postId === 'novo'
+    // esperando o nome de autor padrão — ambos resolvem no próximo render.
+    return <Page><PageHeader title="Carregando…" /></Page>;
+  }
 
   if (editing) {
     return (
-      <PostEditor
+      <ArticleEditor
         key={editing.id}
-        post={editing}
-        onBack={() => {
-          shell.navigate('/blog');
+        article={editing}
+        isNew={editing.id === 'novo'}
+        onBack={() => shell.navigate('/blog')}
+        onSaved={(saved, isNew) => {
+          setArticles((prev) => {
+            const list = prev ?? [];
+            return isNew ? [saved, ...list] : list.map((a) => (a.id === saved.id ? saved : a));
+          });
+          if (isNew) shell.navigate(`/blog/${saved.id}`);
         }}
-        onSave={(next) => {
-          if (editing.id === 'novo') {
-            const finalPost = { ...next, id: newId('post') };
-            setPosts((prev) => [finalPost, ...prev]);
-            shell.navigate(`/blog/${finalPost.id}`);
-          } else {
-            setPosts((prev) => prev.map((p) => (p.id === next.id ? { ...next, updatedAt: new Date().toISOString() } : p)));
-          }
+        onDeleted={(id) => {
+          setArticles((prev) => (prev ?? []).filter((a) => a.id !== id));
+          shell.navigate('/blog');
         }}
       />
     );
@@ -86,91 +102,123 @@ export default function Blog({ postId }: { postId?: string }) {
       <PageHeader
         title="Blog"
         subtitle="Escreva e publique os artigos do site. O site regenera as páginas sozinho (ISR), sem precisar de novo deploy."
-        actions={<button type="button" className="btn btn-solid" onClick={create}><Plus size={14} /> Novo artigo</button>}
+        actions={<button type="button" className="btn btn-solid" onClick={() => shell.navigate('/blog/novo')}><Plus size={14} /> Novo artigo</button>}
       />
-      <SampleBanner>O CMS ainda não tem tabela nem API: os artigos abaixo são de exemplo e recarregar a página restaura a lista.</SampleBanner>
 
-      <Tabs
-        tabs={[{ id: 'ALL' as Filter, label: 'Todos', count: counts.ALL }, { id: 'PUBLISHED' as Filter, label: 'Publicados', count: counts.PUBLISHED }, { id: 'DRAFT' as Filter, label: 'Rascunhos', count: counts.DRAFT }, { id: 'SCHEDULED' as Filter, label: 'Agendados', count: counts.SCHEDULED }]}
-        value={filter}
-        onChange={setFilter}
-      />
-      <div className="toolbar"><SearchBox value={search} onChange={setSearch} placeholder="Buscar por título, endereço ou tag…" /></div>
-
-      <div className="table-card">
-        <div className="table-scroll">
-          <table className="data-table">
-            <thead><tr><th>Artigo</th><th>Status</th><th>Autor</th><th>Tags</th><th>Atualizado</th></tr></thead>
-            <tbody>
-              {paged.rows.map((p) => (
-                <tr key={p.id} className="clickable" onClick={() => shell.navigate(`/blog/${p.id}`)}>
-                  <td><div className="cell-stack"><span className="cell-primary">{p.title || 'Sem título'}</span><span className="text-xs text-muted mono">/blog/{p.slug || '…'}</span></div></td>
-                  <td>
-                    <Badge tone={STATUS_TONE[p.status]}>{STATUS_LABEL[p.status]}</Badge>
-                    {p.status === 'SCHEDULED' && p.publishAt && <div className="text-xs text-muted">para {formatDate(p.publishAt)}</div>}
-                  </td>
-                  <td>{p.author}</td>
-                  <td><div className="tag-row">{p.tags.map((t) => <span key={t} className="tag">{t}</span>)}</div></td>
-                  <td className="text-muted">{formatDate(p.updatedAt)}</td>
-                </tr>
-              ))}
-              {filtered.length === 0 && <tr><td colSpan={5}><EmptyState title="Nenhum artigo">Ajuste o filtro ou comece um artigo novo.</EmptyState></td></tr>}
-            </tbody>
-          </table>
+      {loadError && (
+        <div className="task-callout" role="alert" style={{ marginBottom: '16px', borderColor: '#ef4444' }}>
+          <AlertTriangle size={16} />
+          <div style={{ flex: 1 }}>
+            <strong>Não foi possível falar com a API.</strong>
+            <div className="text-xs text-muted">{loadError} Confira se ela está no ar (<code className="mono">pnpm --filter @kalidash/api dev</code>).</div>
+          </div>
+          <button type="button" className="btn btn-sm" onClick={reload}><RefreshCw size={12} /> Tentar de novo</button>
         </div>
-        <Pagination page={paged.page} pageSize={paged.pageSize} total={paged.total} onPage={paged.setPage} onPageSize={paged.setPageSize} />
-      </div>
+      )}
+
+      {articles === null && !loadError ? (
+        <EmptyState title="Carregando artigos…" />
+      ) : (
+        <>
+          <Tabs
+            tabs={[{ id: 'ALL' as Filter, label: 'Todos', count: counts.ALL }, { id: 'PUBLISHED' as Filter, label: 'Publicados', count: counts.PUBLISHED }, { id: 'DRAFT' as Filter, label: 'Rascunhos', count: counts.DRAFT }]}
+            value={filter}
+            onChange={setFilter}
+          />
+          <div className="toolbar"><SearchBox value={search} onChange={setSearch} placeholder="Buscar por título, endereço ou categoria…" /></div>
+
+          <div className="table-card">
+            <div className="table-scroll">
+              <table className="data-table data-table-cards">
+                <thead><tr><th>Artigo</th><th>Status</th><th>Autor</th><th>Categorias</th><th>Atualizado</th></tr></thead>
+                <tbody>
+                  {paged.rows.map((a) => (
+                    <tr key={a.id} className="clickable" onClick={() => shell.navigate(`/blog/${a.id}`)}>
+                      <td className="cell-block" data-label="Artigo">
+                        <div className="cell-stack">
+                          <span className="cell-primary">{a.featured && <Star size={12} style={{ verticalAlign: '-1px', marginRight: '4px', color: '#eab308', fill: '#eab308' }} />}{a.title || 'Sem título'}</span>
+                          <span className="text-xs text-muted mono">/blog/{a.slug || '…'}</span>
+                        </div>
+                      </td>
+                      <td data-label="Status"><Badge tone={a.published ? 'success' : 'neutral'}>{a.published ? 'Publicado' : 'Rascunho'}</Badge></td>
+                      <td data-label="Autor">{a.authorName}</td>
+                      <td data-label="Categorias"><div className="tag-row">{a.categories.map((t) => <span key={t} className="tag">{t}</span>)}</div></td>
+                      <td className="text-muted" data-label="Atualizado">{formatDate(a.updatedAt)}</td>
+                    </tr>
+                  ))}
+                  {filtered.length === 0 && <tr><td colSpan={5}><EmptyState title="Nenhum artigo">{articles?.length ? 'Ajuste o filtro.' : 'Comece um artigo novo.'}</EmptyState></td></tr>}
+                </tbody>
+              </table>
+            </div>
+            <Pagination page={paged.page} pageSize={paged.pageSize} total={paged.total} onPage={paged.setPage} onPageSize={paged.setPageSize} />
+          </div>
+        </>
+      )}
     </Page>
   );
 }
 
 /* ------------------------------ Editor ------------------------------ */
 
-function PostEditor({ post, onBack, onSave }: { post: Post; onBack: () => void; onSave: (p: Post) => void }) {
-  const [title, setTitle] = useState(post.title);
-  const [slug, setSlug] = useState(post.slug || 'p-' + Math.random().toString(36).substr(2, 6));
-  const [excerpt, setExcerpt] = useState(post.excerpt);
-  const [coverImage, setCoverImage] = useState(post.coverImage || '');
-  const [coverCrop, setCoverCrop] = useState(50); // percentage for object-position
-  const [tags, setTags] = useState(post.tags.join(', '));
-  const [status, setStatus] = useState<PostStatus>(post.status);
-  const [publishAt, setPublishAt] = useState(toLocalInput(post.publishAt));
-  const [seoTitle, setSeoTitle] = useState(post.seoTitle ?? '');
-  const [seoDescription, setSeoDescription] = useState(post.seoDescription ?? '');
+function ArticleEditor({ article, isNew, onBack, onSaved, onDeleted }: { article: Article; isNew: boolean; onBack: () => void; onSaved: (a: Article, isNew: boolean) => void; onDeleted: (id: string) => void }) {
+  const [team] = useStore(teamStore);
+  const [title, setTitle] = useState(article.title);
+  const [slug, setSlug] = useState(article.slug);
+  const [excerpt, setExcerpt] = useState(article.excerpt);
+  const [coverImageUrl, setCoverImageUrl] = useState(article.coverImageUrl || '');
+  const [coverImagePos, setCoverImagePos] = useState(article.coverImagePos ?? 50);
+  const [categories, setCategories] = useState(article.categories.join(', '));
+  const [authorName, setAuthorName] = useState(article.authorName);
+  const [featured, setFeatured] = useState(article.featured);
+  const [published, setPublished] = useState(article.published);
+  const [seoTitle, setSeoTitle] = useState(article.seoTitle ?? '');
+  const [seoDescription, setSeoDescription] = useState(article.seoDescription ?? '');
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [imageDialog, setImageDialog] = useState<'body' | 'cover' | null>(null);
   const [imageUrl, setImageUrl] = useState('');
   const touch = () => { setSaved(false); setDirty(true); };
 
   const editor = useEditor({
     extensions: [
-      StarterKit, 
+      StarterKit,
       Image.configure({ inline: true }),
       ImageResize,
-      GlobalDragHandle.configure({ dragHandleWidth: 20, scrollTreshold: 100 })
+      GlobalDragHandle.configure({ dragHandleWidth: 20, scrollTreshold: 100 }),
     ],
-    content: post.body,
+    content: article.body,
     shouldRerenderOnTransaction: true,
     editorProps: { attributes: { class: 'post-editor-area blog-preview-body', 'aria-label': 'Corpo do artigo' } },
     onUpdate: () => { setSaved(false); setDirty(true); },
   });
 
-  const scheduleMissing = status === 'SCHEDULED' && publishAt === '';
-  const canSave = title.trim() !== '' && slug.trim() !== '' && !scheduleMissing;
+  const canSave = title.trim() !== '';
 
   const save = () => {
-    if (!canSave || !editor) return;
-    onSave({
-      ...post, title: title.trim(), slug: slug.trim(), excerpt: excerpt.trim(), body: editor.getHTML(), status,
-      tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
-      publishAt: status === 'SCHEDULED' ? new Date(publishAt).toISOString() : undefined,
+    if (!canSave || !editor || saving) return;
+    setSaving(true);
+    setSaveError(null);
+    const input: ArticleInput = {
+      title: title.trim(), slug: slug.trim(), excerpt: excerpt.trim(), body: editor.getHTML(),
+      coverImageUrl: coverImageUrl.trim() || undefined, coverImagePos, featured, published,
+      authorName, categories: categories.split(',').map((t) => t.trim()).filter(Boolean),
       seoTitle: seoTitle.trim() || undefined, seoDescription: seoDescription.trim() || undefined,
-      coverImage: coverImage.trim() || undefined,
-    });
-    setSaved(true);
-    setDirty(false);
+    };
+    const request = isNew ? createArticle(input) : updateArticle(article.id, input);
+    request
+      .then((result) => { setSaved(true); setDirty(false); onSaved(result, isNew); })
+      .catch((e) => setSaveError(e instanceof Error ? e.message : 'Não foi possível salvar.'))
+      .finally(() => setSaving(false));
+  };
+
+  const remove = () => {
+    deleteArticle(article.id)
+      .then(() => onDeleted(article.id))
+      .catch((e) => setSaveError(e instanceof Error ? e.message : 'Não foi possível excluir.'));
   };
 
   const leave = () => {
@@ -193,7 +241,7 @@ function PostEditor({ post, onBack, onSave }: { post: Post; onBack: () => void; 
   const addImageFromDialog = () => {
     const url = imageUrl.trim();
     if (!url) return;
-    if (imageDialog === 'cover') setCoverImage(url);
+    if (imageDialog === 'cover') setCoverImageUrl(url);
     else editor?.chain().focus().setImage({ src: url }).run();
     touch();
     setImageDialog(null);
@@ -203,15 +251,16 @@ function PostEditor({ post, onBack, onSave }: { post: Post; onBack: () => void; 
     <Page>
       <PageHeader
         title={title || 'Novo artigo'}
-        subtitle={<><Badge tone={STATUS_TONE[status]}>{STATUS_LABEL[status]}</Badge> {saved && <span className="text-muted">Salvo agora.</span>}</>}
+        subtitle={<><Badge tone={published ? 'success' : 'neutral'}>{published ? 'Publicado' : 'Rascunho'}</Badge> {featured && <Badge tone="warning"><Star size={10} /> Destaque</Badge>} {saveError ? <span style={{ color: '#ef4444' }}>{saveError}</span> : saved && <span className="text-muted">Salvo agora.</span>}</>}
         actions={
           <>
             <button type="button" className="btn" onClick={leave}>Voltar</button>
-            <button type="button" className="btn btn-solid" disabled={!canSave} onClick={save}>Salvar</button>
+            {!isNew && <button type="button" className="btn btn-danger" onClick={() => setDeleteDialogOpen(true)}><Trash2 size={14} /> Excluir</button>}
+            <button type="button" className="btn btn-solid" disabled={!canSave || saving} onClick={save}>{saving ? 'Salvando…' : 'Salvar'}</button>
           </>
         }
       />
-      
+
       <div className="editor-layout">
         <div className="form-stack">
           <div className="editor-box">
@@ -236,46 +285,44 @@ function PostEditor({ post, onBack, onSave }: { post: Post; onBack: () => void; 
               </header>
               <article>
                 <p>
-                  {tags.split(',')[0] || 'Kalidash'} · {formatDate(new Date().toISOString())}
+                  {categories.split(',')[0]?.trim() || 'Kalidash'} · {formatDate(new Date().toISOString())}
                 </p>
-                <input 
-                  value={title} 
-                  onChange={(e) => { setTitle(e.target.value); touch(); }} 
+                <input
+                  value={title}
+                  onChange={(e) => { setTitle(e.target.value); touch(); }}
                   placeholder="Título da publicação"
-                  style={{ 
+                  style={{
                     width: '100%', border: 'none', background: 'transparent', outline: 'none',
-                    margin: '26px 0 34px', fontSize: 'clamp(3rem, 7vw, 7rem)', fontWeight: 500, lineHeight: 0.94, letterSpacing: '-0.07em', color: 'inherit', fontFamily: 'inherit'
-                  }} 
+                    margin: '26px 0 34px', fontSize: 'clamp(3rem, 7vw, 7rem)', fontWeight: 500, lineHeight: 0.94, letterSpacing: '-0.07em', color: 'inherit', fontFamily: 'inherit',
+                  }}
                 />
-                <textarea 
-                  value={excerpt} 
-                  onChange={(e) => { setExcerpt(e.target.value); touch(); }} 
+                <textarea
+                  value={excerpt}
+                  onChange={(e) => { setExcerpt(e.target.value); touch(); }}
                   placeholder="Resumo do artigo..."
                   className={siteStyles.excerpt}
-                  style={{ 
-                    width: '100%', border: 'none', background: 'transparent', outline: 'none', resize: 'none', fontFamily: 'inherit'
-                  }}
+                  style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none', resize: 'none', fontFamily: 'inherit' }}
                   rows={2}
                 />
                 <span style={{ display: 'block', margin: '30px 0 70px', fontSize: '0.8rem' }}>
-                  {post.author}
+                  {authorName}
                 </span>
 
-                {coverImage ? (
+                {coverImageUrl ? (
                   <div style={{ position: 'relative', width: '100%', marginBottom: '80px' }}>
-                    <img 
-                      src={coverImage} 
-                      alt="Capa" 
+                    <img
+                      src={coverImageUrl}
+                      alt="Capa"
                       className={siteStyles.cover}
-                      style={{ maxHeight: '600px', objectFit: 'cover', objectPosition: `50% ${coverCrop}%`, display: 'block' }} 
+                      style={{ maxHeight: '600px', objectFit: 'cover', objectPosition: `50% ${coverImagePos}%`, display: 'block' }}
                     />
                     <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 8 }}>
-                      <input 
-                        type="range" min="0" max="100" value={coverCrop} 
-                        onChange={(e) => { setCoverCrop(Number(e.target.value)); touch(); }}
+                      <input
+                        type="range" min="0" max="100" value={coverImagePos}
+                        onChange={(e) => { setCoverImagePos(Number(e.target.value)); touch(); }}
                         style={{ width: 100 }} title="Ajustar corte (Cima/Baixo)"
                       />
-                      <button onClick={() => { setCoverImage(''); touch(); }} className="btn btn-sm">Remover Capa</button>
+                      <button onClick={() => { setCoverImageUrl(''); touch(); }} className="btn btn-sm">Remover Capa</button>
                     </div>
                   </div>
                 ) : (
@@ -294,14 +341,25 @@ function PostEditor({ post, onBack, onSave }: { post: Post; onBack: () => void; 
 
         <aside className="form-stack editor-side">
           <div className="panel-card form-stack">
-            <Field label="Status">
-              <CustomSelect className="select" value={status} onChange={(e) => { setStatus(e.target.value as PostStatus); touch(); }}>
-                {(Object.keys(STATUS_LABEL) as PostStatus[]).map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
+            <label className="check-row" style={{ cursor: 'pointer' }}>
+              <Switch checked={published} onChange={(v) => { setPublished(v); touch(); }} label="Publicado" />
+              <span style={{ marginLeft: '8px' }}><strong>{published ? 'Publicado' : 'Rascunho'}</strong><div className="text-xs text-muted">{published ? 'Já aparece no site.' : 'Só visível aqui no admin.'}</div></span>
+            </label>
+            <label className="check-row" style={{ cursor: 'pointer' }}>
+              <Switch checked={featured} onChange={(v) => { setFeatured(v); touch(); }} label="Destaque" />
+              <span style={{ marginLeft: '8px' }}><strong>Destaque</strong><div className="text-xs text-muted">Ocupa o bloco grande na lista do blog.</div></span>
+            </label>
+          </div>
+
+          <div className="panel-card form-stack">
+            <Field label="Endereço (slug)" hint={`/blog/${slug || 'gerado do título'}`}><input className="input mono" value={slug} onChange={(e) => { setSlug(e.target.value); touch(); }} placeholder="deixe em branco pra gerar do título" /></Field>
+            <Field label="Autor">
+              <CustomSelect className="select" value={authorName} onChange={(e) => { setAuthorName(e.target.value); touch(); }}>
+                {team.map((m) => <option key={m.id} value={m.name}>{m.name}</option>)}
+                {!team.some((m) => m.name === authorName) && authorName && <option value={authorName}>{authorName}</option>}
               </CustomSelect>
             </Field>
-            {status === 'SCHEDULED' && <Field label="Publicar em" hint={scheduleMissing ? 'Escolha a data e a hora.' : undefined}><input className="input" type="datetime-local" value={publishAt} onChange={(e) => { setPublishAt(e.target.value); touch(); }} /></Field>}
-            <Field label="Endereço (slug)" hint={`/blog/${slug || '…'}`}><input className="input mono" value={slug} onChange={(e) => { setSlug(e.target.value); touch(); }} /></Field>
-            <Field label="Tags" hint="Separe por vírgula."><input className="input" value={tags} onChange={(e) => { setTags(e.target.value); touch(); }} /></Field>
+            <Field label="Categorias" hint="Separe por vírgula."><input className="input" value={categories} onChange={(e) => { setCategories(e.target.value); touch(); }} /></Field>
           </div>
 
           <div className="panel-card form-stack">
@@ -324,6 +382,15 @@ function PostEditor({ post, onBack, onSave }: { post: Post; onBack: () => void; 
         description="As alterações feitas neste artigo serão descartadas."
         onClose={() => setLeaveDialogOpen(false)}
         footer={<><button type="button" className="btn" onClick={() => setLeaveDialogOpen(false)}>Continuar editando</button><button type="button" className="btn btn-danger" onClick={() => { setLeaveDialogOpen(false); onBack(); }}>Sair sem salvar</button></>}
+      />}
+
+      {deleteDialogOpen && <PopupDialog
+        eyebrow="EXCLUIR ARTIGO"
+        tone="danger"
+        title="Excluir este artigo?"
+        description="Some do admin e do site na próxima regeneração. Não dá pra desfazer."
+        onClose={() => setDeleteDialogOpen(false)}
+        footer={<><button type="button" className="btn" onClick={() => setDeleteDialogOpen(false)}>Cancelar</button><button type="button" className="btn btn-danger" onClick={() => { setDeleteDialogOpen(false); remove(); }}>Excluir</button></>}
       />}
 
       {imageDialog && <PopupDialog
