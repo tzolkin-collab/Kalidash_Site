@@ -3,53 +3,75 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import styles from "./blog.module.css";
 import PixelTransition from "../components/PixelTransition";
-import { fetchPublishedArticles } from "@/lib/blog";
+import { fetchPublishedArticles, fetchArticleBySlug } from "@/lib/blog";
 
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Blog",
-  description:
-    "Conteúdo sobre cultura, processos, tecnologia e organizações que trabalham com agentes de IA.",
-  openGraph: {
-    title: "Blog | Kalidash",
-    description:
-      "Ideias para a próxima operação — cultura, advisory e agentes de IA.",
-  },
+	title: "Blog",
+	description:
+		"Conteúdo sobre cultura, processos, tecnologia e organizações que trabalham com agentes de IA.",
+	openGraph: {
+		title: "Blog | Kalidash",
+		description:
+			"Ideias para a próxima operação — cultura, advisory e agentes de IA.",
+	},
 };
 
+// Ordem dos cartões de artigo no documento da Galeria Principal (editada no admin). O primeiro
+// é o destaque. Sem cartões (galeria nunca editada) devolve null e vale a ordem da API.
+function galleryOrder(bodyJson?: string | null): string[] | null {
+	if (!bodyJson) return null;
+	try {
+		const ids = (JSON.parse(bodyJson) as { type?: string; props?: { articleId?: string } }[])
+			.filter((b) => b?.type === "articleCard" && b.props?.articleId)
+			.map((b) => b.props!.articleId!);
+		return ids.length ? ids : null;
+	} catch {
+		return null;
+	}
+}
+
 export default async function BlogPage() {
-  const items = await fetchPublishedArticles();
+	const rawItems = await fetchPublishedArticles();
+	const published = rawItems.filter(a => a.slug !== 'blog-global');
+	const globalArticle = await fetchArticleBySlug('blog-global');
+	const order = galleryOrder(globalArticle?.bodyJson);
+	const byId = new Map(published.map((a) => [a.id, a]));
+	const items = order ? order.flatMap((id) => byId.get(id) ?? []) : published;
 
-  return (
-    <PixelTransition color="#050507" duration={1400} pixelDuration={450}>
-      <main className={styles.page}>
-        <header>
-          <Link href="/">
-            <Image
-              src="/kalidash-logo-branca.webp"
-              alt="Kalidash"
-              width={154}
-              height={30}
-            />
-          </Link>
-          <nav>
-            <Link href="/">Início</Link>
-            <Link href="/#metodo">Método</Link>
-            <Link href="/#diagnostico">Conversar ↗︎</Link>
-          </nav>
-        </header>
+	return (
+		<PixelTransition color="#050507" duration={1400} pixelDuration={450}>
+			<main className={styles.page}>
+				<header>
+					<Link href="/">
+						<Image
+							src="/kalidash-logo-branca.webp"
+							alt="Kalidash"
+							width={154}
+							height={30}
+						/>
+					</Link>
+					<nav>
+						<Link href="/">Início</Link>
+						<Link href="/#metodo">Método</Link>
+						<Link href="/#diagnostico">Conversar ↗︎</Link>
+					</nav>
+				</header>
 
-        <section className={styles.hero}>
-          <p>[ inteligência aplicada ao trabalho ]</p>
-          <h1>
-            Ideias para a próxima <span>operação.</span>
-          </h1>
-          <div>
-            Conteúdo sobre cultura, processos, tecnologia e organizações que
-            trabalham com agentes.
-          </div>
-        </section>
+				{globalArticle?.body ? (
+					<section className={styles.hero} dangerouslySetInnerHTML={{ __html: globalArticle.body }} />
+				) : (
+					<section className={styles.hero}>
+						<p>[ inteligência aplicada ao trabalho ]</p>
+						<h1>
+							Ideias para a próxima <span>operação.</span>
+						</h1>
+						<div>
+							Conteúdo sobre cultura, processos, tecnologia e organizações que trabalham com agentes.
+						</div>
+					</section>
+				)}
 
         {items.length > 0 ? (
           <section className={styles.posts}>

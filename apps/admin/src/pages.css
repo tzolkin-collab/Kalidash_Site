@@ -965,3 +965,34 @@ textarea.inline-input { resize: vertical; }
 .blog-preview-body li { margin-bottom: 0.5em; }
 .blog-preview-body img { max-width: 100%; height: auto; border-radius: 8px; margin: 1.5em 0; }
 .blog-preview-body blockquote { border-left: 4px solid #d9d1df; padding-left: 1rem; margin: 1.5em 0; color: #625969; font-style: italic; }
+
+/* ---------- Galeria Principal: texto de abertura + cartões de artigo ---------- */
+/* O documento inteiro vira a grade do /blog: blocos de texto ocupam a linha toda, cada cartão
+   é uma célula da grade de 2 colunas e o destaque (primeiro cartão) também ocupa a linha toda.
+   Os espaçamentos espelham blog.module.css do site. */
+.editor-box .gallery-doc { padding: 0; border-bottom: 0; }
+.editor-box .gallery-doc .bn-editor { padding: 0; }
+.editor-box .gallery-doc .bn-editor > .bn-block-group { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: #29242e; }
+.editor-box .gallery-doc .bn-block-group > .bn-block-outer { grid-column: 1 / -1; padding-inline: var(--gutter); background: #08070a; }
+.editor-box .gallery-doc .bn-block-group > .bn-block-outer:first-child { padding-top: 9vh; }
+.editor-box .gallery-doc .bn-block-group > .bn-block-outer:last-child { padding-bottom: 7vh; }
+.editor-box .gallery-doc .bn-block-group > .bn-block-outer:has(.gallery-card, .gallery-card-picker) { grid-column: auto; padding: 0; }
+.editor-box .gallery-doc .bn-block-group > .bn-block-outer:has(.gallery-card .is-featured) { grid-column: 1 / -1; }
+.editor-box .gallery-doc .gallery-card { display: block; grid-template-columns: none; border: 0; background: transparent; height: 100%; }
+.editor-box .gallery-doc .gallery-card > article { height: 100%; box-sizing: border-box; }
+.editor-box .gallery-doc .gallery-card-title,
+.editor-box .gallery-doc .gallery-card-excerpt { display: block; width: 100%; padding: 2px 0; border: 0; border-bottom: 1px dashed transparent; border-radius: 0; background: transparent; color: inherit; font-family: inherit; outline: none; }
+.editor-box .gallery-doc .gallery-card-title { max-width: 520px; margin: 28px 0 16px; font-size: clamp(1.4rem, 2vw, 1.9rem); font-weight: 600; line-height: 1.2; letter-spacing: -.01em; }
+.editor-box .gallery-doc .gallery-card-excerpt { max-width: 600px; resize: none; color: #968e9d; font-size: 1rem; line-height: 1.7; }
+.editor-box .gallery-doc .is-featured .gallery-card-excerpt { color: #665d6c; }
+.editor-box .gallery-doc .gallery-card-title:hover, .editor-box .gallery-doc .gallery-card-excerpt:hover,
+.editor-box .gallery-doc .gallery-card-title:focus, .editor-box .gallery-doc .gallery-card-excerpt:focus { border-bottom-color: currentColor; }
+.editor-box .gallery-doc .gallery-card-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; max-width: none; margin-top: 18px; color: inherit; font-size: .75rem; opacity: 0; transition: opacity .15s; }
+.editor-box .gallery-doc .gallery-card:hover .gallery-card-tools,
+.editor-box .gallery-doc .gallery-card:focus-within .gallery-card-tools { opacity: .85; }
+.editor-box .gallery-doc .gallery-card-tools button, .editor-box .gallery-doc .gallery-card-tools label { margin: 0; padding: 0; border: 0; border-bottom: 1px solid currentColor; background: transparent; color: inherit; font: inherit; font-weight: 700; cursor: pointer; }
+.editor-box .gallery-doc .gallery-card-tools em { padding: 2px 8px; border-radius: 99px; background: #5b3b86; color: #fff; font-style: normal; font-weight: 700; }
+.editor-box .gallery-doc .gallery-card-picker { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-height: 120px; padding: 32px var(--gutter); background: #0e0c11; color: #aaa2b2; font-size: .85rem; }
+.editor-box .gallery-doc .gallery-card-picker select { max-width: 320px; padding: 6px 8px; border: 1px solid #29242e; border-radius: 6px; background: #16121d; color: #f6f3fb; font: inherit; }
+.editor-box .gallery-doc .gallery-card-picker button { border: 0; background: transparent; color: #c7acd9; font: inherit; text-decoration: underline; cursor: pointer; }
+@media (max-width: 700px) { .editor-box .gallery-doc .bn-editor > .bn-block-group { grid-template-columns: 1fr; } }

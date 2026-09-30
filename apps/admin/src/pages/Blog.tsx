@@ -1,7 +1,9 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { useCreateBlockNote } from '@blocknote/react';
+import { getDefaultReactSlashMenuItems, SuggestionMenuController, useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
+import { filterSuggestionItems } from '@blocknote/core';
 import type { PartialBlock } from '@blocknote/core';
+import { ArticleCardsContext, blogSchema, CARD_TYPE, syncCards } from './articleCardBlock';
 import { pt as blockNoteLocalePt } from '@blocknote/core/locales';
 import '@blocknote/mantine/style.css';
 import '@blocknote/core/fonts/inter.css';
@@ -267,11 +269,17 @@ function ArticleEditor({ article, isNew, otherArticles, onBack, onSaved, onDelet
   // bodyJson é a fonte de verdade (documento nativo do BlockNote); body (HTML) é só o export pro
   // site. Artigo sem bodyJson (migrado do mock antigo, nunca passou pelo BlockNote) começa vazio
   // aqui e é preenchido logo abaixo por tryParseHTMLToBlocks — uma conversão única, na entrada.
+  const isGlobal = article.slug === 'blog-global';
+  // Na Galeria Principal o documento tem, além do texto de abertura, um cartão por artigo
+  // publicado (syncCards deixa os cartões em dia com os artigos e acrescenta os que faltam).
   const initialContentRef = useRef<PartialBlock[] | undefined>(
-    article.bodyJson ? (JSON.parse(article.bodyJson) as PartialBlock[]) : undefined,
+    article.bodyJson
+      ? (isGlobal ? syncCards(JSON.parse(article.bodyJson), otherArticles, true) : JSON.parse(article.bodyJson)) as PartialBlock[]
+      : undefined,
   );
   const editor = useCreateBlockNote({
-    initialContent: initialContentRef.current,
+    schema: blogSchema,
+    initialContent: initialContentRef.current as never,
     uploadFile: uploadImage,
     dictionary: blockNoteLocalePt,
   });
@@ -281,12 +289,30 @@ function ArticleEditor({ article, isNew, otherArticles, onBack, onSaved, onDelet
   // useLayoutEffect (não useEffect): roda antes do primeiro paint, evita um flash de conteúdo
   // vazio enquanto o HTML legado é convertido pra blocos.
   useLayoutEffect(() => {
-    if (!article.bodyJson && article.body) {
-      const blocks = editor.tryParseHTMLToBlocks(article.body);
-      editor.replaceBlocks(editor.document, blocks);
+    if (!article.bodyJson && (article.body || isGlobal)) {
+      const blocks = article.body ? editor.tryParseHTMLToBlocks(article.body) : [];
+      editor.replaceBlocks(editor.document, isGlobal ? syncCards(blocks as never, otherArticles, true) as never : blocks);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /** Grava de volta nos artigos o que foi editado nos cartões (título, resumo, capa). */
+  const saveCardEdits = async () => {
+    const cards = editor.document.filter((b) => b.type === CARD_TYPE);
+    for (const card of cards) {
+      const p = card.props as { articleId: string; title: string; excerpt: string; coverImageUrl: string; coverImagePos: number };
+      const source = otherArticles.find((a) => a.id === p.articleId);
+      if (!source) continue;
+      const changed = p.title !== source.title || p.excerpt !== source.excerpt
+        || p.coverImageUrl !== (source.coverImageUrl ?? '') || p.coverImagePos !== source.coverImagePos;
+      if (!changed) continue;
+      await updateArticle(source.id, { ...source, title: p.title, excerpt: p.excerpt, coverImageUrl: p.coverImageUrl || undefined, coverImagePos: p.coverImagePos });
+    }
+  };
+
+  // Os cartões não entram no HTML do hero: o site monta a grade a partir dos artigos de
+  // verdade, na ordem dos cartões que estão no bodyJson.
+  const heroHtml = () => editor.blocksToHTMLLossy(editor.document.filter((b) => b.type !== CARD_TYPE));
 
   const canSave = title.trim() !== '';
 
@@ -296,13 +322,14 @@ function ArticleEditor({ article, isNew, otherArticles, onBack, onSaved, onDelet
     setSaveError(null);
     const input: ArticleInput = {
       title: title.trim(), slug: slug.trim(), excerpt: excerpt.trim(),
-      body: editor.blocksToHTMLLossy(editor.document),
+      body: heroHtml(),
       bodyJson: JSON.stringify(editor.document),
       coverImageUrl: coverImageUrl.trim() || undefined, coverImagePos, featured, published,
       authorName, categories: categories.split(',').map((t) => t.trim()).filter(Boolean),
       seoTitle: seoTitle.trim() || undefined, seoDescription: seoDescription.trim() || undefined,
     };
-    const request = isNew ? createArticle(input) : updateArticle(article.id, input);
+    const request = (isGlobal ? saveCardEdits() : Promise.resolve())
+      .then(() => (isNew ? createArticle(input) : updateArticle(article.id, input)));
     request
       .then((result) => { setSaved(true); setDirty(false); onSaved(result, isNew); })
       .catch((e) => setSaveError(e instanceof Error ? e.message : 'Não foi possível salvar.'))
@@ -367,47 +394,30 @@ function ArticleEditor({ article, isNew, otherArticles, onBack, onSaved, onDelet
                     <a href="#" style={{ pointerEvents: 'none' }}>Conversar ↗︎</a>
                   </nav>
                 </header>
-                <section className={blogStyles.hero}>
-                  <BlockNoteView editor={editor} theme="dark" />
-                </section>
-
-                {/* Grade de artigos real abaixo do hero — não é editável aqui (vem da lista de
-                    artigos publicados de verdade), só existe pra o preview mostrar a página
-                    /blog inteira, igual o site, não só o pedaço editável. */}
-                {(() => {
-                  const items = otherArticles.filter((a) => a.published && a.slug !== 'blog-global');
-                  return items.length > 0 ? (
-                    <section className={blogStyles.posts}>
-                      {items.map((a, index) => (
-                        <article key={a.id} className={index === 0 ? blogStyles.featured : ''}>
-                          {a.coverImageUrl && (
-                            <img
-                              className={blogStyles.cover}
-                              src={a.coverImageUrl}
-                              alt={a.title || ''}
-                              style={{ objectPosition: `50% ${a.coverImagePos}%` }}
-                            />
-                          )}
-                          <p>
-                            {a.categories?.[0] || 'Kalidash'} · {a.publishedAt ? formatDate(a.publishedAt) : 'Em breve'}
-                          </p>
-                          <h2>{a.title}</h2>
-                          <div>{a.excerpt}</div>
-                          <span>{a.authorName || 'Equipe Kalidash'}</span>
-                          <a className={blogStyles.read} href="#" style={{ pointerEvents: 'none' }}>Ler artigo ↗︎</a>
-                        </article>
-                      ))}
-                    </section>
-                  ) : (
-                    <section className={blogStyles.posts}>
-                      <article>
-                        <p>Kalidash</p>
-                        <h2>Os primeiros artigos estão a caminho.</h2>
-                        <div>Nenhum artigo publicado ainda — volte em breve.</div>
-                      </article>
-                    </section>
-                  );
-                })()}
+                {/* Texto de abertura + cartões dos artigos no mesmo documento: a ordem dos blocos é a
+                    ordem no site, e o primeiro cartão é o destaque. */}
+                <ArticleCardsContext.Provider value={otherArticles}>
+                  <section className={`${blogStyles.hero} gallery-doc`}>
+                    <BlockNoteView editor={editor} theme="dark" slashMenu={false}>
+                      <SuggestionMenuController
+                        triggerCharacter="/"
+                        getItems={async (query) => filterSuggestionItems([
+                          ...getDefaultReactSlashMenuItems(editor),
+                          {
+                            title: 'Cartão de artigo',
+                            subtext: 'Um artigo do blog na galeria',
+                            aliases: ['artigo', 'card', 'cartao', 'post'],
+                            group: 'Blog',
+                            onItemClick: () => {
+                              const current = editor.getTextCursorPosition().block;
+                              editor.insertBlocks([{ type: CARD_TYPE }], current, 'after');
+                            },
+                          },
+                        ], query)}
+                      />
+                    </BlockNoteView>
+                  </section>
+                </ArticleCardsContext.Provider>
 
                 <footer>
                   <span>Kalidash · Blog</span>

@@ -8,6 +8,9 @@ export type Article = {
   slug: string;
   excerpt: string;
   body: string;
+  // Documento nativo do BlockNote; na Galeria Principal (slug "blog-global") guarda a ordem
+  // dos cartões de artigo — ver galleryOrder em blog/page.tsx.
+  bodyJson?: string | null;
   coverImageUrl?: string | null;
   coverImagePos: number;
   featured: boolean;
