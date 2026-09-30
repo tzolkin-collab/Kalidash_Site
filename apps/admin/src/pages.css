@@ -267,7 +267,6 @@
   width: 3px;
   background-color: currentColor;
   border-radius: 2px;
-  margin-left: 8px;
   vertical-align: middle;
   cursor: default;
 }
@@ -299,7 +298,7 @@ td:hover .badge-line .badge-text {
 .badge-success { --badge-color: #10b981; }
 .badge-warning { --badge-color: #d97706; }
 .badge-danger { --badge-color: #ef4444; }
-.badge-info { --badge-color: #3b82f6; }
+.badge-info { margin-inline: 5px; --badge-color: #3b82f6; }
 .badge-accent { --badge-color: var(--accent); }
 
 /* ---------- Cartões de métrica ---------- */
@@ -394,7 +393,7 @@ td:hover .badge-line .badge-text {
 .panel-body .field-hint { max-width: 64ch; line-height: 1.45; }
 .panel-foot { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 14px 28px; border-top: 1px solid var(--border-subtle); background: linear-gradient(180deg, var(--bg-surface), var(--bg-app)); flex-shrink: 0; }
 .panel-foot .btn-solid { min-width: 112px; box-shadow: 0 2px 6px color-mix(in srgb, var(--accent) 22%, transparent); }
-.popup-overlay { position: fixed; inset: 0; z-index: 1200; display: grid; place-items: center; padding: 24px; background: rgba(17, 24, 39, .48); backdrop-filter: blur(4px); animation: fadeIn .14s ease-out; }
+.popup-overlay { position: fixed; inset: 0; z-index: 1200; display: grid; place-items: center; padding: 24px; background: rgba(17, 24, 39, .72); will-change: transform; transform: translateZ(0); animation: fadeIn .14s ease-out; }
 .popup-card { --popup-tone: var(--accent); --popup-wash: color-mix(in srgb, var(--accent) 8%, var(--bg-surface)); position: relative; width: min(480px, 100%); overflow: hidden; border: 1px solid color-mix(in srgb, var(--border-subtle) 78%, transparent); border-radius: 16px; background: var(--bg-surface); color: var(--text-primary); box-shadow: 0 32px 90px rgba(13, 20, 38, .25), 0 8px 24px rgba(13, 20, 38, .12); animation: modalScaleUp .16s ease-out; }
 .popup-card::before { position: absolute; top: 0; right: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--popup-tone), color-mix(in srgb, var(--popup-tone) 16%, transparent) 75%, transparent); content: ''; }
 .popup-success { --popup-tone: #168765; --popup-wash: color-mix(in srgb, #168765 9%, var(--bg-surface)); }
@@ -765,6 +764,12 @@ td:hover .badge-line .badge-text {
    site (Blog.tsx importa direto de apps/site), que referencia essa variável — sem ela aqui
    o preview cai no Source Sans 3 do admin e fica visualmente diferente do /blog real. */
 .editor-box { border: 1px solid var(--border-subtle); border-radius: 10px; background: var(--bg-surface); overflow: hidden; --font-manrope: 'Manrope', sans-serif; }
+/* O CSS padrão do BlockNote (bn-default-styles) pinta o .bn-editor de branco sólido — sem
+   isto, o preview mostra uma caixa branca por baixo do texto que não existe no site real
+   (o fundo ali é var(--font-manrope) à parte: a cor de _page_/.body do article.module.css,
+   lavanda ou o que for). Precisa ir em !important porque a regra da lib tem a mesma
+   especificidade (uma classe) e carrega depois da nossa no bundle. */
+.editor-box .bn-editor { background: transparent !important; }
 .tool-row { display: flex; align-items: center; gap: 2px; padding: 6px; border-bottom: 1px solid var(--border-subtle); background: var(--bg-surface-hover); flex-wrap: wrap; }
 .tool-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: none; border-radius: 6px; background: transparent; color: var(--text-secondary); cursor: pointer; }
 .tool-btn:hover:not(:disabled) { background: var(--bg-surface); color: var(--text-primary); }

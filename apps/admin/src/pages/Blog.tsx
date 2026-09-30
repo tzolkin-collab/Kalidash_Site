@@ -367,7 +367,7 @@ function ArticleEditor({ article, isNew, onBack, onSaved, onDeleted }: { article
                   </nav>
                 </header>
                 <section className={blogStyles.hero}>
-                  <BlockNoteView editor={editor} theme="light" />
+                  <BlockNoteView editor={editor} theme="dark" />
                 </section>
               </div>
             ) : (
