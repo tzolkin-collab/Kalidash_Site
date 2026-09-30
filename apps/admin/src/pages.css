@@ -769,7 +769,16 @@ td:hover .badge-line .badge-text {
    (o fundo ali é var(--font-manrope) à parte: a cor de _page_/.body do article.module.css,
    lavanda ou o que for). Precisa ir em !important porque a regra da lib tem a mesma
    especificidade (uma classe) e carrega depois da nossa no bundle. */
-.editor-box .bn-editor { background: transparent !important; }
+/* Mesma lógica do background: bn-default-styles também fixa color: rgb(63,63,63) direto no
+   .bn-editor (raiz do ProseMirror) — não é herança quebrada em cada h2/p, é a raiz que já
+   nasce com essa cor própria. Forçar inherit aqui resolve em cascata pra tudo dentro. */
+.editor-box .bn-editor { background: transparent !important; color: inherit !important; font-size: inherit !important; }
+/* line-height precisa de outro tratamento: bn-default-styles redefine 1.5 em vários níveis
+   (não só na raiz, como color/font-size) — um "inherit" na raiz não basta, porque o próximo
+   nível abaixo (li, p...) tem sua própria regra 1.5 de novo. Forçando inherit em toda a
+   subárvore, a herança passa a se propagar de verdade a partir do .bn-editor (que já herda
+   1.85 corretamente do .body/.page por fora). */
+.editor-box .bn-editor :not(h1):not(h2):not(h3) { line-height: inherit !important; }
 .tool-row { display: flex; align-items: center; gap: 2px; padding: 6px; border-bottom: 1px solid var(--border-subtle); background: var(--bg-surface-hover); flex-wrap: wrap; }
 .tool-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: none; border-radius: 6px; background: transparent; color: var(--text-secondary); cursor: pointer; }
 .tool-btn:hover:not(:disabled) { background: var(--bg-surface); color: var(--text-primary); }
