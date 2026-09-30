@@ -8,18 +8,6 @@
       "port": 5173
     },
     {
-      "name": "kalidash-admin-alt",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["apps/admin/node_modules/vite/bin/vite.js", "apps/admin", "--port", "5183", "--strictPort"],
-      "port": 5183
-    },
-    {
-      "name": "kalidash-admin-build",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["apps/admin/node_modules/vite/bin/vite.js", "preview", "apps/admin", "--port", "4173", "--strictPort"],
-      "port": 4173
-    },
-    {
       "name": "kalidash-api",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@kalidash/api", "dev"],
@@ -30,6 +18,12 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@kalidash/site", "dev", "--port", "3000"],
       "port": 3000
+    },
+    {
+      "name": "kalidash-archive-site",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [".archive/v1.0_site/node_modules/next/dist/bin/next", "dev", ".archive/v1.0_site", "--port", "3001"],
+      "port": 3001
     }
   ]
 }
