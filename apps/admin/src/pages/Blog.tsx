@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
 import type { PartialBlock } from '@blocknote/core';
+import { pt as blockNoteLocalePt } from '@blocknote/core/locales';
 import '@blocknote/mantine/style.css';
 import '@blocknote/core/fonts/inter.css';
 import { AlertTriangle, Plus, RefreshCw, Star, Trash2, ImagePlus } from 'lucide-react';
@@ -271,6 +272,7 @@ function ArticleEditor({ article, isNew, onBack, onSaved, onDeleted }: { article
   const editor = useCreateBlockNote({
     initialContent: initialContentRef.current,
     uploadFile: uploadImage,
+    dictionary: blockNoteLocalePt,
   });
 
   useEffect(() => editor.onChange(() => touch()), [editor]);
