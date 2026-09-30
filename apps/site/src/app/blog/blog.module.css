@@ -1,27 +1,198 @@
-.page{--gutter:max(28px,calc((100vw - 1280px)/2));min-height:100vh;background:#08070a;color:#f6f3fb;font-family:var(--font-manrope),sans-serif}.page header{position:sticky;top:0;z-index:4;display:flex;justify-content:space-between;align-items:center;padding:28px var(--gutter);background:rgba(8,7,10,.88);border-bottom:1px solid #29242e;backdrop-filter:blur(16px)}.page header img{height:auto}.page nav{display:flex;gap:26px}.page nav a{color:#aaa2b2;text-decoration:none;font-size:.78rem}.hero{padding:9vh var(--gutter) 7vh;border-bottom:1px solid #29242e}.posts article>p{margin:0}.hero>:first-child, .posts article>p{color:#a889ca;font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase}.hero h1{max-width:680px;margin:18px 0 24px;font-size:clamp(2.1rem,3.6vw,3rem);font-weight:600;line-height:1.12;letter-spacing:-.02em}.hero h1 span, .hero h1 strong{display:block;color:#b695d9;font-weight:700}.hero>:last-child{max-width:570px;color:#aaa2b2;font-size:1.05rem;font-weight:400;line-height:1.7;letter-spacing:normal;text-transform:none}.posts{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:#29242e;border-bottom:1px solid #29242e}.posts article{min-height:440px;padding:64px;background:#0e0c11;display:flex;flex-direction:column;align-items:flex-start}.posts .featured{grid-column:1/-1;min-height:540px;background:#f0ecf5;color:#120e17}.posts h2{max-width:520px;margin:28px 0 16px;font-size:clamp(1.4rem,2vw,1.9rem);line-height:1.2;letter-spacing:-.01em;font-weight:600}.posts article>div{max-width:600px;color:#968e9d;line-height:1.7}.featured>div{color:#665d6c!important}.posts article>span{margin-top:auto;padding-top:48px;color:#837989;font-size:.75rem}.posts button{margin-top:18px;padding:12px 0;border:0;border-bottom:1px solid currentColor;background:transparent;color:inherit;font-weight:700;cursor:pointer}.page footer{display:flex;justify-content:space-between;padding:48px var(--gutter);font-size:.75rem}.page footer a{color:#c7acd9}
+/* Página /blog (Galeria Principal) — DESIGN do blog. Aqui é onde se mexe no visual.
+ *
+ * O HTML vem de views.tsx e do admin; este arquivo só reage às tags e a estes atributos
+ * (contrato completo em docs/blog-design-contrato.md):
+ *   [data-block="hero"]          texto de abertura (HTML escrito no editor do admin)
+ *   [data-block="gallery"]       grade de artigos
+ *   [data-block="article-card"]  cada cartão; [data-variant="featured"|"default"]
+ *   [data-role="cover"]          imagem de capa do cartão
+ *   [data-role="read-more"]      link "Ler artigo"
+ * Pode mudar cores, tamanhos, grade e variantes à vontade. Não renomeie os atributos: o
+ * admin e o preview dependem deles. */
 
-/* ---- Ajustes finos -----------------------------------------------------
-   O layout editorial (blocos sangrados, fio de 1px, destaque claro) é o
-   original. O que estava faltando: */
+.page {
+  --gutter: max(28px, calc((100vw - 1280px) / 2));
+  min-height: 100vh;
+  background: #08070a;
+  color: #f6f3fb;
+  font-family: var(--font-manrope), sans-serif;
+}
 
-/* 1. `.cover` não existia no CSS — a imagem saía no tamanho intrínseco
-      (1400px de largura) e estourava o bloco. */
-.cover{display:block;width:100%;max-width:640px;height:auto;margin-bottom:34px;aspect-ratio:16/9;object-fit:cover;border-radius:10px;background:#16121d}
-.featured .cover{max-width:840px;margin-bottom:40px;aspect-ratio:2/1;background:#e2dbea}
+/* ---- Cabeçalho e rodapé ---- */
+.page header {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28px var(--gutter);
+  background: rgba(8, 7, 10, 0.88);
+  border-bottom: 1px solid #29242e;
+  backdrop-filter: blur(16px);
+}
+.page header img { height: auto; }
+.page nav { display: flex; gap: 26px; }
+.page nav a { color: #aaa2b2; text-decoration: none; font-size: 0.78rem; }
+.page footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 48px var(--gutter);
+  font-size: 0.75rem;
+}
+.page footer a { color: #c7acd9; }
 
-/* 2. `.read` também não existia — o "Ler artigo" saía como link cru.
-      Segue a mesma linguagem do `.posts button` que já estava no arquivo. */
-.read{display:inline-flex;align-items:center;gap:8px;margin-top:22px;padding-bottom:5px;border-bottom:1px solid currentColor;color:#c7acd9;text-decoration:none;font-size:.8rem;font-weight:700}
-.featured .read{color:#5b3b86}
+/* ---- Hero (HTML vindo do editor: p, h1, div…) ---- */
+.hero {
+  padding: 9vh var(--gutter) 7vh;
+  border-bottom: 1px solid #29242e;
+}
+/* primeiro elemento = etiqueta pequena; último = texto de apoio */
+.hero > :first-child,
+.posts article > p {
+  color: #a889ca;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.hero h1 {
+  max-width: 680px;
+  margin: 18px 0 24px;
+  font-size: clamp(2.1rem, 3.6vw, 3rem);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+}
+.hero h1 span,
+.hero h1 strong {
+  display: block;
+  color: #b695d9;
+  font-weight: 700;
+}
+.hero > :last-child {
+  max-width: 570px;
+  color: #aaa2b2;
+  font-size: 1.05rem;
+  font-weight: 400;
+  line-height: 1.7;
+  letter-spacing: normal;
+  text-transform: none;
+}
 
-/* 3. Cada bloco usava a calha da página inteira como padding lateral, então
-      a coluna da direita começava o texto 80px depois da própria borda e a
-      da esquerda perdia o alinhamento com o hero. Agora só a borda externa
-      de cada coluna recebe a calha; a interna fica em 64px.
-      O destaque é o 1º filho e ocupa a linha toda, por isso a coluna
-      esquerda cai nos pares e a direita nos ímpares a partir do 3º. */
-.posts .featured{padding-left:var(--gutter);padding-right:var(--gutter)}
-.posts article:nth-child(2n){padding-left:var(--gutter)}
-.posts article:nth-child(2n+3){padding-right:var(--gutter)}
+/* ---- Grade de artigos ---- */
+.posts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: #29242e;
+  border-bottom: 1px solid #29242e;
+}
+.posts article {
+  min-height: 440px;
+  padding: 64px;
+  background: #0e0c11;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.posts article > p { margin: 0; }
+.posts h2 {
+  max-width: 520px;
+  margin: 28px 0 16px;
+  font-size: clamp(1.4rem, 2vw, 1.9rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+.posts article > div { max-width: 600px; color: #968e9d; line-height: 1.7; }
+.posts article > span {
+  margin-top: auto;
+  padding-top: 48px;
+  color: #837989;
+  font-size: 0.75rem;
+}
+.posts button {
+  margin-top: 18px;
+  padding: 12px 0;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
 
-@media(max-width:700px){.page header{padding:22px 18px}.page nav{gap:16px}.page nav a{font-size:.72rem}.hero{padding:7vh 18px 5vh}.posts{grid-template-columns:1fr}.posts .featured{grid-column:auto}.posts article,.posts .featured,.posts article:nth-child(2n),.posts article:nth-child(2n+3){padding:48px 18px;min-height:420px}.cover,.featured .cover{max-width:100%;aspect-ratio:16/9}.page footer{padding:40px 18px;gap:20px;flex-direction:column}}
+/* Capa do cartão */
+.posts [data-role="cover"] {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  margin-bottom: 34px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 10px;
+  background: #16121d;
+}
+
+/* "Ler artigo" */
+.posts [data-role="read-more"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 22px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid currentColor;
+  color: #c7acd9;
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+/* Cada bloco usa a calha da página só na borda externa de cada coluna; a interna fica em
+   64px. O destaque é o 1º cartão e ocupa a linha toda, por isso a coluna esquerda cai nos
+   pares e a direita nos ímpares a partir do 3º. */
+.posts article:nth-child(2n) { padding-left: var(--gutter); }
+.posts article:nth-child(2n + 3) { padding-right: var(--gutter); }
+
+/* ---- Variante: destaque (claro, largura total) ---- */
+.posts [data-variant="featured"] {
+  grid-column: 1 / -1;
+  min-height: 540px;
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+  background: #f0ecf5;
+  color: #120e17;
+}
+.posts [data-variant="featured"] > div { color: #665d6c !important; }
+.posts [data-variant="featured"] [data-role="cover"] {
+  max-width: 840px;
+  margin-bottom: 40px;
+  aspect-ratio: 2 / 1;
+  background: #e2dbea;
+}
+.posts [data-variant="featured"] [data-role="read-more"] { color: #5b3b86; }
+
+/* ---- Celular ---- */
+@media (max-width: 700px) {
+  .page header { padding: 22px 18px; }
+  .page nav { gap: 16px; }
+  .page nav a { font-size: 0.72rem; }
+  .hero { padding: 7vh 18px 5vh; }
+  .posts { grid-template-columns: 1fr; }
+  .posts [data-variant="featured"] { grid-column: auto; }
+  .posts article,
+  .posts [data-variant="featured"],
+  .posts article:nth-child(2n),
+  .posts article:nth-child(2n + 3) {
+    padding: 48px 18px;
+    min-height: 420px;
+  }
+  .posts [data-role="cover"],
+  .posts [data-variant="featured"] [data-role="cover"] {
+    max-width: 100%;
+    aspect-ratio: 16 / 9;
+  }
+  .page footer { padding: 40px 18px; gap: 20px; flex-direction: column; }
+}

@@ -226,6 +226,7 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		notifySite(articlePaths(a.Slug))
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(a)
@@ -250,7 +251,8 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 		// Publicou agora pela primeira vez: registra publishedAt. Já publicado antes, mantém a
 		// data original (senão cada edição de um artigo já publicado "resetaria" a data).
 		var alreadyPublishedAt sql.NullTime
-		db.QueryRow(`SELECT publishedAt FROM Article WHERE id = ?`, a.ID).Scan(&alreadyPublishedAt)
+		var previousSlug string
+		db.QueryRow(`SELECT publishedAt, slug FROM Article WHERE id = ?`, a.ID).Scan(&alreadyPublishedAt, &previousSlug)
 		if a.Published && !alreadyPublishedAt.Valid {
 			now := time.Now()
 			a.PublishedAt = &now
@@ -293,6 +295,7 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		notifySite(articlePaths(previousSlug, updated.Slug))
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(updated)
 
@@ -302,6 +305,8 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "id é obrigatório", http.StatusBadRequest)
 			return
 		}
+		var deletedSlug string
+		db.QueryRow(`SELECT slug FROM Article WHERE id = ?`, id).Scan(&deletedSlug)
 		res, err := db.Exec(`DELETE FROM Article WHERE id = ?`, id)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -312,6 +317,7 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Artigo não encontrado", http.StatusNotFound)
 			return
 		}
+		notifySite(articlePaths(deletedSlug))
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprint(w, `{"status":"success"}`)
 

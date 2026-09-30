@@ -1,8 +1,7 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import styles from "./article.module.css";
 import PixelTransition from "../../components/PixelTransition";
+import { ArticleView } from "../views";
 import { fetchArticleBySlug, fetchPublishedArticles } from "@/lib/blog";
 
 export const revalidate = 60;
@@ -45,40 +44,7 @@ export default async function ArticlePage({ params }: PageProps) {
 
   return (
     <PixelTransition color="#050507" duration={1400} pixelDuration={450}>
-      <main className={styles.page}>
-        <header>
-          <Link href="/blog">← Blog</Link>
-          <Link href="/">Kalidash</Link>
-        </header>
-
-        <article>
-          <p>
-            {article.categories?.[0] || "Kalidash"} ·{" "}
-            {article.publishedAt &&
-              new Date(article.publishedAt).toLocaleDateString("pt-BR")}
-          </p>
-          <h1 className={styles.title}>{article.title}</h1>
-          <div className={styles.excerpt}>{article.excerpt}</div>
-          <span>{article.authorName}</span>
-
-          {article.coverImageUrl && (
-            // eslint-disable-next-line @next/next/no-img-element -- ver nota em blog/page.tsx
-            <img
-              className={styles.cover}
-              src={article.coverImageUrl}
-              alt={article.title || "Imagem de capa do artigo"}
-              style={{ objectPosition: `50% ${article.coverImagePos}%` }}
-            />
-          )}
-
-          <div
-            className={styles.body}
-            // O corpo já vem como HTML do editor (TipTap) do admin — sem Portable
-            // Text/Sanity, então não precisa de um renderer de blocos aqui.
-            dangerouslySetInnerHTML={{ __html: article.body }}
-          />
-        </article>
-      </main>
+      <ArticleView article={article} />
     </PixelTransition>
   );
 }

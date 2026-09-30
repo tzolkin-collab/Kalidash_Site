@@ -760,25 +760,7 @@ td:hover .badge-line .badge-text {
 .editor-side { position: sticky; top: 0; }
 @media (max-width: 960px) { .editor-layout { grid-template-columns: 1fr; } .editor-side { position: static; } }
 .title-input { font-size: 20px; font-weight: 700; }
-/* --font-manrope: o preview dentro do editor reaproveita o article.module.css real do
-   site (Blog.tsx importa direto de apps/site), que referencia essa variável — sem ela aqui
-   o preview cai no Source Sans 3 do admin e fica visualmente diferente do /blog real. */
-.editor-box { border: 1px solid var(--border-subtle); border-radius: 10px; background: var(--bg-surface); overflow: hidden; --font-manrope: 'Manrope', sans-serif; }
-/* O CSS padrão do BlockNote (bn-default-styles) pinta o .bn-editor de branco sólido — sem
-   isto, o preview mostra uma caixa branca por baixo do texto que não existe no site real
-   (o fundo ali é var(--font-manrope) à parte: a cor de _page_/.body do article.module.css,
-   lavanda ou o que for). Precisa ir em !important porque a regra da lib tem a mesma
-   especificidade (uma classe) e carrega depois da nossa no bundle. */
-/* Mesma lógica do background: bn-default-styles também fixa color: rgb(63,63,63) direto no
-   .bn-editor (raiz do ProseMirror) — não é herança quebrada em cada h2/p, é a raiz que já
-   nasce com essa cor própria. Forçar inherit aqui resolve em cascata pra tudo dentro. */
-.editor-box .bn-editor { background: transparent !important; color: inherit !important; font-size: inherit !important; }
-/* line-height precisa de outro tratamento: bn-default-styles redefine 1.5 em vários níveis
-   (não só na raiz, como color/font-size) — um "inherit" na raiz não basta, porque o próximo
-   nível abaixo (li, p...) tem sua própria regra 1.5 de novo. Forçando inherit em toda a
-   subárvore, a herança passa a se propagar de verdade a partir do .bn-editor (que já herda
-   1.85 corretamente do .body/.page por fora). */
-.editor-box .bn-editor :not(h1):not(h2):not(h3) { line-height: inherit !important; }
+.editor-box { border: 1px solid var(--border-subtle); border-radius: 10px; background: var(--bg-surface); overflow: hidden; }
 .tool-row { display: flex; align-items: center; gap: 2px; padding: 6px; border-bottom: 1px solid var(--border-subtle); background: var(--bg-surface-hover); flex-wrap: wrap; }
 .tool-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: none; border-radius: 6px; background: transparent; color: var(--text-secondary); cursor: pointer; }
 .tool-btn:hover:not(:disabled) { background: var(--bg-surface); color: var(--text-primary); }
@@ -786,12 +768,6 @@ td:hover .badge-line .badge-text {
 .tool-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 .tool-sep { width: 1px; height: 18px; margin: 0 6px; background: var(--border-subtle); }
 .post-editor-area { min-height: 360px; padding: 18px 20px; outline: none; font-size: 15px; line-height: 1.7; font-family: inherit; }
-/* O preview do editor reaproveita o article.module.css real do site (Blog.tsx importa direto
-   de apps/site), cujo .page define var(--font-manrope) — mas o reset global "* { font-family:
-   'Source Sans 3' }" (index.css) casa DIRETO com cada elemento abaixo (article, .body, o
-   wrapper do Tiptap...), quebrando a herança de novo em cada nível, não só uma vez. Um
-   "inherit" isolado no .post-editor-area não bastava; precisa reforçar em toda a subárvore. */
-.editor-box :is(header, article), .editor-box :is(header, article) * { font-family: inherit; }
 .post-editor-area h2 { margin: 1.2em 0 0.4em; font-size: 1.4em; }
 .post-editor-area h3 { margin: 1em 0 0.3em; font-size: 1.15em; }
 .post-editor-area p { margin: 0 0 0.9em; }
@@ -966,33 +942,43 @@ textarea.inline-input { resize: vertical; }
 .blog-preview-body img { max-width: 100%; height: auto; border-radius: 8px; margin: 1.5em 0; }
 .blog-preview-body blockquote { border-left: 4px solid #d9d1df; padding-left: 1rem; margin: 1.5em 0; color: #625969; font-style: italic; }
 
-/* ---------- Galeria Principal: texto de abertura + cartões de artigo ---------- */
-/* O documento inteiro vira a grade do /blog: blocos de texto ocupam a linha toda, cada cartão
-   é uma célula da grade de 2 colunas e o destaque (primeiro cartão) também ocupa a linha toda.
-   Os espaçamentos espelham blog.module.css do site. */
-.editor-box .gallery-doc { padding: 0; border-bottom: 0; }
-.editor-box .gallery-doc .bn-editor { padding: 0; }
-.editor-box .gallery-doc .bn-editor > .bn-block-group { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: #29242e; }
-.editor-box .gallery-doc .bn-block-group > .bn-block-outer { grid-column: 1 / -1; padding-inline: var(--gutter); background: #08070a; }
-.editor-box .gallery-doc .bn-block-group > .bn-block-outer:first-child { padding-top: 9vh; }
-.editor-box .gallery-doc .bn-block-group > .bn-block-outer:last-child { padding-bottom: 7vh; }
-.editor-box .gallery-doc .bn-block-group > .bn-block-outer:has(.gallery-card, .gallery-card-picker) { grid-column: auto; padding: 0; }
-.editor-box .gallery-doc .bn-block-group > .bn-block-outer:has(.gallery-card .is-featured) { grid-column: 1 / -1; }
-.editor-box .gallery-doc .gallery-card { display: block; grid-template-columns: none; border: 0; background: transparent; height: 100%; }
-.editor-box .gallery-doc .gallery-card > article { height: 100%; box-sizing: border-box; }
-.editor-box .gallery-doc .gallery-card-title,
-.editor-box .gallery-doc .gallery-card-excerpt { display: block; width: 100%; padding: 2px 0; border: 0; border-bottom: 1px dashed transparent; border-radius: 0; background: transparent; color: inherit; font-family: inherit; outline: none; }
-.editor-box .gallery-doc .gallery-card-title { max-width: 520px; margin: 28px 0 16px; font-size: clamp(1.4rem, 2vw, 1.9rem); font-weight: 600; line-height: 1.2; letter-spacing: -.01em; }
-.editor-box .gallery-doc .gallery-card-excerpt { max-width: 600px; resize: none; color: #968e9d; font-size: 1rem; line-height: 1.7; }
-.editor-box .gallery-doc .is-featured .gallery-card-excerpt { color: #665d6c; }
-.editor-box .gallery-doc .gallery-card-title:hover, .editor-box .gallery-doc .gallery-card-excerpt:hover,
-.editor-box .gallery-doc .gallery-card-title:focus, .editor-box .gallery-doc .gallery-card-excerpt:focus { border-bottom-color: currentColor; }
-.editor-box .gallery-doc .gallery-card-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; max-width: none; margin-top: 18px; color: inherit; font-size: .75rem; opacity: 0; transition: opacity .15s; }
-.editor-box .gallery-doc .gallery-card:hover .gallery-card-tools,
-.editor-box .gallery-doc .gallery-card:focus-within .gallery-card-tools { opacity: .85; }
-.editor-box .gallery-doc .gallery-card-tools button, .editor-box .gallery-doc .gallery-card-tools label { margin: 0; padding: 0; border: 0; border-bottom: 1px solid currentColor; background: transparent; color: inherit; font: inherit; font-weight: 700; cursor: pointer; }
-.editor-box .gallery-doc .gallery-card-tools em { padding: 2px 8px; border-radius: 99px; background: #5b3b86; color: #fff; font-style: normal; font-weight: 700; }
-.editor-box .gallery-doc .gallery-card-picker { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-height: 120px; padding: 32px var(--gutter); background: #0e0c11; color: #aaa2b2; font-size: .85rem; }
-.editor-box .gallery-doc .gallery-card-picker select { max-width: 320px; padding: 6px 8px; border: 1px solid #29242e; border-radius: 6px; background: #16121d; color: #f6f3fb; font: inherit; }
-.editor-box .gallery-doc .gallery-card-picker button { border: 0; background: transparent; color: #c7acd9; font: inherit; text-decoration: underline; cursor: pointer; }
-@media (max-width: 700px) { .editor-box .gallery-doc .bn-editor > .bn-block-group { grid-template-columns: 1fr; } }
+/* ---------- Editor do blog: editor neutro + preview (iframe do site) ---------- */
+/* O design do blog vive no site (apps/site); o admin não importa CSS de lá. O preview é o
+   próprio site numa rota /preview/* dentro de um iframe (ver components/PreviewFrame.tsx). */
+.editor-main { min-width: 0; }
+.editor-views { display: flex; gap: 6px; }
+.editor-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.editor-split[data-view="edit"], .editor-split[data-view="preview"] { grid-template-columns: minmax(0, 1fr); }
+.editor-split[data-view="edit"] .editor-preview-pane, .editor-split[data-view="preview"] .editor-pane { display: none; }
+@media (max-width: 1280px) { .editor-split[data-view="split"] { grid-template-columns: minmax(0, 1fr); } }
+.editor-preview-pane { position: sticky; top: 0; min-width: 0; }
+.editor-hint { margin: 0; padding: 10px 14px; border-bottom: 1px solid var(--border-subtle); color: var(--text-muted); font-size: 12px; line-height: 1.5; }
+.article-fields { display: flex; flex-direction: column; gap: 12px; padding: 14px; }
+.article-fields .title-input { font-size: 22px; }
+.cover-field img { display: block; width: 100%; max-height: 220px; object-fit: cover; border-radius: 8px; }
+.cover-field-tools { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.block-flash { animation: block-flash 1.4s ease-out; }
+@keyframes block-flash { from { background: rgba(124, 58, 237, .22); } to { background: transparent; } }
+
+.preview-frame { border: 1px solid var(--border-subtle); border-radius: 10px; background: var(--bg-surface); overflow: hidden; }
+.preview-frame-bar { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; border-bottom: 1px solid var(--border-subtle); }
+.preview-frame-devices { display: flex; gap: 2px; }
+.preview-frame-error { margin: 0; padding: 8px 12px; background: rgba(245, 158, 11, .12); color: #b45309; line-height: 1.5; }
+.preview-frame-stage { display: flex; justify-content: center; height: calc(100vh - 170px); min-height: 480px; overflow: auto; background: #16121d; }
+.preview-frame-stage iframe { flex: none; max-width: 100%; height: 100%; border: 0; background: #08070a; }
+
+/* Cartão de artigo da Galeria Principal (bloco do BlockNote, UI neutra) */
+.gcard { display: flex; gap: 14px; margin: 6px 0; padding: 12px; border: 1px solid var(--border-subtle); border-radius: 10px; background: var(--bg-surface-hover); }
+.gcard-cover { flex: none; width: 120px; height: 80px; border-radius: 6px; object-fit: cover; }
+.gcard-cover-empty { display: flex; align-items: center; justify-content: center; border: 1px dashed var(--border-focus); color: var(--text-muted); font-size: 11px; }
+.gcard-main { display: flex; flex: 1; flex-direction: column; gap: 4px; min-width: 0; }
+.gcard-meta { display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+.gcard-meta em { padding: 1px 8px; border-radius: 99px; background: var(--accent); color: #fff; font-style: normal; font-weight: 700; }
+.gcard-title, .gcard-excerpt { padding: 2px 0; border: 0; border-bottom: 1px dashed transparent; background: transparent; font: inherit; outline: none; }
+.gcard-title { color: var(--text-primary); font-size: 15px; font-weight: 700; }
+.gcard-excerpt { resize: none; color: var(--text-secondary); font-size: 13px; }
+.gcard-title:hover, .gcard-title:focus, .gcard-excerpt:hover, .gcard-excerpt:focus { border-bottom-color: var(--border-focus); }
+.gcard-tools { display: flex; align-items: center; gap: 12px; font-size: 12px; }
+.gcard-tools button, .gcard-tools label, .gcard-picker button { padding: 0; border: 0; background: transparent; color: var(--accent); font: inherit; font-weight: 600; cursor: pointer; }
+.gcard-picker { flex-wrap: wrap; align-items: center; color: var(--text-secondary); font-size: 13px; }
+.gcard-picker select { max-width: 320px; padding: 6px 8px; border: 1px solid var(--border-subtle); border-radius: 6px; background: var(--bg-surface); color: var(--text-primary); font: inherit; }

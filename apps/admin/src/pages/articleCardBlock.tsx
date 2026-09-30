@@ -5,19 +5,20 @@ import { createReactBlockSpec } from '@blocknote/react';
 import type { Article } from '../domain';
 import { formatDate } from '../lib/format';
 import { uploadImage } from '../lib/blog';
-// @ts-ignore
-import blogStyles from '../../../../apps/site/src/app/blog/blog.module.css';
 
 /* Cartão de artigo da Galeria Principal.
  *
  * É um bloco do BlockNote que aponta pra um Article real (articleId). As props são um retrato
  * do artigo — título, resumo e capa são editáveis aqui mesmo e o admin grava de volta no
  * Article quando a Galeria é salva (ver saveCardEdits em Blog.tsx). A posição do bloco no
- * documento é a ordem no site, e o primeiro cartão é o destaque (mesma regra do /blog: index 0). */
+ * documento é a ordem no site, e o primeiro cartão é o destaque (mesma regra do /blog: index 0).
+ * A UI aqui é neutra (admin): o visual de verdade é o do site, visto no iframe de preview. */
 
 export const CARD_TYPE = 'articleCard';
 
-export const ArticleCardsContext = createContext<Article[]>([]);
+/** articles: artigos de verdade; flashId: cartão a destacar (clique no preview). Vai por contexto
+ *  porque o BlockNote recria o DOM do bloco ao atualizar props, o que apagaria uma classe posta à mão. */
+export const ArticleCardsContext = createContext<{ articles: Article[]; flashId: string | null }>({ articles: [], flashId: null });
 
 /** Índice deste cartão entre os cartões do documento; recalcula quando o documento muda
  *  (arrastar um bloco não re-renderiza os vizinhos, então escutamos o editor). */
@@ -58,7 +59,7 @@ const createArticleCard = createReactBlockSpec(
   },
   {
     render: ({ block, editor }) => {
-      const articles = useContext(ArticleCardsContext);
+      const { articles, flashId } = useContext(ArticleCardsContext);
       const index = useCardIndex(editor as never, block.id);
       const p = block.props;
       const patch = (props: Partial<typeof p>) => editor.updateBlock(block, { props });
@@ -67,7 +68,7 @@ const createArticleCard = createReactBlockSpec(
         const taken = new Set(editor.document.filter((b) => b.type === CARD_TYPE).map((b) => (b.props as { articleId: string }).articleId));
         const options = articles.filter((a) => a.published && !taken.has(a.id));
         return (
-          <div className="gallery-card-picker" contentEditable={false}>
+          <div className="gcard gcard-picker" contentEditable={false}>
             <span>Escolha o artigo deste cartão</span>
             <select value="" onChange={(e) => { const a = articles.find((x) => x.id === e.target.value); if (a) patch(cardPropsFrom(a)); }}>
               <option value="">{options.length ? 'Selecionar…' : 'Todos os artigos publicados já estão na galeria'}</option>
@@ -79,19 +80,20 @@ const createArticleCard = createReactBlockSpec(
       }
 
       return (
-        <div className={`${blogStyles.posts} gallery-card`} contentEditable={false}>
-          <article className={index === 0 ? `${blogStyles.featured} is-featured` : ''}>
-            {p.coverImageUrl && (
-              <img className={blogStyles.cover} src={p.coverImageUrl} alt="" style={{ objectPosition: `50% ${p.coverImagePos}%` }} />
-            )}
-            <p>{p.meta}</p>
-            <input className="gallery-card-title" value={p.title} placeholder="Título" onChange={(e) => patch({ title: e.target.value })} />
-            <textarea className="gallery-card-excerpt" value={p.excerpt} rows={3} placeholder="Resumo" onChange={(e) => patch({ excerpt: e.target.value })} />
-            <span>{p.authorName}</span>
-            <div className="gallery-card-tools">
+        <div className={`gcard ${flashId === block.id ? 'block-flash' : ''}`} contentEditable={false}>
+          {p.coverImageUrl
+            ? <img className="gcard-cover" src={p.coverImageUrl} alt="" style={{ objectPosition: `50% ${p.coverImagePos}%` }} />
+            : <div className="gcard-cover gcard-cover-empty">sem capa</div>}
+          <div className="gcard-main">
+            <div className="gcard-meta">
               {index === 0 && <em>Destaque</em>}
+              <span>{p.meta}</span>
+            </div>
+            <input className="gcard-title" value={p.title} placeholder="Título" onChange={(e) => patch({ title: e.target.value })} />
+            <textarea className="gcard-excerpt" value={p.excerpt} rows={2} placeholder="Resumo" onChange={(e) => patch({ excerpt: e.target.value })} />
+            <div className="gcard-tools">
               <label>
-                Trocar capa
+                {p.coverImageUrl ? 'Trocar capa' : 'Adicionar capa'}
                 <input
                   type="file" accept="image/*" hidden
                   onChange={(e) => {
@@ -106,7 +108,7 @@ const createArticleCard = createReactBlockSpec(
               )}
               <button type="button" onClick={() => editor.removeBlocks([block])}>Tirar da galeria</button>
             </div>
-          </article>
+          </div>
         </div>
       );
     },

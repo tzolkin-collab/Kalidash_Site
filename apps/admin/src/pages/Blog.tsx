@@ -18,10 +18,8 @@ import { useStore } from '../lib/store';
 import { usePaged } from '../lib/usePaged';
 import { CustomSelect } from '../components/ui';
 import { useShell } from '../lib/shell';
-// @ts-ignore
-import siteStyles from '../../../../apps/site/src/app/blog/[slug]/article.module.css';
-// @ts-ignore
-import blogStyles from '../../../../apps/site/src/app/blog/blog.module.css';
+import { PreviewFrame } from '../components/PreviewFrame';
+import type { PreviewFocus } from '../components/PreviewFrame';
 
 type Filter = 'SETTINGS' | 'ALL' | 'PUBLISHED' | 'DRAFT';
 
@@ -264,7 +262,11 @@ function ArticleEditor({ article, isNew, otherArticles, onBack, onSaved, onDelet
   const [imageUrl, setImageUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const touch = () => { setSaved(false); setDirty(true); };
+  const [tick, setTick] = useState(0); // a cada edição: reenvia o rascunho pro preview
+  const [view, setView] = useState<'edit' | 'split' | 'preview'>('split');
+  const [flashId, setFlashId] = useState<string | null>(null);
+  const shell = useShell();
+  const touch = () => { setSaved(false); setDirty(true); setTick((t) => t + 1); };
 
   // bodyJson é a fonte de verdade (documento nativo do BlockNote); body (HTML) é só o export pro
   // site. Artigo sem bodyJson (migrado do mock antigo, nunca passou pelo BlockNote) começa vazio
@@ -350,6 +352,97 @@ function ArticleEditor({ article, isNew, otherArticles, onBack, onSaved, onDelet
   const shownTitle = seoTitle || title || 'Título do artigo';
   const shownDescription = seoDescription || excerpt || 'A descrição que aparece no Google.';
 
+  /* ---- Preview (iframe do site) ---- */
+
+  // Rascunho que o site renderiza no iframe: mesmo HTML que vai ser salvo, sem salvar.
+  const buildPayload = () => {
+    if (isGlobal) {
+      const items = editor.document
+        .filter((b) => b.type === CARD_TYPE && (b.props as { articleId?: string }).articleId)
+        .map((b) => {
+          const p = b.props as { articleId: string; title: string; excerpt: string; coverImageUrl: string; coverImagePos: number; meta: string; authorName: string };
+          return { id: p.articleId, blockId: b.id, title: p.title, excerpt: p.excerpt, coverImageUrl: p.coverImageUrl || null, coverImagePos: p.coverImagePos, meta: p.meta, authorName: p.authorName, href: '#' };
+        });
+      return { heroHtml: heroHtml(), items };
+    }
+    return {
+      title, excerpt, categories: categories.split(',').map((t) => t.trim()).filter(Boolean), authorName,
+      coverImageUrl: coverImageUrl || null, coverImagePos, body: heroHtml(), publishedAt: article.publishedAt ?? new Date().toISOString(),
+    };
+  };
+
+  const scrollToBlock = (id: string) => {
+    setFlashId(id);
+    window.setTimeout(() => setFlashId((cur) => (cur === id ? null : cur)), 1400);
+    const el = document.querySelector<HTMLElement>(`.bn-block-outer[data-id="${id}"]`);
+    el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    if (el && !el.querySelector('.gcard')) {
+      el.classList.add('block-flash');
+      window.setTimeout(() => el.classList.remove('block-flash'), 1400);
+    }
+  };
+
+  type DocNode = { id: string; type: string; content?: unknown; children?: DocNode[] };
+  const blockText = (b: DocNode): string =>
+    Array.isArray(b.content)
+      ? (b.content as { text?: string; content?: { text?: string }[] }[]).map((c) => c.text ?? (c.content ?? []).map((x) => x.text ?? '').join('')).join('').trim()
+      : '';
+  const findByText = (nodes: DocNode[], text: string): DocNode | null => {
+    for (const b of nodes) {
+      const t = blockText(b);
+      if (t && b.type !== CARD_TYPE && (t.startsWith(text.slice(0, 60)) || text.startsWith(t.slice(0, 60)))) return b;
+      const inner = b.children?.length ? findByText(b.children, text) : null;
+      if (inner) return inner;
+    }
+    return null;
+  };
+
+  const focusField = (id: string) => {
+    const el = document.getElementById(id);
+    el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    el?.focus();
+  };
+
+  /** Clique no preview -> foca o campo/bloco correspondente aqui no editor. */
+  const onPreviewFocus = (m: PreviewFocus) => {
+    setView((v) => (v === 'preview' ? 'split' : v));
+    if (m.focus === 'card' && m.blockId) { scrollToBlock(m.blockId); return; }
+    if (m.focus === 'hero' || m.focus === 'body') {
+      const hit = m.text ? findByText(editor.document as unknown as DocNode[], m.text) : null;
+      if (hit) {
+        try { editor.setTextCursorPosition(hit.id, 'end'); } catch { /* bloco sem texto (imagem): só rola */ }
+        editor.focus();
+        scrollToBlock(hit.id);
+      } else editor.focus();
+      return;
+    }
+    const field = ({ title: 'field-title', excerpt: 'field-excerpt', cover: 'field-cover', meta: 'field-categories', author: 'field-author' } as Record<string, string>)[m.focus ?? ''];
+    if (field) focusField(field);
+  };
+
+  const editorView = (
+    <BlockNoteView editor={editor} theme={shell.dark ? 'dark' : 'light'} slashMenu={!isGlobal}>
+      {isGlobal && (
+        <SuggestionMenuController
+          triggerCharacter="/"
+          getItems={async (query) => filterSuggestionItems([
+            ...getDefaultReactSlashMenuItems(editor),
+            {
+              title: 'Cartão de artigo',
+              subtext: 'Um artigo do blog na galeria',
+              aliases: ['artigo', 'card', 'cartao', 'post'],
+              group: 'Blog',
+              onItemClick: () => {
+                const current = editor.getTextCursorPosition().block;
+                editor.insertBlocks([{ type: CARD_TYPE }], current, 'after');
+              },
+            },
+          ], query)}
+        />
+      )}
+    </BlockNoteView>
+  );
+
   const addImageFromDialog = () => {
     const url = imageUrl.trim();
     if (!url) return;
@@ -382,106 +475,55 @@ function ArticleEditor({ article, isNew, otherArticles, onBack, onSaved, onDelet
       />
 
       <div className="editor-layout">
-        <div className="form-stack">
-          <div className="editor-box">
-            {slug === 'blog-global' ? (
-              <div className={blogStyles.page}>
-                <header>
-                  <a href="#" style={{ pointerEvents: 'none' }}>Kalidash</a>
-                  <nav>
-                    <a href="#" style={{ pointerEvents: 'none' }}>Início</a>
-                    <a href="#" style={{ pointerEvents: 'none' }}>Método</a>
-                    <a href="#" style={{ pointerEvents: 'none' }}>Conversar ↗︎</a>
-                  </nav>
-                </header>
-                {/* Texto de abertura + cartões dos artigos no mesmo documento: a ordem dos blocos é a
-                    ordem no site, e o primeiro cartão é o destaque. */}
-                <ArticleCardsContext.Provider value={otherArticles}>
-                  <section className={`${blogStyles.hero} gallery-doc`}>
-                    <BlockNoteView editor={editor} theme="dark" slashMenu={false}>
-                      <SuggestionMenuController
-                        triggerCharacter="/"
-                        getItems={async (query) => filterSuggestionItems([
-                          ...getDefaultReactSlashMenuItems(editor),
-                          {
-                            title: 'Cartão de artigo',
-                            subtext: 'Um artigo do blog na galeria',
-                            aliases: ['artigo', 'card', 'cartao', 'post'],
-                            group: 'Blog',
-                            onItemClick: () => {
-                              const current = editor.getTextCursorPosition().block;
-                              editor.insertBlocks([{ type: CARD_TYPE }], current, 'after');
-                            },
-                          },
-                        ], query)}
-                      />
-                    </BlockNoteView>
-                  </section>
-                </ArticleCardsContext.Provider>
-
-                <footer>
-                  <span>Kalidash · Blog</span>
-                  <a href="#" style={{ pointerEvents: 'none' }}>Falar com a Kalidash ↗︎</a>
-                </footer>
-              </div>
-            ) : (
-              <div className={siteStyles.page}>
-                <header>
-                  <a href="#" style={{ pointerEvents: 'none' }}>← Blog</a>
-                  <a href="#" style={{ pointerEvents: 'none' }}>Kalidash</a>
-                </header>
-                <article>
-                  <p>
-                    {categories.split(',')[0]?.trim() || 'Kalidash'} · {formatDate(new Date().toISOString())}
-                  </p>
-                  <input
-                    value={title}
-                    onChange={(e) => { setTitle(e.target.value); touch(); }}
-                    placeholder="Título da publicação"
-                    className={siteStyles.title}
-                    style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none', color: 'inherit', fontFamily: 'inherit' }}
-                  />
-                  <textarea
-                    value={excerpt}
-                    onChange={(e) => { setExcerpt(e.target.value); touch(); }}
-                    placeholder="Resumo do artigo..."
-                    className={siteStyles.excerpt}
-                    style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none', resize: 'none', fontFamily: 'inherit' }}
-                    rows={2}
-                  />
-                  <span style={{ display: 'block', margin: '30px 0 70px', fontSize: '0.8rem' }}>
-                    {authorName}
-                  </span>
-
-                  {coverImageUrl ? (
-                    <div style={{ position: 'relative', width: '100%', marginBottom: '80px' }}>
-                      <img
-                        src={coverImageUrl}
-                        alt="Capa"
-                        className={siteStyles.cover}
-                        style={{ maxHeight: '600px', objectFit: 'cover', objectPosition: `50% ${coverImagePos}%`, display: 'block' }}
-                      />
-                      <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 8 }}>
-                        <input
-                          type="range" min="0" max="100" value={coverImagePos}
-                          onChange={(e) => { setCoverImagePos(Number(e.target.value)); touch(); }}
-                          style={{ width: 100 }} title="Ajustar corte (Cima/Baixo)"
-                        />
-                        <button onClick={() => { setCoverImageUrl(''); touch(); }} className="btn btn-sm">Remover Capa</button>
-                      </div>
+        <div className="form-stack editor-main">
+          <div className="editor-views" role="tablist" aria-label="Modo do editor">
+            {(['edit', 'split', 'preview'] as const).map((v) => (
+              <button key={v} type="button" role="tab" aria-selected={view === v} className={`btn btn-sm ${view === v ? 'btn-solid' : ''}`} onClick={() => setView(v)}>
+                {{ edit: 'Editar', split: 'Lado a lado', preview: 'Pré-visualizar' }[v]}
+              </button>
+            ))}
+          </div>
+          <div className="editor-split" data-view={view}>
+            <div className="editor-pane">
+              <div className="editor-box">
+                {isGlobal ? (
+                  <ArticleCardsContext.Provider value={{ articles: otherArticles, flashId }}>
+                    <p className="editor-hint">Texto de abertura da página /blog e, abaixo, um cartão por artigo na ordem em que aparecem no site. O primeiro cartão é o destaque. Arraste pelo ⋮⋮ para reordenar; digite / para inserir.</p>
+                    {editorView}
+                  </ArticleCardsContext.Provider>
+                ) : (
+                  <div className="article-fields">
+                    <input
+                      id="field-title" className="input title-input" value={title} placeholder="Título da publicação"
+                      onChange={(e) => { setTitle(e.target.value); touch(); }}
+                    />
+                    <textarea
+                      id="field-excerpt" className="textarea" rows={2} value={excerpt} placeholder="Resumo do artigo…"
+                      onChange={(e) => { setExcerpt(e.target.value); touch(); }}
+                    />
+                    <div id="field-cover" tabIndex={-1} className="cover-field">
+                      {coverImageUrl ? (
+                        <>
+                          <img src={coverImageUrl} alt="Capa" style={{ objectPosition: `50% ${coverImagePos}%` }} />
+                          <div className="cover-field-tools">
+                            <input type="range" min="0" max="100" value={coverImagePos} onChange={(e) => { setCoverImagePos(Number(e.target.value)); touch(); }} title="Ajustar corte (cima/baixo)" />
+                            <button type="button" className="btn btn-sm" onClick={() => { setCoverImageUrl(''); touch(); }}>Remover capa</button>
+                          </div>
+                        </>
+                      ) : (
+                        <button type="button" className="btn" onClick={() => { setImageUrl(''); setUploadError(null); setImageDialog('cover'); }}>
+                          <ImagePlus size={16} /> Adicionar foto de capa
+                        </button>
+                      )}
                     </div>
-                  ) : (
-                    <button onClick={() => { setImageUrl(''); setUploadError(null); setImageDialog('cover'); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', padding: '40px', border: '2px dashed #d9d1df', borderRadius: '12px', background: 'transparent', color: '#625969', cursor: 'pointer', marginBottom: '80px', fontSize: '1.1rem' }}>
-                      <ImagePlus size={24} /> Adicionar foto de capa
-                    </button>
-                  )}
-
-                  <div className={siteStyles.body}>
-                    <BlockNoteView editor={editor} theme="light" />
+                    {editorView}
                   </div>
-                </article>
+                )}
               </div>
-            )}
+            </div>
+            <div className="editor-preview-pane">
+              <PreviewFrame kind={isGlobal ? 'gallery' : 'article'} tick={tick} getPayload={buildPayload} onFocus={onPreviewFocus} />
+            </div>
           </div>
         </div>
 
@@ -503,19 +545,19 @@ function ArticleEditor({ article, isNew, otherArticles, onBack, onSaved, onDelet
             <div className="panel-card form-stack">
               <Field label="Endereço (slug)" hint={`/blog/${slug || 'gerado do título'}`}><input className="input mono" value={slug} onChange={(e) => { setSlug(e.target.value); touch(); }} placeholder="deixe em branco pra gerar do título" /></Field>
               <Field label="Autor">
-                <CustomSelect className="select" value={authorName} onChange={(e) => { setAuthorName(e.target.value); touch(); }}>
+                <div id="field-author" tabIndex={-1}><CustomSelect className="select" value={authorName} onChange={(e) => { setAuthorName(e.target.value); touch(); }}>
                   {team.map((m) => <option key={m.id} value={m.name}>{m.name}</option>)}
                   {!team.some((m) => m.name === authorName) && authorName && <option value={authorName}>{authorName}</option>}
-                </CustomSelect>
+                </CustomSelect></div>
               </Field>
-              <Field label="Categorias" hint="Separe por vírgula."><input className="input" value={categories} onChange={(e) => { setCategories(e.target.value); touch(); }} /></Field>
+              <Field label="Categorias" hint="Separe por vírgula."><input id="field-categories" className="input" value={categories} onChange={(e) => { setCategories(e.target.value); touch(); }} /></Field>
             </div>
           )}
 
           {slug === 'blog-global' && (
             <div className="panel-card form-stack">
               <h3 className="section-title" style={{ margin: 0 }}>Galeria Principal</h3>
-              <p className="text-sm text-muted">Você está editando a área de introdução da página do Blog. A lista de artigos aparecerá logo abaixo deste conteúdo.</p>
+              <p className="text-sm text-muted">Você está editando a página /blog: o texto de abertura e a ordem dos cartões de artigo. O visual vem do site; aqui você só escolhe conteúdo e ordem.</p>
             </div>
           )}
 
