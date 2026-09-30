@@ -307,6 +307,10 @@ export type Article = {
   slug: string;
   excerpt: string;
   body: string;
+  /** Documento nativo do BlockNote (JSON), fonte de verdade do editor — `body` (HTML) é só o
+   * export pro site consumir. Ausente nos artigos migrados do mock antigo (nunca passaram pelo
+   * BlockNote); o editor detecta e abre o `body` como HTML puro nesse caso. */
+  bodyJson?: string;
   coverImageUrl?: string;
   /** 0–100: posição vertical da capa (object-position), tipo "onde centralizar o recorte". */
   coverImagePos: number;

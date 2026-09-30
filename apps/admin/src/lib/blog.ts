@@ -39,3 +39,22 @@ export async function uploadImage(file: File): Promise<string> {
   const data = await res.json();
   return data.url as string;
 }
+
+export type BlogSettings = {
+  preTitle: string;
+  titlePrefix: string;
+  titleSpan: string;
+  description: string;
+};
+
+export async function getBlogSettings(): Promise<BlogSettings> {
+  const res = await fetch(`${API_URL}/api/blog/settings`);
+  if (!res.ok) throw new Error(`Não foi possível carregar as configurações do blog (${res.status}).`);
+  return res.json();
+}
+
+export async function updateBlogSettings(settings: BlogSettings): Promise<BlogSettings> {
+  const res = await fetch(`${API_URL}/api/blog/settings`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings) });
+  if (!res.ok) throw new Error(await res.text() || `Não foi possível salvar as configurações do blog (${res.status}).`);
+  return res.json();
+}

@@ -57,7 +57,7 @@ export default async function ArticlePage({ params }: PageProps) {
             {article.publishedAt &&
               new Date(article.publishedAt).toLocaleDateString("pt-BR")}
           </p>
-          <h1>{article.title}</h1>
+          <h1 className={styles.title}>{article.title}</h1>
           <div className={styles.excerpt}>{article.excerpt}</div>
           <span>{article.authorName}</span>
 

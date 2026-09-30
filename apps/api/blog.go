@@ -20,7 +20,12 @@ type Article struct {
 	Title          string     `json:"title"`
 	Slug           string     `json:"slug"`
 	Excerpt        string     `json:"excerpt"`
-	Body           string     `json:"body"` // HTML do editor (TipTap), renderizado direto no site
+	Body           string     `json:"body"` // HTML gerado pelo BlockNote (blocksToHTMLLossy), é o que o site renderiza
+	// BodyJSON: o documento nativo do BlockNote (editor.document), fonte de verdade pra reedição.
+	// O editor nunca reimporta o `body` (HTML) de volta pra blocos — evita degradação de ida-e-volta
+	// do export "lossy". Nulo pros 4 artigos migrados do mock antigo (nunca passaram pelo BlockNote);
+	// o editor detecta isso e abre o body como HTML puro na primeira edição.
+	BodyJSON       *string    `json:"bodyJson,omitempty"`
 	CoverImageURL  *string    `json:"coverImageUrl,omitempty"`
 	CoverImagePos  int        `json:"coverImagePos"` // 0–100, object-position vertical da capa
 	Featured       bool       `json:"featured"`
@@ -32,6 +37,13 @@ type Article struct {
 	CreatedAt      time.Time  `json:"createdAt"`
 	UpdatedAt      time.Time  `json:"updatedAt"`
 	PublishedAt    *time.Time `json:"publishedAt,omitempty"`
+}
+
+type BlogSettings struct {
+	PreTitle    string `json:"preTitle"`
+	TitlePrefix string `json:"titlePrefix"`
+	TitleSpan   string `json:"titleSpan"`
+	Description string `json:"description"`
 }
 
 func ensureBlogSchema() {
@@ -58,6 +70,30 @@ func ensureBlogSchema() {
 	if err != nil {
 		log.Fatal("❌ Erro ao criar tabela Article:", err)
 	}
+
+	// bodyJson: documento nativo do BlockNote (fonte de verdade do editor). Tabela já existia
+	// antes do BlockNote (Sanity/TipTap-era), então entra por ALTER — "Duplicate column" é o
+	// caminho normal em toda subida depois da primeira.
+	_, err = db.Exec(`ALTER TABLE Article ADD COLUMN bodyJson LONGTEXT NULL AFTER body`)
+	if err != nil && !strings.Contains(err.Error(), "Duplicate column") {
+		log.Fatal("❌ Erro ao adicionar coluna bodyJson:", err)
+	}
+
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS BlogSettings (
+			id VARCHAR(10) PRIMARY KEY,
+			preTitle VARCHAR(255),
+			titlePrefix VARCHAR(255),
+			titleSpan VARCHAR(255),
+			description TEXT
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+	`)
+	if err != nil {
+		log.Fatal("❌ Erro ao criar tabela BlogSettings:", err)
+	}
+
+	// Insert default settings if empty
+	db.Exec(`INSERT IGNORE INTO BlogSettings (id, preTitle, titlePrefix, titleSpan, description) VALUES ('global', '[ inteligência aplicada ao trabalho ]', 'Ideias para a próxima', 'operação.', 'Conteúdo sobre cultura, processos, tecnologia e organizações que trabalham com agentes.')`)
 }
 
 var slugInvalidChars = regexp.MustCompile(`[^a-z0-9]+`)
@@ -84,13 +120,17 @@ func scanArticle(rows *sql.Rows) (Article, error) {
 	var categoriesJSON []byte
 	var coverPos sql.NullInt64
 	var publishedAt sql.NullTime
+	var bodyJSON sql.NullString
 	err := rows.Scan(
-		&a.ID, &a.Title, &a.Slug, &a.Excerpt, &a.Body, &a.CoverImageURL, &coverPos,
+		&a.ID, &a.Title, &a.Slug, &a.Excerpt, &a.Body, &bodyJSON, &a.CoverImageURL, &coverPos,
 		&a.Featured, &a.Published, &a.AuthorName, &categoriesJSON,
 		&a.SeoTitle, &a.SeoDescription, &a.CreatedAt, &a.UpdatedAt, &publishedAt,
 	)
 	if err != nil {
 		return a, err
+	}
+	if bodyJSON.Valid {
+		a.BodyJSON = &bodyJSON.String
 	}
 	if coverPos.Valid {
 		a.CoverImagePos = int(coverPos.Int64)
@@ -109,7 +149,7 @@ func scanArticle(rows *sql.Rows) (Article, error) {
 	return a, nil
 }
 
-const articleColumns = `id, title, slug, excerpt, body, coverImageUrl, coverImagePos, featured, published, authorName, categories, seoTitle, seoDescription, createdAt, updatedAt, publishedAt`
+const articleColumns = `id, title, slug, excerpt, body, bodyJson, coverImageUrl, coverImagePos, featured, published, authorName, categories, seoTitle, seoDescription, createdAt, updatedAt, publishedAt`
 
 // handleBlogArticles: GET lista (?published=true filtra pro que o site pode mostrar),
 // POST cria, PUT atualiza (id no corpo), DELETE remove (?id=).
@@ -173,8 +213,8 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 		categoriesJSON, _ := json.Marshal(a.Categories)
 
 		_, err := db.Exec(
-			`INSERT INTO Article (`+articleColumns+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-			a.ID, a.Title, a.Slug, a.Excerpt, a.Body, a.CoverImageURL, a.CoverImagePos,
+			`INSERT INTO Article (`+articleColumns+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			a.ID, a.Title, a.Slug, a.Excerpt, a.Body, a.BodyJSON, a.CoverImageURL, a.CoverImagePos,
 			a.Featured, a.Published, a.AuthorName, categoriesJSON, a.SeoTitle, a.SeoDescription,
 			a.CreatedAt, a.UpdatedAt, a.PublishedAt,
 		)
@@ -219,8 +259,8 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 		}
 
 		res, err := db.Exec(
-			`UPDATE Article SET title=?, slug=?, excerpt=?, body=?, coverImageUrl=?, coverImagePos=?, featured=?, published=?, authorName=?, categories=?, seoTitle=?, seoDescription=?, updatedAt=?, publishedAt=? WHERE id=?`,
-			a.Title, a.Slug, a.Excerpt, a.Body, a.CoverImageURL, a.CoverImagePos, a.Featured, a.Published,
+			`UPDATE Article SET title=?, slug=?, excerpt=?, body=?, bodyJson=?, coverImageUrl=?, coverImagePos=?, featured=?, published=?, authorName=?, categories=?, seoTitle=?, seoDescription=?, updatedAt=?, publishedAt=? WHERE id=?`,
+			a.Title, a.Slug, a.Excerpt, a.Body, a.BodyJSON, a.CoverImageURL, a.CoverImagePos, a.Featured, a.Published,
 			a.AuthorName, categoriesJSON, a.SeoTitle, a.SeoDescription, a.UpdatedAt, a.PublishedAt, a.ID,
 		)
 		if err != nil {
@@ -310,4 +350,40 @@ func handleBlogArticleBySlug(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(a)
+}
+
+func handleBlogSettings(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		var s BlogSettings
+		err := db.QueryRow(`SELECT preTitle, titlePrefix, titleSpan, description FROM BlogSettings WHERE id = 'global'`).Scan(
+			&s.PreTitle, &s.TitlePrefix, &s.TitleSpan, &s.Description,
+		)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(s)
+
+	case http.MethodPut:
+		var s BlogSettings
+		if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		_, err := db.Exec(
+			`UPDATE BlogSettings SET preTitle = ?, titlePrefix = ?, titleSpan = ?, description = ? WHERE id = 'global'`,
+			s.PreTitle, s.TitlePrefix, s.TitleSpan, s.Description,
+		)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(s)
+
+	default:
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+	}
 }

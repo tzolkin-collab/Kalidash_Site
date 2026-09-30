@@ -391,6 +391,7 @@ func main() {
 	mux.HandleFunc("/api/blog/articles", enableCORS(handleBlogArticles))
 	mux.HandleFunc("/api/blog/article", enableCORS(handleBlogArticleBySlug))
 	mux.HandleFunc("/api/blog/upload", enableCORS(handleBlogUpload))
+	mux.HandleFunc("/api/blog/settings", enableCORS(handleBlogSettings))
 
 	port := os.Getenv("PORT")
 	if port == "" {
