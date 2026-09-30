@@ -32,7 +32,7 @@
 | Entrada de leads (`connect.js`, API direta, webhook) | api | Planejado | Contrato já desenhado no v1.0 (`connect.ts`). |
 | Projetos conectados, Integrações e Chaves | admin + api | **Tela pronta, sem API** | Projetos com métricas, snippet e página de exemplo, emissão e revogação de chaves (o token de exemplo não existe no servidor). |
 | Login e perfis | api + admin | Planejado | Google OAuth do Workspace. Hoje a API está aberta. |
-| Blog / CMS | admin + api + site | **Parcial** | Sem Sanity — lista e editor (Tiptap) gravam artigo real via Go API/MySQL (`/api/blog/articles`); o site (Next.js) consome com ISR, publicado/rascunho, destaque e categorias. Upload de imagem implementado (`/api/blog/upload`, redimensiona e comprime antes de subir pro Cloudflare R2) — falta só configurar as credenciais reais do bucket no `.env` da API. |
+| Blog / CMS | admin + api + site | **Parcial** | Sem Sanity — lista e editor ([BlockNote](https://www.blocknotejs.org/), trocou o Tiptap em 30/09) gravam artigo real via Go API/MySQL (`/api/blog/articles`); `bodyJson` (documento nativo do BlockNote) é a fonte de verdade, `body` (HTML) é gerado a cada save pro site consumir com ISR, publicado/rascunho, destaque e categorias. Upload de imagem implementado (`/api/blog/upload`, redimensiona e comprime antes de subir pro Cloudflare R2) — falta só configurar as credenciais reais do bucket no `.env` da API. Cards de artigo na Galeria Principal ainda não são editáveis (só visualização) — ver `docs/handoffs/2026-09-30-editor-blog-blocknote.md`. |
 | Dashboard e analytics | admin | **Parcial** | Métricas reais calculadas de `/api/leads` (valor em aberto e ganho, conversão, funil por etapa). Leads, tarefas e origem entram com as fases 3 e 4. |
 | Equipe e Configurações | admin + api | **Tela pronta, sem API** | Página com perfil, equipe e perfis (Admin, Gerente, Vendedor), webhooks e auditoria, em dados de exemplo. |
 | Webhooks de saída e auditoria | api | Planejado | A tela existe em Configurações; falta a API e o disparo em segundo plano. |
@@ -129,7 +129,7 @@ O painel é 100% interativo (Kanban, gráficos, notificações em tempo real). S
 | CRM (pipeline) | Kanban, tabela e ficha lateral da oportunidade | Drag-and-drop, React Hook Form |
 | Projetos conectados | LPs e sites com o Connect instalado, com formulários rastreados e métricas de cada um | — |
 | Integrações e Chaves | Emitir token, gerar snippet, mapear campos, escopos | Prism.js |
-| Blog / CMS | Lista e editor (Tiptap) com SEO, publicado/rascunho, destaque e categorias — sem Sanity, grava no MySQL via Go API e o site consome com ISR | — |
+| Blog / CMS | Lista e editor (BlockNote) com SEO, publicado/rascunho, destaque e categorias — sem Sanity, grava no MySQL via Go API e o site consome com ISR | BlockNote |
 | E-mails | Templates e automações | easy-email |
 | Equipe e Configurações | admin + api | **Tela pronta, sem API** | Página com perfil, equipe e perfis (Admin, Gerente, Vendedor), webhooks e auditoria, em dados de exemplo. |
 
