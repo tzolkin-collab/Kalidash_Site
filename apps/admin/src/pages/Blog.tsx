@@ -86,6 +86,7 @@ export default function Blog({ postId }: { postId?: string }) {
         key={editing.id}
         article={editing}
         isNew={editing.id === 'novo'}
+        otherArticles={(articles ?? []).filter((a) => a.id !== editing.id)}
         onBack={() => shell.navigate('/blog')}
         onSaved={(saved, isNew) => {
           setArticles((prev) => {
@@ -238,7 +239,7 @@ function BlogSettingsForm() {
 
 /* ------------------------------ Editor ------------------------------ */
 
-function ArticleEditor({ article, isNew, onBack, onSaved, onDeleted }: { article: Article; isNew: boolean; onBack: () => void; onSaved: (a: Article, isNew: boolean) => void; onDeleted: (id: string) => void }) {
+function ArticleEditor({ article, isNew, otherArticles, onBack, onSaved, onDeleted }: { article: Article; isNew: boolean; otherArticles: Article[]; onBack: () => void; onSaved: (a: Article, isNew: boolean) => void; onDeleted: (id: string) => void }) {
   const [team] = useStore(teamStore);
   const [title, setTitle] = useState(article.title);
   const [slug, setSlug] = useState(article.slug);
@@ -369,6 +370,49 @@ function ArticleEditor({ article, isNew, onBack, onSaved, onDeleted }: { article
                 <section className={blogStyles.hero}>
                   <BlockNoteView editor={editor} theme="dark" />
                 </section>
+
+                {/* Grade de artigos real abaixo do hero — não é editável aqui (vem da lista de
+                    artigos publicados de verdade), só existe pra o preview mostrar a página
+                    /blog inteira, igual o site, não só o pedaço editável. */}
+                {(() => {
+                  const items = otherArticles.filter((a) => a.published && a.slug !== 'blog-global');
+                  return items.length > 0 ? (
+                    <section className={blogStyles.posts}>
+                      {items.map((a, index) => (
+                        <article key={a.id} className={index === 0 ? blogStyles.featured : ''}>
+                          {a.coverImageUrl && (
+                            <img
+                              className={blogStyles.cover}
+                              src={a.coverImageUrl}
+                              alt={a.title || ''}
+                              style={{ objectPosition: `50% ${a.coverImagePos}%` }}
+                            />
+                          )}
+                          <p>
+                            {a.categories?.[0] || 'Kalidash'} · {a.publishedAt ? formatDate(a.publishedAt) : 'Em breve'}
+                          </p>
+                          <h2>{a.title}</h2>
+                          <div>{a.excerpt}</div>
+                          <span>{a.authorName || 'Equipe Kalidash'}</span>
+                          <a className={blogStyles.read} href="#" style={{ pointerEvents: 'none' }}>Ler artigo ↗︎</a>
+                        </article>
+                      ))}
+                    </section>
+                  ) : (
+                    <section className={blogStyles.posts}>
+                      <article>
+                        <p>Kalidash</p>
+                        <h2>Os primeiros artigos estão a caminho.</h2>
+                        <div>Nenhum artigo publicado ainda — volte em breve.</div>
+                      </article>
+                    </section>
+                  );
+                })()}
+
+                <footer>
+                  <span>Kalidash · Blog</span>
+                  <a href="#" style={{ pointerEvents: 'none' }}>Falar com a Kalidash ↗︎</a>
+                </footer>
               </div>
             ) : (
               <div className={siteStyles.page}>
