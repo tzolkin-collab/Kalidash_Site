@@ -51,7 +51,7 @@ export function BlogGalleryView({
     <main className={styles.page}>
       <header>
         <Link href="/">
-          <Image src="/kalidash-logo-branca.webp" alt="Kalidash" width={154} height={30} />
+          <Image src="/brand/logo-white.svg" alt="Kalidash" width={154} height={24} unoptimized />
         </Link>
         <nav>
           <Link href="/">Início</Link>

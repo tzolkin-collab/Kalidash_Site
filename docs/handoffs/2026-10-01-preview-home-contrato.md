@@ -54,6 +54,12 @@ Os valores, CNPJs e endereços ficam só no documento (pasta `Carol/`, ao lado d
 - Segredos locais: `REVALIDATE_SECRET` foi gerado e gravado em `apps/site/.env.local` e `apps/api/.env` (ignorados pelo git). Em produção, gerar outro.
 - Arquivos de outras sessões que **não** entraram nos commits: `drawer.css`, `package.json`, `layout.tsx`, `globals.css`, a landing Motion (`MotionView` etc.), `BlogSettings` em `lib/blog.ts`, `30-09/`.
 
+## Marca (logo e favicons)
+- O logo vetorial foi extraído da `Home.pdf` (não havia os arquivos "new" avulsos): `apps/site/public/brand/` (`logo`, `logo-white`, `symbol`, `symbol-white` em SVG + `icon-512.png`). **Se existir outro arquivo oficial, trocar os SVGs e regerar os ícones.**
+- Site: `app/icon.svg`, `app/favicon.ico` (16/32/48), `app/apple-icon.png` (convenção de arquivos do Next). Atenção: o `layout.tsx` não commitado de outra sessão tem `icons: { icon: "/kalidash-symbol.svg" }`, que sobrepõe esses arquivos — remover esse bloco quando aquele trabalho for resolvido.
+- Header da Home: `components/BrandLogo.tsx` (SVG inline) com animação de entrada (faixas douradas, chevron, letras em sequência) e de hover (onda nas letras; ativa em link com `data-logo-hover`). Respeita `prefers-reduced-motion`.
+- Admin: `public/` atualizado (logos, ícones 192/512, `icon-maskable-512.png`, `favicon.svg/.ico`); modo escuro usa a versão branca em vez de `invert`.
+
 ## Próximos passos
 1. Commitar e dar push da Home e dos docs (hoje só local), e publicar o ambiente de visualização para a aprovação da Entrega 1.
 2. Pedir à Carol os conteúdos pendentes da Home (WhatsApp, redes, cases, frentes do carrossel, autorizações).

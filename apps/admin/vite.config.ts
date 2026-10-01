@@ -6,9 +6,8 @@ export default defineConfig({
   plugins: [
     react(),
     // Instalável na tela inicial (Android/desktop) e abre em tela cheia (standalone), sem a
-    // barra do navegador. Ícones a partir de logoapp.png (o logo oficial, 64x64) — não há
-    // fonte em vetor dele, então icon-192/icon-512 são upscales gerados a partir do original;
-    // ficam macios de perto, mas é a marca certa. Trocar por um raster maior se/quando existir.
+    // barra do navegador. Ícones gerados do logo vetorial (Home.pdf): icon-192/512 com cantos
+    // arredondados ("any") e icon-maskable-512 sem cantos, para o recorte do Android.
     VitePWA({
       registerType: 'autoUpdate',
       // Sem isto o plugin não injeta a chamada que registra o service worker — nada quebra,
@@ -29,7 +28,7 @@ export default defineConfig({
         icons: [
           { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-          { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: '/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {

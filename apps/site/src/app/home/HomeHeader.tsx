@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import styles from "./home.module.css";
+import BrandLogo from "../components/BrandLogo";
 import { nav } from "./content";
 import { ArrowRight, ChevronDown, Close, Menu } from "./icons";
 
@@ -14,8 +14,8 @@ export default function HomeHeader() {
   return (
     <header className={styles.header} data-block="home-header" data-open={open}>
       <div className={styles.headerInner}>
-        <Link href="/" className={styles.logo} aria-label="Kalidash — início" onClick={close}>
-          <Image src="/home/logo-escuro.png" alt="Kalidash" width={640} height={99} priority sizes="176px" />
+        <Link href="/" className={styles.logo} aria-label="Kalidash — início" data-logo-hover onClick={close}>
+          <BrandLogo animated />
         </Link>
 
         <button

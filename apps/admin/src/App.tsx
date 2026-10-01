@@ -134,7 +134,7 @@ export default function App() {
       <div className={`app-wrapper ${isDarkMode ? 'dark' : ''}`}>
         <div className={`splash-screen ${isReady ? 'hide' : ''}`}>
           <div className="splash-logo" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <img src="/kalidash-logo.svg" alt="Kalidash Logo" style={{ height: '70px', filter: isDarkMode ? 'invert(1)' : 'none' }} />
+            <img src={isDarkMode ? '/kalidash-logo-white.svg' : '/kalidash-logo.svg'} alt="Kalidash Logo" style={{ width: '220px', height: 'auto' }} />
           </div>
         </div>
 
@@ -143,7 +143,7 @@ export default function App() {
 
           <aside className={`sidebar animate-sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
             <div style={{ padding: '24px 20px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <img src="/kalidash-icon.svg" alt="Kalidash Icon" style={{ width: '28px', height: '28px', filter: isDarkMode ? 'invert(1)' : 'none' }} />
+              <img src={isDarkMode ? '/kalidash-icon-white.svg' : '/kalidash-icon.svg'} alt="Kalidash Icon" style={{ width: '28px', height: 'auto' }} />
               <span className="font-bold text-base" style={{ letterSpacing: '-0.02em' }}>Kalidash</span>
             </div>
 

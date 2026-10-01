@@ -43,7 +43,7 @@ export default function HomePage() {
             "@type": "Organization",
             name: "Kalidash",
             url: SITE_URL,
-            logo: `${SITE_URL}/home/logo-escuro.png`,
+            logo: `${SITE_URL}/brand/icon-512.png`,
             description: hero.chip.before + " " + hero.chip.after,
             sameAs: [config.social.instagram, config.social.facebook, config.social.youtube].filter(Boolean),
           }),
@@ -234,7 +234,7 @@ export default function HomePage() {
       <footer className={styles.footer} data-block="home-footer">
         <div className={styles.footerInner}>
           <div className={styles.footerBrand}>
-            <Image src="/home/logo-branco.png" alt="Kalidash" width={640} height={99} sizes="108px" />
+            <Image src="/brand/logo-white.svg" alt="Kalidash" width={173} height={27} unoptimized />
             <p>{footer.text}</p>
           </div>
           {footer.columns.map((col) => (

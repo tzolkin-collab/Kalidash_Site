@@ -1,0 +1,33 @@
+/* Logo animado: entrada (data-animated) e hover (no link com data-logo-hover). */
+.logo {
+  --logo-gold: #a88a58;
+  --logo-body: #28183b;
+  display: block; width: 176px; height: auto; overflow: visible;
+}
+.logo[data-tone="light"] { --logo-gold: #fff; --logo-body: #fff; }
+
+.goldTop, .goldBottom { fill: var(--logo-gold); }
+.chevron, .letter { fill: var(--logo-body); }
+.inTop, .inBottom, .inLetter, .chevron, .goldTop, .goldBottom, .letter { transform-box: fill-box; transform-origin: 50% 100%; }
+
+/* ---- entrada: faixas douradas deslizam, chevron abre, letras sobem em sequência ---- */
+@keyframes gold-in { from { opacity: 0; transform: translateX(-60%); } to { opacity: 1; transform: none; } }
+@keyframes chevron-in { from { opacity: 0; transform: scale(0.4) rotate(-12deg); } to { opacity: 1; transform: none; } }
+@keyframes letter-in { from { opacity: 0; transform: translateY(55%); } to { opacity: 1; transform: none; } }
+
+.logo[data-animated="true"] .inTop { animation: gold-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.05s both; }
+.logo[data-animated="true"] .inBottom { animation: gold-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.15s both; }
+.logo[data-animated="true"] .chevron { transform-origin: 30% 50%; animation: chevron-in 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s both; }
+.logo[data-animated="true"] .inLetter { animation: letter-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) calc(0.45s + var(--i) * 0.055s) both; }
+
+/* ---- hover: onda nas letras + faixas douradas se afastam e voltam ---- */
+@keyframes letter-wave { 0%, 100% { transform: none; } 35% { transform: translateY(-22%); } 65% { transform: translateY(4%); } }
+@keyframes gold-nudge { 0%, 100% { transform: none; } 50% { transform: translateX(14%); } }
+
+:global([data-logo-hover]):hover .letter { animation: letter-wave 0.7s ease-in-out calc(var(--i) * 0.05s) 1 both; }
+:global([data-logo-hover]):hover .goldTop { animation: gold-nudge 0.7s ease-in-out 1 both; }
+:global([data-logo-hover]):hover .goldBottom { animation: gold-nudge 0.7s ease-in-out 0.08s 1 both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .logo *, :global([data-logo-hover]):hover .letter { animation: none !important; }
+}
