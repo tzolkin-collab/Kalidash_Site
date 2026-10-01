@@ -15,5 +15,8 @@
   "packageManager": "pnpm@9.15.9",
   "engines": {
     "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "mysql2": "^3.24.4"
   }
 }
