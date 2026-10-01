@@ -3,7 +3,9 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**"]
+      "outputs": [".next/**", "!.next/cache/**"],
+      "env": ["NEXT_PUBLIC_*"],
+      "passThroughEnv": ["API_URL", "REVALIDATE_SECRET"]
     },
     "lint": {},
     "dev": {
