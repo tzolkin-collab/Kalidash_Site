@@ -13,6 +13,13 @@ const nextConfig: NextConfig = {
           { key: "Cache-Control", value: "no-store" },
         ],
       },
+      {
+        // Ambientes de visualização na Vercel (*.vercel.app) não entram no Google: o canonical e o
+        // sitemap apontam para o domínio final, e o preview não deve competir com ele.
+        source: "/:path*",
+        has: [{ type: "host", value: ".*\\.vercel\\.app" }],
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
     ];
   },
 };
