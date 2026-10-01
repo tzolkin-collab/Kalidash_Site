@@ -185,7 +185,7 @@ export default function Blog({ postId }: { postId?: string }) {
   );
 }
 
-function BlogSettingsForm() {
+export function BlogSettingsForm() {
   const [settings, setSettings] = useState<BlogSettings | null>(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);

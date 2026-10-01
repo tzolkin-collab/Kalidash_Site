@@ -129,7 +129,7 @@ type PanelState =
   | null;
 
 export default function TaskWorkflow({ pipelineId }: { pipelineId: string }) {
-  const { navigate, dark } = useShell();
+  const { dark } = useShell();
   const [pipelines, setPipelines] = useStore(pipelinesStore);
   const pipeline = pipelines.find((p) => p.id === pipelineId);
   const [followId, setFollowId] = useState('');
@@ -355,7 +355,7 @@ function RequirementPanel({ pipeline, panel, onClose, onSave, onDelete }: { pipe
   const [base] = useState<Requirement>(() =>
     panel.mode === 'edit_req'
       ? panel.requirement
-      : { id: newId('req'), stageId: panel.stage.id, label: '', tag: pipeline.taskTags[0] ?? 'Geral', kind: 'ACTION', gate: 'NONE', blocked: 0, overdue: 0 },
+      : { id: newId('req'), stageId: panel.mode === 'new_req' ? panel.stage.id : '', label: '', tag: pipeline.taskTags[0] ?? 'Geral', kind: 'ACTION', gate: 'NONE', blocked: 0, overdue: 0 },
   );
   const stage = pipeline.stages.find((s) => s.id === base.stageId);
 
