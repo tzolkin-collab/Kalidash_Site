@@ -15,6 +15,9 @@ atributos abaixo.
 | Rotas de preview (só o iframe do admin usa) | `apps/site/src/app/preview/*` |
 | Iframe + mensagens no admin | `apps/admin/src/components/PreviewFrame.tsx` |
 | Aviso de "artigo mudou" (API → site) | `apps/api/revalidate.go` → `apps/site/src/app/api/revalidate/route.ts` |
+| **Home** — estrutura (HTML) | `apps/site/src/app/home/HomePage.tsx` (+ `HomeHeader.tsx`, `Carousel.tsx`, `DiagnosticoForm.tsx`) |
+| **Home** — design | `apps/site/src/app/home/home.module.css` |
+| **Home** — textos, links e imagens | `apps/site/src/app/home/content.ts` (itens PENDENTE marcados) |
 
 ## Atributos que o CSS pode (e deve) usar
 
@@ -54,6 +57,28 @@ variante nova (ex.: `wide`), o caminho é: (1) o CSS ganha `[data-variant="wide"
 ganha uma opção que grava esse valor no bloco; (3) `views.tsx` repassa o valor ao atributo.
 O CSS decide como a variante se parece; o admin decide onde ela se aplica.
 
+## Home (LP)
+
+A Home segue o mesmo contrato: o CSS só reage a tags e a estes atributos (todos em `HomePage.tsx`).
+As cores e a largura do conteúdo são variáveis no topo de `home.module.css` (`--ink`, `--purple`,
+`--accent`, `--gray-1`, `--gray-2`, `--container`, `--gutter`): trocar a identidade é mexer ali.
+
+| Seletor | O que é |
+|---|---|
+| `[data-block="home-header"]` | cabeçalho fixo (logo, menu, "Fazer Diagnóstico"); no celular vira menu hambúrguer |
+| `[data-block="home-hero"]` | título e texto de abertura |
+| `[data-block="home-problem"]` | seção "O problema…": foto recortada, cartão roxo e 4 colunas |
+| `[data-block="home-testimonial"]` / `[data-block="home-clients"]` | depoimento e faixa de logos de clientes |
+| `[data-block="home-journey"]` | "Do desafio à solução": cartão + imagem (carrossel) |
+| `[data-block="home-method"]` | "Método validado": imagem à esquerda, texto à direita |
+| `[data-block="home-cases"]` | "Transformação que acontece de verdade": carrossel de fotos |
+| `[data-block="home-diagnostico"]` / `[data-block="diagnostico-form"]` | chamada e formulário do diagnóstico |
+| `[data-block="home-footer"]` | rodapé |
+| `[data-role="chip"]`, `"text-link"`, `"rail"`, `"arrows"`, `"slide"`, `"case-card"`, `"problem-card"`, `"problem-quote"` | peças reutilizadas dentro das seções |
+
+Medidas de referência: o design é de **1920 px** (container de 1280 px; títulos de 55 px; texto de 22 px).
+Abaixo de **1100 px** o layout empilha. Fonte: Inter.
+
 ## Preview (como funciona)
 
 1. O admin embute `SITE_URL/preview/blog` (galeria) ou `SITE_URL/preview/article` (artigo).
@@ -77,6 +102,8 @@ Ao salvar/excluir um artigo, a API avisa o site (`POST /api/revalidate`, com
 | site | `REVALIDATE_SECRET` | segredo do `/api/revalidate` |
 | api | `SITE_URL`, `REVALIDATE_SECRET` | para onde e com que segredo avisar |
 | admin | `VITE_SITE_URL` | URL do site para o iframe (padrão `http://localhost:3000`) |
+| site | `NEXT_PUBLIC_LEAD_ENDPOINT` | **PENDENTE:** para onde o formulário da Home envia o lead (sem isto o formulário valida e avisa que o envio não está conectado) |
+| site | `NEXT_PUBLIC_WHATSAPP_URL` | link do WhatsApp (botão flutuante); vazio = o botão leva ao formulário |
 
 ## Checagem rápida depois de mexer no CSS
 

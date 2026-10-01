@@ -34,6 +34,8 @@ A arquitetura é dividida em site + admin + API em Go + banco MySQL em VPS. O st
 * [Notificações: erros, avisos e notificações personalizáveis](./notificacoes.md)
 * [Gatilhos personalizados: webhooks de entrada e eventos por pipeline](./gatilhos-personalizados.md)
 * [Decisões Arquitetônicas (Vite vs Next, Go vs Node, MySQL sem Redis)](./architecture-decisions.md)
+* [Design do site × conteúdo do admin: contrato de atributos (blog e Home)](./blog-design-contrato.md)
+* Handoffs: [27/09 conexões e analytics](./handoffs/2026-09-27-conexoes-e-analytics.md) · [30/09 editor do blog](./handoffs/2026-09-30-editor-blog-blocknote.md) · [01/10 preview, Home e contrato](./handoffs/2026-10-01-preview-home-contrato.md)
 * [Segurança do Banco de Dados & CMS Proprietário](./security-and-cms.md)
 * [Estudo de Autenticação (Google OAuth + Workspace)](./auth-study.md)
 * [Comparativo de VPS (histórico)](./vps-comparison.md)
@@ -41,7 +43,7 @@ A arquitetura é dividida em site + admin + API em Go + banco MySQL em VPS. O st
 ---
 
 ## 1. 🌐 Site (`apps/site`) — Vercel
-Interface pública em Next.js, para SEO e indexação máximos. Hoje é boilerplate; o site v1.0 (Motion) está arquivado como referência.
+Interface pública em Next.js, para SEO e indexação máximos. A Home (LP) e o blog já existem; o site v1.0 (Motion) está arquivado como referência. O design da Home está em [Home.pdf](./Home.pdf).
 
 * [Página Inicial (Home)](./pagesClient/home.md)
 * [Blog Institucional (CMS Proprietário)](./pagesClient/blog.md)

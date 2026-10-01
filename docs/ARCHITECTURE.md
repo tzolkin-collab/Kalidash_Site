@@ -1,8 +1,8 @@
 # Kalidash — Documento de Arquitetura e Transparência
 
-> **Referência:** SOLYD  
-> **Versão:** 2.0 — reescrita em 26/09/2026 (a v1.0 está em `.archive/docs-v1/`)  
-> **Status:** Em construção — admin/CRM primeiro
+> **Referência:** SOLYD — nome de referência desta arquitetura (usado no contrato e no Anexo I)  
+> **Versão:** 2.1 — atualizada em 01/10/2026 (a 2.0 é de 26/09/2026; a v1.0 está em `.archive/docs-v1/`)  
+> **Status:** Em execução — admin/CRM e site público (Entrega 1)
 
 ---
 
@@ -31,19 +31,19 @@
 | E-mails (templates) e Automações, em páginas separadas | admin + api | **Tela pronta, sem API** | E-mails (modelos e histórico) e Automações (catálogo, manuais e gerenciadas, execuções) são páginas próprias. |
 | Entrada de leads (`connect.js`, API direta, webhook) | api | Planejado | Contrato já desenhado no v1.0 (`connect.ts`). |
 | Projetos conectados, Integrações e Chaves | admin + api | **Tela pronta, sem API** | Projetos com métricas, snippet e página de exemplo, emissão e revogação de chaves (o token de exemplo não existe no servidor). |
-| Login e perfis | api + admin | Planejado | Google OAuth do Workspace. Hoje a API está aberta. |
-| Blog / CMS | admin + api + site | **Parcial** | Sem Sanity — lista e editor ([BlockNote](https://www.blocknotejs.org/), trocou o Tiptap em 30/09) gravam artigo real via Go API/MySQL (`/api/blog/articles`); `bodyJson` (documento nativo do BlockNote) é a fonte de verdade, `body` (HTML) é gerado a cada save pro site consumir com ISR, publicado/rascunho, destaque e categorias. Upload de imagem implementado (`/api/blog/upload`, redimensiona e comprime antes de subir pro Cloudflare R2) — falta só configurar as credenciais reais do bucket no `.env` da API. Cards de artigo na Galeria Principal ainda não são editáveis (só visualização) — ver `docs/handoffs/2026-09-30-editor-blog-blocknote.md`. |
+| Login e perfis | api + admin | Planejado | Google OAuth do Workspace. Perfis **Admin, Gerente e Vendedor**, com painel de permissões (decidido em 01/10/2026 e incluído no contrato, para entrega até a Entrega 4). Hoje a API está aberta. |
+| Blog / CMS | admin + api + site | **Parcial** | Sem Sanity — lista e editor ([BlockNote](https://www.blocknotejs.org/), trocou o Tiptap em 30/09) gravam artigo real via Go API/MySQL (`/api/blog/articles`); `bodyJson` (documento nativo do BlockNote) é a fonte de verdade, `body` (HTML) é gerado a cada save pro site consumir com ISR, publicado/rascunho, destaque e categorias. Upload de imagem implementado (`/api/blog/upload`, redimensiona e comprime antes de subir pro Cloudflare R2) — falta só configurar as credenciais reais do bucket no `.env` da API. **Atualizado em 01/10:** os cartões de artigo da Galeria Principal são editáveis (bloco do BlockNote; a ordem dos blocos é a ordem no site e o 1º é o destaque); o preview é o próprio site num iframe (`/preview/*`, com clique que foca o campo no editor); e salvar ou excluir um artigo avisa o site (`/api/revalidate`), que regenera em ~2 s em vez de até 60 s. O design do blog fica só no site (ver [blog-design-contrato.md](./blog-design-contrato.md)). **Falta:** sanitização do HTML e login (fase de segurança), `connect.js`. Handoffs: [30/09](./handoffs/2026-09-30-editor-blog-blocknote.md) e [01/10](./handoffs/2026-10-01-preview-home-contrato.md). |
 | Dashboard e analytics | admin | **Parcial** | Métricas reais calculadas de `/api/leads` (valor em aberto e ganho, conversão, funil por etapa). Leads, tarefas e origem entram com as fases 3 e 4. |
 | Equipe e Configurações | admin + api | **Tela pronta, sem API** | Página com perfil, equipe e perfis (Admin, Gerente, Vendedor), webhooks e auditoria, em dados de exemplo. |
 | Webhooks de saída e auditoria | api | Planejado | A tela existe em Configurações; falta a API e o disparo em segundo plano. |
 | Notificações (WebSocket, Web Push, PWA) | api + admin | Planejado | O admin ainda não é PWA. |
 | Google Meet, Gmail e Drive | api | Planejado | |
-| Site institucional | site | Planejado | `apps/site` é boilerplate. O Motion do v1.0 está arquivado como referência. A copy está no Google Doc "Copy site - MVP". |
+| Site institucional | site | **Parcial** | **Home (LP)** refeita em 01/10 a partir de [Home.pdf](./Home.pdf) em `apps/site/src/app/home/` (design em `home.module.css`, textos em `content.ts`); conferida contra o PDF e pronta para aprovação; faltam só conteúdos da Carol (ver [pagesClient/home.md](./pagesClient/home.md)). **Blog** real (`/blog` e `/blog/[slug]`), `sitemap.xml` e `robots.txt`. O Motion do v1.0 segue arquivado como referência. Faltam a ligação do formulário do diagnóstico (ainda não há rota pública de captura de lead na API) e as demais páginas. A copy está no Google Doc "Copy site - MVP". |
 | Valor das oportunidades | admin + api | **Parcial** | Cada oportunidade tem `value` e o Kanban soma o valor por coluna. Faltam valor ganho por período, ticket médio, previsão ponderada e o campo em `Decimal`. Não há módulo Financeiro separado. |
 
 **Tela pronta, sem API** significa que a interface existe e funciona com dados de exemplo em memória (`apps/admin/src/mocks`): nada é gravado e recarregar a página restaura o exemplo. Cada tela mostra um aviso disso e a fase do [plano de schema](./plano-schema.md#10-ordem-de-implementação) em que será ligada à API.
 
-*Status de 27/09/2026, conferido no navegador (dev e build) para as telas do admin. A API e o banco não mudaram.*
+*Status de 27/09/2026, conferido no navegador (dev e build) para as telas do admin. A API e o banco não mudaram. As linhas de Blog, Site e Login e perfis foram atualizadas em 01/10/2026.*
 
 ---
 
@@ -55,7 +55,7 @@ Monorepo (pnpm + turbo) com três aplicações e um pacote de schema.
 |---|---|---|---|
 | Site — `apps/site` | Público: SEO, blog, formulários | Next.js (SSR/ISR) | Vercel (plano Pro para uso comercial) |
 | Admin — `apps/admin` | Interno: CRM, blog, integrações | Vite + React (SPA + PWA) | Vercel ou Cloudflare Pages (estático) |
-| API — `apps/api` | Lógica, auth, ingestão de leads, webhooks | Go (`net/http`) | VPS Vultr ou DigitalOcean, à escolha da Kalidash |
+| API — `apps/api` | Lógica, auth, ingestão de leads, webhooks | Go (`net/http`) | VPS Vultr ou DigitalOcean; a Kalidash escolhe **na hora de subir** |
 | Banco | Persistência | MySQL | VPS (hoje no EasyPanel) |
 | Schema — `apps/studio` | Fonte do schema e Prisma Studio | Prisma | — |
 
