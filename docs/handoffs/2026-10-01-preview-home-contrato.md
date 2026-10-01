@@ -31,6 +31,15 @@ Os valores, CNPJs e endereços ficam só no documento (pasta `Carol/`, ao lado d
 - **NFS-e:** uma nota do sinal e outra do saldo, nos valores base.
 - **Correções de texto:** 4 referências cruzadas erradas, datas recalculadas a partir do início em 02/10 e capa em "Outubro de 2026".
 
+### 4. Ambiente de visualização na Vercel (para a Carol aprovar a Entrega 1)
+- **URL:** https://kalidash-site-one.vercel.app (projeto `kalidash-site`, conta `brtzolkin-2570's projects`). Acesso público, **sem login**, e com `X-Robots-Tag: noindex` em qualquer `*.vercel.app` (o canonical e o sitemap apontam para o domínio final).
+- **Projeto novo e separado.** O `kalidash-landing` existente está ligado a **outro repositório** (`Kalidash_LandingPage_01_-evento-`) e não foi alterado; o `kalidash-site-admin` é o admin.
+- Configuração: raiz `apps/site`, Next.js, Node 24, instalação pelo `vercel.json` da raiz (`pnpm install --frozen-lockfile`). O projeto ficou **conectado ao repositório `Kalidash_Site`**: um push na `main` passa a gerar deploy sozinho (desconectar em Settings → Git, se não quiser).
+- **Como republicar a partir do código commitado** (evita levar alterações soltas de outras sessões): `git worktree add --detach <pasta> HEAD`, depois `vercel link --yes --project kalidash-site` e `vercel deploy --prod --yes` dentro da pasta; por fim remover a pasta. Cuidado: rodar `vercel link` na raiz do repositório cria `.vercel/`, um `.env.local` com token e linhas no `.gitignore` (já aconteceu uma vez por engano e foi desfeito).
+- **Sem API no ar:** o blog aparece vazio (fallback) porque `API_URL` não aponta para nada; a Home não depende dela.
+- O plano Hobby da Vercel é de **uso não comercial**; serve para a aprovação, mas o site de produção vai para o EasyPanel.
+- **Correção que o deploy exigiu:** o `package.json` (raiz e site) estava sem commit enquanto o lockfile já tinha as dependências, e `pnpm install --frozen-lockfile` falhava (`ERR_PNPM_OUTDATED_LOCKFILE`). Alinhado no commit `3086260`; sem ele o deploy no EasyPanel a partir do git falharia do mesmo jeito.
+
 ## Decisões desta data
 1. O design do blog e da Home fica no site; o admin não escreve CSS (preview = iframe do site).
 2. O preview começa em "editor neutro + site real ao lado" (a edição direto na página fica como fase 2).
