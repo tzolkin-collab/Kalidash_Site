@@ -78,6 +78,9 @@ func initDB() {
 	if workflowEnabled() {
 		ensureWorkflowSchema()
 	}
+	if crmEnabled() {
+		ensureCRMSchema()
+	}
 	ensureBlogSchema()
 	initStorage()
 }
@@ -434,6 +437,9 @@ func main() {
 
 	if workflowEnabled() {
 		registerWorkflowRoutes(mux)
+	}
+	if crmEnabled() {
+		registerCRMRoutes(mux)
 	}
 
 	port := os.Getenv("PORT")

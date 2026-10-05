@@ -29,6 +29,7 @@ A arquitetura é dividida em site + admin + API em Go + banco MySQL em VPS. O st
 * [Definição de domínio: leads, oportunidades, pessoas, empresas e clientes](./dominio.md) *(v2, confirmada)*
 * [Plano de schema e de migração](./plano-schema.md) *(rascunho, não aplicado)*
 * [API de funis, tarefas e gate de etapa](./api-workflow.md) *(pronta, desligada por padrão)*
+* [API de pessoas, empresas e leads](./api-crm.md) *(pronta, desligada por padrão)*
 * [Escopo: cadastro e edição de leads, pessoas, empresas, clientes e pipelines](./edicao-e-cadastro.md) *(decisões D1, D2, D8 tomadas; D4 em andamento)*
 * [Bench de dados: o que os outros CRMs guardam](./benchmark-dados.md)
 * [Bench: eventos padronizados, templates de ciclo de vida e tarefas por evento](./benchmark-ciclo-de-vida.md)

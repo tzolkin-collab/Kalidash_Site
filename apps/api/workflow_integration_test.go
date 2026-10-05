@@ -263,6 +263,7 @@ func TestIntegrationPipelineTaskGate(t *testing.T) {
 	if r := call(handlePipelineByID, "PUT", "/api/pipelines/q4", "q4", arch); r.code != 200 {
 		t.Fatalf("desarquivar via PUT: %d %s", r.code, r.body)
 	}
+	list = nil // json.Unmarshal reaproveita os elementos do slice e manteria o archivedAt antigo
 	call(handlePipelines, "GET", "/api/pipelines", "", nil).into(t, &list)
 	if len(list) != 1 || list[0].ArchivedAt != nil {
 		t.Errorf("desarquivado deveria voltar à lista: %+v", list)

@@ -15,25 +15,25 @@ model Opportunity {
   title       String   // Nome da oportunidade (ex: "Consultoria de Vendas")
   value       Decimal? @db.Decimal(14, 2) // Valor em reais (ex: 5000.00); a API migra a coluna sozinha na subida
   wonAt       DateTime? // Quando foi para Ganho (valor ganho por período); a API grava ao mover
-  
+
   // Visual e Organização
   stage       String   @default("INBOUND") // INBOUND, QUALIFICATION, PROPOSAL, NEGOTIATION, WON, LOST
   priority    String   @default("MEDIUM")  // LOW, MEDIUM, HIGH (Para mostrar badges coloridos)
   tags        Json?    // Array de strings (ex: ["Indicação", "Enterprise"])
-  
+
   // Relacionamentos Diretos (1 Oportunidade = 1 Empresa + 1 Contato Principal)
   companyId   String?  // Opcional!
   company     Company? @relation(fields: [companyId], references: [id])
-  
+
   contactId   String?  // Opcional!
   contact     Contact? @relation(fields: [contactId], references: [id])
-  
+
   // Membro da Equipe Kalidash (Dono da Oportunidade)
   ownerId     String?  // Opcional por enquanto
   owner       User?    @relation(fields: [ownerId], references: [id])
-  
+
   notes       Note[]   // Histórico de interações
-  
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -42,13 +42,13 @@ model Note {
   id            String      @id @default(uuid())
   content       String      @db.Text
   type          String      @default("NOTE") // NOTE, CALL, EMAIL, MEETING, TASK
-  
+
   opportunityId String
   opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
-  
+
   authorId      String?
   author        User?       @relation(fields: [authorId], references: [id])
-  
+
   createdAt     DateTime    @default(now())
 }
 
@@ -58,11 +58,11 @@ model User {
   email       String   @unique
   avatarUrl   String?  // Foto de perfil do membro da equipe
   role        String   @default("MEMBER") // ADMIN, MEMBER
-  
+
   // Oportunidades sob responsabilidade deste usuário
   opportunities Opportunity[]
   notes         Note[]
-  
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -72,7 +72,24 @@ model Company {
   name        String   // Nome da empresa
   logoUrl     String?  // Para a interface ficar linda (ex: ícone da empresa)
   website     String?
-  
+
+  // CRM (CRM_API=1 na API Go acrescenta estas colunas sozinha; ver docs/api-crm.md)
+  legalName        String?  @db.VarChar(255)
+  document         String?  @unique @db.VarChar(14) // CNPJ só com letras e números; sem ele a empresa fica "em análise"
+  defaultContactId String?  @db.VarChar(64)
+  lifecycle        String   @default("LEAD") @db.VarChar(12) // LEAD | PROSPECT | CLIENT | INACTIVE
+  segment          String   @default("") @db.VarChar(120)
+  sizeRange        String?  @db.VarChar(40)
+  city             String?  @db.VarChar(120)
+  state            String?  @db.VarChar(2)
+  legacyClient     Boolean  @default(false)
+  inactiveReason   String?  @db.VarChar(255)
+  firstWonAt       DateTime?
+  extra            Json?    // customData
+  archivedAt       DateTime?
+  createdAt        DateTime?
+  updatedAt        DateTime?
+
   opportunities Opportunity[]
   contacts      Contact[]
 }
@@ -83,11 +100,70 @@ model Contact {
   email       String?
   phone       String?
   avatarUrl   String?  // Foto da pessoa (Visual)
-  
+
   companyId   String?  // Opcional! Se for pessoa física, fica nulo.
   company     Company? @relation(fields: [companyId], references: [id])
-  
+
+  // CRM (CRM_API=1 na API Go acrescenta estas colunas sozinha; ver docs/api-crm.md)
+  role           String?  @db.VarChar(120)
+  lifecycle      String   @default("LEAD") @db.VarChar(12)
+  legacyClient   Boolean  @default(false)
+  inactiveReason String?  @db.VarChar(255)
+  firstWonAt     DateTime?
+  lgpdBasis      String?  @db.VarChar(120)
+  lgpdAt         DateTime?
+  documentEnc    String?  @db.Text // CPF cifrado (AES-256-GCM, chave DATA_KEY)
+  documentHash   String?  @unique @db.VarChar(64) // HMAC do CPF: só para achar duplicado
+  tags           Json?
+  extra          Json?    // extraEmails, extraPhones, customData
+  archivedAt     DateTime?
+  createdAt      DateTime?
+  updatedAt      DateTime?
+
   opportunities Opportunity[]
+}
+
+model CompanyStakeholder {
+  companyId   String @db.VarChar(64)
+  personId    String @db.VarChar(64)
+  description String @default("") @db.VarChar(255)
+  tag         String @default("") @db.VarChar(80)
+  position    Int    @default(0)
+
+  @@id([companyId, personId])
+  @@index([personId])
+}
+
+model Lead {
+  id                     String   @id @db.VarChar(64)
+  name                   String   @db.VarChar(255)
+  email                  String   @default("") @db.VarChar(255)
+  phone                  String?  @db.VarChar(40)
+  personId               String?  @db.VarChar(64)
+  companyId              String?  @db.VarChar(64)
+  pipelineId             String   @db.VarChar(64)
+  stageId                String   @db.VarChar(128)
+  origin                 String   @db.VarChar(8) // INBOUND | OUTBOUND
+  sourceName             String   @default("") @db.VarChar(255)
+  owner                  String?  @db.VarChar(120)
+  estimatedValue         Decimal? @db.Decimal(14, 2)
+  expectedCloseAt        DateTime?
+  tags                   Json?
+  message                String?  @db.Text
+  status                 String   @default("ACTIVE") @db.VarChar(10) // ACTIVE | QUALIFIED | DISCARDED
+  discardReason          String?  @db.VarChar(255)
+  wasSeen                Boolean  @default(false)
+  firstContactAt         DateTime?
+  convertedOpportunityId String?  @db.VarChar(64)
+  returningClient        Boolean  @default(false)
+  customData             Json?
+  archivedAt             DateTime?
+  createdAt              DateTime
+  updatedAt              DateTime
+
+  @@index([pipelineId, stageId, status])
+  @@index([personId])
+  @@index([companyId])
 }
 
 // ==========================================
