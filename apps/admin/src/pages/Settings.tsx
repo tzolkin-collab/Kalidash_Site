@@ -3,12 +3,13 @@ import { Mail, Plus, Trash2 } from 'lucide-react';
 import type { Role, TeamMember, Webhook } from '../domain';
 import { initials } from '../lib/people';
 import { newId, useStore } from '../lib/store';
+import { setPush, usePushPref } from '../lib/notify';
 import { EVENTS } from '../mocks/automations';
 import { CURRENT_USER_ID, auditLog, teamStore, webhooksStore } from '../mocks/team';
 import { Badge, EmptyState, Field, Page, PageHeader, SampleBanner, SearchBox, SidePanel, Switch, Tabs } from '../components/ui';
 import { CustomSelect } from '../components/ui';
 
-type Tab = 'profile' | 'team' | 'webhooks' | 'audit';
+type Tab = 'profile' | 'team' | 'notifications' | 'webhooks' | 'audit';
 
 const ROLE_LABEL: Record<Role, string> = { ADMIN: 'Admin', MANAGER: 'Gerente', SELLER: 'Vendedor' };
 const when = (iso?: string) => (iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : 'Nunca');
@@ -27,12 +28,13 @@ export default function Settings() {
       <PageHeader title="Configurações" subtitle="Seu perfil, a equipe e os acessos, os webhooks de saída e o registro do que foi feito." />
       <SampleBanner>Equipe, webhooks e auditoria ainda não têm API, e o login com Google entra na fase de segurança, que fica por último. Nada aqui é gravado.</SampleBanner>
       <Tabs
-        tabs={[{ id: 'profile' as Tab, label: 'Meu perfil' }, { id: 'team' as Tab, label: 'Equipe e acessos' }, { id: 'webhooks' as Tab, label: 'Webhooks' }, { id: 'audit' as Tab, label: 'Auditoria' }]}
+        tabs={[{ id: 'profile' as Tab, label: 'Meu perfil' }, { id: 'team' as Tab, label: 'Equipe e acessos' }, { id: 'notifications' as Tab, label: 'Notificações' }, { id: 'webhooks' as Tab, label: 'Webhooks' }, { id: 'audit' as Tab, label: 'Auditoria' }]}
         value={tab}
         onChange={setTab}
       />
       {tab === 'profile' && <ProfileTab />}
       {tab === 'team' && <TeamTab />}
+      {tab === 'notifications' && <NotificationsTab />}
       {tab === 'webhooks' && <WebhooksTab />}
       {tab === 'audit' && <AuditTab />}
     </Page>
@@ -139,6 +141,36 @@ function InvitePanel({ onClose, onInvite, existing }: { onClose: () => void; onI
         <Field label="Perfil"><CustomSelect className="select" value={role} onChange={(e) => setRole(e.target.value as Role)}>{(Object.keys(ROLE_LABEL) as Role[]).map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}</CustomSelect></Field>
       </div>
     </SidePanel>
+  );
+}
+
+function NotificationsTab() {
+  const [push] = usePushPref();
+  const [note, setNote] = useState('');
+  const supported = typeof Notification !== 'undefined';
+  const toggle = async (on: boolean) => {
+    const ok = await setPush(on);
+    setNote(on && !ok ? (supported ? 'O navegador bloqueou as notificações. Libere nas permissões do site e tente de novo.' : 'Este navegador não suporta notificações.') : '');
+  };
+  return (
+    <div className="settings-pane form-stack">
+      <section className="panel-card">
+        <h2 className="section-title">Aviso do navegador</h2>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+          <p className="text-sm text-muted" style={{ margin: 0 }}>
+            Mostra erros, avisos e notificações como aviso do navegador quando o painel está em segundo plano. Vale só para este navegador: o envio pelo servidor (Web Push, com o painel fechado) entra com o PWA.
+          </p>
+          <Switch checked={push} onChange={toggle} label="Aviso do navegador" />
+        </div>
+        {note && <p className="text-sm" role="alert" style={{ margin: '12px 0 0', color: 'var(--danger, #ef4444)' }}>{note}</p>}
+      </section>
+      <section className="panel-card">
+        <h2 className="section-title">O que não se desliga</h2>
+        <p className="text-sm text-muted" style={{ margin: 0 }}>
+          A caixa do sino (barra lateral) recebe sempre as três categorias: <strong>erros</strong> (falha de acesso ou de conexão), <strong>avisos</strong> (uma regra do sistema barrou a ação, como mover uma oportunidade com tarefa pendente) e <strong>notificações</strong> (acompanhamento do negócio). Só o aviso do navegador é opcional.
+        </p>
+      </section>
+    </div>
   );
 }
 

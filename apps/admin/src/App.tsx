@@ -17,6 +17,7 @@ import { useHashRoute } from './lib/router';
 import { ShellContext, useShell } from './lib/shell';
 import { EmptyState, Page, PageHeader } from './components/ui';
 import ToastHost from './components/Toasts';
+import NotificationBell from './components/NotificationBell';
 
 // O editor de e-mail é pesado: só é baixado quando a página de E-mails é aberta.
 const Emails = lazy(() => import('./Emails'));
@@ -163,6 +164,7 @@ export default function App() {
               ))}
 
               <div style={{ marginTop: 'auto', paddingBottom: '24px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <NotificationBell onNavigate={() => setIsMobileMenuOpen(false)} />
                 <a href="#" className="nav-link" onClick={toggleTheme}>
                   {isDarkMode ? <><Sun size={18} className="nav-icon" strokeWidth={2} /> Light Mode</> : <><Moon size={18} className="nav-icon" strokeWidth={2} /> Dark Mode</>}
                 </a>

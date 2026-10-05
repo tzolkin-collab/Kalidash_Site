@@ -11,7 +11,7 @@ export default function ToastHost() {
   return (
     <div className="toast-host" role="region" aria-label="Avisos">
       {active.map((a) => (
-        <div key={a.id} className="toast toast-warning" role="alert">
+        <div key={a.id} className={`toast ${a.category === 'erro' ? 'toast-error' : 'toast-warning'}`} role="alert">
           <TriangleAlert size={16} className="toast-icon" />
           <div className="toast-body">
             <div className="toast-title">{a.title}</div>

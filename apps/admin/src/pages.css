@@ -982,3 +982,29 @@ textarea.inline-input { resize: vertical; }
 .gcard-tools button, .gcard-tools label, .gcard-picker button { padding: 0; border: 0; background: transparent; color: var(--accent); font: inherit; font-weight: 600; cursor: pointer; }
 .gcard-picker { flex-wrap: wrap; align-items: center; color: var(--text-secondary); font-size: 13px; }
 .gcard-picker select { max-width: 320px; padding: 6px 8px; border: 1px solid var(--border-subtle); border-radius: 6px; background: var(--bg-surface); color: var(--text-primary); font: inherit; }
+
+/* ---------- Sino de notificações (barra lateral) ---------- */
+.bell { position: relative; }
+.bell-trigger { width: 100%; background: transparent; border: 0; font: inherit; cursor: pointer; text-align: left; }
+.bell-badge { margin-left: auto; min-width: 18px; padding: 1px 6px; border-radius: 9px; background: #ef4444; color: #fff; font-size: 11px; font-weight: 700; text-align: center; }
+.bell-panel { position: fixed; left: 258px; bottom: 24px; z-index: 400; width: min(380px, calc(100vw - 280px)); max-height: min(520px, calc(100vh - 48px)); display: flex; flex-direction: column; border-radius: 12px; background: var(--bg-surface); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-lg); overflow: hidden; }
+.bell-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--border-subtle); font-size: 14px; }
+.bell-actions { display: inline-flex; gap: 12px; }
+.link-btn { border: 0; background: transparent; padding: 0; color: var(--accent); font: inherit; font-size: 12px; cursor: pointer; }
+.link-btn:disabled { color: var(--text-muted); cursor: default; }
+.bell-empty { margin: 0; padding: 28px 18px; text-align: center; font-size: 13px; color: var(--text-muted); }
+.bell-list { list-style: none; margin: 0; padding: 0; overflow-y: auto; }
+.bell-item { display: flex; align-items: flex-start; gap: 10px; width: 100%; padding: 11px 14px; border: 0; border-bottom: 1px solid var(--border-subtle); border-left: 3px solid transparent; background: transparent; font: inherit; text-align: left; cursor: pointer; color: var(--text-primary); }
+.bell-item:hover { background: var(--bg-surface-hover); }
+.bell-item.unread { background: color-mix(in srgb, var(--accent) 5%, transparent); }
+.bell-item.cat-erro { border-left-color: #ef4444; } .bell-item.cat-erro .bell-icon { color: #ef4444; }
+.bell-item.cat-aviso { border-left-color: #d97706; } .bell-item.cat-aviso .bell-icon { color: #d97706; }
+.bell-item.cat-notificacao { border-left-color: var(--accent); } .bell-item.cat-notificacao .bell-icon { color: var(--accent); }
+.bell-icon { flex-shrink: 0; margin-top: 2px; }
+.bell-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.bell-title { font-size: 13px; font-weight: 600; }
+.bell-detail { font-size: 12px; color: var(--text-secondary); }
+.bell-meta { font-size: 11px; color: var(--text-muted); }
+.bell-dot { flex-shrink: 0; width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: var(--accent); }
+@media (max-width: 900px) { .bell-panel { left: 12px; right: 12px; width: auto; bottom: 12px; } }
+.toast-error { border-left-color: #ef4444; } .toast-error .toast-icon { color: #ef4444; }
