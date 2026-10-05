@@ -5,6 +5,7 @@ import { formatCnpj, formatCpf, isValidCnpj, isValidCpf, stripDoc } from '../lib
 import { formatCurrency, formatDate, parseMoney } from '../lib/format';
 import { createLead } from '../lib/leadFlow';
 import { useStore } from '../lib/store';
+import { useCrmMode } from '../lib/crmMode';
 import { useLeadActions } from '../lib/useLeadActions';
 import { usePaged } from '../lib/usePaged';
 import { leadsStore } from '../mocks/leads';
@@ -26,6 +27,7 @@ const STATUS_TABS: { id: Status; label: string }[] = [
 ];
 
 export default function Leads() {
+  const crmMode = useCrmMode();
   const [leads] = useStore(leadsStore);
   const [pipelines] = useStore(pipelinesStore);
 
@@ -74,7 +76,7 @@ export default function Leads() {
         subtitle="Quem ainda não virou oportunidade. Todo lead nasce de uma fonte (inbound) ou de alguém da equipe (outbound). Clique em um lead para abrir a ficha e editar campo a campo."
         actions={<button type="button" className="btn btn-solid" onClick={() => setAdding(true)}><Plus size={14} /> Adicionar lead</button>}
       />
-      <SampleBanner phase={3} />
+      {crmMode !== 'api' && <SampleBanner phase={3} />}
       {notice && (
         <div className="notice" role="status">
           <span>{notice}</span>

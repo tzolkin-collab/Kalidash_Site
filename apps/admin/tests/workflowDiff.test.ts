@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { diffPipelines, diffTasks, isRealOpportunityId, isSyncableTask, normalizePipeline, pipelineProjection, taskProjection } from '../src/lib/workflowDiff.ts';
+import { diffById, diffPipelines, diffTasks, isRealOpportunityId, isSyncableTask, normalizePipeline, pipelineProjection, taskProjection } from '../src/lib/workflowDiff.ts';
 
 const pipe = (over: object = {}) => normalizePipeline({
   id: 'p1', name: 'Q4', offer: 'x',
@@ -53,4 +53,29 @@ test('diffTasks: criar, atualizar e remover; ignora o que não sincroniza', () =
   const sample = task({ id: 'd', entityId: 'opp-x' });
   const d = diffTasks(snap, [t1, novo, lead, sample]);
   assert.deepEqual(d.create.map((t: { id: string }) => t.id), ['b']);
+});
+
+test('com o CRM na API, tarefas de lead, pessoa e empresa também sincronizam; exemplos de oportunidade não', () => {
+  const lead = task({ id: 'a', entity: 'lead', entityId: 'l1' });
+  const pessoa = task({ id: 'b', entity: 'person', entityId: 'p1' });
+  const empresa = task({ id: 'c', entity: 'company', entityId: 'c1' });
+  const exemploOpp = task({ id: 'd', entityId: 'opp-x' });
+  const pipeline = task({ id: 'e', entity: 'pipeline', entityId: 'q4' });
+  assert.ok(!isSyncableTask(lead) && !isSyncableTask(pessoa) && !isSyncableTask(empresa), 'sem CRM na API ficam locais');
+  assert.ok(isSyncableTask(lead, true) && isSyncableTask(pessoa, true) && isSyncableTask(empresa, true));
+  assert.ok(!isSyncableTask(exemploOpp, true), 'oportunidade de exemplo nunca sobe');
+  assert.ok(!isSyncableTask(pipeline, true));
+  const d = diffTasks(new Map(), [lead, pessoa, exemploOpp], true);
+  assert.deepEqual(d.create.map((x: { id: string }) => x.id), ['a', 'b']);
+  assert.equal(diffTasks(new Map(), [lead], false).create.length, 0);
+});
+
+test('diffById: novos, alterados e iguais', () => {
+  const proj = (x: { id: string; v: number }) => JSON.stringify(x);
+  const a = { id: 'a', v: 1 };
+  const b = { id: 'b', v: 1 };
+  const snap = new Map([['a', proj(a)], ['b', proj(b)]]);
+  assert.deepEqual(diffById(snap, [a, b], proj), { create: [], update: [] });
+  const r = diffById(snap, [{ id: 'a', v: 2 }, b, { id: 'c', v: 1 }], proj);
+  assert.deepEqual([r.create.map((x) => x.id), r.update.map((x) => x.id)], [['c'], ['a']]);
 });

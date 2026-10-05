@@ -4,6 +4,7 @@ import { maskCpf } from '../lib/documents';
 import { formatCurrency, formatDate } from '../lib/format';
 import { initials } from '../lib/people';
 import { useStore } from '../lib/store';
+import { useCrmMode } from '../lib/crmMode';
 import { useAllOpportunities } from '../lib/useAllOpportunities';
 import { usePaged } from '../lib/usePaged';
 import { companiesOf, companiesStore, peopleStore } from '../mocks/people';
@@ -31,6 +32,7 @@ type Row = {
 };
 
 export default function Clients() {
+  const crmMode = useCrmMode();
   const [people] = useStore(peopleStore);
   const [companies] = useStore(companiesStore);
   const { all: opps } = useAllOpportunities();
@@ -69,7 +71,7 @@ export default function Clients() {
         subtitle="Pessoas e empresas cujo ciclo de vida é Cliente. Ele nasce quando uma oportunidade é ganha; quem já era cliente antes do sistema entra pelo botão ao lado."
         actions={<button type="button" className="btn btn-solid" onClick={() => setChoosing(true)}><Plus size={14} /> Adicionar cliente existente</button>}
       />
-      <SampleBanner phase={2} />
+      {crmMode !== 'api' && <SampleBanner phase={2} />}
       {notice && (
         <div className="notice" role="status">
           <span>{notice}</span>

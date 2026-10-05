@@ -5,6 +5,7 @@ import { maskCpf } from '../lib/documents';
 import { formatDate } from '../lib/format';
 import { initials } from '../lib/people';
 import { useStore } from '../lib/store';
+import { useCrmMode } from '../lib/crmMode';
 import { usePaged } from '../lib/usePaged';
 import { companiesOf, companiesStore, peopleStore } from '../mocks/people';
 import NewPartyPanels from '../components/NewPartyHost';
@@ -16,6 +17,7 @@ import { CustomSelect } from '../components/ui';
 type View = 'people' | 'companies';
 
 export default function PeopleCompanies() {
+  const crmMode = useCrmMode();
   const [people] = useStore(peopleStore);
   const [companies] = useStore(companiesStore);
   const [view, setView] = useState<View>('people');
@@ -62,7 +64,7 @@ export default function PeopleCompanies() {
           </>
         }
       />
-      <SampleBanner phase={2} />
+      {crmMode !== 'api' && <SampleBanner phase={2} />}
       {notice && (
         <div className="notice" role="status">
           <span>{notice}</span>

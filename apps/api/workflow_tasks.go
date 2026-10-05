@@ -150,10 +150,32 @@ func handleTasks(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		t.ID, t.Done, t.DoneAt, t.CreatedAt = wfID("task"), false, nil, time.Now()
-		t.RequirementID = nil // tarefa de requisito só nasce pelo gate
-		if _, err := db.Exec(`INSERT INTO Task (id, title, tag, source, entityKind, entityId, entityName, assignee, dueAt, done, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)`,
-			t.ID, t.Title, t.Tag, t.Source, t.Entity, t.EntityID, t.EntityName, t.Assignee, t.DueAt, t.CreatedAt); err != nil {
+		// Só tarefa de requisito carrega requirementId (o front gera as dos leads; as das oportunidades
+		// nascem no gate do servidor). Ela é idempotente: a chave única (requisito, registro) devolve a
+		// tarefa que já existe em vez de duplicar.
+		if t.Source != "requisito" {
+			t.RequirementID = nil
+		} else if t.RequirementID != nil && !idRe.MatchString(*t.RequirementID) {
+			writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": "id de requisito inválido"})
+			return
+		}
+		verb := "INSERT"
+		if t.RequirementID != nil {
+			verb = "INSERT IGNORE"
+		}
+		res, err := db.Exec(verb+` INTO Task (id, title, tag, source, entityKind, entityId, entityName, requirementId, assignee, dueAt, done, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)`,
+			t.ID, t.Title, t.Tag, t.Source, t.Entity, t.EntityID, t.EntityName, t.RequirementID, t.Assignee, t.DueAt, t.CreatedAt)
+		if err != nil {
 			writeErr(w, err)
+			return
+		}
+		if n, _ := res.RowsAffected(); n == 0 && t.RequirementID != nil {
+			existing, err := scanTask(db.QueryRow(`SELECT `+taskCols+` FROM Task WHERE requirementId = ? AND entityKind = ? AND entityId = ?`, *t.RequirementID, t.Entity, t.EntityID))
+			if err != nil {
+				writeErr(w, err)
+				return
+			}
+			writeJSON(w, http.StatusOK, existing)
 			return
 		}
 		writeJSON(w, http.StatusCreated, t)

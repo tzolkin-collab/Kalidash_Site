@@ -1,6 +1,6 @@
 # 👥 API de pessoas, empresas e leads
 
-> **Status (05/10/2026):** API e esquema prontos e testados (sem banco e num MySQL em memória); **desligados por padrão** e **nunca aplicados ao banco real**. As telas ainda usam os dados de exemplo (`apps/admin/src/mocks`). Recorte do [plano-schema.md](./plano-schema.md) §3 e §4, com o JSON igual aos tipos `Person`, `Company` e `Lead` de `apps/admin/src/domain.ts`.
+> **Status (05/10/2026):** API e esquema prontos e testados (sem banco e num MySQL em memória); **desligados por padrão** e **nunca aplicados ao banco real**. O admin já sincroniza com ela quando ligada (ver "Como o admin usa"); sem ela segue com os dados de exemplo. Recorte do [plano-schema.md](./plano-schema.md) §3 e §4, com o JSON igual aos tipos `Person`, `Company` e `Lead` de `apps/admin/src/domain.ts`.
 
 ## Como ligar
 
@@ -31,9 +31,21 @@ Sem `CRM_API` a API não toca no banco nem expõe as rotas. **Faça backup antes
 - Tudo o que o admin guarda e a tabela não tem coluna própria (`extraEmails`, `extraPhones`, `customData`) vai num JSON `extra`.
 - `LEAD` é palavra reservada no MySQL 8 (função de janela): a tabela é sempre citada com crases. O teste de integração pegou isso.
 
-## Atenção para a ligação com o admin
+## Como o admin usa
 
-Vários documentos fictícios dos dados de exemplo **não fecham os dígitos verificadores** (por exemplo o CPF `905.112.660-79` e os CNPJ `45.678.901/0001-23`, `98.765.432/0001-10` e `33.444.555/0001-66`; o próprio validador do admin os recusa). Ao semear o servidor com os exemplos, a API vai recusá-los (422): é preciso corrigir os exemplos ou semear sem esses documentos.
+`apps/admin/src/lib/crmSync.ts` faz com pessoas, empresas e leads o mesmo que `workflowSync.ts` faz com funis e tarefas: as telas seguem lendo e escrevendo as stores em memória (`peopleStore`, `companiesStore`, `leadsStore`), e a camada carrega do servidor na abertura e grava as mudanças ~0,6 s depois.
+
+- **Modo `api` ou `local`:** o admin pergunta `GET /api/crm/people`. 200 → modo API (os avisos de "dados de exemplo" de Leads, Pessoas & Empresas e Clientes somem). 404 (`CRM_API` desligado) ou API fora → modo local, como antes.
+- **Servidor vazio:** os exemplos que a tela já mostra são criados no servidor uma única vez (pessoas, depois empresas, depois leads). Sem `DATA_KEY` na API, os CPFs de exemplo ficam de fora e um aviso explica.
+- **CPF:** a tela recebe e mostra o CPF **mascarado**. "Revelar" busca o completo (`GET .../document`) sem contar como edição. Editar qualquer outro campo reenvia o CPF inteiro e, depois de salvar, a tela volta a mostrar o mascarado (o CPF completo não fica na memória). **Limite:** a checagem de CPF repetido no navegador compara com CPFs mascarados, então não pega duplicado; quem barra é o servidor (409), e o admin avisa com a mensagem dele e volta ao que o servidor tem.
+- **CNPJ:** o servidor guarda só letras e números; a tela o mostra formatado.
+- **Recusas do servidor** (409/422): aviso na caixa de notificações com a mensagem do servidor e a tela volta ao estado dele. Outros erros: aviso de erro e as mudanças ficam na tela até a próxima tentativa.
+- **Tarefas** de leads, pessoas e empresas passam a sincronizar também (`POST /api/tasks` aceita `requirementId` nas tarefas de requisito, de forma idempotente: o gate de lead roda no front).
+- **Listas:** o admin baixa tudo (inclusive arquivados) em páginas de 500; por isso a API expõe `X-Total-Count` no CORS (`Access-Control-Expose-Headers`).
+
+**Verificado em 05/10** com a API real (`CRM_API=1`, `WORKFLOW_API=1`, `DATA_KEY` de teste) sobre MySQL em memória e o admin no navegador: semeadura (14 pessoas, 8 empresas, 9 leads, 6 CPFs cifrados), reveal sem gravação, editar com o CPF revelado (um `PUT`, CPF preservado, volta mascarado), CPF duplicado (aviso + volta ao servidor), editar lead e empresa, tarefa de lead sincronizada e tudo persistindo depois de recarregar.
+
+Os documentos fictícios que não fechavam os dígitos verificadores (CPF `905.112.660-79`; CNPJ `45.678.901/0001-23`, `98.765.432/0001-10`, `33.444.555/0001-66`) foram **trocados por valores válidos** em `apps/admin/src/mocks/people.ts`.
 
 ## Como testar
 
@@ -41,6 +53,6 @@ Vários documentos fictícios dos dados de exemplo **não fecham os dígitos ver
 
 ## O que falta
 
-1. O admin trocar `peopleStore`, `companiesStore` e `leadsStore` por estas rotas (como foi feito com funis e tarefas) e passar a sincronizar as tarefas de leads, pessoas e empresas.
+1. ~~O admin sincronizar pessoas, empresas e leads~~: feito (ver acima). Falta o histórico de mudanças (`logChange`), as tags de contato e os contatos por oportunidade, que ainda são locais.
 2. Autenticação: estas rotas, e principalmente a que revela o CPF, estão abertas (CORS `*`) até a fase de segurança.
 3. Deduplicação por e-mail e a lógica de ciclo de vida calculado (hoje o admin envia o `lifecycle`).

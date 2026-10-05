@@ -42,7 +42,9 @@ export function diffPipelines(snapshot: Map<string, string>, current: Pipeline[]
 
 /** Id de oportunidade real: a API o cria como número (nanossegundos). Exemplos do protótipo não são. */
 export const isRealOpportunityId = (id: string) => /^\d+$/.test(id);
-export const isSyncableTask = (t: TaskItem) => t.entity === 'opportunity' && isRealOpportunityId(t.entityId);
+/** Com o CRM na API (`crm`), tarefas de leads, pessoas e empresas também vão ao servidor: esses registros existem lá. */
+export const isSyncableTask = (t: TaskItem, crm = false) =>
+  (t.entity === 'opportunity' && isRealOpportunityId(t.entityId)) || (crm && (t.entity === 'lead' || t.entity === 'person' || t.entity === 'company'));
 
 export function taskProjection(t: TaskItem): string {
   return JSON.stringify([t.title, t.tag, t.assignee ?? null, t.dueAt ?? null, t.done]);
@@ -50,12 +52,24 @@ export function taskProjection(t: TaskItem): string {
 
 export type TaskChanges = { create: TaskItem[]; update: TaskItem[]; remove: string[] };
 
-export function diffTasks(snapshot: Map<string, string>, current: TaskItem[]): TaskChanges {
-  const mine = current.filter(isSyncableTask);
+export function diffTasks(snapshot: Map<string, string>, current: TaskItem[], crm = false): TaskChanges {
+  const mine = current.filter((t) => isSyncableTask(t, crm));
   const ids = new Set(mine.map((t) => t.id));
   return {
     create: mine.filter((t) => !snapshot.has(t.id)),
     update: mine.filter((t) => snapshot.has(t.id) && snapshot.get(t.id) !== taskProjection(t)),
     remove: [...snapshot.keys()].filter((id) => !ids.has(id)),
   };
+}
+
+/** Diff genérico por id (pessoas, empresas e leads): novos e alterados, comparando a projeção de cada um. */
+export function diffById<T extends { id: string }>(snapshot: Map<string, string>, current: T[], projection: (x: T) => string): { create: T[]; update: T[] } {
+  const create: T[] = [];
+  const update: T[] = [];
+  for (const x of current) {
+    const before = snapshot.get(x.id);
+    if (before === undefined) create.push(x);
+    else if (before !== projection(x)) update.push(x);
+  }
+  return { create, update };
 }

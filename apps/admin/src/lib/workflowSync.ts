@@ -2,6 +2,7 @@ import type { Pipeline, TaskItem } from '../domain';
 import { pipelinesStore } from '../mocks/pipelines.ts';
 import { tasksStore } from '../mocks/tasks.ts';
 import { API_URL } from './api.ts';
+import { crmModeStore } from './crmMode.ts';
 import { diffPipelines, diffTasks, isSyncableTask, normalizePipeline, pipelineProjection, taskProjection } from './workflowDiff.ts';
 import { pushAviso, pushErro, pushNotificacao } from './notify.ts';
 import { createStore, useStore } from './store.ts';
@@ -57,12 +58,13 @@ export async function reloadPipelines(): Promise<boolean> {
 /** Recarrega as tarefas de oportunidades do servidor (ex.: depois de o gate criar as dele). */
 export async function reloadTasks(): Promise<boolean> {
   if (syncModeStore.get() !== 'api') return false;
-  const res = await api('/api/tasks?entity=opportunity');
+  const crm = crmModeStore.get() === 'api';
+  const res = await api(crm ? '/api/tasks' : '/api/tasks?entity=opportunity');
   if (!res.ok) return false;
   const server = (await res.json()) as TaskItem[];
   taskSnap.clear();
   server.forEach((t) => taskSnap.set(t.id, taskProjection(t)));
-  withSilence(() => tasksStore.set((prev) => [...server, ...prev.filter((t) => !isSyncableTask(t))]));
+  withSilence(() => tasksStore.set((prev) => [...server, ...prev.filter((t) => !isSyncableTask(t, crm))]));
   return true;
 }
 
@@ -104,9 +106,9 @@ async function flushPipelines() {
 }
 
 async function flushTasks() {
-  const { create, update, remove } = diffTasks(taskSnap, tasksStore.get());
+  const { create, update, remove } = diffTasks(taskSnap, tasksStore.get(), crmModeStore.get() === 'api');
   for (const t of create) {
-    const res = await api('/api/tasks', { method: 'POST', body: JSON.stringify({ title: t.title, tag: t.tag, entity: t.entity, entityId: t.entityId, entityName: t.entityName, assignee: t.assignee, dueAt: t.dueAt, source: t.source === 'requisito' ? 'manual' : t.source }) });
+    const res = await api('/api/tasks', { method: 'POST', body: JSON.stringify({ title: t.title, tag: t.tag, entity: t.entity, entityId: t.entityId, entityName: t.entityName, assignee: t.assignee, dueAt: t.dueAt, source: t.source, requirementId: t.requirementId }) });
     if (!res.ok) { pushErro('Não consegui salvar a tarefa', await serverError(res)); continue; }
     const saved = (await res.json()) as TaskItem;
     taskSnap.set(saved.id, taskProjection(t));

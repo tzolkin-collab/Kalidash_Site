@@ -224,6 +224,29 @@ func TestIntegrationPipelineTaskGate(t *testing.T) {
 		t.Errorf("tarefa de requisito não pode ser apagada: %d", r.code)
 	}
 
+	// 5b. tarefa de requisito de um lead (o gate de lead roda no front): idempotente por requisito e registro
+	req := map[string]any{"title": "Informar CNPJ", "tag": "Dados", "entity": "lead", "entityId": "l1", "entityName": "Renata", "source": "requisito", "requirementId": "q4:r-cnpj"}
+	r1 := call(handleTasks, "POST", "/api/tasks", "", req)
+	r2 := call(handleTasks, "POST", "/api/tasks", "", req)
+	var t1, t2 TaskDTO
+	r1.into(t, &t1)
+	r2.into(t, &t2)
+	if r1.code != 201 || r2.code != 200 || t1.ID != t2.ID || t1.RequirementID == nil || *t1.RequirementID != "q4:r-cnpj" {
+		t.Errorf("tarefa de requisito de lead deveria ser idempotente: %d/%d %s/%s", r1.code, r2.code, t1.ID, t2.ID)
+	}
+	var nReq int
+	db.QueryRow(`SELECT COUNT(*) FROM Task WHERE entityKind = 'lead' AND entityId = 'l1'`).Scan(&nReq)
+	if nReq != 1 {
+		t.Errorf("não pode duplicar: %d", nReq)
+	}
+	req["source"] = "manual" // fora do requisito, o requirementId é ignorado
+	r3 := call(handleTasks, "POST", "/api/tasks", "", map[string]any{"title": "x", "entity": "lead", "entityId": "l1", "requirementId": "q4:r-cnpj"})
+	var t3 TaskDTO
+	r3.into(t, &t3)
+	if r3.code != 201 || t3.RequirementID != nil {
+		t.Errorf("tarefa manual não carrega requisito: %d %+v", r3.code, t3.RequirementID)
+	}
+
 	// 6. editar o funil: etapa com oportunidade não sai; vazia sai
 	p["stages"] = []map[string]any{
 		{"id": "q4:novos", "name": "Novos", "kind": "LEAD"},

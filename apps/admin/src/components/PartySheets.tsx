@@ -8,6 +8,7 @@ import { formatDate } from '../lib/format';
 import { logChange } from '../lib/history';
 import { useCan } from '../lib/permissions';
 import { newId, useStore } from '../lib/store';
+import { revealPersonDocument } from '../lib/crmSync';
 import { useAllOpportunities } from '../lib/useAllOpportunities';
 import { useViewSettings } from '../lib/viewSettings';
 import { leadsStore } from '../mocks/leads';
@@ -162,7 +163,7 @@ function PersonSheet({ personId, onOpen }: { personId: string; onOpen: (ref: Par
               format={formatCpf}
               validate={(v) => (isValidCpf(v) ? cpfTaken(v) : 'CPF inválido.')}
               canReveal={can.revealCpf}
-              onReveal={() => logChange({ entity: 'person', entityId: person.id, entityName: person.name, kind: 'reveal', field: 'CPF', note: 'CPF exibido inteiro na ficha' })}
+              onReveal={() => { void revealPersonDocument(person.id); logChange({ entity: 'person', entityId: person.id, entityName: person.name, kind: 'reveal', field: 'CPF', note: 'CPF exibido inteiro na ficha' }); }}
               onCommit={(v) => save({ document: v || undefined }, 'CPF', person.document ? 'CPF anterior' : '', v ? 'CPF novo' : '', 'cpf')}
             />
             <TextField label="Cargo" value={person.role ?? ''} onCommit={(v) => save({ role: v || undefined }, 'Cargo', person.role, v)} />

@@ -90,6 +90,8 @@ func enableCORS(next http.HandlerFunc) http.HandlerFunc {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		// sem isto o navegador não deixa o admin ler o total das listas (paginação do CRM)
+		w.Header().Set("Access-Control-Expose-Headers", "X-Total-Count")
 
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusOK)
