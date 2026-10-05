@@ -198,7 +198,7 @@ func loadPipelines(id string, includeArchived bool) ([]PipelineDTO, error) {
 	if !includeArchived && id == "" {
 		q += ` AND archivedAt IS NULL`
 	}
-	q += ` ORDER BY position, createdAt`
+	q += ` ORDER BY position, createdAt, id`
 	rows, err := db.Query(q, args...)
 	if err != nil {
 		return nil, err

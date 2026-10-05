@@ -5,6 +5,9 @@ import { API_URL } from '../lib/api';
 import { formatCurrency, formatDate, moneyToInput, parseMoney } from '../lib/format';
 import type { ColumnDef } from '../lib/columns';
 import ColumnPicker from './ColumnPicker';
+import { lostStageId, resolveStage, wonStageId } from '../lib/stages';
+import { useStore } from '../lib/store';
+import { pipelinesStore } from '../mocks/pipelines';
 
 type Tab = 'overview' | 'notes' | 'tasks' | 'emails';
 type Field = 'title' | 'value';
@@ -46,6 +49,11 @@ export default function OpportunityDetail({
   opp, variant, onClose, onChange, onMove, onSwitchMode, properties, hiddenColumns, editColumns, onHideColumn, onAddColumn, onToggleEditColumns,
 }: Props) {
   const [tab, setTab] = useState<Tab>('overview');
+  const [pipelines] = useStore(pipelinesStore);
+  // Ganho e perdido são etapas do funil da oportunidade (o valor antigo 'WON' só vale sem funil).
+  const { pipeline: oppPipeline } = resolveStage(opp, pipelines);
+  const wonId = wonStageId(oppPipeline) ?? 'WON';
+  const lostId = lostStageId(oppPipeline);
   const [notes, setNotes] = useState<Note[]>([]);
   const [newNote, setNewNote] = useState('');
   const [noteType, setNoteType] = useState('NOTE');
@@ -280,8 +288,8 @@ export default function OpportunityDetail({
       </div>
 
       <footer className="peek-footer">
-        <button type="button" className="btn-won" onClick={() => { onMove(opp.id, 'WON'); onClose(); }}>Marcar como ganho</button>
-        <button type="button" className="btn-lost" disabled title="Ainda não há etapa Perdida no funil">Marcar como perdido</button>
+        <button type="button" className="btn-won" onClick={() => { onMove(opp.id, wonId); onClose(); }}>Marcar como ganho</button>
+        <button type="button" className="btn-lost" disabled={!lostId} title={lostId ? undefined : 'Este funil não tem uma etapa Perdida'} onClick={() => { if (lostId) { onMove(opp.id, lostId); onClose(); } }}>Marcar como perdido</button>
       </footer>
     </div>
   );

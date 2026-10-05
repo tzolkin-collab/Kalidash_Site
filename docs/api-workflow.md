@@ -29,7 +29,9 @@ Ele apaga e recria as tabelas `Task`, `StageRequirement`, `PipelineStage`, `Pipe
 
 **Verificado em 06/10** com a API real rodando em `WORKFLOW_API=1` sobre um MySQL em memória (nunca no banco real): semear os funis, editar funil e criar tarefa com gravação automática, mover e ser barrado pelo gate (card reverte, aviso, tarefa de requisito criada), concluir a tarefa e mover com sucesso gravando `wonAt`.
 
-**Limite descoberto:** o Kanban e a ficha da oportunidade ainda usam colunas fixas antigas (`INBOUND`, `QUALIFICATION`, `WON`), não as etapas dos funis (`q4:assinatura` etc.). Por isso, hoje a tela só dispara o gate se um funil tiver etapas com esses ids antigos (foi assim que testei). Para o gate valer nas etapas reais, o Kanban precisa passar a usar `pipelineId`/`stageId` (passo 4 da migração em [plano-schema.md](./plano-schema.md) §8).
+**Kanban pelas etapas do funil (06/10):** o Kanban, o filtro de estágio, a coluna Estágio, os totais por etapa, o funil do Dashboard, "Marcar como ganho/perdido" e Clientes agora falam as etapas dos funis (`apps/admin/src/lib/stages.ts`). A coluna `Opportunity.stage` guarda ou o id de uma etapa (`q4:assinatura`) ou um valor antigo; a camada de resolução traduz o antigo: `WON`→etapa Ganha, `LOST`→Perdida, `QUALIFICATION`→"Qualificação" (ou a 1ª aberta), `INBOUND`→1ª etapa aberta. Nenhum dado do banco foi alterado. O Kanban mostra **um funil por vez** (o selecionado, ou o primeiro em "Visão Geral"); a ordem dos funis é a `position` (o admin a envia). Com isso o gate vale nas etapas reais: arrastar para "Assinatura do contrato" com a tarefa "Informar CNPJ" aberta é barrado pelo servidor, o card volta e o aviso aparece.
+
+**Verificado em 06/10** (API real sobre MySQL em memória, admin no navegador): colunas = etapas do funil; oportunidades com valores antigos e com ids de etapa nos lugares certos; gate barrando no drop; concluir a tarefa e arrastar de novo passa; arrastar para Ganho grava `wonAt`; Dashboard e lista mostram as etapas.
 
 ## Modelo
 
@@ -56,7 +58,7 @@ Ele apaga e recria as tabelas `Task`, `StageRequirement`, `PipelineStage`, `Pipe
 ## O que falta para as telas usarem isto
 
 1. ~~Trocar os dados de exemplo pelas rotas~~ e ~~tratar o 409 do `move`~~: feitos (ver acima).
-2. O Kanban e a ficha da oportunidade usarem as etapas dos funis (hoje colunas fixas antigas), e leads, pessoas e empresas ganharem API para suas tarefas também sincronizarem.
+2. ~~O Kanban e a ficha usarem as etapas dos funis~~: feito (ver acima). Falta leads, pessoas e empresas ganharem API para suas tarefas também sincronizarem, e o Kanban mostrar todos os funis de uma vez.
 3. Notificações geradas por tarefa (criada, atrasada, concluída) usando `pushNotificacao`.
 4. Autenticação: como o resto da API, estas rotas estão abertas (CORS `*`) até a fase de segurança.
 5. Tabelas próprias para `Source`, `CustomField` e `Automation` (hoje dentro do `config`).

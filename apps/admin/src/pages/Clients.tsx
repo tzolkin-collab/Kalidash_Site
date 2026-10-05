@@ -7,6 +7,8 @@ import { useStore } from '../lib/store';
 import { useAllOpportunities } from '../lib/useAllOpportunities';
 import { usePaged } from '../lib/usePaged';
 import { companiesOf, companiesStore, peopleStore } from '../mocks/people';
+import { pipelinesStore } from '../mocks/pipelines';
+import { resolveStage } from '../lib/stages';
 import NewPartyHost from '../components/NewPartyHost';
 import PartySheets from '../components/PartySheets';
 import type { PartyRef } from '../components/PartySheets';
@@ -44,7 +46,7 @@ export default function Clients() {
     const byId = new Map(people.map((p) => [p.id, p.name]));
     const stats = (name: string, kind: 'company' | 'person') => {
       const mine = opps.filter((o) => (kind === 'company' ? o.companyName === name : o.contactName === name && !o.companyName));
-      return { won: mine.filter((o) => o.stage === 'WON').reduce((a, o) => a + (o.value || 0), 0), opps: mine.length };
+      return { won: mine.filter((o) => resolveStage(o, pipelinesStore.get()).stage?.kind === 'WON').reduce((a, o) => a + (o.value || 0), 0), opps: mine.length };
     };
     const c: Row[] = companies.filter((x) => x.lifecycle === 'CLIENT' && !x.archivedAt).map((x) => ({ kind: 'company', id: x.id, name: x.name, sub: x.segment, document: x.document, inReview: !x.document, legacy: Boolean(x.legacyClient), contact: byId.get(x.defaultContactId ?? ''), since: x.firstWonAt ?? x.createdAt, ...stats(x.name, 'company') }));
     const p: Row[] = people.filter((x) => x.lifecycle === 'CLIENT' && !x.archivedAt && companiesOf(companies, x.id).length === 0).map((x) => ({ kind: 'person', id: x.id, name: x.name, sub: x.email, document: x.document, inReview: false, legacy: Boolean(x.legacyClient), since: x.firstWonAt ?? x.createdAt, ...stats(x.name, 'person') }));

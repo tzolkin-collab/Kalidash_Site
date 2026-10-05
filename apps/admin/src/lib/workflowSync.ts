@@ -82,9 +82,11 @@ function mergeComputed(local: Pipeline, saved: Pipeline): Pipeline {
 
 async function flushPipelines() {
   for (const { kind, pipeline } of diffPipelines(pipeSnap, pipelinesStore.get())) {
+    // A ordem da lista na tela é a ordem dos funis: vai junto como `position`.
+    const body = JSON.stringify({ ...pipeline, position: Math.max(0, pipelinesStore.get().findIndex((x) => x.id === pipeline.id)) });
     const res = kind === 'create'
-      ? await api('/api/pipelines', { method: 'POST', body: JSON.stringify(pipeline) })
-      : await api(`/api/pipelines/${encodeURIComponent(pipeline.id)}`, { method: 'PUT', body: JSON.stringify(pipeline) });
+      ? await api('/api/pipelines', { method: 'POST', body })
+      : await api(`/api/pipelines/${encodeURIComponent(pipeline.id)}`, { method: 'PUT', body });
     if (res.ok) {
       const saved = normalizePipeline((await res.json()) as Pipeline);
       pipeSnap.set(pipeline.id, pipelineProjection(pipeline)); // o que foi enviado, não o que voltou
@@ -145,8 +147,8 @@ export async function initWorkflowSync(): Promise<SyncMode> {
     if (list.length === 0) {
       // Servidor vazio: sobe os funis de exemplo que a tela já mostra, uma única vez.
       const seed = pipelinesStore.get();
-      for (const p of seed) {
-        const r = await api('/api/pipelines', { method: 'POST', body: JSON.stringify(p) });
+      for (const [position, p] of seed.entries()) {
+        const r = await api('/api/pipelines', { method: 'POST', body: JSON.stringify({ ...p, position }) });
         if (!r.ok) { pushErro('Não consegui criar os funis de exemplo', await serverError(r)); break; }
       }
       await reloadPipelines();

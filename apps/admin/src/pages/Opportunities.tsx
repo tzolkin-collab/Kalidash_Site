@@ -16,6 +16,8 @@ import { useStore } from '../lib/store';
 import { leadsStore } from '../mocks/leads';
 import { pipelinesStore } from '../mocks/pipelines';
 import { stageInfo } from '../lib/salesMetrics';
+import { activePipelines, firstOpenStageId, kanbanStages, resolveStage } from '../lib/stages';
+import type { Stage, StageKind } from '../domain';
 import { avisoForLabels, pushAviso, pushErro } from '../lib/notify';
 import { reloadPipelines, reloadTasks } from '../lib/workflowSync';
 import ColumnPicker from '../components/ColumnPicker';
@@ -26,18 +28,20 @@ import { Badge, EmptyState, Pagination, SearchBox } from '../components/ui';
 
 const ALL = 'Visão Geral';
 
-const KANBAN_COLUMNS = [
-  { id: 'INBOUND', title: 'Entrada', hint: 'Aguardando contato', Icon: CircleDashed, color: 'var(--pipe-triage)' },
-  { id: 'QUALIFICATION', title: 'Qualificação', hint: 'Avançando', Icon: CircleDot, color: 'var(--pipe-progress)' },
-  { id: 'WON', title: 'Ganho', hint: 'Contratos assinados', Icon: CheckCircle2, color: 'var(--pipe-won)' },
-];
+// Colunas do Kanban = etapas do funil selecionado (as de lead têm o próprio quadro).
+const KIND_ICON: Record<StageKind, typeof CircleDot> = { LEAD: CircleDashed, OPEN: CircleDot, WON: CheckCircle2, LOST: X };
+const KIND_HINT: Record<StageKind, string> = { LEAD: 'Lead', OPEN: 'Em andamento', WON: 'Contratos assinados', LOST: 'Não avançou' };
+type KanbanColumn = { id: string; title: string; hint: string; Icon: typeof CircleDot; color: string };
+const columnFor = (s: Stage): KanbanColumn => ({
+  id: s.id, title: s.name, Icon: KIND_ICON[s.kind], color: s.color,
+  hint: s.kind === 'OPEN' && s.probability != null ? `${s.probability}% de chance` : KIND_HINT[s.kind],
+});
 
 const LEAD_COLUMNS = [
   { key: 'novos', title: 'Novos', hint: 'Ainda sem contato' },
   { key: 'contato', title: 'Em contato', hint: 'Sendo qualificados' },
 ];
 
-const STAGE_FILTERS = [{ id: '', label: 'Todos os estágios' }, ...KANBAN_COLUMNS.map((c) => ({ id: c.id, label: c.title }))];
 
 /** Lead exibido como uma linha da lista, ao lado das oportunidades. */
 const leadAsRow = (l: Lead, stageName: string): Opportunity => ({
@@ -50,7 +54,8 @@ export default function Opportunities() {
   const { opportunities, setOpportunities, loading, error } = useOpportunities();
   const [pipelines] = useStore(pipelinesStore);
   const [leads] = useStore(leadsStore);
-  const defaultPipeline = pipelines[0]?.name ?? '';
+  const defaultPipeline = activePipelines(pipelines)[0]?.name ?? '';
+  const stageOf = (o: Opportunity) => resolveStage(o, pipelines);
 
   const [viewMode, setViewMode] = useState<'kanban' | 'table'>('table');
   const [selectedContext, setSelectedContext] = useState(ALL);
@@ -60,6 +65,14 @@ export default function Opportunities() {
   const [showLeads, setShowLeads] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [stageFilter, setStageFilter] = useState('');
+
+  // O Kanban mostra um funil por vez: o selecionado, ou o primeiro quando está em "Visão Geral".
+  const activePipeline = useMemo(
+    () => (selectedContext === ALL ? activePipelines(pipelines)[0] : pipelines.find((p) => p.name === selectedContext)),
+    [pipelines, selectedContext],
+  );
+  const kanbanColumns = useMemo(() => kanbanStages(activePipeline).map(columnFor), [activePipeline]);
+  const stageFilters = useMemo(() => [{ id: '', label: 'Todos os estágios' }, ...kanbanColumns.map((c) => ({ id: c.id, label: c.title }))], [kanbanColumns]);
 
   const { settings, update: updateSettings, reset: resetSettings } = useViewSettings();
   const [editColumns, setEditColumns] = useState(false);
@@ -118,7 +131,7 @@ export default function Opportunities() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        title: 'Nova Oportunidade', value: 1500, stage: 'INBOUND', tags: ['Novo'],
+        title: 'Nova Oportunidade', value: 1500, stage: firstOpenStageId(activePipeline) ?? 'INBOUND', tags: ['Novo'],
         pipeline: selectedContext === ALL ? defaultPipeline : selectedContext,
       }),
     })
@@ -146,17 +159,17 @@ export default function Opportunities() {
     [selectedContext, defaultPipeline],
   );
 
-  const contextOpportunities = useMemo(() => opportunities.filter((o) => inContext(o.pipeline)), [opportunities, inContext]);
+  const contextOpportunities = useMemo(() => opportunities.filter((o) => inContext(resolveStage(o, pipelines).pipeline?.name)), [opportunities, inContext, pipelines]);
 
   // Busca e filtro valem para a Lista
   const visibleOpportunities = useMemo(() => {
     const q = search.trim().toLowerCase();
     return contextOpportunities.filter((o) => {
-      if (stageFilter && o.stage !== stageFilter) return false;
+      if (stageFilter && resolveStage(o, pipelines).stage?.id !== stageFilter) return false;
       if (!q) return true;
       return [o.title, o.contactName, o.companyName, ...(o.tags ?? [])].some((v) => v?.toLowerCase().includes(q));
     });
-  }, [contextOpportunities, search, stageFilter]);
+  }, [contextOpportunities, search, stageFilter, pipelines]);
 
   const contextLeads = useMemo(
     () => leads.filter((l) => l.status === 'ACTIVE' && inContext(pipelines.find((p) => p.id === l.pipelineId)?.name)),
@@ -175,7 +188,7 @@ export default function Opportunities() {
   const paged = usePaged(tableRows, 20);
 
   const totalValue = (stageId: string) =>
-    contextOpportunities.filter((o) => o.stage === stageId).reduce((acc, curr) => acc + (curr.value || 0), 0);
+    contextOpportunities.filter((o) => stageOf(o).stage?.id === stageId).reduce((acc, curr) => acc + (curr.value || 0), 0);
 
   const allColumns = useMemo(() => [...SYSTEM_COLUMNS, ...customColumnsFrom(opportunities)], [opportunities]);
   const visibleColumns = useMemo(() => resolveColumns(allColumns, settings.columns), [allColumns, settings.columns]);
@@ -239,8 +252,8 @@ export default function Opportunities() {
     </div>
   );
 
-  const stageColumn = (col: (typeof KANBAN_COLUMNS)[number]) => {
-    const items = contextOpportunities.filter((o) => o.stage === col.id);
+  const stageColumn = (col: KanbanColumn) => {
+    const items = contextOpportunities.filter((o) => stageOf(o).stage?.id === col.id && stageOf(o).pipeline?.id === activePipeline?.id);
     return (
       <div key={col.id} className="column" onDragOver={handleDragOver} onDrop={(e) => handleDrop(e, col.id)}>
         <div className="column-header" style={{ '--pipe-color': col.color } as React.CSSProperties}>
@@ -274,7 +287,7 @@ export default function Opportunities() {
             <div className="click-catcher" onClick={() => setFilterOpen(false)} />
             <div className="colpicker-menu filter-menu" role="menu">
               <div className="colpicker-group">Estágio</div>
-              {STAGE_FILTERS.map((s) => (
+              {stageFilters.map((s) => (
                 <button key={s.id} type="button" role="menuitemradio" aria-checked={stageFilter === s.id} className="colpicker-item filter-item" onClick={() => { setStageFilter(s.id); setFilterOpen(false); }}>
                   {s.label}
                   {stageFilter === s.id && <Check size={14} />}
@@ -415,7 +428,7 @@ export default function Opportunities() {
                 </div>
               );
             })}
-            {KANBAN_COLUMNS.map(stageColumn)}
+            {kanbanColumns.map(stageColumn)}
           </div>
         </div>
       ) : (

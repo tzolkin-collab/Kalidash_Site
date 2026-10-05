@@ -161,7 +161,7 @@ export function qualifyLead(lead: Lead, extra: { value?: number; owner?: string 
   const firstOpen = pipe?.stages.find((s) => s.kind === 'OPEN');
 
   const opp: Opportunity = {
-    id: newId('opp'), title: lead.name, value, stage: 'QUALIFICATION', priority: 'MEDIUM', tags: lead.tags, pipeline: pipe?.name,
+    id: newId('opp'), title: lead.name, value, stage: firstOpen?.id ?? 'QUALIFICATION', priority: 'MEDIUM', tags: lead.tags, pipeline: pipe?.name,
     created_at: new Date().toISOString(), isSample: true, origin: lead.origin, leadId: lead.id,
     contactName: person?.name ?? lead.name, companyName: company?.name, ownerName: owner, customData: lead.customData,
   };

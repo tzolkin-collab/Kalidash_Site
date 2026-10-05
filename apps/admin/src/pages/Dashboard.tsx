@@ -6,6 +6,7 @@ import { useShell } from '../lib/shell';
 import { useStore } from '../lib/store';
 import { pipelinesStore } from '../mocks/pipelines';
 import { PERIODS, salesMetrics, stageInfo, toCents } from '../lib/salesMetrics';
+import { activePipelines, kanbanStages, resolveStage } from '../lib/stages';
 import type { Period } from '../lib/salesMetrics';
 import { StageBadge } from '../components/cells';
 import { EmptyState, Page, PageHeader, StatCard } from '../components/ui';
@@ -16,11 +17,6 @@ const AnalyticsChartGallery = lazy(() => import('../components/dashboard/Analyti
 // médio seguem o período escolhido (data de ganho). Contas em lib/salesMetrics.ts, em centavos.
 // Leads, tarefas e origem entram quando as fases 3 e 4 do plano chegarem.
 
-const STAGES = [
-  { id: 'INBOUND', label: 'Entrada', color: 'var(--pipe-triage)' },
-  { id: 'QUALIFICATION', label: 'Qualificação', color: 'var(--pipe-progress)' },
-  { id: 'WON', label: 'Ganho', color: 'var(--pipe-won)' },
-];
 
 const percent = (n: number) => `${(n * 100).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%`;
 
@@ -33,6 +29,7 @@ export default function Dashboard() {
 
   const stats = useMemo(() => {
     const m = salesMetrics(opportunities, pipelines, period);
+    const funnelPipeline = activePipelines(pipelines)[0];
     const isKind = (stage: string, kind: string) => stageInfo(stage, pipelines)?.kind === kind;
     const sumCents = (list: typeof opportunities) => list.reduce((acc, o) => acc + toCents(o.value), 0);
     const won = opportunities.filter((o) => isKind(o.stage, 'WON'));
@@ -41,9 +38,10 @@ export default function Dashboard() {
       ...m,
       total: opportunities.length,
       conversion: opportunities.length ? won.length / opportunities.length : 0,
-      byStage: STAGES.map((s) => {
-        const items = opportunities.filter((o) => o.stage === s.id);
-        return { ...s, count: items.length, value: sumCents(items) / 100 };
+      // Funil do primeiro funil ativo; leads e perdidas ficam de fora, como nos totais de valor.
+      byStage: kanbanStages(funnelPipeline).filter((s) => s.kind !== 'LOST').map((s) => {
+        const items = opportunities.filter((o) => { const r = resolveStage(o, pipelines); return r.pipeline?.id === funnelPipeline?.id && r.stage?.id === s.id; });
+        return { id: s.id, label: s.name, color: s.color, count: items.length, value: sumCents(items) / 100 };
       }),
       biggest: [...open].sort((a, b) => (b.value || 0) - (a.value || 0)).slice(0, 5),
     };
@@ -121,7 +119,7 @@ export default function Dashboard() {
                       <span className="cell-primary">{o.title}</span>
                       <span className="text-xs text-muted">{o.companyName || o.contactName || 'Sem contato'}</span>
                     </span>
-                    <StageBadge stage={o.stage} />
+                    <StageBadge stage={o.stage} opp={o} />
                     <span className="font-semibold">{formatCurrency(o.value)}</span>
                   </button>
                 </li>

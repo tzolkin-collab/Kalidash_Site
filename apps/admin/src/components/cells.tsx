@@ -1,5 +1,9 @@
-import { Building2, CheckCircle2, CircleDashed, CircleDot, User } from 'lucide-react';
+import { Building2, CheckCircle2, CircleDashed, CircleDot, XCircle, User } from 'lucide-react';
+import type { StageKind } from '../domain';
 import type { Opportunity } from '../types';
+import { resolveStage } from '../lib/stages';
+import { useStore } from '../lib/store';
+import { pipelinesStore } from '../mocks/pipelines';
 
 const STAGES: Record<string, { label: string; color: string; Icon: typeof CircleDot }> = {
   INBOUND: { label: 'Entrada', color: 'var(--pipe-triage)', Icon: CircleDashed },
@@ -7,7 +11,20 @@ const STAGES: Record<string, { label: string; color: string; Icon: typeof Circle
   WON: { label: 'Ganho', color: 'var(--pipe-won)', Icon: CheckCircle2 },
 };
 
-export function StageBadge({ stage }: { stage: string }) {
+const KIND_ICON: Record<StageKind, typeof CircleDot> = { LEAD: CircleDashed, OPEN: CircleDot, WON: CheckCircle2, LOST: XCircle };
+
+/** Passe `opp` para resolver pelo funil da oportunidade (id de etapa ou valor antigo). */
+export function StageBadge({ stage, opp }: { stage: string; opp?: Pick<Opportunity, 'stage' | 'pipeline'> }) {
+  const [pipelines] = useStore(pipelinesStore);
+  const real = resolveStage(opp ?? { stage }, pipelines).stage;
+  if (real) {
+    const Icon = KIND_ICON[real.kind];
+    return (
+      <span className="tag" style={{ color: real.color, borderColor: real.color, background: 'transparent', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        <Icon size={12} /> {real.name}
+      </span>
+    );
+  }
   const known = STAGES[stage];
   if (!known) return <span className="tag">{stage || '—'}</span>; // etapa que a tela ainda não conhece
   const { label, color, Icon } = known;
