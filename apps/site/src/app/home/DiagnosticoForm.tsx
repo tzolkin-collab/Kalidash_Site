@@ -10,8 +10,9 @@ type Status = "idle" | "sending" | "sent" | "error" | "unconfigured";
 const emailOk = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
 /* Formulário do Diagnóstico. O visual é o do design; o envio vai para config.leadEndpoint
- * (PENDENTE: ainda não existe rota pública de captura de lead na API). Sem endpoint, ele valida
- * e avisa honestamente que o envio não está conectado — nunca finge que enviou. */
+ * (POST /api/public/leads da API Go: cria contato + oportunidade INBOUND + nota). Sem endpoint, ele
+ * valida e avisa honestamente que o envio não está conectado — nunca finge que enviou.
+ * O campo "website" é um honeypot: invisível para pessoas, robôs preenchem e a API descarta. */
 export default function DiagnosticoForm() {
   const [status, setStatus] = useState<Status>("idle");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -26,6 +27,7 @@ export default function DiagnosticoForm() {
       phone: String(form.get("phone") ?? "").trim(),
       challenge: String(form.get("challenge") ?? "").trim(),
       source: "site-home-diagnostico",
+      website: String(form.get("website") ?? ""),
     };
     const next: Record<string, string> = {};
     if (data.name.split(/\s+/).filter(Boolean).length < 2) next.name = "Informe nome e sobrenome.";
@@ -74,6 +76,12 @@ export default function DiagnosticoForm() {
         <span className={styles.srOnly}>{f.challenge}</span>
         <textarea name="challenge" placeholder={f.challenge} rows={4} />
       </label>
+      <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 1, height: 1, overflow: "hidden" }}>
+        <label>
+          Não preencha este campo
+          <input name="website" tabIndex={-1} autoComplete="off" />
+        </label>
+      </div>
       <button type="submit" disabled={status === "sending"}>
         {status === "sending" ? "Enviando…" : f.submit}
       </button>

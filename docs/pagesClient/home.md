@@ -33,7 +33,7 @@ Contrato de atributos (`data-block="home-…"`) em [blog-design-contrato.md](../
 
 Campos: nome e sobrenome, e-mail corporativo, WhatsApp com DDD e o maior desafio com dados. Valida no navegador e envia (`POST` JSON, com `source: "site-home-diagnostico"`) para `NEXT_PUBLIC_LEAD_ENDPOINT`.
 
-> **PENDENTE:** a API ainda **não tem rota pública de captura de lead** (só o CRUD de oportunidades do admin). Sem o endpoint, o formulário valida e mostra "o envio ainda não está conectado" — ele nunca finge que enviou. A rota entra com o `connect.js` / entrada de leads (ver [inbound-leads.md](../inbound-leads.md)).
+> **Captura (02/10):** a API tem `POST /api/public/leads` (`apps/api/public_leads.go`): valida, limita 5 envios/min por IP, confere a origem (`ALLOWED_ORIGINS`/`SITE_URL`), descarta robôs pelo campo-isca `website` e grava **Contato + Oportunidade na coluna INBOUND + Nota** numa transação (reaproveita o contato pelo e-mail). Para ligar: definir `NEXT_PUBLIC_LEAD_ENDPOINT` no site e `ALLOWED_ORIGINS` na API. Recorte do contrato completo de [inbound-leads.md](../inbound-leads.md) (tokens por fonte, pipelines e `connect.js` entram com a fase de segurança).
 
 ## Pendências de conteúdo (precisam da Carol)
 
@@ -46,7 +46,7 @@ Campos: nome e sobrenome, e-mail corporativo, WhatsApp com DDD e o maior desafio
 
 ## Pendências técnicas
 
-- [ ] **Formulário do diagnóstico:** ligar ao endpoint (`NEXT_PUBLIC_LEAD_ENDPOINT`) quando existir a rota pública de captura de lead (Entrega 4 / `connect.js`).
+- [ ] **Formulário do diagnóstico:** rota pronta; falta definir `NEXT_PUBLIC_LEAD_ENDPOINT` (site) e `ALLOWED_ORIGINS` (API) nos ambientes e testar um envio real.
 - [x] SEO base: `sitemap.xml`, `robots.txt`, Open Graph e dados estruturados da organização.
 - [x] Conferência de fidelidade desktop e revisão do celular (390 px, sem estouro horizontal).
 - Lint: 2 erros **preexistentes** em `components/MobileMenu.tsx` e no splash (arquivos de outra sessão, fora da Home).

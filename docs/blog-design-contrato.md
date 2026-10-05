@@ -102,7 +102,8 @@ Ao salvar/excluir um artigo, a API avisa o site (`POST /api/revalidate`, com
 | site | `REVALIDATE_SECRET` | segredo do `/api/revalidate` |
 | api | `SITE_URL`, `REVALIDATE_SECRET` | para onde e com que segredo avisar |
 | admin | `VITE_SITE_URL` | URL do site para o iframe (padrão `http://localhost:3000`) |
-| site | `NEXT_PUBLIC_LEAD_ENDPOINT` | **PENDENTE:** para onde o formulário da Home envia o lead (sem isto o formulário valida e avisa que o envio não está conectado) |
+| site | `NEXT_PUBLIC_LEAD_ENDPOINT` | URL pública de `POST /api/public/leads` na API (sem isto o formulário valida e avisa que o envio não está conectado) |
+| api | `ALLOWED_ORIGINS` | origens que podem chamar a captura pública de lead (aceita `https://*.vercel.app`); `SITE_URL` também conta |
 | site | `NEXT_PUBLIC_WHATSAPP_URL` | link do WhatsApp (botão flutuante); vazio = o botão leva ao formulário |
 
 ## Checagem rápida depois de mexer no CSS

@@ -63,5 +63,5 @@ Os valores, CNPJs e endereços ficam só no documento (pasta `Carol/`, ao lado d
 ## Próximos passos
 1. Commitar e dar push da Home e dos docs (hoje só local), e publicar o ambiente de visualização para a aprovação da Entrega 1.
 2. Pedir à Carol os conteúdos pendentes da Home (WhatsApp, redes, cases, frentes do carrossel, autorizações).
-3. Rota pública de captura de lead (base do `connect.js`) para ligar o formulário.
+3. ~~Rota pública de captura de lead~~ feita em 02/10 (`apps/api/public_leads.go`); falta definir `NEXT_PUBLIC_LEAD_ENDPOINT` e `ALLOWED_ORIGINS` nos ambientes e testar um envio real.
 4. Fase de segurança: sanitização, login, perfis, CORS restrito, banco fora da exposição pública.
