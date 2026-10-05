@@ -89,3 +89,76 @@ model Contact {
   
   opportunities Opportunity[]
 }
+
+// ==========================================
+// FUNIS, REQUISITOS E TAREFAS (WORKFLOW_API=1 na API Go cria estas tabelas sozinha;
+// ver docs/api-workflow.md). Recorte do plano-schema.md §2 e §6.
+// ==========================================
+
+model Pipeline {
+  id         String   @id @db.VarChar(64)
+  name       String   @db.VarChar(160)
+  offer      String   @default("") @db.VarChar(160)
+  position   Int      @default(0)
+  config     Json?    // fontes, campos personalizados, tags de tarefa, passos: ainda sem tabela própria
+  archivedAt DateTime?
+  createdAt  DateTime
+  updatedAt  DateTime
+
+  stages       PipelineStage[]
+  requirements StageRequirement[]
+}
+
+model PipelineStage {
+  id          String @id @db.VarChar(128)
+  pipelineId  String @db.VarChar(64)
+  pipeline    Pipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  name        String @db.VarChar(120)
+  kind        String @db.VarChar(8) // LEAD | OPEN | WON | LOST
+  position    Int
+  color       String @default("") @db.VarChar(16)
+  probability Int?
+  alertDays   Int?
+
+  @@index([pipelineId, position])
+}
+
+model StageRequirement {
+  id                 String @id @db.VarChar(128)
+  pipelineId         String @db.VarChar(64)
+  pipeline           Pipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  stageId            String @db.VarChar(128)
+  label              String @db.VarChar(200)
+  tag                String @default("") @db.VarChar(80)
+  kind               String @db.VarChar(8) // FIELD | ACTION
+  gate               String @default("NONE") @db.VarChar(8) // NONE | ENTER | EXIT
+  assignee           String? @db.VarChar(120)
+  dueDays            Int?
+  notifyAssignee     Boolean @default(false)
+  linkedAutomationId String? @db.VarChar(64)
+  position           Int @default(0)
+
+  @@index([pipelineId, stageId, position])
+}
+
+model Task {
+  id            String @id @db.VarChar(64)
+  title         String @db.VarChar(255)
+  tag           String @default("") @db.VarChar(80)
+  source        String @db.VarChar(12) // manual | passo | requisito
+  entityKind    String @db.VarChar(16) // lead | person | company | opportunity | pipeline
+  entityId      String @db.VarChar(64)
+  entityName    String @default("") @db.VarChar(255)
+  pipelineId    String? @db.VarChar(64)
+  requirementId String? @db.VarChar(128)
+  assignee      String? @db.VarChar(120)
+  dueAt         DateTime?
+  done          Boolean @default(false)
+  doneAt        DateTime?
+  createdAt     DateTime
+
+  // uma tarefa por requisito e registro: o gate cria a faltante sem duplicar
+  @@unique([requirementId, entityKind, entityId])
+  @@index([entityKind, entityId])
+  @@index([pipelineId, done, dueAt])
+}

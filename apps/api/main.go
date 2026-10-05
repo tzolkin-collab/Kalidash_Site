@@ -75,6 +75,9 @@ func initDB() {
 	fmt.Println("✅ Banco de Dados conectado (MySQL) via DSN!")
 
 	ensureOpportunitySchema()
+	if workflowEnabled() {
+		ensureWorkflowSchema()
+	}
 	ensureBlogSchema()
 	initStorage()
 }
@@ -231,6 +234,18 @@ func handleMoveOpportunity(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
+	}
+
+	if workflowEnabled() {
+		blockers, err := gateForMove(payload.ID, payload.Stage)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if len(blockers) > 0 {
+			writeJSON(w, http.StatusConflict, map[string]any{"error": "gate", "blockers": blockers})
+			return
+		}
 	}
 
 	// wonAt: data do ganho (nula ao sair de Ganho); mantém a original se já estava ganha.
@@ -416,6 +431,10 @@ func main() {
 	mux.HandleFunc("/api/blog/upload", enableCORS(handleBlogUpload))
 	mux.HandleFunc("/api/blog/settings", enableCORS(handleBlogSettings))
 	mux.HandleFunc("/api/public/leads", handlePublicLead) // pública: CORS e limites próprios (public_leads.go)
+
+	if workflowEnabled() {
+		registerWorkflowRoutes(mux)
+	}
 
 	port := os.Getenv("PORT")
 	if port == "" {
