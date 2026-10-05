@@ -7,7 +7,7 @@
 Variáveis da API: `CRM_API=1` e `DATA_KEY` (ver `apps/api/.env.example`). Na subida a API:
 
 - acrescenta colunas às tabelas **`Contact`** (pessoa) e **`Company`**, que já existem: só `ADD COLUMN` e índice único, nada é alterado nem apagado, e as linhas antigas continuam valendo (ficam com ciclo de vida `LEAD` e sem data de criação);
-- cria **`CompanyStakeholder`** e **`Lead`**.
+- cria **`CompanyStakeholder`**, **`Lead`** e **`ChangeLog`** (o histórico de mudanças).
 
 Sem `CRM_API` a API não toca no banco nem expõe as rotas. **Faça backup antes de ligar** (o banco real é compartilhado). Sem `DATA_KEY` as rotas funcionam, mas qualquer CPF novo é recusado (422) com uma mensagem clara.
 
@@ -22,6 +22,7 @@ Sem `CRM_API` a API não toca no banco nem expõe as rotas. **Faça backup antes
 | `GET` · `PUT` · `DELETE /api/crm/companies/{id}` | O `PUT` substitui também os **stakeholders**. |
 | `GET` · `POST /api/crm/leads` | Filtros `pipelineId`, `stageId`, `status`, `personId`, `companyId`, `q`, `archived`. |
 | `GET` · `PUT` · `DELETE /api/crm/leads/{id}` | Mover de etapa, marcar como visto, qualificar (`status: QUALIFIED` + `convertedOpportunityId`) e descartar passam pelo `PUT`. |
+| `GET` · `POST /api/crm/history` | Histórico de mudanças (ver abaixo). **Não existe `PUT` nem `DELETE`.** |
 
 ## Regras
 
@@ -30,6 +31,20 @@ Sem `CRM_API` a API não toca no banco nem expõe as rotas. **Faça backup antes
 - **Lead** exige nome, ao menos um contato (e-mail ou telefone), funil, etapa, origem (`INBOUND` ou `OUTBOUND`) e uma **fonte ou quem trouxe** (`sourceName`), como em [dominio.md](./dominio.md) §4.
 - Tudo o que o admin guarda e a tabela não tem coluna própria (`extraEmails`, `extraPhones`, `customData`) vai num JSON `extra`.
 - `LEAD` é palavra reservada no MySQL 8 (função de janela): a tabela é sempre citada com crases. O teste de integração pegou isso.
+
+## Histórico de mudanças (`ChangeLog`)
+
+Quem, quando, em qual registro e o que mudou (antes e depois): a linha do tempo da ficha e a tela de Auditoria. Espelha `ChangeEntry` de `apps/admin/src/lib/history.ts` (tipos de registro `lead`, `person`, `company`, `opportunity`, `pipeline`; tipos de mudança `create`, `edit`, `archive`, `restore`, `reveal`, `lifecycle`, `event`, `qualify`, `discard`).
+
+- **Só-acréscimo:** a API não tem rota para alterar nem apagar uma entrada (`PUT`, `PATCH` e `DELETE` dão 405). É garantido pela aplicação, não pelo banco (qualquer um com acesso ao banco ainda pode mexer na tabela).
+- **`POST`** aceita uma entrada ou uma lista de até 100, valida **tudo antes de gravar** (lote com uma entrada inválida não grava nada) e é **idempotente**: o admin gera o id de cada entrada, então reenviar (retry) não duplica nem sobrescreve a original (`{"saved": n, "duplicates": m}`).
+- **Quando:** vale a hora que o admin informa se for plausível (de 7 dias atrás a 1 minuto no futuro); fora disso, a hora do servidor.
+- **`GET`:** filtros `entity`, `entityId`, `kind`, `q` (nome, autor, campo, nota), `since`, `until`, `limit` (máx. 500) e `offset`; mais recente primeiro; total em `X-Total-Count`.
+- **IP de origem:** guardado (para a Auditoria), mas **nenhuma rota o devolve** até haver login. Endereço IP é dado pessoal (LGPD): defina o prazo de retenção antes de produção.
+- **Quem:** é o nome que o admin informa. **Até existir login, não é confiável** (qualquer um que alcance a API pode escrever com qualquer nome). Limite de 240 envios por minuto por IP.
+- **CPF** nunca entra no histórico: editar ou revelar o CPF registra só "CPF anterior/novo" e "CPF exibido inteiro", nunca o número.
+
+No admin (`lib/historySync.ts`): com o CRM na API, as entradas novas vão ao servidor ~0,8 s depois; se a API estiver fora, ficam pendentes e são reenviadas sozinhas a cada 15 s (um aviso explica). A ficha carrega o histórico do registro quando abre, e a **Auditoria** (Configurações) passa a mostrar as 500 mais recentes, reais, em vez do exemplo. Sem o CRM na API, o histórico continua só na memória, como antes.
 
 ## Como o admin usa
 
@@ -53,6 +68,6 @@ Os documentos fictícios que não fechavam os dígitos verificadores (CPF `905.1
 
 ## O que falta
 
-1. ~~O admin sincronizar pessoas, empresas e leads~~: feito (ver acima). Falta o histórico de mudanças (`logChange`), as tags de contato e os contatos por oportunidade, que ainda são locais.
+1. ~~O admin sincronizar pessoas, empresas e leads~~: feito (ver acima). O histórico de mudanças também foi feito (ver acima). Faltam as tags de contato e os contatos por oportunidade, que ainda são locais.
 2. Autenticação: estas rotas, e principalmente a que revela o CPF, estão abertas (CORS `*`) até a fase de segurança.
 3. Deduplicação por e-mail e a lógica de ciclo de vida calculado (hoje o admin envia o `lifecycle`).

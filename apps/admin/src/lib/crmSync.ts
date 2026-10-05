@@ -4,6 +4,7 @@ import { companiesStore, peopleStore } from '../mocks/people.ts';
 import { API_URL } from './api.ts';
 import { crmModeStore } from './crmMode.ts';
 import { formatCnpj } from './documents.ts';
+import { startHistorySync } from './historySync.ts';
 import { pushAviso, pushErro, pushNotificacao } from './notify.ts';
 import type { Store } from './store.ts';
 import { diffById } from './workflowDiff.ts';
@@ -185,5 +186,6 @@ export async function initCrmSync(): Promise<void> {
   }
   crmModeStore.set('api');
   void reloadTasks(); // agora que o CRM está na API, as tarefas de leads, pessoas e empresas também
+  void startHistorySync(); // e o histórico de mudanças
   for (const s of specs) s.store.subscribe(schedule);
 }

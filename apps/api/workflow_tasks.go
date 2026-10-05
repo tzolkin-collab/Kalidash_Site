@@ -61,10 +61,12 @@ func validateTask(t *TaskDTO) error {
 	return nil
 }
 
-// parseDT lê DATETIME vindo como texto (o driver está sem parseTime, como no resto da API).
+// parseDT lê DATETIME vindo como texto (o driver está sem parseTime, como no resto da API). O driver
+// grava time.Time em UTC (DSN sem loc=), então a leitura também é em UTC; em local, uma máquina fora
+// do UTC deslocaria todas as datas.
 func parseDT(s string) time.Time {
 	for _, layout := range []string{"2006-01-02 15:04:05.999999", "2006-01-02 15:04:05"} {
-		if t, err := time.ParseInLocation(layout, s, time.Local); err == nil {
+		if t, err := time.ParseInLocation(layout, s, time.UTC); err == nil {
 			return t
 		}
 	}

@@ -1,9 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Mail, Plus, Trash2 } from 'lucide-react';
 import type { Role, TeamMember, Webhook } from '../domain';
 import { initials } from '../lib/people';
 import { newId, useStore } from '../lib/store';
 import { setPush, usePushPref } from '../lib/notify';
+import { useCrmMode } from '../lib/crmMode';
+import { historyStore } from '../lib/history';
+import { auditRowOf } from '../lib/historyText';
+import { loadRecentHistory } from '../lib/historySync';
 import { EVENTS } from '../mocks/automations';
 import { CURRENT_USER_ID, auditLog, teamStore, webhooksStore } from '../mocks/team';
 import { Badge, EmptyState, Field, Page, PageHeader, SampleBanner, SearchBox, SidePanel, Switch, Tabs } from '../components/ui';
@@ -22,11 +26,12 @@ const ROLE_MATRIX: { role: Role; sees: string; does: string }[] = [
 ];
 
 export default function Settings() {
+  const crmMode = useCrmMode();
   const [tab, setTab] = useState<Tab>('profile');
   return (
     <Page>
       <PageHeader title="Configurações" subtitle="Seu perfil, a equipe e os acessos, os webhooks de saída e o registro do que foi feito." />
-      <SampleBanner>Equipe, webhooks e auditoria ainda não têm API, e o login com Google entra na fase de segurança, que fica por último. Nada aqui é gravado.</SampleBanner>
+      <SampleBanner>Equipe e webhooks ainda não têm API, e o login com Google entra na fase de segurança, que fica por último. {crmMode === 'api' ? 'A Auditoria já mostra o histórico real de mudanças.' : 'A Auditoria só vira real quando o CRM está na API.'} O resto desta tela não é gravado.</SampleBanner>
       <Tabs
         tabs={[{ id: 'profile' as Tab, label: 'Meu perfil' }, { id: 'team' as Tab, label: 'Equipe e acessos' }, { id: 'notifications' as Tab, label: 'Notificações' }, { id: 'webhooks' as Tab, label: 'Webhooks' }, { id: 'audit' as Tab, label: 'Auditoria' }]}
         value={tab}
@@ -232,10 +237,15 @@ function WebhookPanel({ onClose, onSave }: { onClose: () => void; onSave: (h: We
 
 function AuditTab() {
   const [search, setSearch] = useState('');
+  const crmMode = useCrmMode();
+  const [history] = useStore(historyStore);
+  // Com o CRM na API a Auditoria é o histórico real de mudanças; sem ela, o exemplo.
+  const source = useMemo(() => (crmMode === 'api' ? history.map(auditRowOf) : auditLog), [crmMode, history]);
+  useEffect(() => { if (crmMode === 'api') void loadRecentHistory(); }, [crmMode]);
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return auditLog.filter((a) => !q || `${a.actor} ${a.action} ${a.target}`.toLowerCase().includes(q));
-  }, [search]);
+    return source.filter((a) => !q || `${a.actor} ${a.action} ${a.target}`.toLowerCase().includes(q));
+  }, [search, source]);
 
   return (
     <div className="settings-pane">

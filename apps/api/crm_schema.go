@@ -12,6 +12,7 @@ import (
 //   - acrescenta colunas às tabelas Contact (pessoa) e Company, que já existem. Só ADD COLUMN e
 //     índice único, nada é alterado nem apagado; linhas antigas continuam valendo;
 //   - cria CompanyStakeholder e Lead.
+// Também cria ChangeLog, o histórico de mudanças (só-acréscimo; crm_history.go).
 // Sem a variável a API não toca no banco nem expõe as rotas. Faça backup antes de ligar.
 
 func crmEnabled() bool { return os.Getenv("CRM_API") == "1" }
@@ -98,6 +99,23 @@ CREATE TABLE IF NOT EXISTS ` + leadTbl + ` (
 	INDEX idx_lead_person (personId),
 	INDEX idx_lead_company (companyId)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS ChangeLog (
+	id VARCHAR(64) PRIMARY KEY,
+	at DATETIME(3) NOT NULL,
+	actor VARCHAR(120) NOT NULL,
+	entity VARCHAR(16) NOT NULL,
+	entityId VARCHAR(64) NOT NULL,
+	entityName VARCHAR(255) NOT NULL DEFAULT '',
+	kind VARCHAR(12) NOT NULL,
+	field VARCHAR(120) NULL,
+	fromValue TEXT NULL,
+	toValue TEXT NULL,
+	note TEXT NULL,
+	ip VARCHAR(45) NULL,
+	INDEX idx_log_entity (entity, entityId, at),
+	INDEX idx_log_at (at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 `
 
 func columnExists(table, col string) (bool, error) {
@@ -159,4 +177,5 @@ func registerCRMRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/crm/companies/{id}", enableCORS(handleCompanyByID))
 	mux.HandleFunc("/api/crm/leads", enableCORS(handleCRMLeads))
 	mux.HandleFunc("/api/crm/leads/{id}", enableCORS(handleCRMLeadByID))
+	mux.HandleFunc("/api/crm/history", enableCORS(handleHistory))
 }

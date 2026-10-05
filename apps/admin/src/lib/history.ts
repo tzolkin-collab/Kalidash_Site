@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import type { ChangeEntry, EntityKind } from '../domain';
+import { useCrmMode } from './crmMode';
 import { CURRENT_USER_ID, teamStore } from '../mocks/team';
 import { createStore, newId, useStore } from './store';
 
@@ -23,7 +25,13 @@ export const show = (v: unknown): string => {
   return String(v);
 };
 
+/** Com o CRM na API, quem registra aqui como carregar o histórico de um registro (historySync.ts). */
+let loadRecord: (entity: EntityKind, id: string) => void = () => {};
+export const setHistoryLoader = (fn: (entity: EntityKind, id: string) => void) => { loadRecord = fn; };
+
 export function useHistory(entity: EntityKind, id: string): ChangeEntry[] {
   const [all] = useStore(historyStore);
+  const mode = useCrmMode();
+  useEffect(() => { loadRecord(entity, id); }, [entity, id, mode]);
   return all.filter((h) => h.entity === entity && h.entityId === id);
 }

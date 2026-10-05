@@ -197,8 +197,8 @@ func TestValidateLeadRecord(t *testing.T) {
 }
 
 func TestSchemaListasEFlag(t *testing.T) {
-	if got := len(splitStatements(crmTables)); got != 2 {
-		t.Errorf("esperava 2 CREATE TABLE, achei %d", got)
+	if got := len(splitStatements(crmTables)); got != 3 {
+		t.Errorf("esperava 3 CREATE TABLE, achei %d", got)
 	}
 	t.Setenv("CRM_API", "")
 	if crmEnabled() {

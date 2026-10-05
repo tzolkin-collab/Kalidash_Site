@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
 import { Check, Circle } from 'lucide-react';
-import type { ChangeEntry, EntityKind } from '../domain';
+import type { EntityKind } from '../domain';
 import { emit } from '../lib/events';
 import type { EventContext } from '../lib/events';
 import { formatDate } from '../lib/format';
 import { currentActor, logChange, useHistory } from '../lib/history';
+import { describeChange } from '../lib/historyText';
 import { useStore } from '../lib/store';
 import { pipelinesStore } from '../mocks/pipelines';
 import { addTask, tasksStore } from '../mocks/tasks';
@@ -14,27 +15,13 @@ import { CustomSelect } from '../components/ui';
 
 const when = (iso: string) => new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 
-function describe(h: ChangeEntry): { title: string; detail?: string } {
-  switch (h.kind) {
-    case 'create': return { title: 'Cadastro criado', detail: h.note };
-    case 'edit': return { title: `${h.field} alterado`, detail: `${h.from} → ${h.to}` };
-    case 'lifecycle': return { title: 'Ciclo de vida mudou', detail: `${h.from} → ${h.to}${h.note ? ` · ${h.note}` : ''}` };
-    case 'archive': return { title: 'Arquivado', detail: h.note };
-    case 'restore': return { title: 'Restaurado', detail: h.note };
-    case 'reveal': return { title: `${h.field ?? 'Dado sensível'} revelado`, detail: h.note };
-    case 'qualify': return { title: 'Qualificado', detail: h.note };
-    case 'discard': return { title: 'Descartado', detail: h.note };
-    default: return { title: 'Evento', detail: h.note };
-  }
-}
-
 /** Linha do tempo de tudo o que mudou no registro: quem, quando, antes e depois. */
 export function HistoryTab({ entity, id, createdAt }: { entity: EntityKind; id: string; createdAt: string }) {
   const entries = useHistory(entity, id);
   return (
     <div className="peek-tl">
       {entries.map((h) => {
-        const d = describe(h);
+        const d = describeChange(h);
         return (
           <div key={h.id} className="peek-tl-item">
             <div className="peek-tl-dot" data-type={h.kind === 'edit' ? 'NOTE' : h.kind === 'lifecycle' ? 'CALL' : 'EMAIL'} />

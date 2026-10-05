@@ -16,7 +16,7 @@ func crmDB(t *testing.T) {
 	t.Helper()
 	integrationDB(t) // abre `db` e exige localhost; também recria as tabelas do workflow
 	t.Setenv("DATA_KEY", testKey)
-	for _, tbl := range []string{leadTbl, "CompanyStakeholder", "Contact", "Company"} {
+	for _, tbl := range []string{leadTbl, "CompanyStakeholder", "Contact", "Company", "ChangeLog"} {
 		db.Exec("DROP TABLE IF EXISTS " + tbl)
 	}
 	// Tabelas como o Prisma as criou (antes das colunas novas).
