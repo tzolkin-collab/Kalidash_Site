@@ -15,6 +15,7 @@ import { useShell } from '../lib/shell';
 import { useStore } from '../lib/store';
 import { leadsStore } from '../mocks/leads';
 import { pipelinesStore } from '../mocks/pipelines';
+import { stageInfo } from '../lib/salesMetrics';
 import ColumnPicker from '../components/ColumnPicker';
 import OpportunityDetail from '../components/OpportunityDetail';
 import Peek from '../components/Peek';
@@ -62,12 +63,16 @@ export default function Opportunities() {
   const [editColumns, setEditColumns] = useState(false);
 
   const moveOpportunity = (oppId: string, stageId: string) => {
-    setOpportunities((prev) => prev.map((o) => (o.id === oppId ? { ...o, stage: stageId } : o)));
-    setSelectedOpp((prev) => (prev && prev.id === oppId ? { ...prev, stage: stageId } : prev));
+    // Ir para Ganho grava a data do fechamento (valor ganho por período); sair de Ganho limpa.
+    const won = stageInfo(stageId, pipelines)?.kind === 'WON';
+    const wonAt = won ? new Date().toISOString() : null;
+    const apply = (o: Opportunity): Opportunity => ({ ...o, stage: stageId, wonAt: won ? (o.wonAt ?? wonAt) : null });
+    setOpportunities((prev) => prev.map((o) => (o.id === oppId ? apply(o) : o)));
+    setSelectedOpp((prev) => (prev && prev.id === oppId ? apply(prev) : prev));
     fetch(`${API_URL}/api/leads/move`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lead_id: oppId, column_id: stageId }),
+      body: JSON.stringify({ lead_id: oppId, column_id: stageId, won }),
     }).catch((err) => console.error('Falha ao mover oportunidade:', err));
   };
 

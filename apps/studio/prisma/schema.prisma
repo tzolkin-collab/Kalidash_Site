@@ -13,7 +13,8 @@ datasource db {
 model Opportunity {
   id          String   @id @default(uuid())
   title       String   // Nome da oportunidade (ex: "Consultoria de Vendas")
-  value       Float?   // Valor monetário (ex: 5000.00)
+  value       Decimal? @db.Decimal(14, 2) // Valor em reais (ex: 5000.00); a API migra a coluna sozinha na subida
+  wonAt       DateTime? // Quando foi para Ganho (valor ganho por período); a API grava ao mover
   
   // Visual e Organização
   stage       String   @default("INBOUND") // INBOUND, QUALIFICATION, PROPOSAL, NEGOTIATION, WON, LOST

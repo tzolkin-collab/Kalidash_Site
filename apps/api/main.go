@@ -38,6 +38,7 @@ type Opportunity struct {
 	OwnerName     *string   `json:"ownerName,omitempty"`
 	OwnerAvatar   *string   `json:"ownerAvatar,omitempty"`
 	
+	WonAt         *time.Time `json:"wonAt"`
 	CreatedAt     time.Time `json:"created_at"`
 }
 
@@ -73,6 +74,7 @@ func initDB() {
 
 	fmt.Println("✅ Banco de Dados conectado (MySQL) via DSN!")
 
+	ensureOpportunitySchema()
 	ensureBlogSchema()
 	initStorage()
 }
@@ -97,7 +99,7 @@ func handleOpportunities(w http.ResponseWriter, r *http.Request) {
 		// JOIN com Company, Contact e User (Owner)
 		query := `
 			SELECT 
-				o.id, o.title, o.value, o.stage, o.priority, o.tags, o.createdAt,
+				o.id, o.title, o.value, o.stage, o.priority, o.tags, o.createdAt, o.wonAt,
 				o.companyId, c.name as companyName, c.logoUrl as companyLogo,
 				o.contactId, p.name as contactName, p.avatarUrl as contactAvatar,
 				o.ownerId, u.name as ownerName, u.avatarUrl as ownerAvatar
@@ -120,9 +122,10 @@ func handleOpportunities(w http.ResponseWriter, r *http.Request) {
 			var o Opportunity
 			var tagsJSON []byte
 			var createdAt string
+			var wonAt sql.NullString
 
 			if err := rows.Scan(
-				&o.ID, &o.Title, &o.Value, &o.Stage, &o.Priority, &tagsJSON, &createdAt,
+				&o.ID, &o.Title, &o.Value, &o.Stage, &o.Priority, &tagsJSON, &createdAt, &wonAt,
 				&o.CompanyID, &o.CompanyName, &o.CompanyLogo,
 				&o.ContactID, &o.ContactName, &o.ContactAvatar,
 				&o.OwnerID, &o.OwnerName, &o.OwnerAvatar,
@@ -137,6 +140,11 @@ func handleOpportunities(w http.ResponseWriter, r *http.Request) {
 			}
 			parsedTime, _ := time.Parse("2006-01-02 15:04:05.999", createdAt)
 			o.CreatedAt = parsedTime
+			if wonAt.Valid {
+				if t, err := time.Parse("2006-01-02 15:04:05.999", wonAt.String); err == nil {
+					o.WonAt = &t
+				}
+			}
 			
 			opps = append(opps, o)
 		}
@@ -155,6 +163,12 @@ func handleOpportunities(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		v, ok := normalizeMoney(newOpp.Value)
+		if !ok {
+			http.Error(w, "Valor inválido", http.StatusBadRequest)
+			return
+		}
+		newOpp.Value = v
 		newOpp.ID = fmt.Sprintf("%d", time.Now().UnixNano())
 		newOpp.CreatedAt = time.Now()
 
@@ -181,6 +195,12 @@ func handleOpportunities(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		
+		v, ok := normalizeMoney(opp.Value)
+		if !ok {
+			http.Error(w, "Valor inválido", http.StatusBadRequest)
+			return
+		}
+		opp.Value = v
 		updateQuery := `UPDATE Opportunity SET title = ?, value = ?, updatedAt = ? WHERE id = ?`
 		res, err := db.Exec(updateQuery, opp.Title, opp.Value, time.Now(), opp.ID)
 		if err != nil {
@@ -206,14 +226,17 @@ func handleMoveOpportunity(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
 		ID    string `json:"lead_id"` // mantido lead_id no payload pra compatibilidade rápida
 		Stage string `json:"column_id"`
+		Won   bool   `json:"won"` // o admin sabe que a etapa é do tipo Ganho; a API só vê o id
 	}
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	updateQuery := `UPDATE Opportunity SET stage = ? WHERE id = ?`
-	res, err := db.Exec(updateQuery, payload.Stage, payload.ID)
+	// wonAt: data do ganho (nula ao sair de Ganho); mantém a original se já estava ganha.
+	updateQuery := `UPDATE Opportunity SET stage = ?, wonAt = CASE WHEN ? IS NULL THEN NULL ELSE COALESCE(wonAt, ?) END WHERE id = ?`
+	won := wonAtFor(payload.Stage, payload.Won, time.Now())
+	res, err := db.Exec(updateQuery, payload.Stage, won, won, payload.ID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -1,14 +1,19 @@
-import { lazy, Suspense, useMemo } from 'react';
+import { lazy, Suspense, useMemo, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { formatCurrency } from '../lib/format';
 import { useOpportunities } from '../lib/useOpportunities';
 import { useShell } from '../lib/shell';
+import { useStore } from '../lib/store';
+import { pipelinesStore } from '../mocks/pipelines';
+import { PERIODS, salesMetrics, stageInfo, toCents } from '../lib/salesMetrics';
+import type { Period } from '../lib/salesMetrics';
 import { StageBadge } from '../components/cells';
 import { EmptyState, Page, PageHeader, StatCard } from '../components/ui';
 
 const AnalyticsChartGallery = lazy(() => import('../components/dashboard/AnalyticsChartGallery'));
 
-// Métricas calculadas na hora a partir de /api/leads (as oportunidades reais).
+// Métricas calculadas na hora a partir de /api/leads (as oportunidades reais); valor ganho e ticket
+// médio seguem o período escolhido (data de ganho). Contas em lib/salesMetrics.ts, em centavos.
 // Leads, tarefas e origem entram quando as fases 3 e 4 do plano chegarem.
 
 const STAGES = [
@@ -23,25 +28,26 @@ export default function Dashboard() {
   const { opportunities, loading, error, reload } = useOpportunities();
   const { navigate } = useShell();
 
+  const [pipelines] = useStore(pipelinesStore);
+  const [period, setPeriod] = useState<Period>('month');
+
   const stats = useMemo(() => {
-    const won = opportunities.filter((o) => o.stage === 'WON');
-    const open = opportunities.filter((o) => o.stage !== 'WON');
-    const sum = (list: typeof opportunities) => list.reduce((acc, o) => acc + (o.value || 0), 0);
+    const m = salesMetrics(opportunities, pipelines, period);
+    const isKind = (stage: string, kind: string) => stageInfo(stage, pipelines)?.kind === kind;
+    const sumCents = (list: typeof opportunities) => list.reduce((acc, o) => acc + toCents(o.value), 0);
+    const won = opportunities.filter((o) => isKind(o.stage, 'WON'));
+    const open = opportunities.filter((o) => isKind(o.stage, 'OPEN'));
     return {
+      ...m,
       total: opportunities.length,
-      openCount: open.length,
-      openValue: sum(open),
-      wonCount: won.length,
-      wonValue: sum(won),
       conversion: opportunities.length ? won.length / opportunities.length : 0,
-      average: won.length ? sum(won) / won.length : 0,
       byStage: STAGES.map((s) => {
         const items = opportunities.filter((o) => o.stage === s.id);
-        return { ...s, count: items.length, value: sum(items) };
+        return { ...s, count: items.length, value: sumCents(items) / 100 };
       }),
       biggest: [...open].sort((a, b) => (b.value || 0) - (a.value || 0)).slice(0, 5),
     };
-  }, [opportunities]);
+  }, [opportunities, pipelines, period]);
 
   const maxCount = Math.max(1, ...stats.byStage.map((s) => s.count));
 
@@ -55,13 +61,31 @@ export default function Dashboard() {
 
       {error && <div className="opp-error" style={{ margin: '0 0 20px' }} role="alert">{error}</div>}
 
+      <div className="chip-row" role="group" aria-label="Período do valor ganho">
+        {PERIODS.map((p) => (
+          <button key={p.id} type="button" className={`chip ${period === p.id ? 'active' : ''}`} aria-pressed={period === p.id} onClick={() => setPeriod(p.id)}>
+            {p.label}
+          </button>
+        ))}
+      </div>
+
       <div className="stat-grid">
         <StatCard label="Oportunidades abertas" value={stats.openCount} hint={`${stats.total} no total`} />
-        <StatCard label="Valor em aberto" value={formatCurrency(stats.openValue)} hint="Entrada + Qualificação" />
-        <StatCard label="Valor ganho" value={formatCurrency(stats.wonValue)} tone="success" hint={`${stats.wonCount} ${stats.wonCount === 1 ? 'contrato' : 'contratos'}`} />
+        <StatCard label="Valor em aberto" value={formatCurrency(stats.openCents / 100)} hint="Tudo que está em andamento" />
+        <StatCard
+          label="Previsão ponderada"
+          value={formatCurrency(stats.forecastCents / 100)}
+          hint={stats.openWithoutProbability ? `Valor × probabilidade da etapa · ${stats.openWithoutProbability} sem probabilidade ficam de fora` : 'Valor × probabilidade da etapa'}
+        />
+        <StatCard label="Valor ganho" value={formatCurrency(stats.wonCents / 100)} tone="success" hint={`${stats.wonCount} ${stats.wonCount === 1 ? 'contrato' : 'contratos'} · ${PERIODS.find((p) => p.id === period)?.label.toLowerCase()}`} />
+        <StatCard label="Ticket médio" value={formatCurrency(stats.averageCents / 100)} hint="Média do valor ganho no período" />
         <StatCard label="Taxa de conversão" value={percent(stats.conversion)} hint="Ganhas sobre o total" />
-        <StatCard label="Ticket médio (ganhas)" value={formatCurrency(stats.average)} />
       </div>
+      {stats.wonWithoutDate > 0 && period !== 'all' && (
+        <p className="text-xs text-muted" style={{ margin: '-8px 0 16px' }}>
+          {stats.wonWithoutDate} {stats.wonWithoutDate === 1 ? 'oportunidade ganha não tem' : 'oportunidades ganhas não têm'} data de fechamento e só {stats.wonWithoutDate === 1 ? 'entra' : 'entram'} em "Tudo".
+        </p>
+      )}
 
       <div className="two-col">
         <section className="section panel-card">

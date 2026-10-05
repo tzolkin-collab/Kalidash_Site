@@ -16,6 +16,8 @@ export type Opportunity = {
   tags: string[];
   pipeline?: string;
   created_at?: string;
+  /** Quando foi para Ganho (a API grava ao mover; nula em oportunidades abertas). */
+  wonAt?: string | null;
   /** Só no front: linha de lead exibida junto das oportunidades ("Ver leads"). */
   isLead?: boolean;
   /** Criada no protótipo (qualificar um lead ou o formulário de nova oportunidade): não existe na API. */
