@@ -4,7 +4,7 @@ import type { PartialBlock } from '@blocknote/core';
 import { createReactBlockSpec } from '@blocknote/react';
 import type { Article } from '../domain';
 import { formatDate } from '../lib/format';
-import { uploadImage } from '../lib/blog';
+import { uploadImageNotifying } from '../lib/blog';
 
 /* Cartão de artigo da Galeria Principal.
  *
@@ -98,7 +98,7 @@ const createArticleCard = createReactBlockSpec(
                   type="file" accept="image/*" hidden
                   onChange={(e) => {
                     const file = e.target.files?.[0];
-                    if (file) uploadImage(file).then((url) => patch({ coverImageUrl: url })).catch(() => undefined);
+                    if (file) uploadImageNotifying(file).then((url) => patch({ coverImageUrl: url })).catch(() => undefined);
                     e.target.value = '';
                   }}
                 />

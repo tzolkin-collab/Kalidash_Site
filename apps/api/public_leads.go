@@ -95,7 +95,10 @@ var (
 	rateHits = map[string][]time.Time{}
 )
 
-func allowRate(ip string, now time.Time) bool {
+func allowRate(ip string, now time.Time) bool { return allowRateLimit(ip, leadRatePerMin, now) }
+
+// allowRateLimit: janela deslizante de 1 minuto por chave (IP da captura de lead, "upload:"+IP do upload).
+func allowRateLimit(ip string, limit int, now time.Time) bool {
 	rateMu.Lock()
 	defer rateMu.Unlock()
 	cutoff := now.Add(-time.Minute)
@@ -105,7 +108,7 @@ func allowRate(ip string, now time.Time) bool {
 			kept = append(kept, t)
 		}
 	}
-	if len(kept) >= leadRatePerMin {
+	if len(kept) >= limit {
 		rateHits[ip] = kept
 		return false
 	}

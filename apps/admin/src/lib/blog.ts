@@ -1,5 +1,7 @@
 import type { Article } from '../domain';
 import { API_URL } from './api';
+import { pushErro } from './notify';
+import { checkUploadFile } from './uploadCheck';
 
 // Cliente do blog real (Go + MySQL) — substitui o mocks/posts.ts. Sem Sanity.
 
@@ -32,12 +34,24 @@ export async function deleteArticle(id: string): Promise<void> {
 
 /** Sobe a imagem pro R2 (a API redimensiona e comprime) e devolve a URL pública. */
 export async function uploadImage(file: File): Promise<string> {
+  const problem = checkUploadFile(file);
+  if (problem) throw new Error(problem);
   const form = new FormData();
   form.append('file', file);
   const res = await fetch(`${API_URL}/api/blog/upload`, { method: 'POST', body: form });
   if (!res.ok) throw new Error(await res.text() || `Não foi possível subir a imagem (${res.status}).`);
   const data = await res.json();
   return data.url as string;
+}
+
+/** Igual a uploadImage, mas avisa na caixa de notificações quando falha (para quem não mostra o erro sozinho, como o BlockNote). */
+export async function uploadImageNotifying(file: File): Promise<string> {
+  try {
+    return await uploadImage(file);
+  } catch (e) {
+    pushErro('Não consegui subir a imagem', e instanceof Error ? e.message : 'Erro desconhecido.');
+    throw e;
+  }
 }
 
 export type BlogSettings = {

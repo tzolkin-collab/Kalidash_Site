@@ -10,7 +10,7 @@ import '@blocknote/core/fonts/inter.css';
 import { AlertTriangle, Plus, RefreshCw, Star, Trash2, ImagePlus } from 'lucide-react';
 import type { Article } from '../domain';
 import { formatDate } from '../lib/format';
-import { createArticle, deleteArticle, listArticles, updateArticle, uploadImage, getBlogSettings, updateBlogSettings } from '../lib/blog';
+import { createArticle, deleteArticle, listArticles, updateArticle, uploadImage, uploadImageNotifying, getBlogSettings, updateBlogSettings } from '../lib/blog';
 import type { ArticleInput, BlogSettings } from '../lib/blog';
 import { teamStore } from '../mocks/team';
 import { Badge, EmptyState, Field, Page, PageHeader, Pagination, PopupDialog, SearchBox, Switch, Tabs } from '../components/ui';
@@ -282,7 +282,7 @@ function ArticleEditor({ article, isNew, otherArticles, onBack, onSaved, onDelet
   const editor = useCreateBlockNote({
     schema: blogSchema,
     initialContent: initialContentRef.current as never,
-    uploadFile: uploadImage,
+    uploadFile: uploadImageNotifying,
     dictionary: blockNoteLocalePt,
   });
 
