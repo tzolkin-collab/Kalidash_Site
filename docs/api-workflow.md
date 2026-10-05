@@ -1,10 +1,21 @@
 # 🧭 API de funis, tarefas e gate
 
-> **Status (05/10/2026):** API e esquema prontos e testados sem banco; **desligados por padrão** e **nunca aplicados**. As telas ainda usam os dados de exemplo (`apps/admin/src/mocks`). Recorte do [plano-schema.md](./plano-schema.md) §2 e §6, com o formato do JSON igual aos tipos de `apps/admin/src/domain.ts` (`Pipeline`, `Stage`, `Requirement`, `TaskItem`), para a troca nas telas ser direta.
+> **Status (05/10/2026):** API e esquema prontos, **desligados por padrão** e **nunca aplicados ao banco real**; testados sem banco e num MySQL descartável (ver "Como testar"). As telas ainda usam os dados de exemplo (`apps/admin/src/mocks`). Recorte do [plano-schema.md](./plano-schema.md) §2 e §6, com o formato do JSON igual aos tipos de `apps/admin/src/domain.ts` (`Pipeline`, `Stage`, `Requirement`, `TaskItem`), para a troca nas telas ser direta.
 
 ## Como ligar
 
 Variável da API: `WORKFLOW_API=1`. Na subida ela cria quatro tabelas (`CREATE TABLE IF NOT EXISTS`; nada é alterado nem apagado): `Pipeline`, `PipelineStage`, `StageRequirement`, `Task`. Sem a variável a API não toca no banco nem expõe as rotas. **Faça backup do banco antes de ligar em produção** (o banco real é compartilhado).
+
+## Como testar
+
+- `go test .` roda os testes sem banco (validação, regras do gate, formato do JSON).
+- `apps/api/workflow_integration_test.go` roda o fluxo completo (criar funil, contagens, gate com duas travas, concluir tarefas, mover, wonAt, editar e arquivar) contra um MySQL **descartável**. Só roda com `TEST_DSN` e só aceita localhost, nunca lê o DSN do `.env`:
+
+```bash
+TEST_DSN='root:@tcp(127.0.0.1:3306)/kalidash_test' go test -run Integration -v .
+```
+
+Ele apaga e recria as tabelas `Task`, `StageRequirement`, `PipelineStage`, `Pipeline` e `Opportunity` do banco indicado: use um banco vazio. Em 05/10 passou num servidor MySQL em memória (go-mysql-server), que é compatível, mas **não é o MySQL de produção**: rode também num MySQL/MariaDB real antes de ligar `WORKFLOW_API`.
 
 ## Modelo
 

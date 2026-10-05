@@ -10,6 +10,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/go-sql-driver/mysql"
 )
 
 // ---- tipos (o JSON espelha apps/admin/src/domain.ts: Pipeline, Stage, Requirement) ----
@@ -436,7 +438,10 @@ func readPipelineBody(w http.ResponseWriter, r *http.Request) (*PipelineDTO, boo
 }
 
 func writeErr(w http.ResponseWriter, err error) {
+	var my *mysql.MySQLError
 	switch {
+	case errors.As(err, &my) && my.Number == 1062: // chave duplicada (ex.: id de funil que já existe)
+		writeJSON(w, http.StatusConflict, map[string]string{"error": "já existe um registro com este id"})
 	case errors.Is(err, errNotFound):
 		writeJSON(w, http.StatusNotFound, map[string]string{"error": "não encontrado"})
 	case errors.Is(err, errConflict):
