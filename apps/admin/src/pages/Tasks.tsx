@@ -5,6 +5,7 @@ import type { Pipeline } from '../domain';
 import { pipelineStats } from '../lib/pipelineStats';
 import { useShell } from '../lib/shell';
 import { useStore } from '../lib/store';
+import { useSyncMode } from '../lib/workflowSync';
 import { pipelinesStore } from '../mocks/pipelines';
 import { Badge, EmptyState, Page, PageHeader, SampleBanner, SearchBox } from '../components/ui';
 import { buildGraph, nodeTypes } from './TaskWorkflow';
@@ -35,6 +36,7 @@ function CardWorkflow({ pipeline }: { pipeline: Pipeline }) {
 export default function Tasks() {
   const { navigate } = useShell();
   const [pipelines] = useStore(pipelinesStore);
+  const syncMode = useSyncMode();
   const [search, setSearch] = useState('');
   const [tag, setTag] = useState('');
 
@@ -47,7 +49,7 @@ export default function Tasks() {
   return (
     <Page>
       <PageHeader title="Tarefas" subtitle="Cada funil desenhado de ponta a ponta: fontes, etapas e o que a equipe precisa cumprir em cada uma. Abra um card para ver o workflow." />
-      <SampleBanner phase={4} />
+      {syncMode !== 'api' && <SampleBanner phase={4} />}
 
       <div className="toolbar">
         <SearchBox value={search} onChange={setSearch} placeholder="Buscar funil ou oferta…" />

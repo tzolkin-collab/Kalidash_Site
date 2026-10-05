@@ -3,6 +3,7 @@ import { Archive, ArchiveRestore, ArrowDown, ArrowUp, Bell, ExternalLink, Link2,
 import type { CustomField, CustomFieldType, Pipeline, Requirement, RequirementGate, Source, SourceType, Stage, StageKind, Step } from '../domain';
 import { setArchived } from '../lib/edit';
 import { newId, useStore } from '../lib/store';
+import { useSyncMode } from '../lib/workflowSync';
 import { useShell } from '../lib/shell';
 import { applyDiff, diffWithTemplate } from '../lib/pipelineTemplate';
 import type { StepDiff } from '../lib/pipelineTemplate';
@@ -32,6 +33,7 @@ const slugify = (label: string) => label.normalize('NFD').replace(/[̀-ͯ]/g, ''
 export default function PipelineSettings({ pipelineId }: { pipelineId?: string }) {
   const { navigate } = useShell();
   const [pipelines, setPipelines] = useStore(pipelinesStore);
+  const syncMode = useSyncMode();
   const [tab, setTab] = useState<Tab>('general');
   const [showArchived, setShowArchived] = useState(false);
   /** Campo que veio de "Tornar obrigatório" em Campos personalizados — abre Tarefas já com ele escolhido. */
@@ -61,7 +63,7 @@ export default function PipelineSettings({ pipelineId }: { pipelineId?: string }
         subtitle="Ver, editar, arquivar e criar pipelines. Cada pipeline é um funil, ligado a uma oferta."
         actions={<button type="button" className="btn btn-solid" onClick={() => navigate('/oportunidades/pipelines/nova')}><Plus size={14} /> Nova pipeline</button>}
       />
-      <SampleBanner phase={1}>As pipelines ainda vivem no código do front. As mudanças abaixo valem até recarregar a página.</SampleBanner>
+      {syncMode !== 'api' && <SampleBanner phase={1}>As pipelines ainda vivem no código do front. As mudanças abaixo valem até recarregar a página.</SampleBanner>}
 
       <div className="settings-layout">
         <nav className="pipe-list" aria-label="Pipelines">

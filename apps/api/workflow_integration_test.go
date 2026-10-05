@@ -244,7 +244,7 @@ func TestIntegrationPipelineTaskGate(t *testing.T) {
 		t.Errorf("funil depois do PUT: %d etapas, %d requisitos", len(after.Stages), len(after.Requirements))
 	}
 
-	// 7. arquivar tira da lista
+	// 7. arquivar tira da lista (e PUT com archivedAt nulo desarquiva)
 	if r := call(handlePipelineByID, "DELETE", "/api/pipelines/q4", "q4", nil); r.code != 200 {
 		t.Fatalf("arquivar: %d", r.code)
 	}
@@ -255,5 +255,16 @@ func TestIntegrationPipelineTaskGate(t *testing.T) {
 	call(handlePipelines, "GET", "/api/pipelines?archived=1", "", nil).into(t, &list)
 	if len(list) != 1 || list[0].ArchivedAt == nil {
 		t.Errorf("com archived=1 deveria vir 1 arquivado: %+v", list)
+	}
+
+	var arch PipelineDTO
+	call(handlePipelineByID, "GET", "/api/pipelines/q4", "q4", nil).into(t, &arch)
+	arch.ArchivedAt = nil
+	if r := call(handlePipelineByID, "PUT", "/api/pipelines/q4", "q4", arch); r.code != 200 {
+		t.Fatalf("desarquivar via PUT: %d %s", r.code, r.body)
+	}
+	call(handlePipelines, "GET", "/api/pipelines", "", nil).into(t, &list)
+	if len(list) != 1 || list[0].ArchivedAt != nil {
+		t.Errorf("desarquivado deveria voltar à lista: %+v", list)
 	}
 }

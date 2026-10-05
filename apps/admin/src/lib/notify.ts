@@ -112,11 +112,15 @@ export async function setPush(on: boolean): Promise<boolean> {
 
 /** Mensagem pronta pra um gate barrado: junta os nomes das tarefas que ainda travam. */
 export function avisoForBlockers(entityName: string, blockers: Blocker[]): { title: string; detail: string } {
-  const names = blockers.map((b) => b.requirement.label);
+  return avisoForLabels(entityName, blockers.map((b) => b.requirement.label));
+}
+
+/** Mesma mensagem a partir só dos nomes das tarefas (é o que a API devolve no 409 do gate). */
+export function avisoForLabels(entityName: string, names: string[]): { title: string; detail: string } {
   const list = names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} e ${names[names.length - 1]}`;
   return {
     title: `${entityName} não pode avançar`,
-    detail: blockers.length === 1 ? `Pendente: ${list}.` : `${blockers.length} tarefas pendentes: ${list}.`,
+    detail: names.length === 1 ? `Pendente: ${list}.` : `${names.length} tarefas pendentes: ${list}.`,
   };
 }
 

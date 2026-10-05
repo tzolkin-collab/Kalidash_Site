@@ -4,6 +4,7 @@ import type { LifecycleTemplate, StageKind } from './domain';
 import { buildPipeline, colorFor, stageDraftsOf } from './lib/pipelineTemplate';
 import type { StageDraft } from './lib/pipelineTemplate';
 import { newId, useStore } from './lib/store';
+import { useSyncMode } from './lib/workflowSync';
 import { useShell } from './lib/shell';
 import { pipelinesStore } from './mocks/pipelines';
 import { templatesStore } from './mocks/templates';
@@ -23,6 +24,7 @@ const BLANK: LifecycleTemplate = {
 export default function PipelineBuilder({ onBack }: { onBack: () => void }) {
   const { navigate } = useShell();
   const [, setPipelines] = useStore(pipelinesStore);
+  const syncMode = useSyncMode();
   const [templates] = useStore(templatesStore);
   const saleTemplates = useMemo(() => [...templates.filter((t) => t.kind === 'SALE'), BLANK], [templates]);
   const postSaleTemplates = templates.filter((t) => t.kind === 'POST_SALE');
@@ -82,7 +84,7 @@ export default function PipelineBuilder({ onBack }: { onBack: () => void }) {
         title="Nova pipeline"
         subtitle="Cada pipeline é um funil ligado a uma oferta. Escolha um template de ciclo de vida: ele é copiado para a pipeline e você edita a cópia depois."
       />
-      <SampleBanner phase={1}>A pipeline nova só existe até recarregar a página.</SampleBanner>
+      {syncMode !== 'api' && <SampleBanner phase={1}>A pipeline nova só existe até recarregar a página.</SampleBanner>}
 
       <div className="form-stack" style={{ maxWidth: '860px' }}>
         <div>

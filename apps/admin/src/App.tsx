@@ -18,6 +18,7 @@ import { ShellContext, useShell } from './lib/shell';
 import { EmptyState, Page, PageHeader } from './components/ui';
 import ToastHost from './components/Toasts';
 import NotificationBell from './components/NotificationBell';
+import { initWorkflowSync } from './lib/workflowSync';
 
 // O editor de e-mail é pesado: só é baixado quando a página de E-mails é aberta.
 const Emails = lazy(() => import('./Emails'));
@@ -47,6 +48,7 @@ function Redirect({ to }: { to: string }) {
 export default function App() {
   const { segments, path, navigate } = useHashRoute();
   const [isReady, setIsReady] = useState(false);
+  useEffect(() => { void initWorkflowSync(); }, []);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 

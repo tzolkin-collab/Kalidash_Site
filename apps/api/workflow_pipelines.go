@@ -355,7 +355,7 @@ func writePipeline(p *PipelineDTO, replace bool) error {
 	cfg, _ := json.Marshal(p.pipelineConfig)
 	now := time.Now()
 	if replace {
-		res, err := tx.Exec(`UPDATE Pipeline SET name = ?, offer = ?, position = ?, config = ?, updatedAt = ? WHERE id = ?`, p.Name, p.Offer, p.Position, cfg, now, p.ID)
+		res, err := tx.Exec(`UPDATE Pipeline SET name = ?, offer = ?, position = ?, config = ?, archivedAt = ?, updatedAt = ? WHERE id = ?`, p.Name, p.Offer, p.Position, cfg, p.ArchivedAt, now, p.ID)
 		if err != nil {
 			return err
 		}
@@ -402,7 +402,7 @@ func writePipeline(p *PipelineDTO, replace bool) error {
 			return err
 		}
 	} else {
-		if _, err := tx.Exec(`INSERT INTO Pipeline (id, name, offer, position, config, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)`, p.ID, p.Name, p.Offer, p.Position, cfg, now, now); err != nil {
+		if _, err := tx.Exec(`INSERT INTO Pipeline (id, name, offer, position, config, archivedAt, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, p.ID, p.Name, p.Offer, p.Position, cfg, p.ArchivedAt, now, now); err != nil {
 			return err
 		}
 	}
@@ -491,7 +491,7 @@ func handlePipelines(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GET um, PUT substitui o funil inteiro, DELETE arquiva (nunca apaga: há oportunidades e tarefas penduradas).
+// GET um, PUT substitui o funil inteiro (inclusive archivedAt: nulo desarquiva), DELETE arquiva (nunca apaga: há oportunidades e tarefas penduradas).
 func handlePipelineByID(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	if !idRe.MatchString(id) {

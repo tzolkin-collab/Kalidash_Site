@@ -17,6 +17,20 @@ TEST_DSN='root:@tcp(127.0.0.1:3306)/kalidash_test' go test -run Integration -v .
 
 Ele apaga e recria as tabelas `Task`, `StageRequirement`, `PipelineStage`, `Pipeline` e `Opportunity` do banco indicado: use um banco vazio. Em 05/10 passou num servidor MySQL em memória (go-mysql-server), que é compatível, mas **não é o MySQL de produção**: rode também num MySQL/MariaDB real antes de ligar `WORKFLOW_API`.
 
+## Como o admin usa (06/10)
+
+`apps/admin/src/lib/workflowSync.ts` liga as telas à API sem mudar as telas: elas continuam lendo e escrevendo `pipelinesStore` e `tasksStore`, e a camada de sincronização carrega do servidor na abertura e grava as mudanças ~0,6 s depois.
+
+- **Modo `api` ou `local`:** na abertura o admin pergunta `GET /api/pipelines`. Respondeu 200 → modo API (os avisos de "dados de exemplo" de Tarefas, Pipelines e do criador de pipeline somem). Deu 404 (`WORKFLOW_API` desligado) ou a API está fora → modo local, como antes, com os dados de exemplo.
+- **Servidor vazio:** os funis de exemplo que a tela já mostra são criados no servidor uma única vez (e uma notificação avisa).
+- **Funis:** editar etapas, requisitos, fontes etc. dispara `PUT`; funil novo dispara `POST`; arquivar/desarquivar vai no próprio `archivedAt`. Contagens, valores, `blocked` e `overdue` vêm do servidor e não contam como edição. Se o servidor recusar (409/422, ex.: etapa que ainda tem oportunidades), o admin avisa e volta ao que o servidor tem.
+- **Tarefas:** só as de **oportunidades reais** (id numérico, como a API as cria) sincronizam. Leads, pessoas e empresas ainda são dados de exemplo e ficam só na tela, para não poluir o banco.
+- **Mover oportunidade:** `Opportunities.tsx` agora olha a resposta do `/api/leads/move`. No **409** de gate o card volta, aparece o aviso (toast + caixa) com as tarefas que travam e as tarefas e o funil são recarregados; outros erros também revertem o card e abrem um erro. Exemplos do protótipo e leads continuam sem reverter (não existem na API).
+
+**Verificado em 06/10** com a API real rodando em `WORKFLOW_API=1` sobre um MySQL em memória (nunca no banco real): semear os funis, editar funil e criar tarefa com gravação automática, mover e ser barrado pelo gate (card reverte, aviso, tarefa de requisito criada), concluir a tarefa e mover com sucesso gravando `wonAt`.
+
+**Limite descoberto:** o Kanban e a ficha da oportunidade ainda usam colunas fixas antigas (`INBOUND`, `QUALIFICATION`, `WON`), não as etapas dos funis (`q4:assinatura` etc.). Por isso, hoje a tela só dispara o gate se um funil tiver etapas com esses ids antigos (foi assim que testei). Para o gate valer nas etapas reais, o Kanban precisa passar a usar `pipelineId`/`stageId` (passo 4 da migração em [plano-schema.md](./plano-schema.md) §8).
+
 ## Modelo
 
 - **Pipeline:** nome, oferta, posição, arquivamento e um `config` em JSON com o que ainda não tem tabela própria (fontes, campos personalizados, tags de tarefa, passos do ciclo de vida, templates). A API só valida esse JSON por tamanho (256 KB); quem o entende é o admin.
@@ -41,8 +55,8 @@ Ele apaga e recria as tabelas `Task`, `StageRequirement`, `PipelineStage`, `Pipe
 
 ## O que falta para as telas usarem isto
 
-1. O admin trocar `pipelinesStore` e `tasksStore` por chamadas a estas rotas (e semear os funis de exemplo com `POST /api/pipelines`).
-2. `Opportunities.tsx` tratar o **409** do `move` (hoje ignora a resposta): reverter o card e abrir o aviso com as tarefas que travam.
+1. ~~Trocar os dados de exemplo pelas rotas~~ e ~~tratar o 409 do `move`~~: feitos (ver acima).
+2. O Kanban e a ficha da oportunidade usarem as etapas dos funis (hoje colunas fixas antigas), e leads, pessoas e empresas ganharem API para suas tarefas também sincronizarem.
 3. Notificações geradas por tarefa (criada, atrasada, concluída) usando `pushNotificacao`.
 4. Autenticação: como o resto da API, estas rotas estão abertas (CORS `*`) até a fase de segurança.
 5. Tabelas próprias para `Source`, `CustomField` e `Automation` (hoje dentro do `config`).

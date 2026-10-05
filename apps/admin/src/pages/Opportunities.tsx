@@ -16,6 +16,8 @@ import { useStore } from '../lib/store';
 import { leadsStore } from '../mocks/leads';
 import { pipelinesStore } from '../mocks/pipelines';
 import { stageInfo } from '../lib/salesMetrics';
+import { avisoForLabels, pushAviso, pushErro } from '../lib/notify';
+import { reloadPipelines, reloadTasks } from '../lib/workflowSync';
 import ColumnPicker from '../components/ColumnPicker';
 import OpportunityDetail from '../components/OpportunityDetail';
 import Peek from '../components/Peek';
@@ -66,14 +68,42 @@ export default function Opportunities() {
     // Ir para Ganho grava a data do fechamento (valor ganho por período); sair de Ganho limpa.
     const won = stageInfo(stageId, pipelines)?.kind === 'WON';
     const wonAt = won ? new Date().toISOString() : null;
+    const original = opportunities.find((o) => o.id === oppId);
+    // Só oportunidades da API podem falhar de verdade: exemplos do protótipo e leads não existem lá.
+    const remote = !!original && !original.isSample && !original.isLead;
     const apply = (o: Opportunity): Opportunity => ({ ...o, stage: stageId, wonAt: won ? (o.wonAt ?? wonAt) : null });
+    const revert = () => {
+      if (!original) return;
+      setOpportunities((prev) => prev.map((o) => (o.id === oppId ? original : o)));
+      setSelectedOpp((prev) => (prev && prev.id === oppId ? original : prev));
+    };
     setOpportunities((prev) => prev.map((o) => (o.id === oppId ? apply(o) : o)));
     setSelectedOpp((prev) => (prev && prev.id === oppId ? apply(prev) : prev));
     fetch(`${API_URL}/api/leads/move`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ lead_id: oppId, column_id: stageId, won }),
-    }).catch((err) => console.error('Falha ao mover oportunidade:', err));
+    })
+      .then(async (res) => {
+        if (res.ok || !remote) return;
+        revert();
+        if (res.status === 409) {
+          // Gate no servidor: há tarefas de requisito abertas nesta fronteira de etapa.
+          const body = (await res.json().catch(() => ({}))) as { blockers?: { label: string }[] };
+          const a = avisoForLabels(original?.title ?? 'A oportunidade', (body.blockers ?? []).map((b) => b.label));
+          pushAviso(a.title, a.detail, { kind: 'opportunity', id: oppId });
+          void reloadTasks();
+          void reloadPipelines();
+        } else {
+          pushErro('Não consegui mover a oportunidade', `A API respondeu ${res.status}. O card voltou para a etapa anterior.`);
+        }
+      })
+      .catch((err) => {
+        console.error('Falha ao mover oportunidade:', err);
+        if (!remote) return;
+        revert();
+        pushErro('Sem conexão com a API', 'A oportunidade voltou para a etapa anterior.');
+      });
   };
 
   const handleOpportunityChange = (updated: Opportunity) => {
