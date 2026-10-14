@@ -98,13 +98,29 @@ Ao salvar/excluir um artigo, a API avisa o site (`POST /api/revalidate`, com
 
 | Onde | Variável | Para quê |
 |---|---|---|
-| site | `NEXT_PUBLIC_ADMIN_ORIGINS` | origens do admin autorizadas (vírgula) |
+| site | `NEXT_PUBLIC_ADMIN_ORIGINS` | origens do admin autorizadas (vírgula); **em produção é obrigatória** |
 | site | `REVALIDATE_SECRET` | segredo do `/api/revalidate` |
 | api | `SITE_URL`, `REVALIDATE_SECRET` | para onde e com que segredo avisar |
-| admin | `VITE_SITE_URL` | URL do site para o iframe (padrão `http://localhost:3000`) |
+| admin | `VITE_SITE_URL` | URL do site para o iframe (padrão `http://localhost:3000`; **em produção é obrigatória**, ver a seção abaixo) |
 | site | `NEXT_PUBLIC_LEAD_ENDPOINT` | URL pública de `POST /api/public/leads` na API (sem isto o formulário valida e avisa que o envio não está conectado) |
 | api | `ALLOWED_ORIGINS` | origens que podem chamar a captura pública de lead (aceita `https://*.vercel.app`); `SITE_URL` também conta |
 | site | `NEXT_PUBLIC_WHATSAPP_URL` | link do WhatsApp (botão flutuante); vazio = o botão leva ao formulário |
+
+## Pré-visualização em produção (Vercel)
+
+O iframe do admin só funciona se **as duas pontas conhecerem a outra**. Hoje (05/10/2026):
+
+| Projeto Vercel | URL de produção | Variável | Valor |
+|---|---|---|---|
+| `kalidash-site-admin` (admin) | `https://kalidash-site-admin.vercel.app` | `VITE_SITE_URL` | `https://kalidash-site-one.vercel.app` |
+| `kalidash-site` (site) | `https://kalidash-site-one.vercel.app` | `NEXT_PUBLIC_ADMIN_ORIGINS` | `https://kalidash-site-admin.vercel.app` |
+
+- As duas variáveis são lidas **na hora do build** (`VITE_*` entra no bundle do admin; `NEXT_PUBLIC_*` vira a política `frame-ancestors` e a checagem de origem do site). **Mudar o valor exige novo deploy**; só editar a variável não muda o que está no ar.
+- Sem elas, o admin publicado aponta para `localhost:3000` e o site só libera `localhost:5173`: é o erro "Não consegui carregar a pré-visualização em http://localhost:3000".
+- **Ao ganhar um domínio próprio** (site ou admin), atualize as duas variáveis e redeploye os dois projetos. O valor de `NEXT_PUBLIC_ADMIN_ORIGINS` aceita várias origens separadas por vírgula, sem barra no final.
+- A pré-visualização **não usa a API**: o admin manda o rascunho por `postMessage` e o site só o desenha. A API só entra para carregar e salvar os artigos.
+- **Verificado em produção (05/10):** o site responde `Content-Security-Policy: frame-ancestors 'self' https://kalidash-site-admin.vercel.app` em `/preview/blog`; o bundle do admin contém a URL do site e nenhum `localhost:3000`; a partir do admin publicado, o iframe do site publicado carregou, avisou `kalidash:preview-ready` e renderizou o payload de galeria.
+- Para refazer o deploy sem commit: `vercel redeploy <url-do-último-deploy> --target production`.
 
 ## Checagem rápida depois de mexer no CSS
 

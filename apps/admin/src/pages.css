@@ -520,73 +520,58 @@ td:hover .badge-line .badge-text {
 }
 
 /* ---------- Tarefas: galeria de funis ---------- */
-.funnel-grid { 
-  display: grid; 
-  grid-template-columns: 1fr; 
-  gap: 16px; 
+/* Grade fluida: quantas colunas couberem (mín. 340 px, ou a largura toda em telas estreitas). O fluxo
+ * (React Flow) NÃO fica nos cards: só a página do funil (/tarefas/:id) o desenha. */
+.funnel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 16px;
 }
 
-.funnel-card { 
+.funnel-card {
   position: relative;
-  display: flex; 
-  flex-direction: row; 
-  justify-content: space-between;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   min-height: 140px;
-  padding: 24px; 
-  border: 1px solid var(--border-subtle); 
-  border-radius: 20px; 
-  background: var(--bg-surface); 
-  color: var(--text-primary); 
-  text-align: left; 
-  font: inherit; 
-  cursor: pointer; 
+  padding: 24px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
 }
-.funnel-card:hover { 
-  border-color: var(--border-focus); 
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06); 
-}
-
-.bento-bg {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 180px;
-  display: flex;
-  align-items: center;
-  padding-top: 40px;
-  opacity: 1;
-  pointer-events: none;
-  z-index: 0;
-  mask-image: linear-gradient(to right, transparent 0%, black 15%, black 100%);
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 15%, black 100%);
+.funnel-card:hover {
+  border-color: var(--border-focus);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
 }
 
 .bento-content {
-  position: relative;
-  z-index: 1;
   display: flex;
-  flex-direction: row;
+  flex: 1;
+  flex-direction: column;
   justify-content: space-between;
-  align-items: center;
+  gap: 20px;
   width: 100%;
-  pointer-events: none;
+  min-width: 0;
 }
-.bento-content > * { pointer-events: auto; }
 
 .bento-left {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
 }
 
-.funnel-card-head { display: flex; align-items: flex-start; justify-content: flex-start; gap: 16px; }
-.funnel-card-title { font-size: calc(18px * var(--crm-fs, 1)); font-weight: 700; display: block; margin-bottom: 4px; }
+.funnel-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.funnel-card-title { font-size: calc(18px * var(--crm-fs, 1)); font-weight: 700; display: block; margin-bottom: 4px; overflow-wrap: anywhere; }
 
-.funnel-card-stats { display: flex; flex-wrap: wrap; gap: 24px; }
+.funnel-card-stats { display: flex; flex-wrap: wrap; gap: 16px 24px; }
 .funnel-card-stats div { display: flex; flex-direction: column; gap: 2px; }
 .funnel-card-stats strong { font-size: 16px; font-weight: 700; line-height: 1; }
 .funnel-card-stats span { font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -596,7 +581,7 @@ td:hover .badge-line .badge-text {
 .bento-right {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .bento-cta {
@@ -1008,3 +993,8 @@ textarea.inline-input { resize: vertical; }
 .bell-dot { flex-shrink: 0; width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: var(--accent); }
 @media (max-width: 900px) { .bell-panel { left: 12px; right: 12px; width: auto; bottom: 12px; } }
 .toast-error { border-left-color: #ef4444; } .toast-error .toast-icon { color: #ef4444; }
+
+/* Edição inline de tarefa (RecordTabs) */
+.task-edit { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; min-width: 0; }
+.task-edit .input:first-child { grid-column: 1 / -1; }
+@media (max-width: 560px) { .task-edit { grid-template-columns: 1fr; } }

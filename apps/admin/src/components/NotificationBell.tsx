@@ -13,6 +13,8 @@ const CATEGORY: Record<Categoria, { label: string; Icon: typeof Bell }> = {
   notificacao: { label: 'Notificação', Icon: BellRing },
 };
 
+const DESTINATION: Record<NonNullable<Aviso['entityRef']>['kind'], string> = { lead: '/leads', opportunity: '/oportunidades', person: '/pessoas-empresas', company: '/pessoas-empresas' };
+
 const ago = (iso: string) => {
   const s = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 1000));
   if (s < 60) return 'agora';
@@ -40,7 +42,7 @@ export default function NotificationBell({ onNavigate }: { onNavigate?: () => vo
   const go = (a: Aviso) => {
     markRead(a.id);
     if (a.entityRef) {
-      navigate(a.entityRef.kind === 'lead' ? '/leads' : '/oportunidades');
+      navigate(DESTINATION[a.entityRef.kind]);
       setOpen(false);
       onNavigate?.();
     }

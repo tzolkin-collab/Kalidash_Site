@@ -19,7 +19,7 @@ export type Aviso = {
   title: string;
   detail: string;
   /** Para onde ir ao clicar. */
-  entityRef?: { kind: 'lead' | 'opportunity'; id: string };
+  entityRef?: { kind: 'lead' | 'opportunity' | 'person' | 'company'; id: string };
 };
 
 export const MAX_ITEMS = 100;
@@ -69,7 +69,12 @@ function browserPush(a: Aviso) {
   }
 }
 
+/** Repetição idêntica (mesmo tipo, título e detalhe) dentro desta janela não vira outra notificação: um laço de erro não pode afogar a caixa. */
+export const REPEAT_WINDOW_MS = 30_000;
+
 function add(category: Categoria, title: string, detail: string, entityRef: Aviso['entityRef'], toast: boolean) {
+  const last = avisosStore.get()[0];
+  if (last && last.category === category && last.title === title && last.detail === detail && Date.now() - Date.parse(last.at) < REPEAT_WINDOW_MS) return last;
   const aviso: Aviso = { id: newId('aviso'), at: new Date().toISOString(), category, read: false, title, detail, entityRef };
   avisosStore.set((prev) => [aviso, ...prev].slice(0, MAX_ITEMS));
   if (toast) {

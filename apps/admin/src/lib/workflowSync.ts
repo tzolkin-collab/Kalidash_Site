@@ -3,6 +3,7 @@ import { pipelinesStore } from '../mocks/pipelines.ts';
 import { tasksStore } from '../mocks/tasks.ts';
 import { API_URL } from './api.ts';
 import { crmModeStore } from './crmMode.ts';
+import { markTasksSeen } from './taskNotify.ts';
 import { diffPipelines, diffTasks, isSyncableTask, normalizePipeline, pipelineProjection, taskProjection } from './workflowDiff.ts';
 import { pushAviso, pushErro, pushNotificacao } from './notify.ts';
 import { createStore, useStore } from './store.ts';
@@ -56,15 +57,32 @@ export async function reloadPipelines(): Promise<boolean> {
 }
 
 /** Recarrega as tarefas de oportunidades do servidor (ex.: depois de o gate criar as dele). */
-export async function reloadTasks(): Promise<boolean> {
-  if (syncModeStore.get() !== 'api') return false;
+export function reloadTasks(): Promise<boolean> {
+  if (syncModeStore.get() !== 'api') return Promise.resolve(false);
+  // Entra na mesma fila das gravações: recarregar no meio de um POST em andamento deixava o servidor com
+  // a tarefa e a tela sem ela, e a gravação seguinte a apagava do servidor. Primeiro grava o que está
+  // pendente, depois lê.
+  const run = flushing.then(async () => {
+    await flushTasks();
+    return applyServerTasks();
+  });
+  flushing = run.then(() => undefined, () => undefined);
+  return run;
+}
+
+async function applyServerTasks(): Promise<boolean> {
   const crm = crmModeStore.get() === 'api';
+  const known = new Set(taskSnap.keys());
   const res = await api(crm ? '/api/tasks' : '/api/tasks?entity=opportunity');
   if (!res.ok) return false;
   const server = (await res.json()) as TaskItem[];
+  const serverIds = new Set(server.map((t) => t.id));
   taskSnap.clear();
   server.forEach((t) => taskSnap.set(t.id, taskProjection(t)));
-  withSilence(() => tasksStore.set((prev) => [...server, ...prev.filter((t) => !isSyncableTask(t, crm))]));
+  markTasksSeen(server.map((t) => t.id)); // vieram do servidor: não são "tarefa nova" para as notificações
+  // Fica o que é local e ainda não foi gravado (criado enquanto a leitura corria): a próxima gravação o envia.
+  const pending = (t: TaskItem) => isSyncableTask(t, crm) && !serverIds.has(t.id) && !known.has(t.id);
+  withSilence(() => tasksStore.set((prev) => [...server, ...prev.filter((t) => !isSyncableTask(t, crm) || pending(t))]));
   return true;
 }
 
@@ -112,6 +130,7 @@ async function flushTasks() {
     if (!res.ok) { pushErro('Não consegui salvar a tarefa', await serverError(res)); continue; }
     const saved = (await res.json()) as TaskItem;
     taskSnap.set(saved.id, taskProjection(t));
+    markTasksSeen([saved.id]); // só ganhou o id do servidor
     withSilence(() => tasksStore.set((prev) => prev.map((x) => (x.id === t.id ? { ...x, id: saved.id } : x))));
     if (t.done) update.push({ ...t, id: saved.id });
   }
@@ -123,7 +142,7 @@ async function flushTasks() {
   for (const id of remove) {
     const res = await api(`/api/tasks/${encodeURIComponent(id)}`, { method: 'DELETE' });
     if (res.ok) taskSnap.delete(id);
-    else { pushAviso('Esta tarefa não pode ser apagada', await serverError(res)); await reloadTasks(); }
+    else { pushAviso('Esta tarefa não pode ser apagada', await serverError(res)); await applyServerTasks(); }
   }
 }
 
@@ -158,7 +177,7 @@ export async function initWorkflowSync(): Promise<SyncMode> {
     } else {
       adoptPipelines(list);
     }
-    await reloadTasks();
+    await applyServerTasks();
   } catch {
     syncModeStore.set('local'); // API fora do ar: segue com os dados de exemplo
     return 'local';
@@ -167,3 +186,7 @@ export async function initWorkflowSync(): Promise<SyncMode> {
   tasksStore.subscribe(schedule);
   return 'api';
 }
+
+// Em desenvolvimento, recarregar este módulo a quente criaria uma segunda sincronização sobre as mesmas
+// stores, que brigaria com a primeira (uma cria o que a outra apaga, sem parar). Recarrega a página.
+if (import.meta.hot) import.meta.hot.accept(() => window.location.reload());

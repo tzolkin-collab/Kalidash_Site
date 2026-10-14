@@ -1,37 +1,12 @@
 import { useMemo, useState } from 'react';
 import { AlertTriangle, ChevronRight } from 'lucide-react';
-import { ReactFlow } from '@xyflow/react';
-import type { Pipeline } from '../domain';
 import { pipelineStats } from '../lib/pipelineStats';
 import { useShell } from '../lib/shell';
 import { useStore } from '../lib/store';
 import { useSyncMode } from '../lib/workflowSync';
 import { pipelinesStore } from '../mocks/pipelines';
 import { Badge, EmptyState, Page, PageHeader, SampleBanner, SearchBox } from '../components/ui';
-import { buildGraph, nodeTypes } from './TaskWorkflow';
 import { CustomSelect } from '../components/ui';
-
-function CardWorkflow({ pipeline }: { pipeline: Pipeline }) {
-  const { nodes, edges } = useMemo(() => buildGraph(pipeline, null, () => {}), [pipeline]);
-  return (
-    <div style={{ width: '800px', height: '180px', pointerEvents: 'none' }}>
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        nodeTypes={nodeTypes}
-        nodesDraggable={false}
-        nodesConnectable={false}
-        elementsSelectable={false}
-        panOnDrag={false}
-        zoomOnScroll={false}
-        panOnScroll={false}
-        zoomOnDoubleClick={false}
-        fitView
-        proOptions={{ hideAttribution: true }}
-      />
-    </div>
-  );
-}
 
 export default function Tasks() {
   const { navigate } = useShell();
@@ -67,9 +42,6 @@ export default function Tasks() {
             const st = pipelineStats(p);
             return (
               <button key={p.id} type="button" className="funnel-card" onClick={() => navigate(`/tarefas/${p.id}`)}>
-                <div className="bento-bg">
-                  <CardWorkflow pipeline={p} />
-                </div>
                 <div className="bento-content">
                   <div className="bento-left">
                     <div className="funnel-card-head">

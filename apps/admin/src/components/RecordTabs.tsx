@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Check, Circle } from 'lucide-react';
-import type { EntityKind } from '../domain';
+import { Check, Circle, Pencil, Trash2, X } from 'lucide-react';
+import type { EntityKind, TaskItem } from '../domain';
 import { emit } from '../lib/events';
 import type { EventContext } from '../lib/events';
 import { formatDate } from '../lib/format';
@@ -77,6 +77,34 @@ export function TasksTab({ entity, id, name, ctx }: { entity: EntityKind; id: st
     if (done) emit('tarefa.concluida', ctx);
   };
 
+  const [editing, setEditing] = useState<string | null>(null);
+  const [draft, setDraft] = useState({ title: '', assignee: '', due: '' });
+  const startEdit = (t: TaskItem) => {
+    setEditing(t.id);
+    setDraft({ title: t.title, assignee: t.assignee ?? '', due: t.dueAt ? t.dueAt.slice(0, 10) : '' });
+  };
+  const saveEdit = (task: TaskItem) => {
+    const title = draft.title.trim();
+    if (!title) return;
+    const dueAt = draft.due ? new Date(`${draft.due}T12:00:00`).toISOString() : undefined;
+    const assigneeNew = draft.assignee || undefined;
+    const changes = [
+      title !== task.title && 'título',
+      assigneeNew !== task.assignee && 'responsável',
+      (dueAt?.slice(0, 10) ?? '') !== (task.dueAt?.slice(0, 10) ?? '') && 'prazo',
+    ].filter(Boolean);
+    if (changes.length) {
+      setAll((prev) => prev.map((x) => (x.id === task.id ? { ...x, title, assignee: assigneeNew, dueAt } : x)));
+      logChange({ entity, entityId: id, entityName: name, kind: 'event', note: `Tarefa editada (${changes.join(', ')}): ${title}` });
+    }
+    setEditing(null);
+  };
+  const remove = (task: TaskItem) => {
+    if (!window.confirm(`Excluir a tarefa "${task.title}"?`)) return;
+    setAll((prev) => prev.filter((x) => x.id !== task.id));
+    logChange({ entity, entityId: id, entityName: name, kind: 'event', note: `Tarefa excluída: ${task.title}` });
+  };
+
   const open = tasks.filter((t) => !t.done);
   const closed = tasks.filter((t) => t.done);
   const overdue = (iso?: string) => iso !== undefined && new Date(iso).getTime() < now;
@@ -93,7 +121,20 @@ export function TasksTab({ entity, id, name, ctx }: { entity: EntityKind; id: st
 
       {tasks.length === 0 && <EmptyState title="Nenhuma tarefa">As tarefas dos requisitos e dos passos do ciclo de vida aparecem aqui.</EmptyState>}
       <ul className="task-list">
-        {[...open, ...closed].map((t) => (
+        {[...open, ...closed].map((t) => editing === t.id ? (
+          <li key={t.id} className="task-row task-editing">
+            <span />
+            <div className="task-edit">
+              <input className="input" value={draft.title} autoFocus onChange={(e) => setDraft({ ...draft, title: e.target.value })} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); saveEdit(t); } if (e.key === 'Escape') setEditing(null); }} aria-label="Título da tarefa" />
+              <CustomSelect className="select" value={draft.assignee} onChange={(e) => setDraft({ ...draft, assignee: e.target.value })} aria-label="Responsável"><option value="">Sem responsável</option>{team.map((m) => <option key={m.id}>{m.name}</option>)}</CustomSelect>
+              <input className="input" type="date" value={draft.due} onChange={(e) => setDraft({ ...draft, due: e.target.value })} aria-label="Prazo" />
+            </div>
+            <div className="tag-row">
+              <button type="button" className="btn btn-solid" disabled={!draft.title.trim()} onClick={() => saveEdit(t)}>Salvar</button>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setEditing(null)} aria-label="Cancelar edição"><X size={14} /></button>
+            </div>
+          </li>
+        ) : (
           <li key={t.id} className={`task-row ${t.done ? 'done' : ''}`}>
             <button type="button" className="task-check" onClick={() => toggle(t.id)} aria-label={t.done ? 'Reabrir' : 'Concluir'}>{t.done ? <Check size={14} /> : <Circle size={14} />}</button>
             <div className="cell-stack">
@@ -104,7 +145,11 @@ export function TasksTab({ entity, id, name, ctx }: { entity: EntityKind; id: st
                 {t.done && t.doneAt && <> · concluída em {formatDate(t.doneAt)}</>}
               </span>
             </div>
-            <div className="tag-row"><Badge tone="accent">{t.tag}</Badge><Badge>{t.source === 'passo' ? 'Passo do ciclo' : t.source === 'requisito' ? 'Requisito' : 'Manual'}</Badge></div>
+            <div className="tag-row"><Badge tone="accent">{t.tag}</Badge><Badge>{t.source === 'passo' ? 'Passo do ciclo' : t.source === 'requisito' ? 'Requisito' : 'Manual'}</Badge>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => startEdit(t)} aria-label="Editar tarefa"><Pencil size={14} /></button>
+              {/* Tarefa de requisito não se exclui: o gate a recriaria na próxima checagem. */}
+              {t.source !== 'requisito' && <button type="button" className="btn btn-ghost btn-sm" onClick={() => remove(t)} aria-label="Excluir tarefa"><Trash2 size={14} /></button>}
+            </div>
           </li>
         ))}
       </ul>

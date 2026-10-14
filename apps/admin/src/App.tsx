@@ -20,6 +20,7 @@ import ToastHost from './components/Toasts';
 import NotificationBell from './components/NotificationBell';
 import { initWorkflowSync } from './lib/workflowSync';
 import { initCrmSync } from './lib/crmSync';
+import { startTaskNotifications } from './lib/taskNotify';
 
 // O editor de e-mail é pesado: só é baixado quando a página de E-mails é aberta.
 const Emails = lazy(() => import('./Emails'));
@@ -49,7 +50,7 @@ function Redirect({ to }: { to: string }) {
 export default function App() {
   const { segments, path, navigate } = useHashRoute();
   const [isReady, setIsReady] = useState(false);
-  useEffect(() => { void initWorkflowSync().then(initCrmSync); }, []);
+  useEffect(() => { void initWorkflowSync().then(initCrmSync).then(startTaskNotifications); }, []);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 

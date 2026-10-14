@@ -8,6 +8,7 @@ import ColumnPicker from './ColumnPicker';
 import { lostStageId, resolveStage, wonStageId } from '../lib/stages';
 import { useStore } from '../lib/store';
 import { pipelinesStore } from '../mocks/pipelines';
+import { TasksTab } from './RecordTabs';
 
 type Tab = 'overview' | 'notes' | 'tasks' | 'emails';
 type Field = 'title' | 'value';
@@ -272,7 +273,12 @@ export default function OpportunityDetail({
           )}
 
           {tab === 'tasks' && (
-            <p className="text-muted text-sm">Ainda não há tarefas nesta oportunidade. Esta aba será ligada à página Tarefas.</p>
+            <TasksTab
+              entity="opportunity"
+              id={opp.id}
+              name={opp.title}
+              ctx={{ entity: 'opportunity', entityId: opp.id, entityName: opp.title, pipelineId: oppPipeline?.id, stageId: opp.stage, companyId: opp.companyId, personId: opp.contactId }}
+            />
           )}
 
           {tab === 'emails' && (

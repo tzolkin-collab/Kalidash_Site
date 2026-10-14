@@ -189,3 +189,7 @@ export async function initCrmSync(): Promise<void> {
   void startHistorySync(); // e o histórico de mudanças
   for (const s of specs) s.store.subscribe(schedule);
 }
+
+// Em desenvolvimento, recarregar este módulo a quente criaria uma segunda sincronização sobre as mesmas
+// stores, que brigaria com a primeira (uma cria o que a outra apaga, sem parar). Recarrega a página.
+if (import.meta.hot) import.meta.hot.accept(() => window.location.reload());

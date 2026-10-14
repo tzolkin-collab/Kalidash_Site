@@ -29,3 +29,11 @@ test('a caixa guarda só as últimas MAX_ITEMS, mais recente primeiro', () => {
   assert.equal(list.length, MAX_ITEMS);
   assert.equal(list[0].title, `n${MAX_ITEMS + 4}`);
 });
+
+test('repetição idêntica seguida não vira outra notificação (laço de erro não afoga a caixa)', () => {
+  for (let i = 0; i < 1000; i++) pushAviso('Esta tarefa não pode ser apagada', 'erro 409');
+  assert.equal(avisosStore.get().length, 1);
+  assert.equal(activeToastsStore.get().length, 1);
+  pushAviso('Esta tarefa não pode ser apagada', 'outro detalhe');
+  assert.equal(avisosStore.get().length, 2, 'detalhe diferente é outra notificação');
+});

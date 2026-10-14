@@ -22,7 +22,6 @@ function ensureTask(req: Requirement, entity: EntityRef): TaskItem {
   };
   tasksStore.set((prev) => [task, ...prev]);
   logChange({ entity: entity.kind, entityId: entity.id, entityName: entity.name, kind: 'event', note: `Tarefa criada pelo requisito de etapa: ${req.label}` });
-  if (req.notifyAssignee && req.assignee) logChange({ entity: entity.kind, entityId: entity.id, entityName: entity.name, kind: 'event', note: `Notificação (simulada): push para ${req.assignee} — tarefa "${req.label}" criada` });
   return task;
 }
 

@@ -5,6 +5,7 @@ import { leadsStore } from '../mocks/leads';
 import { pipelinesStore } from '../mocks/pipelines';
 import { addTask, tasksStore } from '../mocks/tasks';
 import { logChange } from './history';
+import { pushNotificacao } from './notify';
 import { canAdvance } from './lifecycle';
 import { newId } from './store';
 
@@ -126,8 +127,11 @@ function runAction(a: StepAction, ctx: EventContext, why: string): string {
     case 'responsavel.atribuir':
       if (ctx.leadId) leadsStore.set((prev) => prev.map((l) => (l.id === ctx.leadId ? { ...l, owner: a.detail.trim() } : l)));
       return `Responsável: ${a.detail}`;
-    case 'notificar.equipe':
-      return `Notificação para ${a.detail || 'a equipe'} (simulada)`;
+    case 'notificar.equipe': {
+      const dest = a.detail.trim() || 'a equipe';
+      pushNotificacao(`Aviso da automação para ${dest}`, ctx.entityName, ctx.entity === 'lead' || ctx.entity === 'opportunity' || ctx.entity === 'person' || ctx.entity === 'company' ? { kind: ctx.entity, id: ctx.entityId } : undefined);
+      return `Notificação para ${dest} criada na caixa`;
+    }
     case 'email.enviar':
       return `E-mail enviado (simulado): ${a.detail.replace(/^Modelo:\s*/, '')}`;
     default:
