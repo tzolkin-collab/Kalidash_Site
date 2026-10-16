@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { ReactNode } from 'react';
 import { ArrowLeft, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleAlert, CircleHelp, FlaskConical, Menu, Search, X } from 'lucide-react';
 import type { Lifecycle } from '../domain';
@@ -256,21 +257,40 @@ type PanelProps = {
  * painel lateral ou popup central, conforme "Configurar visualização" — não tem chave própria,
  * é sempre a preferência de quem está usando.
  */
+/**
+ * Onde os painéis se encaixam. Fora de um provedor, o SidePanel abre como gaveta/modal (Peek) e cobre a tela. Dentro de um
+ * (o workflow), ele vira uma barra lateral fixa ao lado do conteúdo: a tela continua usável (arrastar, dar zoom, clicar
+ * em outro nó) com o painel aberto.
+ */
+export const DockContext = createContext<HTMLElement | null>(null);
+
 export function SidePanel({ title, subtitle, onClose, children, footer }: PanelProps) {
   const { settings } = useViewSettings();
+  const dock = useContext(DockContext);
+  const shell = (
+    <div className="panel-shell">
+      <header className="panel-head">
+        <div>
+          <h2 className="panel-title">{title}</h2>
+          {subtitle && <p className="panel-subtitle">{subtitle}</p>}
+        </div>
+        <button type="button" className="peek-icon-btn" onClick={onClose} title="Fechar (Esc)"><X size={18} /></button>
+      </header>
+      <div className="panel-body">{children}</div>
+      {footer && <footer className="panel-foot">{footer}</footer>}
+    </div>
+  );
+  if (dock) {
+    return createPortal(
+      <div className="dock-panel" role="complementary" aria-label={title} onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); onClose(); } }}>
+        {shell}
+      </div>,
+      dock,
+    );
+  }
   return (
     <Peek mode={settings.openMode} fontSize={settings.fontSize} onClose={onClose} label={title}>
-      <div className="panel-shell">
-        <header className="panel-head">
-          <div>
-            <h2 className="panel-title">{title}</h2>
-            {subtitle && <p className="panel-subtitle">{subtitle}</p>}
-          </div>
-          <button type="button" className="peek-icon-btn" onClick={onClose} title="Fechar (Esc)"><X size={18} /></button>
-        </header>
-        <div className="panel-body">{children}</div>
-        {footer && <footer className="panel-foot">{footer}</footer>}
-      </div>
+      {shell}
     </Peek>
   );
 }

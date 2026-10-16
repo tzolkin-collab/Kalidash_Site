@@ -12,7 +12,7 @@ type EntityRef = { kind: EntityKind; id: string; name: string };
 const inDays = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString();
 
 /** Garante que exista uma tarefa (aberta ou não) para este requisito e este registro; cria se faltar. */
-function ensureTask(req: Requirement, entity: EntityRef): TaskItem {
+export function ensureTask(req: Requirement, entity: EntityRef): TaskItem {
   const existing = tasksStore.get().find((t) => t.requirementId === req.id && t.entity === entity.kind && t.entityId === entity.id);
   if (existing) return existing;
   const task: TaskItem = {

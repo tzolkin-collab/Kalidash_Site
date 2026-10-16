@@ -1,26 +1,213 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ============================================================
+   KALIDASH — DESIGN TOKENS
+   Fonte: Brand Guide 2026 (Identidade Visual). Cores e nomes de
+   paleta são os oficiais do manual — não inventados.
+   Kepler Std / Acumin são fontes Adobe (Typekit) sem arquivo web
+   licenciado neste projeto ainda; Fraunces / Archivo substituem
+   como o par mais próximo (serif editorial + sans geométrica)
+   até chegar um kit de fontes real.
+   ============================================================ */
+@theme {
+  /* Paleta oficial do brand guide */
+  --color-imperial: #28183b;
+  --color-limestone: #f8f9fa;
+  --color-ink: #19171b;
+  --color-aubergine: #46304f;
+  --color-gold: #a88a58;
+  --color-terracotta: #b7654d;
+  --color-aegean: #304b57;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* Papéis semânticos */
+  --color-surface: var(--color-limestone);
+  --color-surface-raised: #fdfbf8;
+  --color-surface-dark: var(--color-imperial);
+  --color-surface-dark-raised: var(--color-aubergine);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --color-fg: var(--color-ink);
+  --color-fg-muted: rgba(25, 23, 27, 0.62);
+  --color-fg-inverse: var(--color-limestone);
+  --color-fg-inverse-muted: rgba(241, 236, 228, 0.66);
+
+  --color-accent: var(--color-gold);
+  --color-accent-strong: #8f7248;
+
+  --color-border: rgba(25, 23, 27, 0.12);
+  --color-border-dark: rgba(241, 236, 228, 0.16);
+  --color-border-accent: rgba(168, 138, 88, 0.55);
+
+  /* Tipografia */
+  --font-display: var(--font-fraunces), "Fraunces", Georgia, serif;
+  --font-sans: var(--font-archivo), "Archivo", ui-sans-serif, system-ui, sans-serif;
+
+  /* Raio — direção editorial/técnica: contido, não arredondado em excesso */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  --animate-fade-up: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html {
+  /* Sem isto o <html> fica transparente e a tela do navegador aparece branca
+     entre o parse do HTML e a aplicação do CSS — é o clarão que pisca em volta
+     do conteúdo a cada carregamento. O layout ainda repete isso inline no
+     próprio <html>, para valer já no primeiro byte. */
+  background-color: #050507;
+  scroll-behavior: smooth;
+  scroll-padding-top: 100px;
+}
+
+@media (max-width: 900px) {
+  html {
+    scroll-padding-top: 80px;
+  }
+}
+
+/* Nada de rolagem horizontal em nenhuma tela. Usamos `clip` em vez de
+   `hidden` de propósito: `hidden` transforma o elemento em container de
+   rolagem e derruba o `position: sticky` da cena de fundo e dos cabeçalhos. */
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+body {
+  /* A home (tema motion) e o blog são escuros — a base escura evita
+     flash claro no overscroll. Rotas claras sobrescrevem no próprio
+     container (.page do artigo, .shell do admin). */
+  background-color: #050507;
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Foco visível — nenhuma folha pública tinha regra de :focus-visible, então
+   quem navega por teclado dependia só do anel padrão do navegador, que some
+   contra as superfícies escuras. Dois anéis concêntricos funcionam tanto no
+   preto da home quanto no claro do artigo e do admin. */
+:focus-visible {
+  outline: 2px solid #8d5cff;
+  outline-offset: 2px;
+  border-radius: 3px;
+  box-shadow: 0 0 0 4px rgba(141, 92, 255, 0.28);
+}
+
+/* Rótulo "eyebrow" — pequeno, versalete, espaçado. Ecoa o padrão de
+   rótulos do brand guide ("IDENTIDADE VISUAL", "O QUE FAZEMOS"). */
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Escala tipográfica fluida para títulos */
+.text-display-xl {
+  font-family: var(--font-display);
+  font-size: clamp(2.75rem, 1.9rem + 3.6vw, 5.25rem);
+  line-height: 1.04;
+  letter-spacing: -0.01em;
+}
+
+.text-display-lg {
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 1.75rem + 2.1vw, 3.75rem);
+  line-height: 1.08;
+  letter-spacing: -0.005em;
+}
+
+.text-display-md {
+  font-family: var(--font-display);
+  font-size: clamp(1.625rem, 1.4rem + 1vw, 2.25rem);
+  line-height: 1.15;
+}
+
+.text-body-lg {
+  font-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+  line-height: 1.6;
+}
+
+/* ============================================================
+   SCROLLBAR — trilho fino único do projeto.
+   A mesma peça no site escuro, no blog, no artigo claro e no admin:
+   núcleo violeta do tema motion com halo neon. Firefox só aceita
+   scrollbar-width/color (fica fina, sem brilho); WebKit recebe o
+   tratamento completo — borda transparente + background-clip deixam
+   o trilho estreito e sobra espaço para o glow respirar.
+   ============================================================ */
+:root {
+  --scrollbar-track: transparent;
+  --scrollbar-core: #8d5cff;
+  --scrollbar-core-top: #b992ff;
+  --scrollbar-core-bottom: #6a2cff;
+  --scrollbar-glow: rgba(141, 92, 255, 0.55);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-core) var(--scrollbar-track);
+}
+
+::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: content-box;
+  background-image: linear-gradient(
+    180deg,
+    var(--scrollbar-core-top),
+    var(--scrollbar-core) 48%,
+    var(--scrollbar-core-bottom)
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.28),
+    0 0 9px var(--scrollbar-glow);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.45),
+    0 0 14px var(--scrollbar-glow),
+    0 0 26px var(--scrollbar-glow);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background-image: linear-gradient(180deg, #d7c2ff, var(--scrollbar-core));
 }

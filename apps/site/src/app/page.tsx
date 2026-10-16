@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import HomePage from "./home/HomePage";
 import { SITE_URL } from "@/lib/siteUrl";
 
-const title = "Kalidash — Consultoria em dados, automação e IA aplicada";
+const title = "Kalidash — Prepare sua operação para a era dos agentes";
 const ogImage = `${SITE_URL}/home/metodo-reuniao.jpg`; // absoluto: o layout commitado não define metadataBase
 const description =
-  "A Kalidash entende os desafios da sua operação, organiza a base e implementa soluções que conectam sistemas, automatizam rotinas e melhoram decisões.";
+  "A Kalidash prepara pessoas, processos e tecnologia para conectar agentes, automação e novas formas de trabalhar à operação real.";
 
 export const metadata: Metadata = {
   title: { absolute: title },

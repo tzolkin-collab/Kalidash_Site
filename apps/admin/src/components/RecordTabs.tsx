@@ -4,7 +4,8 @@ import type { EntityKind, TaskItem } from '../domain';
 import { emit } from '../lib/events';
 import type { EventContext } from '../lib/events';
 import { formatDate } from '../lib/format';
-import { currentActor, logChange, useHistory } from '../lib/history';
+import { logChange, useHistory } from '../lib/history';
+import { canDeleteTask, dateToDueAt, deleteTask, editTask, toggleTask } from '../lib/taskActions';
 import { describeChange } from '../lib/historyText';
 import { useStore } from '../lib/store';
 import { pipelinesStore } from '../mocks/pipelines';
@@ -44,7 +45,7 @@ const TAG_FALLBACK = ['Dados do cliente', 'Dados da empresa', 'Comercial', 'Jur�
 
 /** Tarefas do registro. Concluir uma emite `tarefa.concluida`. */
 export function TasksTab({ entity, id, name, ctx }: { entity: EntityKind; id: string; name: string; ctx: EventContext }) {
-  const [all, setAll] = useStore(tasksStore);
+  const [all] = useStore(tasksStore);
   const [pipelines] = useStore(pipelinesStore);
   const [team] = useStore(teamStore);
   const tasks = useMemo(() => all.filter((t) => t.entity === entity && t.entityId === id), [all, entity, id]);
@@ -58,7 +59,7 @@ export function TasksTab({ entity, id, name, ctx }: { entity: EntityKind; id: st
 
   const add = () => {
     if (!title.trim()) return;
-    addTask({ entity, entityId: id, entityName: name, title: title.trim(), tag, assignee: assignee || undefined, dueAt: due ? new Date(`${due}T12:00:00`).toISOString() : undefined, source: 'manual' });
+    addTask({ entity, entityId: id, entityName: name, title: title.trim(), tag, assignee: assignee || undefined, dueAt: dateToDueAt(due), source: 'manual' });
     logChange({ entity, entityId: id, entityName: name, kind: 'event', note: `Tarefa criada: ${title.trim()}` });
     emit('tarefa.criada', ctx);
     setTitle('');
@@ -67,14 +68,7 @@ export function TasksTab({ entity, id, name, ctx }: { entity: EntityKind; id: st
 
   const toggle = (taskId: string) => {
     const task = all.find((t) => t.id === taskId);
-    if (!task) return;
-    const done = !task.done;
-    // Sem responsável definido, quem concluir assume a tarefa (nunca troca quem já foi designado).
-    const claims = done && !task.assignee;
-    const actor = currentActor();
-    setAll((prev) => prev.map((t) => (t.id === taskId ? { ...t, done, doneAt: done ? new Date().toISOString() : undefined, assignee: claims ? actor : t.assignee } : t)));
-    logChange({ entity, entityId: id, entityName: name, kind: 'event', note: `${done ? 'Tarefa concluída' : 'Tarefa reaberta'}: ${task.title}${claims ? ` — sem responsável definido, ${actor} assumiu` : ''}` });
-    if (done) emit('tarefa.concluida', ctx);
+    if (task) toggleTask(task, ctx);
   };
 
   const [editing, setEditing] = useState<string | null>(null);
@@ -84,25 +78,12 @@ export function TasksTab({ entity, id, name, ctx }: { entity: EntityKind; id: st
     setDraft({ title: t.title, assignee: t.assignee ?? '', due: t.dueAt ? t.dueAt.slice(0, 10) : '' });
   };
   const saveEdit = (task: TaskItem) => {
-    const title = draft.title.trim();
-    if (!title) return;
-    const dueAt = draft.due ? new Date(`${draft.due}T12:00:00`).toISOString() : undefined;
-    const assigneeNew = draft.assignee || undefined;
-    const changes = [
-      title !== task.title && 'título',
-      assigneeNew !== task.assignee && 'responsável',
-      (dueAt?.slice(0, 10) ?? '') !== (task.dueAt?.slice(0, 10) ?? '') && 'prazo',
-    ].filter(Boolean);
-    if (changes.length) {
-      setAll((prev) => prev.map((x) => (x.id === task.id ? { ...x, title, assignee: assigneeNew, dueAt } : x)));
-      logChange({ entity, entityId: id, entityName: name, kind: 'event', note: `Tarefa editada (${changes.join(', ')}): ${title}` });
-    }
+    if (!draft.title.trim()) return;
+    editTask(task, { title: draft.title, assignee: draft.assignee || undefined, dueAt: dateToDueAt(draft.due) });
     setEditing(null);
   };
   const remove = (task: TaskItem) => {
-    if (!window.confirm(`Excluir a tarefa "${task.title}"?`)) return;
-    setAll((prev) => prev.filter((x) => x.id !== task.id));
-    logChange({ entity, entityId: id, entityName: name, kind: 'event', note: `Tarefa excluída: ${task.title}` });
+    if (window.confirm(`Excluir a tarefa "${task.title}"?`)) deleteTask(task);
   };
 
   const open = tasks.filter((t) => !t.done);
@@ -148,7 +129,7 @@ export function TasksTab({ entity, id, name, ctx }: { entity: EntityKind; id: st
             <div className="tag-row"><Badge tone="accent">{t.tag}</Badge><Badge>{t.source === 'passo' ? 'Passo do ciclo' : t.source === 'requisito' ? 'Requisito' : 'Manual'}</Badge>
               <button type="button" className="btn btn-ghost btn-sm" onClick={() => startEdit(t)} aria-label="Editar tarefa"><Pencil size={14} /></button>
               {/* Tarefa de requisito não se exclui: o gate a recriaria na próxima checagem. */}
-              {t.source !== 'requisito' && <button type="button" className="btn btn-ghost btn-sm" onClick={() => remove(t)} aria-label="Excluir tarefa"><Trash2 size={14} /></button>}
+              {canDeleteTask(t) && <button type="button" className="btn btn-ghost btn-sm" onClick={() => remove(t)} aria-label="Excluir tarefa"><Trash2 size={14} /></button>}
             </div>
           </li>
         ))}

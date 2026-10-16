@@ -1,0 +1,360 @@
+/* ============================================================
+   KALIDASH — BENTO GRID: O DESAFIO
+   Cards com SVGs de fundo animados e layout editorial de alto padrão
+   ============================================================ */
+
+.bentoContainer {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+  width: 100%;
+}
+
+.bentoCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 250px;
+  padding: 38px 36px;
+  background: #ffffff;
+  border: 1px solid #e8e4de;
+  border-radius: 18px;
+  overflow: hidden;
+  color: var(--black-2, #0a0a0a);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.28s ease;
+}
+
+.bentoCard:hover {
+  transform: translateY(-3px);
+  border-color: #d8d0c5;
+  box-shadow: 0 16px 36px rgba(40, 24, 59, 0.07);
+}
+
+.cardWide {
+  grid-column: 1 / -1;
+  min-height: 220px;
+}
+
+.cardHeader {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.cardNumber {
+  font-family: var(--font-title, sans-serif);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #9c959e;
+}
+
+.cardIconWrap {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  background: #f7f5f2;
+  border-radius: 10px;
+  color: var(--accent, #b6644d);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.bentoCard:hover .cardIconWrap {
+  background: rgba(182, 100, 77, 0.12);
+  transform: scale(1.05);
+}
+
+.cardContent {
+  position: relative;
+  z-index: 2;
+  max-width: 460px;
+}
+
+.cardTitle {
+  font-family: var(--font-title, sans-serif);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  color: var(--black-2, #0a0a0a);
+}
+
+.cardText {
+  margin-top: 14px;
+  font-size: 16px;
+  line-height: 25px;
+  color: #555057;
+}
+
+/* ---- Card 4: Manifesto de Fechamento ---- */
+.cardManifesto {
+  grid-column: 1 / -1;
+  min-height: 220px;
+  padding: 44px 40px;
+  background: linear-gradient(135deg, #130d1a 0%, #1f1225 50%, #2e1627 100%);
+  border: 1px solid rgba(182, 100, 77, 0.35);
+  border-radius: 18px;
+  color: #ffffff;
+  box-shadow: 0 10px 30px rgba(19, 13, 26, 0.35);
+}
+
+.cardManifesto:hover {
+  transform: translateY(-3px);
+  border-color: rgba(182, 100, 77, 0.6);
+  box-shadow: 0 20px 48px rgba(19, 13, 26, 0.45);
+}
+
+.manifestoGrid {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 36px;
+  align-items: center;
+}
+
+.manifestoTitle {
+  font-family: var(--font-title, sans-serif);
+  font-size: clamp(24px, 2.4vw, 32px);
+  font-weight: 600;
+  line-height: 1.14;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+}
+
+.manifestoSub {
+  margin-top: 10px;
+  font-size: 19px;
+  line-height: 28px;
+  color: #f0b39f;
+  font-weight: 500;
+}
+
+.manifestoCallout {
+  display: flex;
+  align-items: center;
+  padding-left: 28px;
+  border-left: 2px solid var(--accent, #b6644d);
+  font-size: 18px;
+  line-height: 27px;
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 500;
+}
+
+/* ============================================================
+   SVGS DE FUNDO ANIMADOS
+   ============================================================ */
+
+.svgWrapper {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+  opacity: 0.85;
+  transition: opacity 0.3s ease;
+}
+
+.bentoCard:hover .svgWrapper {
+  opacity: 1;
+}
+
+/* 1. Trabalho manual: Loop de repetição / engrenagens */
+.svgManual {
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 290px;
+  height: 290px;
+  color: #d5cfc5;
+}
+
+.rotateCwSlow {
+  transform-origin: 200px 200px;
+  animation: spinCw 32s linear infinite;
+}
+
+.rotateCcwSlow {
+  transform-origin: 200px 200px;
+  animation: spinCcw 22s linear infinite;
+}
+
+.rotateCwFast {
+  transform-origin: 200px 200px;
+  animation: spinCw 14s linear infinite;
+}
+
+.pulsePoint {
+  animation: pointPulse 2.8s ease-in-out infinite alternate;
+}
+
+/* 2. IA superficial: Nódulos e rede isolada */
+.svgAi {
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 320px;
+  height: 320px;
+  color: #d1c8d6;
+}
+
+.dashFlowForward {
+  animation: dashShift 18s linear infinite;
+}
+
+.dashFlowBack {
+  animation: dashShiftRev 14s linear infinite;
+}
+
+.nodeBlink1 {
+  animation: nodeGlow 3.2s ease-in-out infinite;
+}
+
+.nodeBlink2 {
+  animation: nodeGlow 4s ease-in-out infinite 1.2s;
+}
+
+.nodeBlink3 {
+  animation: nodeGlow 3.6s ease-in-out infinite 2s;
+}
+
+.synapsePulse {
+  transform-origin: 210px 170px;
+  animation: rippleSpread 4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+/* 3. Operação desconectada: Ondas contínuas em ritmos diferentes (sem vaivém ou trancos) */
+.svgOps {
+  position: absolute;
+  right: -20px;
+  bottom: -20px;
+  width: 460px;
+  height: 250px;
+  color: #ded6cc;
+}
+
+.waveStream1 {
+  will-change: transform;
+  animation: loopWave1 9s linear infinite;
+}
+
+.waveStream2 {
+  will-change: transform;
+  animation: loopWave2 5.5s linear infinite;
+}
+
+.waveStream3 {
+  will-change: transform;
+  animation: loopWave3 2.4s linear infinite;
+}
+
+/* 4. Manifesto: Convergência harmônica */
+.svgManifesto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.ambientGlowPulse {
+  animation: glowBreathe 6s ease-in-out infinite alternate;
+}
+
+.centerStarGlow {
+  transform-origin: 460px 150px;
+  animation: starPulse 3.5s ease-in-out infinite alternate;
+}
+
+/* ---- Keyframes ---- */
+@keyframes spinCw {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spinCcw {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes pointPulse {
+  0% { opacity: 0.25; transform: scale(0.9); }
+  100% { opacity: 0.9; transform: scale(1.15); }
+}
+
+@keyframes dashShift {
+  to { stroke-dashoffset: -120; }
+}
+
+@keyframes dashShiftRev {
+  to { stroke-dashoffset: 120; }
+}
+
+@keyframes nodeGlow {
+  0%, 100% { opacity: 0.3; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes rippleSpread {
+  0% { transform: scale(0.4); opacity: 0.8; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+@keyframes loopWave1 {
+  from { transform: translateX(0); }
+  to { transform: translateX(-160px); }
+}
+
+@keyframes loopWave2 {
+  from { transform: translateX(0); }
+  to { transform: translateX(-110px); }
+}
+
+@keyframes loopWave3 {
+  from { transform: translateX(0); }
+  to { transform: translateX(-70px); }
+}
+
+@keyframes glowBreathe {
+  0% { opacity: 0.45; }
+  100% { opacity: 0.85; }
+}
+
+@keyframes starPulse {
+  0% { transform: scale(0.92); opacity: 0.6; }
+  100% { transform: scale(1.08); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rotateCwSlow, .rotateCcwSlow, .rotateCwFast,
+  .dashFlowForward, .dashFlowBack,
+  .nodeBlink1, .nodeBlink2, .nodeBlink3, .synapsePulse,
+  .waveStream1, .waveStream2, .waveStream3,
+  .ambientGlowPulse, .centerStarGlow {
+    animation: none !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .bentoContainer {
+    grid-template-columns: 1fr;
+  }
+  .cardWide {
+    grid-column: auto;
+  }
+  .manifestoGrid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .manifestoCallout {
+    padding-left: 20px;
+  }
+}

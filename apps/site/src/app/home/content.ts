@@ -1,60 +1,41 @@
-/* Conteúdo da Home — textos, links e imagens num lugar só.
- * O visual vive em home.module.css; aqui só muda o que é palavra, link e foto.
- * Itens marcados com PENDENTE são placeholders: faltava a informação no design/briefing. */
+/* Conteúdo da Home — fonte de verdade para textos, links e imagens.
+ * Copy atualizada em 09/10/2026 a partir do documento aprovado pela Kalidash. */
 
 export const config = {
-  /** PENDENTE: para onde vão os leads do formulário (webhook ou rota da API). Sem isto o
-   *  formulário valida, mas avisa que o envio ainda não está conectado. */
   leadEndpoint: process.env.NEXT_PUBLIC_LEAD_ENDPOINT ?? "",
-  /** PENDENTE: link do WhatsApp (https://wa.me/55DDDNUMERO). Vazio = o botão leva ao formulário. */
-  whatsappUrl: process.env.NEXT_PUBLIC_WHATSAPP_URL ?? "",
+  // Links enviados pela Kalidash em 02/10/2026. O WhatsApp pode ser trocado por variável de ambiente.
+  whatsappUrl: process.env.NEXT_PUBLIC_WHATSAPP_URL ?? "https://wa.link/9b5sl1",
   social: {
-    // O @ aparece na tela do slide da foto da imersão; confirmar com a Carol.
-    instagram: "https://instagram.com/kalidash.metrics",
-    /** PENDENTE: vazio = o ícone não aparece. */
+    instagram: "https://www.instagram.com/kalidash.ai/",
+    linkedin: "https://www.linkedin.com/company/kalidash/",
+    youtube: "https://www.youtube.com/@KalidashIA",
     facebook: "",
-    youtube: "",
   },
 };
 
 export const nav = [
-  { label: "Para empresas", href: "#para-empresas", chevron: true },
-  { label: "Sobre nós", href: "#sobre" },
+  { label: "O desafio", href: "#desafio" },
+  { label: "O que fazemos", href: "#o-que-fazemos" },
+  { label: "Experiência", href: "#experiencia" },
   { label: "Cases", href: "#cases" },
   { label: "Blog", href: "/blog" },
-  { label: "Produtos", href: "#produtos", chevron: true },
   { label: "Contato", href: "#diagnostico" },
 ];
 
 export const hero = {
-  chip: { emoji: "🧠", before: "Consultoria em", after: "dados, automação e IA aplicada" },
-  title: "Transforme dados, processos e tecnologia em eficiência operacional",
-  text: "A Kalidash entende os desafios da sua operação, organiza a base e implementa soluções que conectam sistemas, automatizam rotinas e melhoram decisões. Da estratégia à execução, com método, clareza e impacto mensurável.",
-};
-
-export const problem = {
-  watermark: "Falta de controle",
-  title: "O problema raramente é falta de tecnologia. É falta de conexão.",
-  text: "Quando dados, sistemas e processos não trabalham juntos, a execução trava, o retrabalho aumenta e as decisões demoram. Sua empresa enfrenta alguma das situações abaixo?",
-  cards: [
-    { icon: "chart", title: ["Dados", "dispersos"], text: "Dados espalhados atrasam decisões e colocam os números em dúvida." },
-    { icon: "database", title: ["Sistemas", "desconectados"], text: "Sistemas isolados atrasam informações e quebram o fluxo da operação." },
-    { icon: "share", title: ["Decisões", "sem visão"], text: "Dados desorganizados fazem sua empresa reagir, em vez de se antecipar." },
+  eyebrow: "Aceleradora de eficiência operacional",
+  title: "Prepare sua operação para a era dos agentes.",
+  paragraphs: [
+    "A Inteligência Artificial está deixando de apenas responder para também executar tarefas e participar de processos.",
+    "A Kalidash prepara pessoas, processos e tecnologia para essa mudança, conectando agentes, automação e novas formas de trabalhar à operação real da empresa, para gerar eficiência e escala de verdade.",
   ],
-  quote: {
-    text: "Nosso time perdia horas com tarefas manuais e retrabalho. Hoje, os processos fluem e focamos no que realmente importa.",
-    author: "Aline Motta",
-    role: "empresária",
-  },
-};
-
-export const testimonial = {
-  chip: { emoji: "🤝", before: "Alguns dos nossos", after: "clientes atendidos" },
-  before: "Entregaram ",
-  strong: "além da nossa expectativa",
-  after: " e também do acordo. É assim que você surpreende clientes.",
-  author: "André",
-  role: "CMO da Tô Garantido",
+  primaryCta: { label: "Preparar minha operação", href: "#diagnostico" },
+  secondaryCta: { label: "Conhecer a Kalidash", href: "#experiencia" },
+  stats: [
+    { value: "+10 mil", label: "pessoas capacitadas" },
+    { value: "170", label: "operações atendidas" },
+    { value: "+500", label: "pessoas por operação" },
+  ],
 };
 
 export const clients = [
@@ -67,121 +48,166 @@ export const clients = [
   { name: "3D Lab", src: "/home/logo-3dlab.png" },
 ];
 
-export const journey = {
-  title: ["Do desafio à", "solução em operação"],
-  text: "Em 3 frentes: entendemos o negócio, estruturamos a solução e executamos com dados, automação e IA.",
-  watermarkLeft: "Evolução na prática",
-  watermarkRight: "contínua",
-  // O design mostra 1 slide (Inteligência de dados); as frentes 2 e 3 foram escritas com as palavras
-  // da própria Kalidash (slide da imersão e texto de abertura). PENDENTE: a Carol aprovar ou trocar.
-  slides: [
+export const problem = {
+  watermark: "Falta de controle",
+  title: "O problema não é apenas tecnológico.",
+  subtitle: "É operacional. É cultural. É humano.",
+  text: "Quando pessoas, processos e tecnologia não trabalham juntos, a execução trava e as decisões demoram. Ferramenta nova não resolve isso: muda-se o jeito de trabalhar.",
+  closingFinal: "Ferramenta nova não resolve isso. Muda-se o jeito de trabalhar.",
+  quote: {
+    text: "Nosso time perdia horas com tarefas manuais e retrabalho. Hoje, os processos fluem e focamos no que realmente importa.",
+    author: "Aline Motta",
+    role: "empresária",
+  },
+  cards: [
     {
-      eyebrow: "Inteligência de dados",
-      title: "Decisões começam com dados confiáveis",
-      text: "Integramos fontes, organizamos a base e criamos dashboards que transformam indicadores dispersos em uma visão clara da operação.",
-      strong: "Menos dúvida. Mais decisão.",
-      link: { label: "Ver mais detalhes", href: "#diagnostico" },
-      image: { src: "/home/tablet.jpg", alt: "Mãos segurando um tablet com um dashboard de dados" },
+      icon: "chart",
+      number: "01",
+      title: "Trabalho manual",
+      text: "Tarefas repetitivas que consomem tempo e capacidade do time.",
     },
     {
-      eyebrow: "Automação de processos",
-      title: "Rotinas que fluem sem retrabalho",
-      text: "Conectamos sistemas e automatizamos as tarefas manuais e repetitivas, para o time focar no que realmente importa.",
-      strong: "Menos retrabalho. Mais fluidez.",
-      link: { label: "Ver mais detalhes", href: "#diagnostico" },
-      image: { src: "/home/evento-mesa.jpg", alt: "Equipe trabalhando em notebooks ao redor de uma mesa" },
+      icon: "database",
+      number: "02",
+      title: "IA superficial",
+      text: "Ferramentas disponíveis, mas pouco conectadas aos processos e à rotina do negócio.",
     },
     {
-      eyebrow: "IA aplicada",
-      title: "IA que potencializa pessoas",
-      text: "Aplicamos inteligência artificial com governança e segurança, para ampliar a produtividade das equipes, e não para substituí-las.",
-      strong: "Mesmo time. Mais resultado.",
-      link: { label: "Ver mais detalhes", href: "#diagnostico" },
-      image: { src: "/home/evento-ai-os.jpg", alt: "Tela com o framework AI Business OS da Kalidash" },
+      icon: "share",
+      number: "03",
+      title: "Operação desconectada",
+      text: "Pessoas, processos e tecnologia trabalhando em ritmos diferentes.",
     },
   ],
 };
 
-export const method = {
-  title: ["Método validado", "para fazer acontecer"],
-  text: "Criamos um método que já foi validado por centenas de empresários. Cada projeto avança com diagnóstico, etapas claras e acompanhamento próximo, da primeira decisão ao resultado.",
-  link: { label: "Conheça o método", href: "#diagnostico" },
-  image: { src: "/home/metodo-reuniao.jpg", alt: "Equipe em reunião olhando um gráfico de resultados" },
-  avatars: ["/home/avatar-1.jpg", "/home/avatar-2.jpg", "/home/avatar-3.jpg", "/home/avatar-4.jpg"],
-};
-
-export const cases = {
-  title: ["Transformação que", "acontece de verdade"],
-  text: "Operação, treinamentos e pessoas reais. Aqui, cada imagem mostra a Kalidash fazendo acontecer ao lado dos clientes.",
-  link: { label: "Conheça nossos cases", href: "#cases" },
-  // Legendas descritivas do que cada foto mostra (a 1ª vem do design). PENDENTE: a Carol confirmar
-  // ou trocar por títulos de cases reais (cliente, evento, resultado).
+export const fronts = {
+  eyebrow: "O que fazemos",
+  title: "Nem toda empresa começa no mesmo lugar.",
+  paragraphs: [
+    "Algumas precisam preparar as pessoas. Outras precisam identificar onde existe potencial de eficiência. Outras já sabem o que fazer e precisam de capacidade para colocar em prática.",
+    "Por isso, a Kalidash atua em três frentes que podem funcionar de forma independente ou integrada.",
+  ],
   items: [
     {
-      src: "/home/evento-palestra.jpg",
-      alt: "Apresentação da Kalidash em uma imersão presencial",
-      title: "Imersão Kalidash",
-      text: "A nossa imersão presencial foi exatamente sobre isso: colocar a mão na massa, destravar processos e construir soluções reais lado a lado.",
+      number: "01",
+      name: "AI Culture",
+      title: "Prepare seu time para uma nova forma de trabalhar.",
+      text: "O programa de treinamento corporativo em IA e cultura de IA para grandes operações. Mais do que ensinar ferramentas, desenvolvemos repertório, autonomia e novos hábitos de trabalho para que as pessoas incorporem IA à rotina e passem a identificar oportunidades de melhoria por conta própria.",
+      closing: "Capacitação é onde a transformação começa.",
+      link: { label: "Conheça os treinamentos", href: "#diagnostico" },
+      image: { src: "/home/evento-palestra.jpg", alt: "Treinamento corporativo conduzido pela Kalidash" },
     },
     {
-      src: "/home/evento-sala.jpg",
-      alt: "Sala de treinamento com participantes e telas",
-      title: "Treinamento em sala",
-      text: "Equipes acompanham a apresentação nas telas e praticam nos próprios notebooks, com o time da Kalidash ao lado.",
+      number: "02",
+      name: "Advisory",
+      title: "Transforme sem perder o rumo.",
+      text: "Acompanhamos a liderança na implementação da inovação com governança, ajudando a priorizar, decidir, medir e manter a transformação conectada aos objetivos do negócio.",
+      closing: "Advisory é onde a transformação ganha direção e continuidade.",
+      link: { label: "Conheça o Advisory", href: "#diagnostico" },
+      image: { src: "/home/metodo-reuniao.jpg", alt: "Liderança acompanhando indicadores com a Kalidash" },
     },
     {
-      src: "/home/evento-mesa.jpg",
-      alt: "Equipe trabalhando em notebooks ao redor de uma mesa",
-      title: "Prática com a equipe",
-      text: "Atividades guiadas, direto nos processos da operação do cliente, para sair da sessão com solução funcionando.",
+      number: "03",
+      name: "Execução",
+      title: "Quando a transformação precisa sair do papel.",
+      text: "Entramos na operação para implementar agentes, automações, integrações, dados e soluções de IA quando a empresa precisa de capacidade adicional para fazer acontecer.",
+      closing: "Execução transforma estratégia em operação.",
+      link: { label: "Conheça a Execução", href: "#diagnostico" },
+      image: { src: "/home/evento-ai-os.jpg", alt: "Framework de agentes e operação da Kalidash" },
+    },
+  ],
+};
+
+export const experience = {
+  eyebrow: "Experiência que vem da operação real",
+  title: "Não aprendemos a transformar operações olhando de fora.",
+  paragraphs: [
+    "Já estivemos entre a estratégia e a execução, entre quem toma a decisão e quem faz o trabalho acontecer.",
+    "Nossa experiência foi construída em operações complexas, empresas da economia real e ambientes onde eficiência não é discurso, é resultado.",
+  ],
+  authorities: [
+    {
+      label: "Onde aplicamos",
+      items: ["ArcelorMittal", "CBA", "Sicoob", "Cooxupé"],
+      note: "Operações de mais de 500 pessoas.",
     },
     {
-      src: "/home/cooxupe.jpg",
-      alt: "Equipe reunida na escadaria da Cooxupé",
-      title: "Cooxupé",
-      text: "Atuação presencial junto ao time da Cooxupé, em Guaxupé (MG).",
+      label: "Onde ensinamos",
+      items: ["Conquer", "Xperiun", "Rocketseat", "Hashtag", "Tera"],
+      note: "As maiores escolas de negócios e tecnologia do país.",
     },
-    {
-      src: "/home/evento-ai-os.jpg",
-      alt: "Tela com o framework AI Business OS da Kalidash",
-      title: "AI Business OS",
-      text: "O framework em três camadas que levamos às imersões: contexto, dados e inteligência.",
-    },
+  ],
+  proof: ["A gente vive o que ensina.", "E ensina o que vive."],
+  closing: [
+    "A IA não precisa substituir pessoas para transformar uma operação.",
+    "Ela pode ampliar a capacidade de quem já faz o trabalho acontecer.",
+  ],
+  link: { label: "Conheça nossos cases", href: "#cases" },
+  image: { src: "/home/cooxupe.jpg", alt: "Equipe reunida na escadaria da Cooxupé" },
+};
+
+export const testimonial = {
+  eyebrow: "Quem viveu a transformação",
+  title: "O que muda quando a tecnologia chega ao trabalho real.",
+  quote: "Entregaram além da nossa expectativa e também do acordo. É assim que você surpreende clientes.",
+  author: "André",
+  role: "CMO da Tô Garantido",
+};
+
+export const people = {
+  eyebrow: "Por trás da transformação",
+  title: ["Tecnologia é parte da mudança.", "Pessoas fazem ela acontecer."],
+  text: "Treinamentos, imersões, workshops e projetos com gente de verdade transformando o trabalho real.",
+  items: [
+    { src: "/home/evento-palestra.jpg", alt: "Apresentação da Kalidash em uma imersão presencial", title: "Imersões" },
+    { src: "/home/evento-sala.jpg", alt: "Sala de treinamento com participantes e telas", title: "Treinamentos corporativos" },
+    { src: "/home/evento-mesa.jpg", alt: "Equipe trabalhando em notebooks ao redor de uma mesa", title: "Workshops" },
+    { src: "/home/cooxupe.jpg", alt: "Equipe reunida na escadaria da Cooxupé", title: "Clientes" },
+    { src: "/home/metodo-reuniao.jpg", alt: "Equipe da Kalidash em reunião", title: "Projetos" },
   ],
 };
 
 export const diagnostico = {
-  chip: { before: "Fale com o nosso", emoji: "🤝", after: "time de especialistas" },
-  title: ["Agende seu Diagnóstico", "Estratégico"],
-  highlight: "Gratuito",
-  text: "Preencha os campos abaixo e nossa equipe entrará em contato em até 24h para agendar a melhor data para sua sessão.",
-  strongBefore: "É o ",
-  strong: "primeiro passo para unificar sua operação.",
+  title: "Existe uma oportunidade de eficiência na sua operação.",
+  text: "Conte um pouco sobre o momento da sua empresa e vamos entender o desafio antes de falar sobre qualquer solução.",
+  microcopy: "Primeiro entendemos. Depois construímos juntos.",
   fields: {
-    name: "Nome e Sobrenome*",
-    email: "Seu melhor email corporativo*",
-    phone: "Whatsapp com DD*",
-    challenge: "Qual o seu maior desafio com dados hoje?",
-    submit: "Enviar",
+    name: "Nome e sobrenome*",
+    company: "Empresa*",
+    role: "Cargo*",
+    email: "E-mail corporativo*",
+    phone: "WhatsApp com DDD*",
+    teamSize: "Número de colaboradores na operação*",
+    goal: "O que você busca?",
+    challenge: "Conte um pouco mais sobre o desafio",
+    submit: "Solicitar diagnóstico",
   },
+  goals: [
+    "Capacitar meu time em IA",
+    "Estruturar uma agenda de IA e eficiência",
+    "Acompanhar uma transformação em andamento",
+    "Transformar um processo ou operação",
+    "Conhecer a Kalidash",
+  ],
 };
 
 export const footer = {
-  text: "Especialista em soluções para empresas que querem melhorar o desempenho e tomar as melhores decisões",
+  text: "Preparamos pessoas, processos e tecnologia para a era dos agentes.",
   columns: [
     {
       title: "A Kalidash",
       links: [
-        { label: "O que fazemos", href: "#sobre" },
+        { label: "O que fazemos", href: "#o-que-fazemos" },
+        { label: "Experiência", href: "#experiencia" },
         { label: "Blog", href: "/blog" },
-        { label: "Contato", href: "#diagnostico" },
       ],
     },
     {
-      title: "Produtos",
+      title: "Contato",
       links: [
-        { label: "Para empresas", href: "#para-empresas" },
         { label: "Diagnóstico", href: "#diagnostico" },
+        { label: "Cases", href: "#cases" },
       ],
     },
     {

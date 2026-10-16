@@ -998,3 +998,60 @@ textarea.inline-input { resize: vertical; }
 .task-edit { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; min-width: 0; }
 .task-edit .input:first-child { grid-column: 1 / -1; }
 @media (max-width: 560px) { .task-edit { grid-template-columns: 1fr; } }
+
+/* Lista de tarefas (página Tarefas) */
+.tasklist-group { margin-bottom: 24px; }
+.tasklist-heading { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin: 0 0 4px; }
+.tasklist-heading.is-danger { color: #ef4444; }
+.tasklist-record { display: inline-flex; align-items: center; gap: 4px; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; text-decoration: underline; text-decoration-color: var(--border-subtle); text-underline-offset: 2px; }
+.tasklist-record:hover { color: var(--text-primary); text-decoration-color: currentColor; }
+@media (max-width: 640px) { .task-row { grid-template-columns: auto minmax(0, 1fr); } .task-row .tag-row { grid-column: 2; flex-wrap: wrap; } }
+.task-add-global { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); padding: 16px; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-surface); }
+.task-add-global .input:first-child { grid-column: auto; }
+.task-add-global .input[aria-label="Título da tarefa"] { grid-column: 1 / -1; }
+.task-add-actions { grid-column: 1 / -1; display: flex; gap: 8px; }
+.task-add-global .task-add-actions .btn { grid-column: auto; }
+
+/* Workflow: o React Flow põe pointer-events:none em nó que não é arrastável nem selecionável, e isso desliga
+ * os botões de dentro (abrir tarefa, "Adicionar tarefa", engrenagem da etapa). Os nós precisam receber clique. */
+.wf-fullscreen .react-flow__node { pointer-events: all !important; }
+
+/* Workflow: canvas + painel lateral fixo. O painel não cobre nada: o canvas continua arrastável com ele aberto. */
+.wf-main { flex: 1; display: flex; min-height: 0; min-width: 0; position: relative; }
+.wf-main .wf-canvas { flex: 1; min-width: 0; height: auto; }
+.wf-dock { flex: none; width: 0; overflow: hidden; display: flex; flex-direction: column; border-left: 0 solid var(--border-subtle); background: var(--bg-surface); transition: width 0.2s ease; }
+.wf-dock.open { width: 420px; border-left-width: 1px; }
+.wf-dock > * { min-width: 420px; }
+.wf-dock .dock-slot { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.wf-dock .dock-slot:empty { display: none; }
+.wf-dock .dock-panel, .wf-dock .panel-shell { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.wf-dock .panel-head { padding: 16px 18px 14px; }
+.wf-dock .panel-body { padding: 16px 18px; }
+.wf-dock .panel-foot { padding: 12px 18px; flex-wrap: wrap; }
+.wf-dock > .panel-body { flex: 1; min-height: 0; overflow-y: auto; }
+.wf-node.is-selected { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.28); }
+.wf-req.is-selected { outline: 2px solid var(--accent); outline-offset: 1px; }
+@media (max-width: 900px) {
+  .wf-dock.open { position: absolute; top: 0; right: 0; bottom: 0; z-index: 5; width: min(420px, 92vw); box-shadow: -12px 0 32px rgba(0, 0, 0, 0.16); }
+  .wf-dock > * { min-width: 0; }
+}
+
+/* Estrutura do funil (WorkflowInspector) */
+.insp { display: flex; flex-direction: column; gap: 18px; }
+.insp-section-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.insp-toggle { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: transparent; color: var(--text-primary); font: inherit; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; }
+.insp-section-body { display: flex; flex-direction: column; gap: 4px; }
+.insp-row { display: flex; align-items: center; gap: 6px; padding: 4px 6px; border: 1px solid transparent; border-radius: 8px; }
+.insp-row:hover { background: var(--bg-surface-hover); }
+.insp-row.is-selected { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.insp-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 4px 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.insp-icon { display: inline-flex; color: var(--text-muted); flex-shrink: 0; }
+.insp-text { display: flex; flex-direction: column; min-width: 0; }
+.insp-title { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.insp-meta { font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.insp-order { display: inline-flex; flex-direction: column; }
+.insp-empty { margin: 2px 6px 6px; font-size: 12px; color: var(--text-muted); }
+.insp-group { margin-bottom: 10px; }
+.insp-group-head { display: flex; align-items: center; gap: 6px; padding: 2px 6px; }
+.insp-group-name { flex: 1; font-size: 12px; font-weight: 700; color: var(--text-secondary, var(--text-muted)); }
+.insp-confirm { display: inline-flex; align-items: center; gap: 4px; }

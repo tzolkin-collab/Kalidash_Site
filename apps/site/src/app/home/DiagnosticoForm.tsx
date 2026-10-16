@@ -21,18 +21,33 @@ export default function DiagnosticoForm() {
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
+    const goals = form.getAll("goals").map(String);
+    const company = String(form.get("company") ?? "").trim();
+    const role = String(form.get("role") ?? "").trim();
+    const teamSize = String(form.get("teamSize") ?? "").trim();
+    const details = String(form.get("challenge") ?? "").trim();
     const data = {
       name: String(form.get("name") ?? "").trim(),
       email: String(form.get("email") ?? "").trim(),
       phone: String(form.get("phone") ?? "").trim(),
-      challenge: String(form.get("challenge") ?? "").trim(),
+      challenge: [
+        `Empresa: ${company}`,
+        `Cargo: ${role}`,
+        `Colaboradores na operação: ${teamSize}`,
+        `Objetivos:\n- ${goals.join("\n- ")}`,
+        details ? `Desafio informado:\n${details}` : "",
+      ].filter(Boolean).join("\n\n"),
       source: "site-home-diagnostico",
       website: String(form.get("website") ?? ""),
     };
     const next: Record<string, string> = {};
     if (data.name.split(/\s+/).filter(Boolean).length < 2) next.name = "Informe nome e sobrenome.";
+    if (!company) next.company = "Informe a empresa.";
+    if (!role) next.role = "Informe o cargo.";
     if (!emailOk(data.email)) next.email = "Informe um email válido.";
     if (data.phone.replace(/\D/g, "").length < 10) next.phone = "Informe o WhatsApp com DDD.";
+    if (!teamSize) next.teamSize = "Informe o tamanho da operação.";
+    if (!goals.length) next.goals = "Selecione pelo menos uma opção.";
     setErrors(next);
     if (Object.keys(next).length) return;
 
@@ -57,21 +72,49 @@ export default function DiagnosticoForm() {
 
   return (
     <form className={styles.form} onSubmit={onSubmit} noValidate data-block="diagnostico-form">
-      <label className={styles.field}>
-        <span className={styles.srOnly}>{f.name}</span>
-        <input name="name" placeholder={f.name} autoComplete="name" aria-invalid={!!errors.name} />
-        {errors.name && <small role="alert">{errors.name}</small>}
-      </label>
-      <label className={styles.field}>
-        <span className={styles.srOnly}>{f.email}</span>
-        <input name="email" type="email" placeholder={f.email} autoComplete="email" aria-invalid={!!errors.email} />
-        {errors.email && <small role="alert">{errors.email}</small>}
-      </label>
-      <label className={styles.field}>
-        <span className={styles.srOnly}>{f.phone}</span>
-        <input name="phone" type="tel" placeholder={f.phone} autoComplete="tel" aria-invalid={!!errors.phone} />
-        {errors.phone && <small role="alert">{errors.phone}</small>}
-      </label>
+      <div className={styles.formGrid}>
+        <label className={styles.field}>
+          <span className={styles.srOnly}>{f.name}</span>
+          <input name="name" placeholder={f.name} autoComplete="name" aria-invalid={!!errors.name} />
+          {errors.name && <small role="alert">{errors.name}</small>}
+        </label>
+        <label className={styles.field}>
+          <span className={styles.srOnly}>{f.company}</span>
+          <input name="company" placeholder={f.company} autoComplete="organization" aria-invalid={!!errors.company} />
+          {errors.company && <small role="alert">{errors.company}</small>}
+        </label>
+        <label className={styles.field}>
+          <span className={styles.srOnly}>{f.role}</span>
+          <input name="role" placeholder={f.role} autoComplete="organization-title" aria-invalid={!!errors.role} />
+          {errors.role && <small role="alert">{errors.role}</small>}
+        </label>
+        <label className={styles.field}>
+          <span className={styles.srOnly}>{f.email}</span>
+          <input name="email" type="email" placeholder={f.email} autoComplete="email" aria-invalid={!!errors.email} />
+          {errors.email && <small role="alert">{errors.email}</small>}
+        </label>
+        <label className={styles.field}>
+          <span className={styles.srOnly}>{f.phone}</span>
+          <input name="phone" type="tel" placeholder={f.phone} autoComplete="tel" aria-invalid={!!errors.phone} />
+          {errors.phone && <small role="alert">{errors.phone}</small>}
+        </label>
+        <label className={styles.field}>
+          <span className={styles.srOnly}>{f.teamSize}</span>
+          <input name="teamSize" placeholder={f.teamSize} inputMode="numeric" aria-invalid={!!errors.teamSize} />
+          {errors.teamSize && <small role="alert">{errors.teamSize}</small>}
+        </label>
+      </div>
+      <fieldset className={styles.choiceGroup} aria-invalid={!!errors.goals}>
+        <legend>{f.goal}</legend>
+        {diagnostico.goals.map((goal) => (
+          <label key={goal} className={styles.choice}>
+            <input type="checkbox" name="goals" value={goal} />
+            <span aria-hidden />
+            {goal}
+          </label>
+        ))}
+        {errors.goals && <small role="alert">{errors.goals}</small>}
+      </fieldset>
       <label className={styles.field}>
         <span className={styles.srOnly}>{f.challenge}</span>
         <textarea name="challenge" placeholder={f.challenge} rows={4} />
@@ -89,7 +132,7 @@ export default function DiagnosticoForm() {
       {status === "error" && <p role="alert" className={styles.formNote} data-tone="error">Não foi possível enviar agora. Tente de novo em instantes.</p>}
       {status === "unconfigured" && (
         <p role="status" className={styles.formNote} data-tone="error">
-          O envio do formulário ainda não está conectado. Fale com a gente pelo WhatsApp.
+          O envio do formulário ainda não está conectado. Tente novamente mais tarde.
         </p>
       )}
     </form>

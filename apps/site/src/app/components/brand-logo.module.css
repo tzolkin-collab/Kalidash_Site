@@ -1,33 +1,199 @@
-/* Logo animado: entrada (data-animated) e hover (no link com data-logo-hover). */
-.logo {
+/* Logo animado da Kalidash:
+ * 1. Entrada (data-animated) e hover (data-logo-hover)
+ * 2. 3 Princípios de scroll: Esconder (maskRect), Movimentar (translateX cascata), Posicionar (width container)
+ */
+
+.logoWrapper {
   --logo-gold: #a88a58;
   --logo-body: #28183b;
-  display: block; width: 176px; height: auto; overflow: visible;
+  --logo-mask-color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  width: 174px;
+  height: 27px;
+  overflow: hidden;
+  vertical-align: middle;
+  transition: width 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: width;
 }
-.logo[data-tone="light"] { --logo-gold: #fff; --logo-body: #fff; }
 
-.goldTop, .goldBottom { fill: var(--logo-gold); }
-.chevron, .letter { fill: var(--logo-body); }
-.inTop, .inBottom, .inLetter, .chevron, .goldTop, .goldBottom, .letter { transform-box: fill-box; transform-origin: 50% 100%; }
+.logoWrapper[data-tone="light"] {
+  --logo-gold: #ffffff;
+  --logo-body: #ffffff;
+  --logo-mask-color: #28183b;
+}
 
-/* ---- entrada: faixas douradas deslizam, chevron abre, letras sobem em sequência ---- */
-@keyframes gold-in { from { opacity: 0; transform: translateX(-60%); } to { opacity: 1; transform: none; } }
-@keyframes chevron-in { from { opacity: 0; transform: scale(0.4) rotate(-12deg); } to { opacity: 1; transform: none; } }
-@keyframes letter-in { from { opacity: 0; transform: translateY(55%); } to { opacity: 1; transform: none; } }
+/* Princípio 3: Posicionar - o container recolhe suavemente para 28px, ancorando apenas o Mark */
+.logoWrapper[data-collapsed="true"] {
+  width: 28px;
+}
 
-.logo[data-animated="true"] .inTop { animation: gold-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.05s both; }
-.logo[data-animated="true"] .inBottom { animation: gold-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.15s both; }
-.logo[data-animated="true"] .chevron { transform-origin: 30% 50%; animation: chevron-in 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s both; }
-.logo[data-animated="true"] .inLetter { animation: letter-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) calc(0.45s + var(--i) * 0.055s) both; }
+.logo {
+  flex-shrink: 0;
+  display: block;
+  width: 174px;
+  height: 27px;
+  overflow: visible;
+}
 
-/* ---- hover: onda nas letras + faixas douradas se afastam e voltam ---- */
-@keyframes letter-wave { 0%, 100% { transform: none; } 35% { transform: translateY(-22%); } 65% { transform: translateY(4%); } }
-@keyframes gold-nudge { 0%, 100% { transform: none; } 50% { transform: translateX(14%); } }
+.logoOnlyMark {
+  display: block;
+  width: 28px;
+  height: 27px;
+  overflow: visible;
+  --logo-gold: #a88a58;
+  --logo-body: #28183b;
+}
 
-:global([data-logo-hover]):hover .letter { animation: letter-wave 0.7s ease-in-out calc(var(--i) * 0.05s) 1 both; }
-:global([data-logo-hover]):hover .goldTop { animation: gold-nudge 0.7s ease-in-out 1 both; }
-:global([data-logo-hover]):hover .goldBottom { animation: gold-nudge 0.7s ease-in-out 0.08s 1 both; }
+.logoOnlyMark[data-tone="light"] {
+  --logo-gold: #ffffff;
+  --logo-body: #ffffff;
+}
+
+/* Princípio 1: Esconder - divisória mascaradora atrás de cada elemento */
+.maskRect {
+  fill: var(--logo-mask-color, #ffffff);
+  stroke: var(--logo-mask-color, #ffffff);
+  stroke-width: 0.5px;
+}
+
+.goldTop,
+.goldBottom {
+  fill: var(--logo-gold);
+}
+
+.chevron,
+.letter {
+  fill: var(--logo-body);
+}
+
+.inTop,
+.inBottom,
+.chevron,
+.goldTop,
+.goldBottom,
+.letter {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+/* ---- Princípio 2: Movimentar (Cascata da direita para a esquerda: h -> s -> ... -> K) ---- */
+.letterItem {
+  transform: translateX(0);
+  transition: transform 0.38s cubic-bezier(0.25, 1, 0.5, 1) var(--delay-in);
+}
+
+.letterItem .letter {
+  opacity: 1;
+  transition: opacity 0.2s ease calc(var(--delay-in) + 0.06s);
+}
+
+.letterItem .maskRect {
+  opacity: 1;
+  transition: opacity 0.15s ease var(--delay-in);
+}
+
+.logoWrapper[data-collapsed="true"] .letterItem {
+  transform: translateX(var(--shift-x));
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) var(--delay-out);
+}
+
+/* As letras esvanecem conforme entram atrás das máscaras */
+.logoWrapper[data-collapsed="true"] .letterItem .letter {
+  opacity: 0;
+  transition: opacity 0.18s ease calc(var(--delay-out) + 0.05s);
+}
+
+/* O K escrito some BEM MAIS RÁPIDO para a máscara não sumir antes */
+.logoWrapper[data-collapsed="true"] .letterItem[data-letter="K"] .letter {
+  opacity: 0;
+  transition: opacity 0.08s ease var(--delay-out);
+}
+
+/* As máscaras (maskRect) permanecem opacas durante todo o deslizamento, sumindo só no final */
+.logoWrapper[data-collapsed="true"] .letterItem .maskRect {
+  opacity: 0;
+  transition: opacity 0.12s ease 0.42s;
+}
+
+/* ---- Entrada Inicial ---- */
+@keyframes gold-in {
+  from {
+    opacity: 0;
+    transform: translateX(-60%);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes chevron-in {
+  from {
+    opacity: 0;
+    transform: scale(0.4) rotate(-12deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.logo[data-animated="true"] .inTop {
+  animation: gold-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.05s both;
+}
+
+.logo[data-animated="true"] .inBottom {
+  animation: gold-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.15s both;
+}
+
+.logo[data-animated="true"] .chevron {
+  transform-origin: 30% 50%;
+  animation: chevron-in 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s both;
+}
+
+/* ---- Hover: micro-animação das letras e faixas quando o link é focado/hover ---- */
+@keyframes letter-wave {
+  0%,
+  100% {
+    transform: none;
+  }
+  35% {
+    transform: translateY(-20%);
+  }
+  65% {
+    transform: translateY(4%);
+  }
+}
+
+@keyframes gold-nudge {
+  0%,
+  100% {
+    transform: none;
+  }
+  50% {
+    transform: translateX(14%);
+  }
+}
+
+:global([data-logo-hover]):hover .letter {
+  animation: letter-wave 0.65s ease-in-out calc(var(--i) * 0.045s) 1 both;
+}
+
+:global([data-logo-hover]):hover .goldTop {
+  animation: gold-nudge 0.65s ease-in-out 1 both;
+}
+
+:global([data-logo-hover]):hover .goldBottom {
+  animation: gold-nudge 0.65s ease-in-out 0.08s 1 both;
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .logo *, :global([data-logo-hover]):hover .letter { animation: none !important; }
+  .logo *,
+  .letterItem,
+  .logoWrapper,
+  :global([data-logo-hover]):hover .letter {
+    animation: none !important;
+    transition: none !important;
+  }
 }

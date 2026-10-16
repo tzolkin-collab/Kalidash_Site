@@ -70,3 +70,24 @@ export async function fetchArticleBySlug(slug: string): Promise<Article | null> 
     throw unreachable(`o artigo "${slug}"`, error);
   }
 }
+
+export type BlogSettings = {
+  preTitle: string;
+  titlePrefix: string;
+  titleSpan: string;
+  description: string;
+};
+
+export async function fetchBlogSettings(): Promise<BlogSettings | null> {
+  // force turbopack invalidation
+  try {
+    const res = await fetch(`${API_URL}/api/blog/settings`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) throw new Error(`API respondeu ${res.status}`);
+    return await res.json();
+  } catch (error) {
+    console.error("Falha ao buscar configurações do blog", error);
+    return null;
+  }
+}

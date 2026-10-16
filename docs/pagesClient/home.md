@@ -1,56 +1,71 @@
-# 🏠 Home (Landing Page)
+# Home
 
-**Objetivo:** converter visitantes orgânicos e tráfego pago em leads, levando-os ao **Diagnóstico Estratégico Gratuito** (formulário no fim da página).
+**Objetivo:** apresentar a Kalidash como aceleradora de eficiência operacional e converter visitantes em pedidos de diagnóstico.
 
-**Status (01/10/2026):** pronta para aprovação (Entrega 1). Implementada a partir do design [Home.pdf](../Home.pdf) (1920 px) e conferida contra ele: a altura total é idêntica (6241 px), as seções ficam a ±3 px e as larguras de texto a 1–2 %. Build de produção, lint dos arquivos da Home, sitemap, robots e Open Graph verificados. O que falta são conteúdos que só a Carol define (abaixo).
+**Status (09/10/2026):** nova copy implementada no site Next.js, com layout responsivo revisto e build de produção validado. A página preserva a identidade visual existente e usa apenas imagens, logos, resultados e depoimento já disponíveis no projeto.
 
 ## Onde está
 
-| O quê | Arquivo (`apps/site/src/app/home/`) |
+| Responsabilidade | Arquivo (`apps/site/src/app/home/`) |
 |---|---|
-| Estrutura (HTML) | `HomePage.tsx`, `HomeHeader.tsx` (menu), `Carousel.tsx`, `DiagnosticoForm.tsx` |
-| Design (CSS) | `home.module.css` — variáveis de cor e largura no topo |
-| Textos, links e imagens | `content.ts` |
-| Ícones | `icons.tsx` |
-| Imagens | `apps/site/public/home/` (extraídas do próprio PDF) |
+| Estrutura da página | `HomePage.tsx` |
+| Cabeçalho e menu mobile | `HomeHeader.tsx` |
+| Formulário | `DiagnosticoForm.tsx` |
+| Copy, links e imagens | `content.ts` |
+| Estilos responsivos | `home.module.css` |
 
-Contrato de atributos (`data-block="home-…"`) em [blog-design-contrato.md](../blog-design-contrato.md#home-lp).
+As imagens permanecem em `apps/site/public/home/`. O título e a descrição para busca e compartilhamento ficam em `apps/site/src/app/page.tsx`.
 
-## Seções (na ordem do design)
+## Seções publicadas
 
-1. **Cabeçalho** fixo: logo, menu (Para empresas, Sobre nós, Cases, Blog, Produtos, Contato) e "Fazer Diagnóstico".
-2. **Hero:** título "Transforme dados, processos e tecnologia em eficiência operacional".
-3. **Problema:** consultor recortado, cartão roxo "O problema raramente é falta de tecnologia…" e 4 colunas (dados dispersos, depoimento, sistemas desconectados, decisões sem visão).
-4. **Depoimento** do CMO da Tô Garantido e faixa de logos de clientes.
-5. **Do desafio à solução em operação:** cartão "Inteligência de dados" + foto (carrossel).
-6. **Método validado:** foto + texto.
-7. **Transformação que acontece de verdade:** carrossel de 5 fotos de eventos e imersões.
-8. **Diagnóstico:** chamada e formulário.
-9. **Rodapé:** links, política de privacidade, divulgação responsável e redes.
-10. Botão flutuante de **WhatsApp**.
+1. **Cabeçalho:** O desafio, O que fazemos, Experiência, Cases, Blog e Contato, com CTA para o diagnóstico.
+2. **Hero:** “Prepare sua operação para a era dos agentes”, dois CTAs, resultados e faixa de logos.
+3. **O desafio:** três sintomas operacionais e a proposta de preparar dados, processos e pessoas para IA.
+4. **O que fazemos:** AI Culture, Advisory e Execução, em blocos editoriais alternados.
+5. **Experiência:** histórico em grandes operações e atuação em educação e formação de profissionais.
+6. **Depoimento:** relato aprovado de André, CMO da Tô Garantido.
+7. **Cases e encontros:** mosaico com imagens reais já presentes no projeto.
+8. **Diagnóstico:** chamada, formulário e microcopy de retorno em até 24 horas.
+9. **Rodapé:** navegação institucional, privacidade, divulgação responsável e redes configuradas.
+
+O botão flutuante de WhatsApp só aparece quando `NEXT_PUBLIC_WHATSAPP_URL` estiver configurada. Isso evita exibir um contato que não leva a um canal real.
 
 ## Formulário do diagnóstico
 
-Campos: nome e sobrenome, e-mail corporativo, WhatsApp com DDD e o maior desafio com dados. Valida no navegador e envia (`POST` JSON, com `source: "site-home-diagnostico"`) para `NEXT_PUBLIC_LEAD_ENDPOINT`.
+Campos obrigatórios:
 
-> **Captura (02/10):** a API tem `POST /api/public/leads` (`apps/api/public_leads.go`): valida, limita 5 envios/min por IP, confere a origem (`ALLOWED_ORIGINS`/`SITE_URL`), descarta robôs pelo campo-isca `website` e grava **Contato + Oportunidade na coluna INBOUND + Nota** numa transação (reaproveita o contato pelo e-mail). Para ligar: definir `NEXT_PUBLIC_LEAD_ENDPOINT` no site e `ALLOWED_ORIGINS` na API. Recorte do contrato completo de [inbound-leads.md](../inbound-leads.md) (tokens por fonte, pipelines e `connect.js` entram com a fase de segurança).
+- nome e sobrenome;
+- empresa;
+- cargo;
+- e-mail corporativo;
+- WhatsApp com DDD;
+- número de colaboradores na operação;
+- pelo menos um objetivo.
 
-## Pendências de conteúdo (precisam da Carol)
+O campo aberto sobre o principal desafio é opcional. Enquanto a API aceitar apenas o contrato atual, empresa, cargo, tamanho da operação, objetivos e desafio são consolidados no campo `challenge`. O envio continua sendo um `POST` JSON para `NEXT_PUBLIC_LEAD_ENDPOINT`, com `source: "site-home-diagnostico"` e o campo-isca `website`.
 
-- [ ] Link do **WhatsApp** (`NEXT_PUBLIC_WHATSAPP_URL`). Hoje o botão leva ao formulário.
-- [ ] URLs de **Facebook e YouTube** (o ícone só aparece se houver URL). O **Instagram** (`@kalidash.metrics`) foi tirado de um slide de foto: confirmar.
-- [ ] **Legendas dos cases:** o design tinha lorem ipsum; troquei por legendas que descrevem o que cada foto mostra (a 1ª é do design). Confirmar ou trocar por cases reais (cliente, evento, resultado). A foto 4 é da Cooxupé.
-- [ ] **Frentes 2 e 3 do carrossel "Do desafio à solução":** o design só trazia "Inteligência de dados". As outras duas (Automação de processos e IA aplicada) foram escritas com palavras da própria Kalidash (slide da imersão e texto de abertura). Aprovar ou trocar.
-- [ ] **Autorização de uso** dos logos de clientes e dos depoimentos (André, Aline Motta). Há 8 vídeos de depoimento na pasta do Drive que **não** foram usados (~1,3 GB; se entrarem, hospedar fora do repositório e carregar no clique).
-- [ ] Itens do menu com seta (**Para empresas**, **Produtos**): levam a uma seção da própria página; o design não define submenu.
+A API em `apps/api/public_leads.go` valida origem e limite por IP, descarta robôs e cria Contato, Oportunidade INBOUND e Nota em uma transação. Para ativar o formulário, é necessário configurar `NEXT_PUBLIC_LEAD_ENDPOINT` no site e `ALLOWED_ORIGINS`/`SITE_URL` na API.
 
-## Pendências técnicas
+## Conteúdo ainda necessário
 
-- [ ] **Formulário do diagnóstico:** rota pronta; falta definir `NEXT_PUBLIC_LEAD_ENDPOINT` (site) e `ALLOWED_ORIGINS` (API) nos ambientes e testar um envio real.
-- [x] SEO base: `sitemap.xml`, `robots.txt`, Open Graph e dados estruturados da organização.
-- [x] Conferência de fidelidade desktop e revisão do celular (390 px, sem estouro horizontal).
-- Lint: 2 erros **preexistentes** em `components/MobileMenu.tsx` e no splash (arquivos de outra sessão, fora da Home).
+- [ ] URL pública do WhatsApp (`NEXT_PUBLIC_WHATSAPP_URL`).
+- [ ] URLs confirmadas de Facebook e YouTube, se esses canais devem aparecer.
+- [ ] Vídeo principal aprovado para a dobra de prova social.
+- [ ] Dois depoimentos adicionais aprovados, caso a composição final de três relatos seja mantida. O site não inventa depoimentos ausentes na copy recebida.
+- [ ] Confirmação de autorização para uso público dos logos, fotos e depoimento existentes.
+
+## Validação de 09/10/2026
+
+- lint do site concluído sem erros;
+- build de produção do Next.js concluído sem erros;
+- revisão em 1440×900 e 390×844, sem overflow horizontal;
+- nenhum erro de console ou exceção de página durante a navegação automatizada;
+- menu mobile abriu e o CTA navegou para `#diagnostico`;
+- formulário vazio exibiu as sete validações obrigatórias;
+- CLS sintético local `0`; LCP local abaixo de 200 ms nos dois tamanhos testados.
+
+Essas métricas servem apenas como regressão local. A aprovação de Web Vitals depende do ambiente publicado e de dados reais de rede e dispositivo.
 
 ## Como conferir
 
-Subir o site (`pnpm --filter @kalidash/site dev`) e abrir a Home em 1920 px de largura ao lado de [Home.pdf](../Home.pdf). O alvo é o PDF: títulos de 55 px, texto de 22 px, container de 1280 px.
+Execute `pnpm --filter @kalidash/site dev` e abra a rota `/`. Revise a versão desktop e uma viewport móvel de 390 px. Para validar a integração, configure as variáveis de ambiente e faça um envio de teste identificável, confirmando o registro no Core.

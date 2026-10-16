@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { AlertTriangle, ChevronRight } from 'lucide-react';
+import { AlertTriangle, ChevronRight, Plus } from 'lucide-react';
 import { pipelineStats } from '../lib/pipelineStats';
 import { useShell } from '../lib/shell';
 import { useStore } from '../lib/store';
@@ -23,7 +23,15 @@ export default function Tasks() {
 
   return (
     <Page>
-      <PageHeader title="Tarefas" subtitle="Cada funil desenhado de ponta a ponta: fontes, etapas e o que a equipe precisa cumprir em cada uma. Abra um card para ver o workflow." />
+      <PageHeader
+        title="Tarefas"
+        subtitle="Cada funil desenhado de ponta a ponta: fontes, etapas e o que a equipe precisa cumprir em cada uma. Abra um card para ver o workflow."
+        actions={
+          <button type="button" className="btn btn-solid" onClick={() => navigate('/oportunidades/pipelines/nova')}>
+            <Plus size={14} /> Novo funil
+          </button>
+        }
+      />
       {syncMode !== 'api' && <SampleBanner phase={4} />}
 
       <div className="toolbar">
@@ -35,7 +43,14 @@ export default function Tasks() {
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState title="Nenhum funil encontrado">Ajuste a busca. Novos funis nascem em Oportunidades, com "Criar nova Pipeline".</EmptyState>
+        <EmptyState title="Nenhum funil encontrado">
+          Ajuste a busca ou crie uma nova pipeline de vendas.
+          <div style={{ marginTop: '12px' }}>
+            <button type="button" className="btn btn-solid" onClick={() => navigate('/oportunidades/pipelines/nova')}>
+              <Plus size={14} /> Criar novo funil
+            </button>
+          </div>
+        </EmptyState>
       ) : (
         <div className="funnel-grid">
           {filtered.map((p) => {

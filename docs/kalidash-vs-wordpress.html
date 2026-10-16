@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kalidash × WordPress</title>
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--ink:#1b1b1f;--mute:#666a73;--line:#e3e1da;--k:#5b3df5;--w:#1f7a9c;--good:#1d8a4f;--bad:#c4392f;--warn:#b9780a}
+@media (prefers-color-scheme:dark){:root{--bg:#121316;--card:#1b1c21;--ink:#efeff2;--mute:#9a9ea8;--line:#2b2d34;--k:#8c78ff;--w:#4cb6d9;--good:#4cc482;--bad:#ff7a6e;--warn:#e8a93a}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,Segoe UI,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:28px;margin:0 0 4px}.sub{color:var(--mute);margin:0 0 20px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:7px 13px;border-radius:999px}
+button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.col{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.col h2{margin:0 0 10px;font-size:17px;display:flex;align-items:center;gap:8px}
+.dot{width:10px;height:10px;border-radius:50%}
+.k .dot{background:var(--k)}.w .dot{background:var(--w)}
+.item{border-top:1px solid var(--line);padding:10px 0}
+.item:first-of-type{border-top:0}
+.item summary{cursor:pointer;list-style:none;display:flex;gap:8px;align-items:flex-start}
+.item summary::-webkit-details-marker{display:none}
+.tag{flex:none;font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;margin-top:2px}
+.pro .tag{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good)}
+.con .tag{background:color-mix(in srgb,var(--bad) 18%,transparent);color:var(--bad)}
+.crit{margin:8px 0 0 0;padding:10px 12px;border-left:3px solid var(--warn);background:color-mix(in srgb,var(--warn) 9%,transparent);border-radius:0 8px 8px 0;font-size:14px}
+.crit b{color:var(--warn)}
+.src{font-size:12px;color:var(--mute);margin-top:6px}
+.sec{margin-top:30px}.sec h3{margin:0 0 4px;font-size:20px}
+.row{display:grid;grid-template-columns:150px 1fr 44px;gap:10px;align-items:center;margin:8px 0}
+@media(max-width:600px){.row{grid-template-columns:1fr}}
+.meter{height:10px;background:var(--line);border-radius:6px;position:relative;overflow:hidden}
+.meter i{position:absolute;left:0;top:0;bottom:0;border-radius:6px}
+.res{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.big{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;text-align:center}
+.big .n{font-size:40px;font-weight:800}
+.verdict{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.verdict li{margin:6px 0}
+input[type=range]{width:100%}
+.note{font-size:13px;color:var(--mute)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--mute)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Kalidash: sistema atual × WordPress</h1>
+<p class="sub">Benefícios, malefícios e crítica honesta. Fatos do sistema atual vêm do repositório (14/10/2026); o resto é conhecimento geral de WordPress.</p>
+
+<div class="legend"><span><span class="dot" style="display:inline-block;background:var(--k)"></span> Sistema atual (Next + Vite + Go + MySQL)</span><span><span class="dot" style="display:inline-block;background:var(--w)"></span> WordPress</span></div>
+
+<div class="bar" id="areas"></div>
+<div class="bar" id="kinds">
+  <button data-k="all" class="on">Tudo</button><button data-k="pro">Só benefícios</button><button data-k="con">Só malefícios</button>
+  <button id="openall">Expandir críticas</button>
+</div>
+<div class="grid" id="cols"></div>
+
+<div class="sec">
+<h3>Placar ajustável</h3>
+<p class="note">Arraste o peso de cada critério conforme o que importa agora para a Carol. Notas (0–10) são minha avaliação; clique numa nota para editar.</p>
+<div id="score"></div>
+<div class="res"><div class="big"><div class="note">Sistema atual</div><div class="n" id="sk" style="color:var(--k)">0</div></div><div class="big"><div class="note">WordPress</div><div class="n" id="sw" style="color:var(--w)">0</div></div></div>
+</div>
+
+<div class="verdict">
+<h3 style="margin-top:0">Veredito crítico</h3>
+<ul>
+<li><b>O WordPress ganha no site institucional e no blog</b> se o único objetivo fosse "publicar páginas e posts rápido e barato". Nesse recorte, o sistema atual é exagero.</li>
+<li><b>O sistema atual ganha onde a Carol realmente precisa:</b> CRM com funis, requisitos de etapa, workflow, tarefas, histórico imutável e leads ligados ao site. No WordPress isso vira uma pilha de plugins que não conversa bem entre si.</li>
+<li><b>A fraqueza do sistema atual não é técnica, é operacional:</b> hoje o admin e a API de produção estão abertos (sem login, CORS <code>*</code>), a Home só muda com desenvolvedor e tudo depende da Tzolkin. Um WordPress instalado já nasce com login, papéis e editor.</li>
+<li><b>Risco de comparar errado:</b> comparar o sistema <i>pronto</i> do WordPress com o sistema <i>em construção</i> da Tzolkin é injusto nos dois sentidos. O que falta aqui (login, papéis, backups) é um prazo, não uma impossibilidade.</li>
+<li><b>Caminho híbrido possível:</b> manter o CRM/API e deixar só o blog/páginas em um CMS headless. Mas isso adiciona um terceiro sistema; só vale se editar a Home e o blog virar gargalo real.</li>
+</ul>
+</div>
+</div>
+
+<script>
+const AREAS=["Todas","CRM e funis","Segurança","Edição de conteúdo","Desempenho e SEO","Custo e manutenção","Propriedade e risco"];
+const D=[
+// area, lado (k|w), tipo (pro|con), título, crítica, fonte
+["CRM e funis","k","pro","Funil, etapas com requisito e workflow sob medida","Pipeline por oferta, etapas tipadas (Lead/Aberta/Ganha/Perdida), requisitos que bloqueiam entrar/sair da etapa (ex.: empresa sem CNPJ não chega em Assinatura) e página de workflow. Nenhum plugin de WordPress entrega esse modelo.","Repo: docs/dominio.md, workflow_*.go"],
+["CRM e funis","k","pro","Histórico só-acréscimo e auditoria real","Mudanças gravadas na API sem edição retroativa. Bom para contrato e LGPD.","Repo: crm_history.go"],
+["CRM e funis","k","con","Muito CRM para uma pauta que pede só a Home","A própria pauta de 15/10 diz que o CRM está além do que o curto prazo pede. Construir funis antes de ligar o formulário e fechar a Home foi inversão de prioridade.","Memória: pauta 15/10"],
+["CRM e funis","w","pro","Plugins de CRM prontos (FluentCRM, Jetpack CRM, integrações HubSpot)","Dá para ter contatos, tags e e-mails em dias. Para um funil simples já atende.","Geral"],
+["CRM e funis","w","con","Funil complexo vira colcha de plugins","Requisito de etapa, bloqueio, workflow visual e tarefas vinculadas exigem vários plugins pagos ou código PHP. Cada atualização pode quebrar a ligação entre eles.","Geral"],
+["Segurança","k","pro","Superfície de ataque pequena","Sem painel público padrão como /wp-login, sem milhares de plugins de terceiros. Ataque automatizado em massa não tem alvo óbvio.","Geral"],
+["Segurança","k","con","Hoje está aberto: admin sem login, API com CORS *","Admin publicado abre sem autenticação e a API de produção aceita qualquer origem. Qualquer um que achar a URL vê e altera dados. Senha do banco em arquivos locais.","Memória: pauta 15/10"],
+["Segurança","k","con","Auth e papéis ainda por construir","Painel de permissões (Admin/Gerente/Vendedor) é escopo do contrato, mas ainda não existe. Auth feita à mão é fonte clássica de falha se não for revisada.","docs/auth-study.md"],
+["Segurança","w","pro","Login, papéis e 2FA prontos desde o dia 1","Administrador, Editor, Autor já funcionam. Plugins como Wordfence adicionam 2FA e firewall.","Geral"],
+["Segurança","w","con","Plugins e temas são o maior vetor de invasão","A maioria das invasões de WordPress vem de plugin desatualizado ou abandonado. Exige atualizar toda semana e monitorar.","Geral"],
+["Edição de conteúdo","k","pro","Blog em BlockNote, preview no site real, publicação instantânea","Editor tipo Notion, preview em iframe do site real e revalidação imediata. Experiência boa e sob medida.","Repo: Blog.tsx, revalidate.go"],
+["Edição de conteúdo","k","con","A Home é código: mudar um texto exige desenvolvedor","A Carol não consegue trocar um vídeo, link do WhatsApp ou copy sozinha. Todo ajuste passa pela Tzolkin e por deploy.","Repo: apps/site/src/app/home"],
+["Edição de conteúdo","w","pro","Qualquer pessoa edita páginas (Gutenberg, Elementor)","A Carol mudaria a copy em minutos, sem pedir nada. Para um site de marketing que muda sempre, isso pesa muito.","Geral"],
+["Edição de conteúdo","w","con","Fidelidade ao design exige tema/builder pesado","Reproduzir o layout do Home.pdf com animações costuma exigir Elementor ou tema customizado, e o resultado fica mais lento e menos preciso.","Geral"],
+["Desempenho e SEO","k","pro","Next + Go: rápido e leve","Páginas geradas e cacheadas, API em Go com SQL cru. Sem PHP rodando em cada visita e sem CSS/JS de plugin que ninguém usa.","Repo: apps/api, apps/site"],
+["Desempenho e SEO","k","con","SEO é manual","Sitemap e robots existem, mas meta tags, schema e redirecionamentos têm de ser feitos à mão. Nada do tipo Yoast pronto.","Repo: sitemap.ts, robots.ts"],
+["Desempenho e SEO","w","pro","SEO maduro com Yoast/RankMath","Checklist por post, schema, redirecionamentos e sitemap com poucos cliques.","Geral"],
+["Desempenho e SEO","w","con","Fica lento com plugins e builder","Sem cache e otimização de imagem bem feitos, o WordPress com Elementor tende a nota baixa em Core Web Vitals.","Geral"],
+["Custo e manutenção","k","pro","Sem licenças de plugin e sem plano por assento","Infra é VPS (Vultr/DO) + hospedagem do front. Custo previsível e sem renovação anual de plugins.","Memória: direção atual"],
+["Custo e manutenção","k","con","Custo é horas de desenvolvimento, e é alto","Cada recurso do admin é escrito e testado pela Tzolkin. Backups, atualização de servidor e monitoramento também ficam com vocês (no repo não vi rotina de backup documentada).","Repo: docs/vps-comparison.md"],
+["Custo e manutenção","w","pro","Entrega rápida e mão de obra abundante","Qualquer freelancer WordPress consegue manter. Barato para começar.","Geral"],
+["Custo e manutenção","w","con","Manutenção contínua e custo escondido","Atualização semanal, conflitos de plugin, licenças anuais (builder, formulários, CRM). O barato do início tende a virar recorrente.","Geral"],
+["Propriedade e risco","k","pro","Código e dados 100% da Kalidash","O contrato prevê entrega do código aos 2 meses. Sem dependência de plugin de terceiros e sem lock-in de vendor.","Memória: contrato v2"],
+["Propriedade e risco","k","con","Fator ônibus: depende de você e do Lucas","Se a Tzolkin parar, a Kalidash fica com um sistema que poucos mantêm. Ainda por cima, uma segunda ferramenta (Antigravity) edita o repo em paralelo e já gerou conflitos e credencial exposta.","Memória: direção atual"],
+["Propriedade e risco","w","pro","Ecossistema gigante e saída fácil","Se a agência sair, outro fornecedor assume sem reaprender nada. Risco de pessoa é baixo.","Geral"],
+["Propriedade e risco","w","con","Lock-in nos plugins e dados espalhados","Funis e automações ficam presos aos plugins escolhidos; migrar depois é caro. Dados de leads em tabelas de plugin, sem modelo único.","Geral"]
+];
+const CRIT=[["CRM e funis",9,4],["Segurança hoje",3,6],["Autonomia de edição",4,9],["Desempenho",8,5],["SEO pronto",5,9],["Custo inicial",3,8],["Custo em 2 anos",7,5],["Propriedade e saída",6,8]];
+CRIT[0].push(5);CRIT.forEach((c,i)=>{if(c.length<4)c.push(i==0?5:3)});
+const W=CRIT.map(c=>c[3]);
+let area="Todas",kind="all",open=false;
+const $=s=>document.querySelector(s);
+function esc(s){return s.replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]))}
+function renderAreas(){$("#areas").innerHTML=AREAS.map(a=>`<button class="${a==area?'on':''}" data-a="${a}">${a}</button>`).join("")}
+function renderCols(){
+  const f=D.filter(d=>(area=="Todas"||d[0]==area)&&(kind=="all"||d[2]==kind));
+  const col=(side,title)=>`<div class="col ${side}"><h2><span class="dot"></span>${title}</h2>`+
+   (f.filter(d=>d[1]==side).map(d=>`<div class="item ${d[2]}"><details ${open?"open":""}><summary><span class="tag">${d[2]=="pro"?"BENEFÍCIO":"MALEFÍCIO"}</span><b>${esc(d[3])}</b></summary><div class="crit"><b>Crítica:</b> ${esc(d[4])}</div><div class="src">${esc(d[5])}</div></details></div>`).join("")||'<p class="note">Nada neste filtro.</p>')+`</div>`;
+  $("#cols").innerHTML=col("k","Sistema atual")+col("w","WordPress");
+}
+function renderScore(){
+  $("#score").innerHTML=CRIT.map((c,i)=>`<div class="row"><div><b>${c[0]}</b><div class="note">peso <span id="wv${i}">${W[i]}</span></div></div><div><input type="range" min="0" max="10" value="${W[i]}" data-w="${i}"><div class="meter"><i style="width:${c[1]*10}%;background:var(--k);height:5px"></i></div><div class="meter" style="margin-top:3px"><i style="width:${c[2]*10}%;background:var(--w);height:5px"></i></div></div><div class="note" style="text-align:right"><span style="color:var(--k)">${c[1]}</span> · <span style="color:var(--w)">${c[2]}</span></div></div>`).join("");
+  calc();
+}
+function calc(){
+  const t=W.reduce((a,b)=>a+b,0)||1;
+  const k=CRIT.reduce((a,c,i)=>a+c[1]*W[i],0)/t, w=CRIT.reduce((a,c,i)=>a+c[2]*W[i],0)/t;
+  $("#sk").textContent=k.toFixed(1);$("#sw").textContent=w.toFixed(1);
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.a){area=b.dataset.a;renderAreas();renderCols()}
+  else if(b.dataset.k){kind=b.dataset.k;document.querySelectorAll("#kinds [data-k]").forEach(x=>x.classList.toggle("on",x==b));renderCols()}
+  else if(b.id=="openall"){open=!open;b.textContent=open?"Recolher críticas":"Expandir críticas";renderCols()}
+});
+document.addEventListener("input",e=>{if(e.target.dataset.w!=null){const i=+e.target.dataset.w;W[i]=+e.target.value;$("#wv"+i).textContent=W[i];calc()}});
+renderAreas();renderCols();renderScore();
+</script>
+</body>
+</html>

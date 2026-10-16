@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <!-- Gradiente da haste vertical principal -->
+    <linearGradient id="haste-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="50%" stop-color="#f0f0f0" />
+      <stop offset="100%" stop-color="#d9d9d9" />
+    </linearGradient>
+
+    <!-- Gradiente para dobras com sombras sutis (efeito origami) -->
+    <linearGradient id="dobra-grad-escuro" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4d4d4d" />
+      <stop offset="100%" stop-color="#999999" />
+    </linearGradient>
+
+    <linearGradient id="dobra-grad-medio" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#808080" />
+      <stop offset="100%" stop-color="#cccccc" />
+    </linearGradient>
+
+    <!-- Gradiente do braço superior (iluminado) -->
+    <linearGradient id="braco-sup" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#cccccc" />
+      <stop offset="100%" stop-color="#ffffff" />
+    </linearGradient>
+
+    <!-- Gradiente do braço inferior (sombra) -->
+    <linearGradient id="braco-inf" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a6a6a6" />
+      <stop offset="100%" stop-color="#595959" />
+    </linearGradient>
+  </defs>
+
+  <!-- 1. Haste Vertical Esquerda (Frente) -->
+  <path d="M 22 28 L 34 19 L 34 81 L 22 90 Z" fill="url(#haste-grad)" />
+
+  <!-- 2. Dobra Superior (Fita que vira para trás) -->
+  <path d="M 22 28 L 34 19 L 34 8 L 22 17 Z" fill="url(#dobra-grad-medio)" opacity="0.85" />
+  <!-- Triângulo de Sombra Interna da dobra superior -->
+  <path d="M 22 28 L 34 19 L 34 30 Z" fill="url(#dobra-grad-escuro)" opacity="0.45" />
+
+  <!-- 3. Dobra Inferior (Fita que vira para trás na base) -->
+  <path d="M 22 90 L 34 81 L 34 92 L 22 101 Z" fill="url(#dobra-grad-medio)" opacity="0.85" />
+  <!-- Triângulo de Sombra Interna da dobra inferior -->
+  <path d="M 22 90 L 22 79 L 34 79 Z" fill="url(#dobra-grad-escuro)" opacity="0.45" />
+
+  <!-- 4. Braço Superior do K (Dobra saindo para cima e direita) -->
+  <path d="M 34 54 L 66 26 L 56 26 L 34 45 Z" fill="url(#braco-sup)" />
+  <!-- Faceta lateral do braço superior (efeito de dobra interna) -->
+  <path d="M 34 54 L 34 45 L 47 45 Z" fill="#ffffff" opacity="0.8" />
+
+  <!-- 5. Seta de Origami Central (Conexão dos braços) -->
+  <path d="M 34 54 L 52 54 L 47 42 Z" fill="#e6e6e6" />
+  <path d="M 34 54 L 52 54 L 47 66 Z" fill="#b3b3b3" />
+
+  <!-- 6. Braço Inferior do K (Dobra saindo para baixo e direita) -->
+  <path d="M 34 54 L 66 82 L 56 82 L 34 63 Z" fill="url(#braco-inf)" />
+  <!-- Faceta lateral do braço inferior (sombra interna) -->
+  <path d="M 34 54 L 34 63 L 47 63 Z" fill="#404040" opacity="0.45" />
+</svg>

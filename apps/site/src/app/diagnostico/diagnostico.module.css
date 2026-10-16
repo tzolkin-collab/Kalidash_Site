@@ -1,0 +1,533 @@
+/* ============================================================
+   KALIDASH — PÁGINA DE DIAGNÓSTICO
+   Design executivo editorial claro (Light Mode) harmonizado
+   com a identidade branca e institucional da Kalidash.
+   ============================================================ */
+
+.pageWrapper {
+  position: relative;
+  min-height: 100vh;
+  background: #faf8f6;
+  color: #1a1622;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  font-family: var(--font-source-sans), system-ui, -apple-system, sans-serif;
+  --font-title: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --accent: #b6644d;
+  --ink: #28183b;
+}
+
+/* ---- Topo de Navegação ---- */
+.topNav {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  border-bottom: 1px solid #e7e2da;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.topNavInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: min(1200px, 100% - 48px);
+  height: 76px;
+  margin: 0 auto;
+}
+
+.navLeft {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 16px 0 12px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #d8d4cd;
+  color: var(--ink);
+  font-family: var(--font-title);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.backButton:hover {
+  background: #faf8f5;
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateX(-2px);
+}
+
+.backButton svg {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.2s ease;
+}
+
+.backButton:hover svg {
+  transform: translateX(-2px);
+}
+
+.logoWrapper {
+  display: flex;
+  align-items: center;
+}
+
+/* ---- Conteúdo Principal ---- */
+.mainContent {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 24px 96px;
+}
+
+.contentContainer {
+  display: grid;
+  grid-template-columns: 0.95fr 1.05fr;
+  gap: 40px;
+  width: min(1200px, 100%);
+  align-items: stretch;
+}
+
+/* ---- Coluna da Esquerda: Contexto Editorial ---- */
+.contextCard {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px 44px;
+  background: #ffffff;
+  border: 1px solid #e7e2da;
+  border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.03);
+}
+
+.contextHeader {
+  display: flex;
+  flex-direction: column;
+}
+
+.contextEyebrow {
+  display: block;
+  font-family: var(--font-title);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+
+.contextTitle {
+  font-family: var(--font-title);
+  font-size: clamp(30px, 2.8vw, 42px);
+  line-height: 1.12;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: #1a1622;
+}
+
+.contextDescription {
+  margin-top: 18px;
+  font-size: 16px;
+  line-height: 27px;
+  color: #514c53;
+}
+
+.contextHighlight {
+  margin-top: 36px;
+  padding: 22px 24px;
+  border-radius: 10px;
+  background: #faf8f5;
+  border-left: 2px solid var(--accent);
+}
+
+.highlightQuote {
+  display: block;
+  font-family: var(--font-title);
+  font-size: 17px;
+  line-height: 25px;
+  font-weight: 600;
+  color: #1a1622;
+}
+
+.highlightSub {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 22px;
+  color: #615b68;
+}
+
+.contextFooter {
+  margin-top: 48px;
+  padding-top: 28px;
+  border-top: 1px solid #eeebe6;
+}
+
+.proofLabel {
+  display: block;
+  font-family: var(--font-title);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.proofRoster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 12px;
+}
+
+.proofCompany {
+  font-family: var(--font-title);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #28183b;
+  transition: color 0.15s ease;
+}
+
+.proofCompany:hover {
+  color: var(--accent);
+}
+
+.whatsappAlternative {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #15803d;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.whatsappAlternative:hover {
+  opacity: 0.85;
+  text-decoration: underline;
+}
+
+.whatsappAlternative svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* ---- Coluna da Direita: Formulário Executivo Claro ---- */
+.formCard {
+  position: relative;
+  padding: 48px 44px;
+  background: #ffffff;
+  border: 1px solid #e7e2da;
+  border-radius: 14px;
+  color: #1a1622;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.04);
+}
+
+.formHeader {
+  margin-bottom: 28px;
+}
+
+.formTitle {
+  font-family: var(--font-title);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  color: #1a1622;
+}
+
+.formSubtitle {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 22px;
+  color: #615b68;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  padding: 13px 16px;
+  border: 1px solid #d8d4cd;
+  border-radius: 8px;
+  background: #fbfaf8;
+  color: #1a1622;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: #8c8594;
+}
+
+.field input:focus,
+.field textarea:focus {
+  outline: none;
+  background: #ffffff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.field input[aria-invalid="true"] {
+  border-color: #d32f2f;
+  background: #fff8f8;
+}
+
+.field small {
+  margin-top: 5px;
+  font-size: 12px;
+  color: #d32f2f;
+}
+
+/* Objetivos / Goals Tags */
+.goalsSection {
+  margin-top: 20px;
+}
+
+.goalsLabel {
+  display: block;
+  font-family: var(--font-title);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.tagGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  cursor: pointer;
+  user-select: none;
+}
+
+.tag input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tag span {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 14px;
+  border-radius: 8px;
+  background: #f4f1eb;
+  border: 1px solid #dfd8cd;
+  font-size: 13px;
+  color: #38333c;
+  transition: all 0.18s ease;
+}
+
+.tag:hover span {
+  background: #ece7df;
+  border-color: #cfc7ba;
+  color: #1a1622;
+}
+
+.tag input:checked + span {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #ffffff;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(40, 24, 59, 0.15);
+}
+
+/* Botão de Envio */
+.submitButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 50px;
+  margin-top: 24px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #ffffff;
+  font-family: var(--font-title);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 16px rgba(182, 100, 77, 0.25);
+}
+
+.submitButton:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(182, 100, 77, 0.35);
+}
+
+.submitButton:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.submitButton svg {
+  width: 17px;
+  height: 17px;
+  transition: transform 0.2s ease;
+}
+
+.submitButton:hover:not(:disabled) svg {
+  transform: translateX(4px);
+}
+
+.statusMessage {
+  margin-top: 14px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 20px;
+  text-align: center;
+}
+
+.statusError {
+  background: #fde8e8;
+  color: #c81e1e;
+  border: 1px solid #f8b4b4;
+}
+
+/* ---- Tela de Sucesso ---- */
+.successPane {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 20px;
+  min-height: 480px;
+}
+
+.successIcon {
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 16px rgba(22, 163, 74, 0.12);
+}
+
+.successTitle {
+  font-family: var(--font-title);
+  font-size: 26px;
+  font-weight: 600;
+  color: #1a1622;
+}
+
+.successText {
+  max-width: 440px;
+  margin-top: 14px;
+  font-size: 15px;
+  line-height: 25px;
+  color: #615b68;
+}
+
+.successCloseBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 32px;
+  padding: 0 28px;
+  height: 44px;
+  border-radius: 8px;
+  background: var(--ink);
+  color: #ffffff;
+  font-family: var(--font-title);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.successCloseBtn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* ---- Responsivo ---- */
+@media (max-width: 1024px) {
+  .contentContainer {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .contextCard {
+    padding: 36px 28px;
+  }
+
+  .formCard {
+    padding: 36px 28px;
+  }
+}
+
+@media (max-width: 640px) {
+  .topNavInner {
+    height: 68px;
+    width: min(100% - 32px, 1280px);
+  }
+
+  .mainContent {
+    padding: 24px 16px 56px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .contextCard {
+    padding: 28px 20px;
+  }
+
+  .formCard {
+    padding: 28px 20px;
+  }
+
+  .contextTitle {
+    font-size: 26px;
+  }
+}
