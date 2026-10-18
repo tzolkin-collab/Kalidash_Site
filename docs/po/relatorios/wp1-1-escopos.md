@@ -14,7 +14,7 @@ Entregue em 18/10/2026. Tudo atrás de `AUTH_API=1` (desligada por padrão; sem 
 
 | Item | Estado | Evidência |
 |---|---|---|
-| Catálogo de escopos + `routeScope` (tabela única), mapeando a matriz antiga | ✅ | `auth_scopes.go`: 19 escopos em 5 áreas. `TestRotaExigeEscopo` (29 rotas × método → escopo; exige que todo escopo proteja uma rota, exceto `leads:origin`, que é checado no handler, e `automations:manage`, marcado `Reserved`) |
+| Catálogo de escopos + `routeScope` (tabela única), mapeando a matriz antiga | ✅ | `auth_scopes.go`: 19 escopos em 5 áreas. `TestRotaExigeEscopo` (30 rotas × método → escopo; exige que todo escopo proteja uma rota, exceto `leads:origin`, que é checado no handler, e `automations:manage`, marcado `Reserved`) |
 | Perfis viram presets (Vendedor 11, Gerente 18, Admin 19) sem mudar o que cada um podia | ✅ | `TestCatalogoEPresets` (Vendedor ⊂ Gerente ⊂ Admin; o que era só de Admin/Gerente segue fora do Vendedor); a matriz antiga `TestPerfisNoServidor` (13 rotas × 3 perfis) e `TestRegrasFinasPorConteudo` passam **sem alteração** |
 | Extras e removidos por pessoa; efetivos = (preset ∪ extras) − removidos | ✅ | `TestEfetivosSomamExtrasETiramRemovidos`, `TestExtrasERemovidosValemNaHora` (conceder `blog:read`, tirar `emails:send`: vale na próxima chamada; `/auth/me` devolve os efetivos), integração em MySQL (`SetMemberScopes`, CPF com `people:document` extra, Gerente sem `leads:origin`/`pipelines:manage`) |
 | 401/403 provados **por escopo** | ✅ | `TestCadaEscopoAbreSoSuaRota`: para 16 rotas, sem sessão → 401; uma pessoa com **só** aquele escopo passa naquela rota e recebe 403 em todas as outras 15 |
