@@ -3,7 +3,7 @@ import type { Role } from '../domain';
 // Lógica pura dos escopos (sem React nem rede, para testar com node --test). O servidor é quem decide
 // (apps/api/auth_scopes.go); aqui só se calcula o que mostrar e o que enviar.
 
-export type ScopeDef = { id: string; group: string; label: string; description: string; humanOnly?: boolean; reserved?: boolean };
+export type ScopeDef = { id: string; group: string; label: string; description: string; humanOnly?: boolean; reserved?: boolean; publishable?: boolean };
 export type Catalog = { groups: string[]; scopes: ScopeDef[]; presets: Record<Role, string[]> };
 
 /** (preset + extras) - removidos, ordenado. */
@@ -50,6 +50,9 @@ const PHRASE: Record<string, string> = {
   'team:read': 'ver a equipe',
   'team:manage': 'gerenciar equipe e permissões',
   'keys:manage': 'gerenciar tokens de API',
+  'forms:write': 'enviar formulários pelo connect.js',
+  'analytics:write': 'enviar eventos de analytics',
+  'ads:read': 'ler mídia paga',
 };
 
 export const phraseOf = (def: ScopeDef) => PHRASE[def.id] ?? def.label.toLowerCase();
@@ -95,3 +98,8 @@ export function ago(iso: string | undefined, now = new Date()): string {
 
 /** "kld_live_Ab3x" + "wXyZ" → "kld_live_Ab3x••••••••wXyZ" */
 export const maskedToken = (prefix: string, last4: string) => `${prefix}••••••••${last4}`;
+
+/** Tokens ainda válidos que a pessoa criou (D13: eles sobrevivem à desativação dela; a tela avisa antes). */
+export function activeTokensOf<T extends { createdBy?: string; status: string }>(tokens: T[], memberId: string): T[] {
+  return tokens.filter((t) => t.createdBy === memberId && t.status === 'ACTIVE');
+}

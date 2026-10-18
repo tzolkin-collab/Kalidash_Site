@@ -7,13 +7,16 @@ import { pushErro, setPush, usePushPref } from '../lib/notify';
 import { logout, useAuth } from '../lib/auth';
 import { useCan } from '../lib/permissions';
 import { changeMemberRole, inviteMember, setMemberActive } from '../lib/teamSync';
+import { loadTokens, tokensStore } from '../lib/accessSync';
+import type { ApiToken } from '../lib/accessSync';
+import { activeTokensOf } from '../lib/scopes';
 import { useCrmMode } from '../lib/crmMode';
 import { historyStore } from '../lib/history';
 import { auditRowOf } from '../lib/historyText';
 import { loadRecentHistory } from '../lib/historySync';
 import { EVENTS } from '../mocks/automations';
 import { CURRENT_USER_ID, auditLog, teamStore, webhooksStore } from '../mocks/team';
-import { Badge, EmptyState, Field, Page, PageHeader, SampleBanner, SearchBox, SidePanel, Switch, Tabs } from '../components/ui';
+import { Badge, EmptyState, Field, Page, PageHeader, PopupDialog, SampleBanner, SearchBox, SidePanel, Switch, Tabs } from '../components/ui';
 import { CustomSelect } from '../components/ui';
 import { PermissionsTab, TokensTab } from '../components/Access';
 
@@ -91,6 +94,7 @@ function TeamTab() {
   const auth = useAuth();
   const can = useCan();
   const [inviting, setInviting] = useState(false);
+  const [offering, setOffering] = useState<{ member: TeamMember; tokens: ApiToken[] } | null>(null);
   const api = auth.status === 'in'; // equipe na API; senão, o exemplo em memória
   const meId = api ? auth.user?.id : CURRENT_USER_ID;
   const admins = team.filter((m) => m.role === 'ADMIN' && m.status !== 'DISABLED').length;
@@ -98,7 +102,17 @@ function TeamTab() {
 
   const report = (err: string | null) => { if (err) pushErro('Não foi possível alterar a equipe', err); };
   const setRole = (id: string, role: Role) => (api ? changeMemberRole(id, role).then(report) : setTeam((prev) => prev.map((m) => (m.id === id ? { ...m, role } : m))));
-  const remove = (id: string) => (api ? setMemberActive(id, false).then(report) : setTeam((prev) => prev.filter((m) => m.id !== id)));
+  const deactivate = (id: string) => setMemberActive(id, false).then(report);
+  // D13: os tokens são da organização e sobrevivem à pessoa. Antes de desativar, mostra os que ela criou e pede confirmação.
+  const remove = async (m: TeamMember) => {
+    if (!api) return setTeam((prev) => prev.filter((x) => x.id !== m.id));
+    if (can.manageKeys) {
+      await loadTokens();
+      const tokens = activeTokensOf(tokensStore.get().data ?? [], m.id);
+      if (tokens.length > 0) return setOffering({ member: m, tokens });
+    }
+    return deactivate(m.id);
+  };
   const reactivate = (id: string) => setMemberActive(id, true).then(report);
   // O último Admin não perde o perfil nem sai
   const isLastAdmin = (m: TeamMember) => !!m.root || (m.role === 'ADMIN' && m.status !== 'DISABLED' && admins <= 1);
@@ -129,7 +143,7 @@ function TeamTab() {
                     {readOnly ? null : m.status === 'DISABLED' ? (
                       <button type="button" className="icon-btn bare" onClick={() => reactivate(m.id)} title="Reativar" aria-label={`Reativar ${m.name}`}><RotateCcw size={14} /></button>
                     ) : (
-                      <button type="button" className="icon-btn bare" disabled={isLastAdmin(m) || m.id === meId} onClick={() => remove(m.id)} title={m.root ? 'Conta Admin raiz, definida no servidor' : isLastAdmin(m) ? 'O último Admin não pode ser removido' : m.id === meId ? 'Você não pode se remover' : api ? 'Desativar acesso' : 'Remover'} aria-label={`${api ? 'Desativar' : 'Remover'} ${m.name}`}><Trash2 size={14} /></button>
+                      <button type="button" className="icon-btn bare" disabled={isLastAdmin(m) || m.id === meId} onClick={() => void remove(m)} title={m.root ? 'Conta Admin raiz, definida no servidor' : isLastAdmin(m) ? 'O último Admin não pode ser removido' : m.id === meId ? 'Você não pode se remover' : api ? 'Desativar acesso' : 'Remover'} aria-label={`${api ? 'Desativar' : 'Remover'} ${m.name}`}><Trash2 size={14} /></button>
                     )}
                   </td>
                 </tr>
@@ -151,6 +165,23 @@ function TeamTab() {
           ))}
         </div>
       </section>
+
+      {offering && (
+        <PopupDialog
+          eyebrow="DESATIVAR PESSOA"
+          tone="warning"
+          title={`Desativar ${offering.member.name}?`}
+          description={`${offering.member.name} criou ${offering.tokens.length === 1 ? '1 token de API ainda ativo' : `${offering.tokens.length} tokens de API ainda ativos`}. Os tokens são da organização: continuam valendo depois que a pessoa sai. Revogue na aba Tokens de API o que não deve mais funcionar.`}
+          onClose={() => setOffering(null)}
+          footer={<><button type="button" className="btn" onClick={() => setOffering(null)}>Cancelar</button><button type="button" className="btn btn-solid acc-btn-danger" onClick={() => { const id = offering.member.id; setOffering(null); void deactivate(id); }}>Desativar mesmo assim</button></>}
+        >
+          <ul className="row-list" style={{ margin: 0 }}>
+            {offering.tokens.map((t) => (
+              <li key={t.id} className="row-item"><div className="cell-stack"><span className="cell-primary">{t.name}{t.env === 'test' ? ' (teste)' : ''}</span><code className="text-xs text-muted">{t.prefix}…{t.last4}</code></div><span className="text-xs text-muted">{t.projectId ? 'Snippet de projeto' : t.scopes.length === 1 ? t.scopes[0] : `${t.scopes.length} escopos`}</span></li>
+            ))}
+          </ul>
+        </PopupDialog>
+      )}
 
       {inviting && <InvitePanel onClose={() => setInviting(false)} onInvite={async (m) => {
         if (api) {

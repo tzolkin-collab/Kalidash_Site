@@ -5,6 +5,7 @@ import { API_URL } from '../lib/api';
 import { createToken, loadCatalog, loadTokens, revokeToken, saveMemberAccess, useCatalog, useTokens } from '../lib/accessSync';
 import type { ApiToken } from '../lib/accessSync';
 import { useAuth } from '../lib/auth';
+import { loadProjects, snippetFor, useApiProjects } from '../lib/connectSync';
 import { pushErro } from '../lib/notify';
 import { initials } from '../lib/people';
 import { useCan } from '../lib/permissions';
@@ -328,13 +329,14 @@ export function TokensTab() {
   const can = useCan();
   const catalog = useCatalog();
   const tokens = useTokens();
+  const projects = useApiProjects();
   const [creating, setCreating] = useState(false);
   const [revealed, setRevealed] = useState<{ token: string; meta: ApiToken } | null>(null);
   const [revoking, setRevoking] = useState<ApiToken | null>(null);
   const [showOld, setShowOld] = useState(false);
   const live = auth.status === 'in';
 
-  useEffect(() => { if (live && can.manageKeys) { void loadCatalog(); void loadTokens(); } }, [live, can.manageKeys]);
+  useEffect(() => { if (live && can.manageKeys) { void loadCatalog(); void loadTokens(); void loadProjects(); } }, [live, can.manageKeys]);
 
   if (!live) return <Offline what="Criar tokens de API" />;
   if (!can.manageKeys) return <EmptyState title="Sem permissão para tokens">Só quem tem a permissão keys:manage (Admin e Gerente por padrão) cria e revoga tokens de API.</EmptyState>;
@@ -359,8 +361,9 @@ export function TokensTab() {
     <tr key={t.id} className={t.status === 'ACTIVE' ? '' : 'acc-row-off'}>
       <td>
         <div className="cell-stack">
-          <span className="cell-primary">{t.name}{t.status === 'EXPIRED' && <span className="acc-tag acc-tag-removed" style={{ marginLeft: 8 }}>Expirado</span>}{t.status === 'REVOKED' && <span className="acc-tag" style={{ marginLeft: 8 }}>Revogado</span>}</span>
+          <span className="cell-primary">{t.name}{t.env === 'test' && <span className="acc-tag" style={{ marginLeft: 8 }}>Teste</span>}{t.status === 'EXPIRED' && <span className="acc-tag acc-tag-removed" style={{ marginLeft: 8 }}>Expirado</span>}{t.status === 'REVOKED' && <span className="acc-tag" style={{ marginLeft: 8 }}>Revogado</span>}</span>
           <code className="acc-token-mask">{maskedToken(t.prefix, t.last4)}</code>
+          {t.projectId && <span className="text-xs text-muted">Snippet do projeto {projects.data?.find((p) => p.id === t.projectId)?.name ?? t.projectId}</span>}
         </div>
       </td>
       <td>
@@ -442,7 +445,7 @@ export function TokensTab() {
           onClose={() => setRevealed(null)}
           footer={<button type="button" className="btn btn-solid" onClick={() => setRevealed(null)}>Já copiei, fechar</button>}
         >
-          <RevealBox token={revealed.token} />
+          <RevealBox token={revealed.token} projectName={revealed.meta.projectId ? projects.data?.find((p) => p.id === revealed.meta.projectId)?.name : undefined} />
         </PopupDialog>
       )}
 
@@ -460,7 +463,7 @@ export function TokensTab() {
   );
 }
 
-function RevealBox({ token }: { token: string }) {
+function RevealBox({ token, projectName }: { token: string; projectName?: string }) {
   const [copied, setCopied] = useState<'ok' | 'fail' | null>(null);
   return (
     <div className="acc-reveal">
@@ -471,7 +474,14 @@ function RevealBox({ token }: { token: string }) {
         </button>
       </div>
       {copied === 'fail' && <p className="acc-reveal-fail">O navegador não deixou copiar sozinho. Selecione o texto acima e copie.</p>}
-      <pre className="acc-code-block">{curl(token)}</pre>
+      {projectName ? (
+        <>
+          <p className="text-sm text-muted" style={{ margin: 0 }}>Cole esta tag na página de <strong>{projectName}</strong>. A chave do snippet só cria leads daquele projeto e pode ficar no HTML.</p>
+          <pre className="acc-code-block">{snippetFor(token)}</pre>
+        </>
+      ) : (
+        <pre className="acc-code-block">{curl(token)}</pre>
+      )}
     </div>
   );
 }
@@ -490,20 +500,29 @@ function CreateTokenPanel({ catalog, onClose, onCreated }: { catalog: Catalog; o
   const [validity, setValidity] = useState<Validity>('never');
   const [date, setDate] = useState('');
   const [picked, setPicked] = useState<Set<string>>(new Set());
+  const projects = useApiProjects().data ?? [];
+  const [kind, setKind] = useState<'server' | 'snippet'>('server');
+  const [env, setEnv] = useState<'live' | 'test'>('live');
+  const [projectId, setProjectId] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const mine = (s: ScopeDef) => can.has(s.id);
-  const grantable = catalog.scopes.filter((s) => !s.humanOnly && mine(s));
+  // forms:write/analytics:write só na chave do snippet (que não mistura com outros escopos)
+  const grantable = catalog.scopes.filter((s) => !s.humanOnly && !s.publishable && mine(s));
+  const snippet = kind === 'snippet';
+  const project = projectId || projects[0]?.id || '';
   const preset = (pred: (s: ScopeDef) => boolean) => setPicked(new Set(grantable.filter(pred).map((s) => s.id)));
   const expiresAt = expiryFor(validity, date);
   const dateBad = validity === 'date' && !expiresAt;
-  const ready = name.trim().length > 0 && picked.size > 0 && !dateBad && !busy;
+  const ready = name.trim().length > 0 && (snippet ? !!project : picked.size > 0) && !dateBad && !busy;
 
   const submit = async () => {
     setBusy(true);
     setError(null);
-    const out = await createToken(name.trim(), [...picked], expiresAt);
+    const out = snippet
+      ? await createToken(name.trim(), ['forms:write'], expiresAt, { env, projectId: project })
+      : await createToken(name.trim(), [...picked], expiresAt);
     setBusy(false);
     if ('error' in out) { setError(out.error); return; }
     onCreated(out);
@@ -519,7 +538,7 @@ function CreateTokenPanel({ catalog, onClose, onCreated }: { catalog: Catalog; o
       onClose={onClose}
       footer={
         <>
-          <span className="acc-foot-summary">{picked.size} {picked.size === 1 ? 'permissão' : 'permissões'} · {validity === 'never' ? 'nunca expira' : expiresAt ? `expira em ${when(expiresAt)}` : 'escolha a data'}</span>
+          <span className="acc-foot-summary">{snippet ? 'chave do snippet' : `${picked.size} ${picked.size === 1 ? 'permissão' : 'permissões'}`} · {validity === 'never' ? 'nunca expira' : expiresAt ? `expira em ${when(expiresAt)}` : 'escolha a data'}</span>
           <button type="button" className="btn" onClick={onClose}>Cancelar</button>
           <button type="button" className="btn btn-solid" disabled={!ready} onClick={() => void submit()}>{busy ? 'Criando…' : 'Criar token'}</button>
         </>
@@ -529,6 +548,29 @@ function CreateTokenPanel({ catalog, onClose, onCreated }: { catalog: Catalog; o
         <Field label="Nome" hint="Para você reconhecer depois. Ex.: Zapier — leads do site.">
           <input className="input" value={name} maxLength={120} onChange={(e) => setName(e.target.value)} autoFocus placeholder="Zapier — leads do site" />
         </Field>
+        {projects.length > 0 && can.has('forms:write') && (
+          <Field label="Tipo de chave" hint={snippet ? 'Vai no HTML da página do projeto (connect.js). Só cria leads daquele projeto; nunca lê nada.' : 'Para servidores e automações (Zapier, n8n, scripts). Fica em segredo.'}>
+            <CustomSelect className="select" value={kind} onChange={(e) => setKind(e.target.value as 'server' | 'snippet')} aria-label="Tipo de chave">
+              <option value="server">Servidor ou automação</option>
+              <option value="snippet">Snippet de um projeto (connect.js)</option>
+            </CustomSelect>
+          </Field>
+        )}
+        {snippet && (
+          <div className="form-grid">
+            <Field label="Projeto">
+              <CustomSelect className="select" value={project} onChange={(e) => setProjectId(e.target.value)} aria-label="Projeto">
+                {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </CustomSelect>
+            </Field>
+            <Field label="Ambiente" hint={env === 'test' ? 'kld_test_: os leads entram com a tag Teste.' : undefined}>
+              <CustomSelect className="select" value={env} onChange={(e) => setEnv(e.target.value as 'live' | 'test')} aria-label="Ambiente">
+                <option value="live">Produção (live)</option>
+                <option value="test">Teste (test)</option>
+              </CustomSelect>
+            </Field>
+          </div>
+        )}
         <Field label="Validade" hint={validity === 'never' ? 'Sem prazo: vale até você revogar.' : undefined}>
           <CustomSelect className="select" value={validity} onChange={(e) => setValidity(e.target.value as Validity)} aria-label="Validade">
             {VALIDITY.map((v) => <option key={v.value} value={v.value}>{v.label}</option>)}
@@ -540,7 +582,7 @@ function CreateTokenPanel({ catalog, onClose, onCreated }: { catalog: Catalog; o
           </Field>
         )}
 
-        <div className="acc-quick">
+        {!snippet && <div className="acc-quick">
           <span className="field-label">Atalhos</span>
           <div className="acc-quick-btns">
             <button type="button" className="btn btn-sm" onClick={() => preset((s) => s.id.endsWith(':read'))}>Somente leitura</button>
@@ -548,16 +590,23 @@ function CreateTokenPanel({ catalog, onClose, onCreated }: { catalog: Catalog; o
             <button type="button" className="btn btn-sm" onClick={() => preset(() => true)}>Tudo que posso</button>
             <button type="button" className="btn btn-sm btn-ghost" onClick={() => setPicked(new Set())}>Limpar</button>
           </div>
-        </div>
+        </div>}
 
-        <ScopeGroups
-          catalog={catalog}
-          selected={picked}
-          forTokens
-          onToggle={set}
-          onGroup={setMany}
-          lockedNote={(s) => (mine(s) ? undefined : 'Você não tem')}
-        />
+        {snippet ? (
+          <div className="acc-error" role="note" style={{ background: 'var(--surface-2, transparent)' }}>
+            <ShieldCheck size={16} />
+            <div><strong>Só escreve leads.</strong><span>Escopo forms:write, ligado ao projeto. Uma chave que aparece no HTML nunca recebe leitura (leads:read, ads:read) — o servidor recusa.</span></div>
+          </div>
+        ) : (
+          <ScopeGroups
+            catalog={{ ...catalog, scopes: catalog.scopes.filter((s) => !s.publishable) }}
+            selected={picked}
+            forTokens
+            onToggle={set}
+            onGroup={setMany}
+            lockedNote={(s) => (mine(s) ? undefined : 'Você não tem')}
+          />
+        )}
         {error && <div className="acc-error" role="alert"><TriangleAlert size={16} /><div><strong>Não foi possível criar.</strong><span>{error}</span></div></div>}
       </div>
     </SidePanel>

@@ -13,6 +13,11 @@ export type ApiToken = {
   prefix: string;
   last4: string;
   scopes: string[];
+  /** live | test. Chave de teste (kld_test_) marca os leads como Teste. */
+  env: 'live' | 'test';
+  /** Só chaves do snippet (forms:write) ficam ligadas a um projeto conectado. */
+  projectId?: string;
+  createdBy?: string;
   createdByName?: string;
   createdAt: string;
   expiresAt?: string;
@@ -79,9 +84,9 @@ export async function loadTokens(): Promise<void> {
 }
 
 /** Cria o token. `token` é o segredo completo, devolvido só desta vez. */
-export async function createToken(name: string, scopes: string[], expiresAt?: string): Promise<{ token: string; meta: ApiToken } | { error: string }> {
+export async function createToken(name: string, scopes: string[], expiresAt?: string, extra: { env?: 'live' | 'test'; projectId?: string } = {}): Promise<{ token: string; meta: ApiToken } | { error: string }> {
   try {
-    const res = await fetch(`${API_URL}/api/tokens`, { method: 'POST', headers: json, body: JSON.stringify({ name, scopes, expiresAt }) });
+    const res = await fetch(`${API_URL}/api/tokens`, { method: 'POST', headers: json, body: JSON.stringify({ name, scopes, expiresAt, ...extra }) });
     if (!res.ok) return { error: await errorOf(res) };
     const out = (await res.json()) as { token: string; meta: ApiToken };
     await loadTokens();

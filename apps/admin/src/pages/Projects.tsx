@@ -4,6 +4,9 @@ import type { ApiKey, ApiKeyScope, ConnectedProject } from '../domain';
 import { formatDate } from '../lib/format';
 import { newId, useStore } from '../lib/store';
 import { SCOPE_INFO, apiKeysStore, projectsStore } from '../mocks/projects';
+import { useAuth } from '../lib/auth';
+import { useCrmMode } from '../lib/crmMode';
+import ProjectsLive from '../components/ProjectsLive';
 import { Badge, EmptyState, Field, Page, PageHeader, SampleBanner, SidePanel, Tabs } from '../components/ui';
 import type { Tone } from '../components/ui';
 import { CustomSelect } from '../components/ui';
@@ -23,15 +26,33 @@ function randomHex(bytes: number) {
   return [...buf].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
+const SUBTITLE = 'As LPs, sites e formulários que a Kalidash lança, com o Connect instalado. Daqui saem também as integrações e as chaves de API.';
+
+// Com a API ligada (CRM_API=1 e login AUTH_API=1) a tela é real e grava no servidor (components/ProjectsLive.tsx).
+// Sem elas segue o exemplo em memória de antes, com o aviso.
 export default function Projects() {
+  const auth = useAuth();
+  const crm = useCrmMode();
+  if (auth.status === 'in' && crm === 'api') {
+    return (
+      <Page>
+        <PageHeader title="Projetos conectados" subtitle={SUBTITLE} />
+        <ProjectsLive />
+      </Page>
+    );
+  }
+  return <SampleProjects />;
+}
+
+function SampleProjects() {
   const [projects] = useStore(projectsStore);
   const [keys] = useStore(apiKeysStore);
   const [tab, setTab] = useState<Tab>('projects');
 
   return (
     <Page>
-      <PageHeader title="Projetos conectados" subtitle="As LPs, sites e formulários que a Kalidash lança, com o Connect instalado. Daqui saem também as integrações e as chaves de API." />
-      <SampleBanner phase={5}>Projetos, métricas e chaves são de exemplo: nenhuma chave emitida aqui vale de verdade no servidor.</SampleBanner>
+      <PageHeader title="Projetos conectados" subtitle={SUBTITLE} />
+      <SampleBanner>Projetos, métricas e chaves são de exemplo: nenhuma chave emitida aqui vale de verdade no servidor. Com a API ligada (CRM_API=1 e login com AUTH_API=1) esta tela passa a gravar no servidor.</SampleBanner>
       <Tabs
         tabs={[{ id: 'projects' as Tab, label: 'Projetos', count: projects.length }, { id: 'integrations' as Tab, label: 'Integrações' }, { id: 'keys' as Tab, label: 'Chaves de API', count: keys.filter((k) => k.status === 'ACTIVE').length }]}
         value={tab}

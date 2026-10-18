@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { ago, effective, expiryFor, groupScopes, joinPt, overridesFor, summarize, type Catalog } from '../src/lib/scopes.ts';
+import { buildSnippet, readSnippetKey } from '../src/lib/snippet.ts';
+import { activeTokensOf, ago, effective, expiryFor, groupScopes, joinPt, overridesFor, summarize, type Catalog } from '../src/lib/scopes.ts';
 
 const catalog: Catalog = {
   groups: ['CRM', 'Conteúdo', 'Administração'],
@@ -58,4 +59,25 @@ test('ago', () => {
   assert.equal(ago('2026-10-18T11:59:30Z', now), 'agora há pouco');
   assert.equal(ago('2026-10-18T10:00:00Z', now), 'há 2 h');
   assert.equal(ago('2026-10-15T12:00:00Z', now), 'há 3 d');
+});
+
+test('D13: lista só os tokens ativos criados pela pessoa', () => {
+  const tokens = [
+    { id: 'a', createdBy: 'tm1', status: 'ACTIVE' },
+    { id: 'b', createdBy: 'tm1', status: 'REVOKED' },
+    { id: 'c', createdBy: 'tm2', status: 'ACTIVE' },
+    { id: 'd', status: 'ACTIVE' },
+    { id: 'e', createdBy: 'tm1', status: 'EXPIRED' },
+  ];
+  assert.deepEqual(activeTokensOf(tokens, 'tm1').map((t) => t.id), ['a']);
+  assert.deepEqual(activeTokensOf(tokens, 'ninguem'), []);
+});
+
+test('snippet do connect.js só carrega a chave publicável', () => {
+  const tag = buildSnippet('https://api.kalidash.com.br/', 'kld_live_abcDEF123456');
+  assert.equal(tag, '<script src="https://api.kalidash.com.br/connect.js" data-key="kld_live_abcDEF123456" defer></script>');
+  assert.deepEqual(readSnippetKey(tag), { key: 'kld_live_abcDEF123456', env: 'live' });
+  assert.deepEqual(readSnippetKey('<script data-key="kld_test_zzzzzzzzzz">'), { key: 'kld_test_zzzzzzzzzz', env: 'test' });
+  assert.deepEqual(readSnippetKey('<script data-key="abc">'), {});
+  assert.deepEqual(readSnippetKey('<script>'), {});
 });
