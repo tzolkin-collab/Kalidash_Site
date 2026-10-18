@@ -31,10 +31,10 @@
 | E-mails (templates) e Automações, em páginas separadas | admin + api | **Tela pronta, sem API** | E-mails (modelos e histórico) e Automações (catálogo, manuais e gerenciadas, execuções) são páginas próprias. |
 | Entrada de leads (`connect.js`, API direta, webhook) | api | Planejado | Contrato já desenhado no v1.0 (`connect.ts`). |
 | Projetos conectados, Integrações e Chaves | admin + api | **Tela pronta, sem API** | Projetos com métricas, snippet e página de exemplo, emissão e revogação de chaves (o token de exemplo não existe no servidor). |
-| Login e perfis | api + admin | Planejado | Google OAuth do Workspace. Perfis **Admin, Gerente e Vendedor**, com painel de permissões (decidido em 01/10/2026 e incluído no contrato, para entrega até a Entrega 4). Hoje a API está aberta. |
+| Login e perfis | api + admin | **Pronto, desligado por padrão (18/10)** | Atrás de `AUTH_API=1`: login com Google (OAuth, `state` anti-CSRF) só para e-mails da tabela `TeamMember`; sessão por cookie `HttpOnly` (token opaco, só o HMAC fica no banco); middleware que exige sessão em `/api/*` (exceções públicas: `POST /api/public/leads` e a leitura de artigos publicados e dos textos da galeria); perfis **Admin, Gerente e Vendedor** aplicados **no servidor** com a matriz de `permissions.ts`; CORS restrito a `ALLOWED_ORIGINS`; modo de desenvolvimento sem Google. Admin: tela de login, usuário real na barra lateral, Equipe gravando na API. **Falta ligar em produção** (criar o OAuth Client ID, primeira conta Admin; ver [auth-study.md](./auth-study.md#implementação-wp1-18102026)). Sem a flag a API segue aberta, como antes. |
 | Blog / CMS | admin + api + site | **Parcial** | Sem Sanity — lista e editor ([BlockNote](https://www.blocknotejs.org/), trocou o Tiptap em 30/09) gravam artigo real via Go API/MySQL (`/api/blog/articles`); `bodyJson` (documento nativo do BlockNote) é a fonte de verdade, `body` (HTML) é gerado a cada save pro site consumir com ISR, publicado/rascunho, destaque e categorias. Upload de imagem implementado (`/api/blog/upload`, redimensiona e comprime antes de subir pro Cloudflare R2) — falta só configurar as credenciais reais do bucket no `.env` da API (passo a passo e verificação em [r2-setup.md](./r2-setup.md); **05/10:** a rota foi endurecida e testada com um S3 falso: tipo pelo conteúdo, sem SVG, orientação EXIF, PNG transparente preservado, GIF intacto, limite de megapixels e de envios por IP). **Atualizado em 01/10:** os cartões de artigo da Galeria Principal são editáveis (bloco do BlockNote; a ordem dos blocos é a ordem no site e o 1º é o destaque); o preview é o próprio site num iframe (`/preview/*`, com clique que foca o campo no editor); e salvar ou excluir um artigo avisa o site (`/api/revalidate`), que regenera em ~2 s em vez de até 60 s. O design do blog fica só no site (ver [blog-design-contrato.md](./blog-design-contrato.md)). **Falta:** sanitização do HTML e login (fase de segurança), `connect.js`. Handoffs: [30/09](./handoffs/2026-09-30-editor-blog-blocknote.md) e [01/10](./handoffs/2026-10-01-preview-home-contrato.md). |
 | Dashboard e analytics | admin | **Parcial** | Métricas reais calculadas de `/api/leads` (valor em aberto e ganho, conversão, funil por etapa). Leads, tarefas e origem entram com as fases 3 e 4. |
-| Equipe e Configurações | admin + api | **Tela pronta, sem API** | Página com perfil, equipe e perfis (Admin, Gerente, Vendedor), webhooks e auditoria, em dados de exemplo. |
+| Equipe e Configurações | admin + api | **Parcial** | Equipe e perfil gravam na API (`/api/team`) com `AUTH_API=1`; sem a flag seguem em dados de exemplo. Webhooks seguem sem API. A Auditoria mostra o histórico real quando o CRM está na API. |
 | Webhooks de saída e auditoria | api | Planejado | A tela existe em Configurações; falta a API e o disparo em segundo plano. |
 | Notificações (WebSocket, Web Push, PWA) | api + admin | **Parcial** | **Front pronto (05/10):** sino com a caixa de erros, avisos e notificações, toast e aba em Configurações com o aviso do navegador ([notificacoes.md](./notificacoes.md)); o histórico fica no navegador. **Tarefas (05/10):** avisos de tarefa de requisito criada (com "notificar" ligado) e de tarefa atrasada, e a automação "Notificar a equipe" gera notificação real. **Falta:** o servidor (WebSocket, Web Push com o painel fechado, e-mail), erros do backend e o evento "tarefa concluída". O admin ainda não é PWA completo. |
 | Google Meet, Gmail e Drive | api | Planejado | |
@@ -131,7 +131,7 @@ O painel é 100% interativo (Kanban, gráficos, notificações em tempo real). S
 | Integrações e Chaves | Emitir token, gerar snippet, mapear campos, escopos | Prism.js |
 | Blog / CMS | Lista e editor (BlockNote) com SEO, publicado/rascunho, destaque e categorias — sem Sanity, grava no MySQL via Go API e o site consome com ISR | BlockNote |
 | E-mails | Templates e automações | easy-email |
-| Equipe e Configurações | admin + api | **Tela pronta, sem API** | Página com perfil, equipe e perfis (Admin, Gerente, Vendedor), webhooks e auditoria, em dados de exemplo. |
+| Equipe e Configurações | admin + api | **Parcial** | Equipe e perfil gravam na API (`/api/team`) com `AUTH_API=1`; sem a flag seguem em dados de exemplo. Webhooks seguem sem API. A Auditoria mostra o histórico real quando o CRM está na API. |
 
 ### API (`apps/api`)
 
@@ -178,13 +178,13 @@ Definido em `apps/studio/prisma/schema.prisma`:
 
 | Tabela / campo | Para quê |
 |---|---|
-| `User` + `googleSub`, `isActive`, `lastLoginAt`; `role` = `ADMIN`, `MANAGER` ou `SELLER` | Login com Google e perfis (ver `auth-study.md`) |
+| `TeamMember` (`email`, `googleSub`, `role` = `ADMIN`, `MANAGER` ou `SELLER`, `active`, `lastLoginAt`) | **Existe** (com `AUTH_API=1`): login com Google e perfis (ver `auth-study.md`). Não substitui `User`, que segue como dono de oportunidades do protótipo |
 | `Project` (`name`, `url`, `stack`, `status`) | Projeto conectado: uma LP ou site com o Connect instalado |
 | `ProjectForm` (`projectId`, `name`, `selector`, `fieldMap`) | Formulário rastreado dentro de um projeto |
 | `ApiKey` (`projectId`, `name`, `prefix`, `keyHash`, `env`, `scopes`, `revokedAt`, `lastUsedAt`) | Chaves com escopo. O token completo aparece uma vez, no momento da emissão. |
 | `LeadSubmission` (`sourceId`, `payload`, UTMs, `page_url`, `leadId`) | Guarda cada envio e liga ao **lead** criado ou atualizado (ver plano-schema.md) |
 | `Opportunity` (ver plano-schema.md: `pipelineId`, `stageId`, `origin`, `value` em `Decimal(12,2)`, motivo, previsão, tempo na etapa) | Etapas configuráveis, origem e valores exatos nas somas (com `Float` a soma de centavos acumula erro) |
-| `Session` | Refresh tokens do login |
+| `AuthSession` | **Existe** (com `AUTH_API=1`): sessões do login (HMAC do token, validade, IP) |
 | `AuditLog` | Trilha de auditoria |
 | `Post` | Blog (rascunho, publicado, slug, imagem de capa) |
 
@@ -240,7 +240,7 @@ A chave de criptografia vive em variável de ambiente, nunca no código.
 
 ### Camada 5 — Autenticação do painel
 
-Google OAuth do Workspace, com JWT de curta duração (15 min) e refresh token em cookie `httpOnly`. Detalhes em [auth-study.md](./auth-study.md).
+Google OAuth, com **sessão opaca no servidor** em cookie `HttpOnly` (7 dias, revogável) no lugar do JWT + refresh token do desenho inicial: o perfil e a desativação valem na hora. Detalhes e divergências em [auth-study.md](./auth-study.md#implementação-wp1-18102026).
 
 ### Camada 6 — Backups (regra 3-2-1)
 
@@ -260,7 +260,7 @@ Google OAuth do Workspace, com JWT de curta duração (15 min) e refresh token e
 
 ### Pendências de segurança conhecidas (26/09/2026)
 
-1. **API sem autenticação**, com CORS `*`. Qualquer cliente que alcance a API lê e altera oportunidades.
+1. **API sem autenticação**, com CORS `*`. Qualquer cliente que alcance a API lê e altera oportunidades. **Resolvido no código em 18/10/2026 atrás de `AUTH_API=1`; segue aberto até ligar a flag em produção** (e `/api/emails/send` passa a exigir sessão).
 2. **`/api/emails/send` aberto.** Usa a chave do Resend e aceita assunto e HTML arbitrários.
 3. **Sem `.gitignore` e sem repositório no monorepo.** `apps/api/.env` (com o DSN) e os `.exe` entrariam no primeiro commit.
 4. **Banco acessado por host remoto na porta 3306.** Confirmar se há restrição por IP; caso contrário, o banco está exposto.

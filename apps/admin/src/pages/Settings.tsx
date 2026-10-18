@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Mail, Plus, Trash2 } from 'lucide-react';
+import { LogOut, Mail, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import type { Role, TeamMember, Webhook } from '../domain';
 import { initials } from '../lib/people';
 import { newId, useStore } from '../lib/store';
-import { setPush, usePushPref } from '../lib/notify';
+import { pushErro, setPush, usePushPref } from '../lib/notify';
+import { logout, useAuth } from '../lib/auth';
+import { useCan } from '../lib/permissions';
+import { changeMemberRole, inviteMember, setMemberActive } from '../lib/teamSync';
 import { useCrmMode } from '../lib/crmMode';
 import { historyStore } from '../lib/history';
 import { auditRowOf } from '../lib/historyText';
@@ -27,11 +30,15 @@ const ROLE_MATRIX: { role: Role; sees: string; does: string }[] = [
 
 export default function Settings() {
   const crmMode = useCrmMode();
+  const auth = useAuth();
   const [tab, setTab] = useState<Tab>('profile');
   return (
     <Page>
       <PageHeader title="Configurações" subtitle="Seu perfil, a equipe e os acessos, os webhooks de saída e o registro do que foi feito." />
-      <SampleBanner>Equipe e webhooks ainda não têm API, e o login com Google entra na fase de segurança, que fica por último. {crmMode === 'api' ? 'A Auditoria já mostra o histórico real de mudanças.' : 'A Auditoria só vira real quando o CRM está na API.'} O resto desta tela não é gravado.</SampleBanner>
+      <SampleBanner>
+        {auth.status === 'in' ? 'A equipe e o perfil são reais (login ligado na API), mas os webhooks ainda não têm API.' : 'O login está desligado nesta API (AUTH_API): a equipe e o perfil são de exemplo e o admin abre sem autenticação. Os webhooks ainda não têm API.'}{' '}
+        {crmMode === 'api' ? 'A Auditoria já mostra o histórico real de mudanças.' : 'A Auditoria só vira real quando o CRM está na API.'} O que é de exemplo não é gravado.
+      </SampleBanner>
       <Tabs
         tabs={[{ id: 'profile' as Tab, label: 'Meu perfil' }, { id: 'team' as Tab, label: 'Equipe e acessos' }, { id: 'notifications' as Tab, label: 'Notificações' }, { id: 'webhooks' as Tab, label: 'Webhooks' }, { id: 'audit' as Tab, label: 'Auditoria' }]}
         value={tab}
@@ -48,7 +55,8 @@ export default function Settings() {
 
 function ProfileTab() {
   const [team] = useStore(teamStore);
-  const me = team.find((m) => m.id === CURRENT_USER_ID);
+  const auth = useAuth();
+  const me = auth.status === 'in' ? auth.user : team.find((m) => m.id === CURRENT_USER_ID);
   if (!me) return <EmptyState title="Perfil indisponível" />;
   return (
     <div className="settings-pane form-stack">
@@ -62,7 +70,14 @@ function ProfileTab() {
       </section>
       <section className="panel-card">
         <h2 className="section-title">Sessão</h2>
-        <p className="text-sm text-muted" style={{ margin: 0 }}>O login com Google Workspace ainda não está ligado: hoje o admin abre sem autenticação. Ele entra na fase de segurança, com o e-mail vindo da conta Google e o perfil definido em Equipe e acessos.</p>
+        {auth.status === 'in' ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+            <p className="text-sm text-muted" style={{ margin: 0 }}>Você entrou com a conta Google {me.email}. A sessão dura 7 dias e termina ao sair; se um Admin mudar o seu perfil ou desativar o seu acesso, vale na hora.</p>
+            <button type="button" className="btn" onClick={() => void logout()}><LogOut size={14} /> Sair</button>
+          </div>
+        ) : (
+          <p className="text-sm text-muted" style={{ margin: 0 }}>O login com Google está desligado nesta API (AUTH_API): o admin abre sem autenticação e o perfil acima é o de exemplo.</p>
+        )}
       </section>
     </div>
   );
@@ -70,19 +85,26 @@ function ProfileTab() {
 
 function TeamTab() {
   const [team, setTeam] = useStore(teamStore);
+  const auth = useAuth();
+  const can = useCan();
   const [inviting, setInviting] = useState(false);
-  const admins = team.filter((m) => m.role === 'ADMIN').length;
+  const api = auth.status === 'in'; // equipe na API; senão, o exemplo em memória
+  const meId = api ? auth.user?.id : CURRENT_USER_ID;
+  const admins = team.filter((m) => m.role === 'ADMIN' && m.status !== 'DISABLED').length;
+  const readOnly = api && !can.manageTeam; // só Admin altera a equipe; o servidor também recusa
 
-  const setRole = (id: string, role: Role) => setTeam((prev) => prev.map((m) => (m.id === id ? { ...m, role } : m)));
-  const remove = (id: string) => setTeam((prev) => prev.filter((m) => m.id !== id));
+  const report = (err: string | null) => { if (err) pushErro('Não foi possível alterar a equipe', err); };
+  const setRole = (id: string, role: Role) => (api ? changeMemberRole(id, role).then(report) : setTeam((prev) => prev.map((m) => (m.id === id ? { ...m, role } : m))));
+  const remove = (id: string) => (api ? setMemberActive(id, false).then(report) : setTeam((prev) => prev.filter((m) => m.id !== id)));
+  const reactivate = (id: string) => setMemberActive(id, true).then(report);
   // O último Admin não perde o perfil nem sai
-  const isLastAdmin = (m: TeamMember) => m.role === 'ADMIN' && admins <= 1;
+  const isLastAdmin = (m: TeamMember) => m.role === 'ADMIN' && m.status !== 'DISABLED' && admins <= 1;
 
   return (
     <div className="settings-pane form-stack">
       <div className="pane-head" style={{ marginBottom: 0 }}>
         <p className="section-sub" style={{ margin: 0 }}>Um único espaço de dados, vários usuários internos, três perfis.</p>
-        <button type="button" className="btn btn-solid" onClick={() => setInviting(true)}><Plus size={14} /> Convidar pessoa</button>
+        {!readOnly && <button type="button" className="btn btn-solid" onClick={() => setInviting(true)}><Plus size={14} /> Convidar pessoa</button>}
       </div>
 
       <div className="table-card">
@@ -92,15 +114,21 @@ function TeamTab() {
             <tbody>
               {team.map((m) => (
                 <tr key={m.id}>
-                  <td><div className="cell-avatar"><span className="avatar">{initials(m.name)}</span><div className="cell-stack"><span className="cell-primary">{m.name}{m.id === CURRENT_USER_ID && <span className="text-muted"> (você)</span>}</span><span className="text-xs text-muted">{m.email}</span></div></div></td>
+                  <td><div className="cell-avatar"><span className="avatar">{initials(m.name)}</span><div className="cell-stack"><span className="cell-primary">{m.name}{m.id === meId && <span className="text-muted"> (você)</span>}</span><span className="text-xs text-muted">{m.email}</span></div></div></td>
                   <td>
-                    <CustomSelect className="select select-sm" value={m.role} disabled={isLastAdmin(m)} title={isLastAdmin(m) ? 'Não dá para tirar o perfil do último Admin' : undefined} onChange={(e) => setRole(m.id, e.target.value as Role)} aria-label={`Perfil de ${m.name}`}>
+                    <CustomSelect className="select select-sm" value={m.role} disabled={readOnly || isLastAdmin(m) || m.status === 'DISABLED' || (api && m.id === meId)} title={isLastAdmin(m) ? 'Não dá para tirar o perfil do último Admin' : api && m.id === meId ? 'Você não pode mudar o seu próprio perfil' : undefined} onChange={(e) => setRole(m.id, e.target.value as Role)} aria-label={`Perfil de ${m.name}`}>
                       {(Object.keys(ROLE_LABEL) as Role[]).map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
                     </CustomSelect>
                   </td>
-                  <td><Badge tone={m.status === 'ACTIVE' ? 'success' : 'warning'}>{m.status === 'ACTIVE' ? 'Ativo' : 'Convite enviado'}</Badge></td>
+                  <td><Badge tone={m.status === 'ACTIVE' ? 'success' : m.status === 'DISABLED' ? 'neutral' : 'warning'}>{m.status === 'ACTIVE' ? 'Ativo' : m.status === 'DISABLED' ? 'Desativado' : 'Convite enviado'}</Badge></td>
                   <td className="text-muted">{when(m.lastAccess)}</td>
-                  <td><button type="button" className="icon-btn bare" disabled={isLastAdmin(m) || m.id === CURRENT_USER_ID} onClick={() => remove(m.id)} title={isLastAdmin(m) ? 'O último Admin não pode ser removido' : m.id === CURRENT_USER_ID ? 'Você não pode se remover' : 'Remover'} aria-label={`Remover ${m.name}`}><Trash2 size={14} /></button></td>
+                  <td>
+                    {readOnly ? null : m.status === 'DISABLED' ? (
+                      <button type="button" className="icon-btn bare" onClick={() => reactivate(m.id)} title="Reativar" aria-label={`Reativar ${m.name}`}><RotateCcw size={14} /></button>
+                    ) : (
+                      <button type="button" className="icon-btn bare" disabled={isLastAdmin(m) || m.id === meId} onClick={() => remove(m.id)} title={isLastAdmin(m) ? 'O último Admin não pode ser removido' : m.id === meId ? 'Você não pode se remover' : api ? 'Desativar acesso' : 'Remover'} aria-label={`${api ? 'Desativar' : 'Remover'} ${m.name}`}><Trash2 size={14} /></button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -121,12 +149,19 @@ function TeamTab() {
         </div>
       </section>
 
-      {inviting && <InvitePanel onClose={() => setInviting(false)} onInvite={(m) => { setTeam((prev) => [...prev, m]); setInviting(false); }} existing={team.map((m) => m.email.toLowerCase())} />}
+      {inviting && <InvitePanel onClose={() => setInviting(false)} onInvite={async (m) => {
+        if (api) {
+          const err = await inviteMember(m.name, m.email, m.role);
+          report(err);
+          if (err) return;
+        } else setTeam((prev) => [...prev, m]);
+        setInviting(false);
+      }} existing={team.map((m) => m.email.toLowerCase())} />}
     </div>
   );
 }
 
-function InvitePanel({ onClose, onInvite, existing }: { onClose: () => void; onInvite: (m: TeamMember) => void; existing: string[] }) {
+function InvitePanel({ onClose, onInvite, existing }: { onClose: () => void; onInvite: (m: TeamMember) => void | Promise<void>; existing: string[] }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<Role>('SELLER');

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import type { ChangeEntry, EntityKind } from '../domain';
 import { useCrmMode } from './crmMode';
 import { CURRENT_USER_ID, teamStore } from '../mocks/team';
+import { authStore } from './auth';
 import { createStore, newId, useStore } from './store';
 
 // Histórico de mudanças: quem, quando, em qual registro, o que mudou (antes e depois).
@@ -9,7 +10,7 @@ import { createStore, newId, useStore } from './store';
 
 export const historyStore = createStore<ChangeEntry[]>([]);
 
-export const currentActor = () => teamStore.get().find((m) => m.id === CURRENT_USER_ID)?.name ?? 'Equipe';
+export const currentActor = () => authStore.get().user?.name ?? teamStore.get().find((m) => m.id === CURRENT_USER_ID)?.name ?? 'Equipe';
 
 type LogInput = Omit<ChangeEntry, 'id' | 'at' | 'actor'> & { actor?: string };
 

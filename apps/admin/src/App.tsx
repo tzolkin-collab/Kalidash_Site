@@ -1,6 +1,6 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Moon, Settings, Sun } from 'lucide-react';
+import { LogOut, Moon, Settings, Sun } from 'lucide-react';
 import PipelineBuilder from './PipelineBuilder';
 import Dashboard from './pages/Dashboard';
 import Automations from './pages/Automations';
@@ -10,6 +10,7 @@ import Opportunities from './pages/Opportunities';
 import PeopleCompanies from './pages/PeopleCompanies';
 import PipelineSettings from './pages/PipelineSettings';
 import Projects from './pages/Projects';
+import Login from './pages/Login';
 import SettingsPage from './pages/Settings';
 import Tasks from './pages/Tasks';
 import { NAV_GROUPS, isActive } from './nav';
@@ -21,6 +22,10 @@ import NotificationBell from './components/NotificationBell';
 import { initWorkflowSync } from './lib/workflowSync';
 import { initCrmSync } from './lib/crmSync';
 import { startTaskNotifications } from './lib/taskNotify';
+import { initAuth, logout, useAuth } from './lib/auth';
+import { loadTeam } from './lib/teamSync';
+import { useCan } from './lib/permissions';
+import { initials } from './lib/people';
 
 // O editor de e-mail é pesado: só é baixado quando a página de E-mails é aberta.
 const Emails = lazy(() => import('./Emails'));
@@ -37,6 +42,8 @@ function NotFound({ path }: { path: string }) {
   );
 }
 
+const ROLE_NAME = { ADMIN: 'Admin', MANAGER: 'Gerente', SELLER: 'Vendedor' } as const;
+
 function Loading() {
   return <div className="page-loading">Carregando…</div>;
 }
@@ -50,7 +57,16 @@ function Redirect({ to }: { to: string }) {
 export default function App() {
   const { segments, path, navigate } = useHashRoute();
   const [isReady, setIsReady] = useState(false);
-  useEffect(() => { void initWorkflowSync().then(initCrmSync).then(startTaskNotifications); }, []);
+  const auth = useAuth();
+  const can = useCan();
+  useEffect(() => { void initAuth(); }, []);
+  // Os dados só são pedidos à API depois de saber quem está logado (ou que a API não exige login).
+  const authSettled = auth.status === 'off' || auth.status === 'in';
+  useEffect(() => {
+    if (!authSettled) return;
+    if (auth.status === 'in') void loadTeam();
+    void initWorkflowSync().then(initCrmSync).then(startTaskNotifications);
+  }, [authSettled]); // eslint-disable-line react-hooks/exhaustive-deps
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -86,6 +102,9 @@ export default function App() {
     [navigate, isDarkMode],
   );
 
+  if (auth.status === 'loading') return <div className="app-wrapper"><Loading /></div>;
+  if (auth.status === 'anon') return <div className="app-wrapper"><Login /></div>;
+
   const [root, second, third] = segments;
   let page: ReactNode;
   switch (root) {
@@ -114,7 +133,7 @@ export default function App() {
       page = <Automations />;
       break;
     case 'blog':
-      page = <Blog postId={second} />;
+      page = can.manageBlog ? <Blog postId={second} /> : <NotFound path={`${path} (sem permissão)`} />;
       break;
     case 'projetos':
       page = <Projects />;
@@ -152,11 +171,22 @@ export default function App() {
               <span className="font-bold text-base" style={{ letterSpacing: '-0.02em' }}>Kalidash</span>
             </div>
 
+            {auth.status === 'in' && auth.user && (
+              <div className="sidebar-user" data-testid="session-user">
+                <span className="avatar">{initials(auth.user.name || auth.user.email)}</span>
+                <div className="cell-stack">
+                  <span className="cell-primary">{auth.user.name || auth.user.email}</span>
+                  <span className="text-xs text-muted">{ROLE_NAME[auth.user.role]}</span>
+                </div>
+                <button type="button" className="icon-btn bare" onClick={() => void logout()} title="Sair" aria-label="Sair"><LogOut size={16} /></button>
+              </div>
+            )}
+
             <nav style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
               {NAV_GROUPS.map((group, i) => (
                 <div key={group.title ?? i}>
                   {group.title && <div className="nav-group-title">{group.title}</div>}
-                  {group.items.map(({ path: to, label, Icon }) => {
+                  {group.items.filter((it) => it.path !== '/blog' || can.manageBlog).map(({ path: to, label, Icon }) => {
                     const active = isActive(path === '/' ? '/dashboard' : path, to);
                     return (
                       <a key={to} href={`#${to}`} className={`nav-link ${active ? 'active' : ''}`} aria-current={active ? 'page' : undefined} onClick={() => setIsMobileMenuOpen(false)}>

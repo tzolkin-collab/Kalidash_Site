@@ -333,7 +333,7 @@ export type TeamMember = {
   name: string;
   email: string;
   role: Role;
-  status: 'ACTIVE' | 'INVITED';
+  status: 'ACTIVE' | 'INVITED' | 'DISABLED';
   lastAccess?: string;
 };
 

@@ -349,3 +349,53 @@ Custo: $0 (OAuth é gratuito no Google Cloud, sem billing obrigatório)
   automaticamente chama `POST /auth/refresh` (usando o cookie httpOnly),
   recebe um novo Access Token, e re-envia a requisição original sem
   o usuário perceber. Experiência transparente.
+
+---
+
+## Implementação (WP1, 18/10/2026)
+
+Código: `apps/api/auth_store.go` (tabelas, equipe, sessões, bootstrap), `auth_google.go` (OAuth, `/auth/*`, `/api/team`), `auth_middleware.go` (cookie, CORS, **tabela única de acesso por rota**), `auth_rules.go` (regras que dependem do conteúdo); admin: `lib/auth.ts`, `pages/Login.tsx`, `lib/teamSync.ts`, `lib/roles.ts`. Tudo atrás de **`AUTH_API=1`** (desligada por padrão). Com a flag desligada nada muda: sem tabelas novas, sem middleware, CORS `*` e API aberta, como antes.
+
+### O que diverge do desenho acima (e por quê)
+
+| Desenho | Implementado | Motivo |
+|---|---|---|
+| JWT de 15 min + refresh token em cookie | **Sessão opaca** em cookie `kld_session` (`HttpOnly`, `Secure`, `SameSite=Lax`, 7 dias). No banco (`AuthSession`) fica só o HMAC-SHA256 do token (chave `SESSION_SECRET`) | Perfil e desativação valem **na hora** (cada requisição relê o membro) e o logout revoga de verdade; sem interceptor de refresh. Custa uma consulta por requisição, irrelevante nesta escala |
+| `access_token` na URL e na memória do PWA | Nada de token no JavaScript | O cookie `HttpOnly` não é lido por XSS |
+| Tabelas `team_members` e `sessions` | **`TeamMember`** e **`AuthSession`** (nomes no padrão das demais tabelas; ver `apps/studio/prisma/schema.prisma`) | `User` do Prisma segue como dono de oportunidades do protótipo |
+| `POST /auth/setup` (1º a logar vira Admin) | **`AUTH_BOOTSTRAP_ADMIN`** (e-mail do 1º Admin, só vale sem Admin ativo) | Entrar por qualquer conta do domínio e virar Admin é arriscado; o e-mail é escolhido por quem sobe o servidor |
+| `RequireRole` por rota | `routeAccess` (uma tabela) + `auth_rules.go` | Uma única fonte da política, testada em `auth_test.go` |
+| Equipe só para o Admin | `GET /api/team` para **qualquer pessoa logada**; escrever é só Admin | A lista (nome, e-mail, perfil) alimenta os seletores de responsável de todas as telas |
+| id_token verificado com `go-oidc` | Lido sem checar a assinatura, **só** por vir direto do endpoint de token do Google (TLS, com `client_secret`); conferimos `iss`, `aud`, `exp`, `email_verified` e, se houver, `hd` | OIDC Core §3.1.3.7; evita dependências novas |
+| `golang.org/x/oauth2`, `jwt` | Nenhuma dependência nova | Troca de código em ~40 linhas de `net/http` |
+
+### Rotas
+
+| Rota | Acesso | Observação |
+|---|---|---|
+| `GET /auth/google/login`, `GET /auth/google/callback` | público | `state` aleatório em cookie assinado (HMAC) + parâmetro; só entra quem está em `TeamMember` e ativo, senão `403` |
+| `POST /auth/logout`, `GET /auth/me` | cookie | `/auth/me` devolve `401` com as formas de entrar disponíveis |
+| `POST /auth/dev/login` | só com `AUTH_DEV_LOGIN=1`, do próprio computador, e-mail já na equipe | Entrada de desenvolvimento sem Google. `404` fora disso |
+| `POST /api/public/leads` | **público** | Captura dos formulários das LPs; tem origem permitida, limite por IP e honeypot próprios |
+| `GET /api/blog/article`, `GET /api/blog/settings`, `GET /api/blog/articles?published=true` | **público** | O site (Next) lê artigo publicado e textos da galeria sem login. Rascunhos e escrita exigem sessão |
+| `/api/revalidate` | — | **Não é da API**: é do site (Next); a API é quem o chama (`revalidate.go`) |
+| `GET /api/team` | qualquer logado | |
+| `POST/PUT/DELETE /api/team…` | Admin | `DELETE` desativa; ninguém muda o próprio acesso; o último Admin não sai |
+| `/api/blog/*` (menos as públicas) | Admin e Gerente | |
+| `POST/PUT/DELETE /api/pipelines…` | Admin e Gerente | `managePipelines` |
+| `GET /api/crm/people/{id}/document` | Admin e Gerente | `revealCpf` |
+| `PUT/POST /api/crm/people` com CPF novo | Admin e Gerente | o CPF mascarado que a API devolve pode ser reenviado por qualquer um |
+| `PUT /api/crm/leads/{id}` trocando origem ou fonte | Admin e Gerente | `editOrigin` |
+| todo o resto de `/api/*` | qualquer logado | |
+
+Outras decisões: o **autor do histórico** (`ChangeLog.actor`) passa a ser o nome da sessão, não o que o cliente envia; escritas com `Origin` fora de `ALLOWED_ORIGINS` recebem `403` (anti-CSRF além do `SameSite`); o CORS reflete só origens da lista, com credenciais, nunca `*`, e a API **recusa subir** com `AUTH_API=1` sem `SESSION_SECRET` (32+), `ALLOWED_ORIGINS` e (sem `AUTH_DEV_LOGIN`) `GOOGLE_CLIENT_ID/SECRET`, `GOOGLE_REDIRECT_URL`, `ADMIN_URL`.
+
+### Fora do escopo do WP1 (continua pendente)
+
+- Vendedor ver **só as oportunidades atribuídas a ele** (filtro por responsável na API): a matriz de `permissions.ts` não tem essa regra e o dono da oportunidade hoje é um texto livre.
+- `AuditLog` genérico de segurança (login, convite, troca de perfil): hoje vai para o log do servidor (`AUTH: …`), não para uma tabela.
+- Limite de tentativas em `/auth/*` (o Google já faz o trabalho pesado) e rotação do `SESSION_SECRET` sem derrubar sessões.
+
+### Ligar em produção (ordem)
+
+1. Backup do banco. 2. Google Cloud: criar o OAuth Client ID (tipo Aplicativo da Web) com a URL de redirecionamento `https://<api>/auth/google/callback`. 3. Definir as variáveis (ver `.env.example`), com `AUTH_BOOTSTRAP_ADMIN` = e-mail do primeiro Admin. 4. Admin e API no **mesmo site** (ex.: `admin.` e `api.` do mesmo domínio), senão o navegador não manda o cookie. 5. Subir a API; entrar com a conta do primeiro Admin; convidar o resto em Configurações → Equipe. 6. Remover `AUTH_BOOTSTRAP_ADMIN` (opcional: depois de haver um Admin ele é ignorado). Nunca `AUTH_DEV_LOGIN` nem `AUTH_COOKIE_INSECURE` em produção.
