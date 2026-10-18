@@ -366,7 +366,7 @@ func TestPerfisNoServidor(t *testing.T) {
 		{"POST", "/api/blog/articles", 200, 200, 403},
 		{"POST", "/api/blog/upload", 200, 200, 403},
 		{"GET", "/api/team", 200, 200, 200},
-		{"PUT", "/api/team/tm-x", 404, 403, 403}, // 404: Admin passou do perfil, a pessoa não existe
+		{"PUT", "/api/team/tm-nao-existe", 404, 403, 403}, // 404: Admin passou do perfil, a pessoa não existe
 		{"POST", "/api/team", 422, 403, 403},     // 422: Admin passou do perfil e falhou na validação (corpo vazio)
 	}
 	for _, c := range cases {
