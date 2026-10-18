@@ -270,3 +270,58 @@ model AuthSession {
   @@index([memberId], map: "idx_session_member")
   @@index([expiresAt], map: "idx_session_expires")
 }
+
+// Tokens de API (WP1.1 + WP2). Só o SHA-256 do token é guardado; o segredo aparece uma vez, na criação.
+// env: live | test. projectId: só chaves do snippet (forms:write/analytics:write) ficam ligadas a um projeto.
+model ApiToken {
+  id         String    @id @db.VarChar(64)
+  name       String    @db.VarChar(120)
+  prefix     String    @db.VarChar(24)
+  last4      String    @db.Char(4)
+  tokenHash  String    @unique(map: "uq_token_hash") @db.Char(64)
+  scopes     String    @db.Text // separados por vírgula
+  createdBy  String?   @db.VarChar(64)
+  createdAt  DateTime
+  expiresAt  DateTime?
+  lastUsedAt DateTime?
+  lastUsedIp String?   @db.VarChar(45)
+  revokedAt  DateTime?
+  revokedBy  String?   @db.VarChar(64)
+  env        String    @default("live") @db.VarChar(4)
+  projectId  String?   @db.VarChar(64)
+
+  @@index([createdAt], map: "idx_token_created")
+}
+
+// Projetos conectados (WP2): as LPs, sites e formulários da Kalidash que mandam lead pelo connect.js.
+model ConnectedProject {
+  id               String    @id @db.VarChar(64)
+  name             String    @db.VarChar(160)
+  url              String    @db.VarChar(500)
+  origins          String?   @db.Text // JSON: origens extras aceitas além da do url
+  stack            String?   @db.VarChar(120)
+  description      String?   @db.VarChar(500)
+  pipelineId       String    @db.VarChar(64) // funil em que o lead entra
+  stageId          String    @db.VarChar(128) // coluna de leads (kind LEAD)
+  sourceName       String    @db.VarChar(255) // fonte do lead (inbound)
+  submissions      Int       @default(0)
+  lastSubmissionAt DateTime?
+  archivedAt       DateTime?
+  createdAt        DateTime
+  updatedAt        DateTime
+}
+
+model TrackedForm {
+  id               String    @id @db.VarChar(64)
+  projectId        String    @db.VarChar(64)
+  name             String    @db.VarChar(160)
+  selector         String    @db.VarChar(255)
+  fields           String?   @db.Text // JSON: campo do payload -> seletor do input
+  consentSelector  String?   @db.VarChar(255)
+  submissions      Int       @default(0)
+  lastSubmissionAt DateTime?
+  createdAt        DateTime
+  updatedAt        DateTime
+
+  @@index([projectId], map: "idx_form_project")
+}

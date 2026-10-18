@@ -10,6 +10,7 @@ import (
 	"encoding/hex"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -140,8 +141,8 @@ func isWrite(method string) bool {
 func withAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		scope, public := routeScope(r)
-		if r.URL.Path == "/api/public/leads" {
-			next.ServeHTTP(w, r) // CORS próprio (public_leads.go)
+		if r.URL.Path == "/api/public/leads" || strings.HasPrefix(r.URL.Path, "/api/connect/") {
+			next.ServeHTTP(w, r) // CORS e autenticação próprios (public_leads.go, connect_ingest.go)
 			return
 		}
 		setAuthCORS(w, r)

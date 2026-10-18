@@ -24,10 +24,13 @@ type scopeDef struct {
 	HumanOnly bool `json:"humanOnly,omitempty"`
 	// Reserved: o escopo existe e pode ser concedido, mas a API ainda não tem rota que o exija (gancho).
 	Reserved bool `json:"reserved,omitempty"`
+	// Publishable: escopo de escrita que pode ir no HTML (connect.js). Um token com escopo publicável não
+	// carrega nenhum outro (ver validateTokenScopes): leitura nunca fica exposta no snippet.
+	Publishable bool `json:"publishable,omitempty"`
 }
 
 // scopeGroups mantém a ordem de exibição das áreas.
-var scopeGroups = []string{"CRM", "Funis e tarefas", "Conteúdo", "Automação", "Administração"}
+var scopeGroups = []string{"CRM", "Funis e tarefas", "Conteúdo", "Automação", "Conexão de LPs", "Administração"}
 
 var scopeCatalog = []scopeDef{
 	{ID: "leads:read", Group: "CRM", Label: "Ver leads e oportunidades", Desc: "Lista e abre leads, oportunidades e notas."},
@@ -46,6 +49,9 @@ var scopeCatalog = []scopeDef{
 	{ID: "blog:write", Group: "Conteúdo", Label: "Escrever no blog", Desc: "Cria, edita, publica e envia imagens."},
 	{ID: "emails:send", Group: "Conteúdo", Label: "Enviar e-mails", Desc: "Dispara e-mails pela conta de envio."},
 	{ID: "automations:manage", Group: "Automação", Label: "Gerenciar automações", Desc: "Cria e altera automações e gatilhos.", Reserved: true},
+	{ID: "forms:write", Group: "Conexão de LPs", Label: "Enviar formulários (connect.js)", Desc: "Cria leads vindos de um projeto conectado. Pode ir no HTML da página.", Publishable: true},
+	{ID: "analytics:write", Group: "Conexão de LPs", Label: "Enviar eventos (analytics)", Desc: "Pageview e origem de um projeto conectado. Pode ir no HTML.", Publishable: true, Reserved: true},
+	{ID: "ads:read", Group: "Conexão de LPs", Label: "Ler mídia paga", Desc: "Sincroniza custo e CPL das contas de anúncios. Nunca no HTML.", Reserved: true},
 	{ID: "team:read", Group: "Administração", Label: "Ver a equipe", Desc: "Lê nomes, e-mails e perfis (alimenta os seletores de responsável)."},
 	{ID: "team:manage", Group: "Administração", Label: "Gerenciar equipe e permissões", Desc: "Convida, muda perfil, escopos e desativa pessoas.", HumanOnly: true},
 	{ID: "keys:manage", Group: "Administração", Label: "Gerenciar tokens de API", Desc: "Cria e revoga tokens (só com escopos que a própria pessoa tem).", HumanOnly: true},
@@ -77,7 +83,8 @@ var sellerScopes = []string{
 }
 
 var managerScopes = append(append([]string{}, sellerScopes...),
-	"leads:origin", "people:document", "pipelines:manage", "blog:read", "blog:write", "automations:manage", "keys:manage")
+	"leads:origin", "people:document", "pipelines:manage", "blog:read", "blog:write", "automations:manage", "keys:manage",
+	"forms:write", "analytics:write", "ads:read")
 
 func presetScopes(role string) []string {
 	switch role {
@@ -179,6 +186,13 @@ func routeScope(r *http.Request) (scope string, public bool) {
 	case p == "/api/public/leads":
 		// Captura de lead pelos formulários das LPs. Tem origem permitida, limite por IP e honeypot próprios.
 		return "", true
+	case strings.HasPrefix(p, "/api/connect/"):
+		// Entrada do connect.js e da API direta. A autenticação é o token (Authorization: Bearer) com forms:write,
+		// conferida no handler junto com a origem do projeto, o limite de taxa e o honeypot (connect_ingest.go).
+		// Não pode passar pelo CORS do admin: a página do cliente está em outro domínio.
+		return "", true
+	case strings.HasPrefix(p, "/api/projects"):
+		return "keys:manage", false // projetos conectados e formulários rastreados: Admin/Gerente
 	case read && (p == "/api/blog/article" || p == "/api/blog/settings"):
 		// O site (Next) lê o artigo publicado por slug e os textos da galeria sem login.
 		return "", true
@@ -213,6 +227,9 @@ func routeScope(r *http.Request) (scope string, public bool) {
 	// Rota sem escopo mapeado: pessoas logadas passam (como antes); token nunca (nega por padrão).
 	return "", false
 }
+
+// publishableScope diz se o escopo pode ir no HTML.
+func publishableScope(id string) bool { return scopeIndex[id].Publishable }
 
 // tokenAllowed: um token só alcança rotas com escopo mapeado e que não sejam de administração de acesso.
 func tokenAllowed(scope string) bool {

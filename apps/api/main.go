@@ -85,6 +85,9 @@ func initDB() {
 	if authEnabled() {
 		ensureAuthSchema()
 	}
+	if connectEnabled() {
+		ensureConnectSchema()
+	}
 	ensureBlogSchema()
 	initStorage()
 }
@@ -479,6 +482,9 @@ func main() {
 
 	if authEnabled() {
 		registerAuthRoutes(mux)
+	}
+	if connectEnabled() {
+		registerConnectRoutes(mux)
 	}
 	var handler http.Handler = mux
 	if authEnabled() {

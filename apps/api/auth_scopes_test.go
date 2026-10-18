@@ -83,6 +83,8 @@ func TestRotaExigeEscopo(t *testing.T) {
 		{"POST", "/api/emails/send", "emails:send"},
 		{"GET", "/api/team", "team:read"}, {"POST", "/api/team", "team:manage"}, {"PUT", "/api/team/x", "team:manage"},
 		{"GET", "/api/tokens", "keys:manage"}, {"POST", "/api/tokens", "keys:manage"}, {"DELETE", "/api/tokens/x", "keys:manage"},
+		{"GET", "/api/projects", "keys:manage"}, {"POST", "/api/projects", "keys:manage"}, {"PUT", "/api/projects/p1", "keys:manage"},
+		{"POST", "/api/projects/p1/forms", "keys:manage"}, {"DELETE", "/api/projects/p1/forms/f1", "keys:manage"},
 	}
 	used := map[string]bool{}
 	for _, c := range cases {
@@ -93,11 +95,11 @@ func TestRotaExigeEscopo(t *testing.T) {
 		used[c.scope] = true
 	}
 	for _, s := range scopeCatalog {
-		if !used[s.ID] && !s.Reserved && s.ID != "leads:origin" { // leads:origin é checado no handler (canChangeOrigin)
+		if !used[s.ID] && !s.Reserved && s.ID != "leads:origin" && s.ID != "forms:write" { // leads:origin é checado no handler (canChangeOrigin); forms:write, em connect_ingest.go (a rota é pública e autentica pelo token)
 			t.Errorf("o escopo %s não protege nenhuma rota (marque Reserved se for gancho)", s.ID)
 		}
 	}
-	for _, c := range [][2]string{{"POST", "/api/public/leads"}, {"GET", "/api/blog/article"}, {"GET", "/api/blog/settings"}, {"GET", "/api/blog/articles?published=true"}, {"GET", "/auth/me"}} {
+	for _, c := range [][2]string{{"POST", "/api/public/leads"}, {"POST", "/api/connect/leads"}, {"GET", "/api/connect/config"}, {"OPTIONS", "/api/connect/leads"}, {"GET", "/connect.js"}, {"GET", "/api/blog/article"}, {"GET", "/api/blog/settings"}, {"GET", "/api/blog/articles?published=true"}, {"GET", "/auth/me"}} {
 		if _, pub := routeScope(httptest.NewRequest(c[0], c[1], nil)); !pub {
 			t.Errorf("%s %s deveria seguir pública", c[0], c[1])
 		}

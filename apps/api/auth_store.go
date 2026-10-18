@@ -72,6 +72,8 @@ CREATE TABLE IF NOT EXISTS ApiToken (
 	lastUsedIp VARCHAR(45) NULL,
 	revokedAt DATETIME NULL,
 	revokedBy VARCHAR(64) NULL,
+	env VARCHAR(4) NOT NULL DEFAULT 'live',
+	projectId VARCHAR(64) NULL,
 	UNIQUE KEY uq_token_hash (tokenHash),
 	INDEX idx_token_created (createdAt)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -352,6 +354,16 @@ func ensureAuthSchema() {
 		} else if !ok {
 			if _, err := db.Exec("ALTER TABLE TeamMember ADD COLUMN " + col + " TEXT NULL"); err != nil {
 				log.Fatalf("❌ AUTH: erro ao acrescentar %s: %v", col, err)
+			}
+		}
+	}
+	// Tokens criados antes do WP2 não têm ambiente nem projeto.
+	for _, c := range []colSpec{{"ApiToken", "env", "VARCHAR(4) NOT NULL DEFAULT 'live'"}, {"ApiToken", "projectId", "VARCHAR(64) NULL"}} {
+		if ok, err := columnExists(c.table, c.col); err != nil {
+			log.Fatalf("❌ AUTH: %v", err)
+		} else if !ok {
+			if _, err := db.Exec("ALTER TABLE " + c.table + " ADD COLUMN " + c.col + " " + c.ddl); err != nil {
+				log.Fatalf("❌ AUTH: erro ao acrescentar %s.%s: %v", c.table, c.col, err)
 			}
 		}
 	}

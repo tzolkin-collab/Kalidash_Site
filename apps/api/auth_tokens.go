@@ -16,7 +16,7 @@ import (
 
 // Tokens de API (AUTH_API=1): acesso de sistemas e automações, com escopos escolhidos na criação.
 //
-//   - formato  kld_live_<32 caracteres aleatórios>  (256 bits; o gancho do WP2 acrescenta kld_test_)
+//   - formato  kld_live_<32 caracteres aleatórios>  ou  kld_test_<...>  (192 bits; o ambiente "test" marca os leads de teste)
 //   - guardado só o SHA-256 do token (a entropia alta dispensa sal/HMAC e não depende de SESSION_SECRET),
 //     mais um prefixo e os 4 últimos caracteres para a pessoa reconhecer qual é qual
 //   - o token completo aparece UMA vez, na resposta da criação
@@ -25,11 +25,12 @@ import (
 //   - vai em  Authorization: Bearer <token>; o escopo exigido por rota é o de auth_scopes.go (routeScope)
 //   - token nunca recebe escopos "humanOnly" (team:manage, keys:manage) nem alcança /api/team (escrita) e /api/tokens
 //   - os escopos de um token são limitados aos que quem o criou tem na hora da criação
-// O que sobra para o WP2: chaves kld_test_, projetos conectados, endpoint de entrada do connect.js,
-// limite de taxa por chave e escopos forms:write/analytics:write/ads:read (acrescentar em scopeCatalog).
+//   - WP2: token do snippet (forms:write/analytics:write) é "publicável": carrega só esses escopos e fica ligado a um
+//     projeto conectado (projectId). Quem manda o lead para o CRM é connect_ingest.go.
 
 const (
 	tokenPrefix    = "kld_live_"
+	tokenTestPref  = "kld_test_"
 	tokenTouchGap  = time.Minute // "último uso" é gravado no máximo 1x por minuto por token
 	tokenNameMax   = 120
 	tokenVisibleN  = len(tokenPrefix) + 4 // prefixo + 4 primeiros caracteres aleatórios
@@ -48,6 +49,8 @@ type APIToken struct {
 	Prefix        string    `json:"prefix"`
 	Last4         string    `json:"last4"`
 	Scopes        []string  `json:"scopes"`
+	Env           string    `json:"env"`                 // live | test
+	ProjectID     string    `json:"projectId,omitempty"` // só tokens do snippet (forms:write/analytics:write)
 	CreatedBy     string    `json:"createdBy,omitempty"`
 	CreatedByName string    `json:"createdByName,omitempty"`
 	CreatedAt     FlexTime  `json:"createdAt"`
@@ -83,14 +86,14 @@ var tokenDB tokenStore = sqlTokenStore{}
 
 type sqlTokenStore struct{}
 
-const tokenCols = `t.id, t.name, t.prefix, t.last4, t.scopes, COALESCE(t.createdBy, ''), COALESCE(m.name, ''), COALESCE(m.email, ''), t.createdAt, t.expiresAt, t.lastUsedAt, t.lastUsedIp, t.revokedAt`
+const tokenCols = `t.id, t.name, t.prefix, t.last4, t.scopes, COALESCE(t.createdBy, ''), COALESCE(m.name, ''), COALESCE(m.email, ''), t.createdAt, t.expiresAt, t.lastUsedAt, t.lastUsedIp, t.revokedAt, t.env, COALESCE(t.projectId, '')`
 const tokenFrom = ` FROM ApiToken t LEFT JOIN TeamMember m ON m.id = t.createdBy`
 
 func scanToken(sc interface{ Scan(...any) error }) (APIToken, error) {
 	var t APIToken
 	var scopes, byName, byEmail, created string
 	var exp, used, ip, rev sql.NullString
-	if err := sc.Scan(&t.ID, &t.Name, &t.Prefix, &t.Last4, &scopes, &t.CreatedBy, &byName, &byEmail, &created, &exp, &used, &ip, &rev); err != nil {
+	if err := sc.Scan(&t.ID, &t.Name, &t.Prefix, &t.Last4, &scopes, &t.CreatedBy, &byName, &byEmail, &created, &exp, &used, &ip, &rev, &t.Env, &t.ProjectID); err != nil {
 		return APIToken{}, err
 	}
 	t.Scopes = splitScopes(scopes)
@@ -107,8 +110,8 @@ func scanToken(sc interface{ Scan(...any) error }) (APIToken, error) {
 }
 
 func (sqlTokenStore) CreateToken(t APIToken, hash string) error {
-	_, err := db.Exec(`INSERT INTO ApiToken (id, name, prefix, last4, tokenHash, scopes, createdBy, createdAt, expiresAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		t.ID, t.Name, t.Prefix, t.Last4, hash, strings.Join(t.Scopes, ","), nullStr(t.CreatedBy), t.CreatedAt.Time, ptrTime(t.ExpiresAt))
+	_, err := db.Exec(`INSERT INTO ApiToken (id, name, prefix, last4, tokenHash, scopes, createdBy, createdAt, expiresAt, env, projectId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		t.ID, t.Name, t.Prefix, t.Last4, hash, strings.Join(t.Scopes, ","), nullStr(t.CreatedBy), t.CreatedAt.Time, ptrTime(t.ExpiresAt), t.Env, nullStr(t.ProjectID))
 	return err
 }
 
@@ -160,12 +163,16 @@ func hashAPIToken(secret string) string {
 }
 
 // newAPIToken devolve o segredo completo; só o hash e o prefixo vão para o banco.
-func newAPIToken() (secret string, err error) {
+func newAPIToken(env string) (secret string, err error) {
 	b := make([]byte, 24)
 	if _, err = rand.Read(b); err != nil {
 		return "", err
 	}
-	return tokenPrefix + base64.RawURLEncoding.EncodeToString(b), nil
+	pref := tokenPrefix
+	if env == "test" {
+		pref = tokenTestPref
+	}
+	return pref + base64.RawURLEncoding.EncodeToString(b), nil
 }
 
 // bearerToken extrai o segredo de "Authorization: Bearer ...". ok=false se o cabeçalho não existe.
@@ -183,7 +190,7 @@ func bearerToken(r *http.Request) (string, bool) {
 // tokenPrincipal valida o token (existe, não revogado, não expirado) e devolve a "pessoa" que o handler vê.
 // A cada chamada consulta o banco: revogar vale na hora.
 func tokenPrincipal(r *http.Request, secret string) (Member, APIToken, error) {
-	if !strings.HasPrefix(secret, tokenPrefix) || len(secret) > 200 {
+	if !(strings.HasPrefix(secret, tokenPrefix) || strings.HasPrefix(secret, tokenTestPref)) || len(secret) > 200 {
 		return Member{}, APIToken{}, errTokenInvalid
 	}
 	t, err := tokenDB.TokenByHash(hashAPIToken(secret))
@@ -248,6 +255,8 @@ func createToken(w http.ResponseWriter, r *http.Request) {
 		Name      string    `json:"name"`
 		Scopes    []string  `json:"scopes"`
 		ExpiresAt *FlexTime `json:"expiresAt"`
+		Env       string    `json:"env"`
+		ProjectID string    `json:"projectId"`
 	}
 	r.Body = http.MaxBytesReader(w, r.Body, 16<<10)
 	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
@@ -266,6 +275,19 @@ func createToken(w http.ResponseWriter, r *http.Request) {
 	scopes := normScopes(in.Scopes)
 	if len(scopes) == 0 {
 		writeAuthErr(w, http.StatusUnprocessableEntity, "escolha ao menos um escopo")
+		return
+	}
+	env := strings.ToLower(strings.TrimSpace(in.Env))
+	if env == "" {
+		env = "live"
+	}
+	if env != "live" && env != "test" {
+		writeAuthErr(w, http.StatusUnprocessableEntity, "ambiente inválido (live ou test)")
+		return
+	}
+	projectID := strings.TrimSpace(in.ProjectID)
+	if msg := validateTokenScopes(scopes, projectID); msg != "" {
+		writeAuthErr(w, http.StatusUnprocessableEntity, msg)
 		return
 	}
 	me, _ := principalOf(r)
@@ -288,13 +310,13 @@ func createToken(w http.ResponseWriter, r *http.Request) {
 		}
 		exp = in.ExpiresAt
 	}
-	secret, err := newAPIToken()
+	secret, err := newAPIToken(env)
 	if err != nil {
 		writeAuthErr(w, http.StatusInternalServerError, "erro interno")
 		return
 	}
 	t := APIToken{ID: wfID("tk"), Name: name, Prefix: secret[:tokenVisibleN], Last4: secret[len(secret)-4:], Scopes: scopes,
-		CreatedBy: me.ID, CreatedAt: FlexTime{now}, ExpiresAt: exp}
+		CreatedBy: me.ID, CreatedAt: FlexTime{now}, ExpiresAt: exp, Env: env, ProjectID: projectID}
 	if err := tokenDB.CreateToken(t, hashAPIToken(secret)); err != nil {
 		writeErr(w, err)
 		return
@@ -328,4 +350,37 @@ func handleTokenByID(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("AUTH: %s revogou o token %s (%s)", me.Email, t.Name, t.Prefix)
 	writeJSON(w, http.StatusOK, t)
+}
+
+// validateTokenScopes aplica a regra do snippet (WP2): os escopos publicáveis (forms:write, analytics:write) ficam
+// SOZINHOS no token, que vai ligado a um projeto conectado; leitura (leads:read, ads:read, qualquer outra) nunca
+// acompanha a chave que aparece no HTML. Devolve a mensagem de erro, ou "".
+func validateTokenScopes(scopes []string, projectID string) string {
+	pub, other := 0, 0
+	for _, s := range scopes {
+		if publishableScope(s) {
+			pub++
+		} else {
+			other++
+		}
+	}
+	switch {
+	case pub > 0 && other > 0:
+		return "a chave do snippet (forms:write, analytics:write) não pode ter outros escopos: leitura nunca vai no HTML. Crie dois tokens."
+	case pub > 0 && projectID == "":
+		return "escolha o projeto conectado ao qual esta chave pertence"
+	case pub == 0 && projectID != "":
+		return "só chaves do snippet (forms:write, analytics:write) ficam ligadas a um projeto"
+	case projectID == "":
+		return ""
+	case !idRe.MatchString(projectID):
+		return "projeto inválido"
+	case !connectEnabled():
+		return "a conexão de projetos está desligada (precisa de CRM_API=1 e AUTH_API=1)"
+	}
+	p, err := connectDB.ProjectByID(projectID)
+	if err != nil || p.ArchivedAt != nil {
+		return "projeto não encontrado"
+	}
+	return ""
 }
