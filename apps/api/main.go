@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -159,10 +160,9 @@ func handleOpportunities(w http.ResponseWriter, r *http.Request) {
 			if tagsJSON != nil {
 				json.Unmarshal(tagsJSON, &o.Tags)
 			}
-			parsedTime, _ := time.Parse("2006-01-02 15:04:05.999", createdAt)
-			o.CreatedAt = parsedTime
+			o.CreatedAt = parseDT(createdAt)
 			if wonAt.Valid {
-				if t, err := time.Parse("2006-01-02 15:04:05.999", wonAt.String); err == nil {
+				if t := parseDT(wonAt.String); !t.IsZero() {
 					o.WonAt = &t
 				}
 			}
@@ -222,8 +222,26 @@ func handleOpportunities(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		opp.Value = v
-		updateQuery := `UPDATE Opportunity SET title = ?, value = ?, updatedAt = ? WHERE id = ?`
-		res, err := db.Exec(updateQuery, opp.Title, opp.Value, time.Now(), opp.ID)
+		if strings.TrimSpace(opp.Title) == "" {
+			http.Error(w, "Título obrigatório", http.StatusBadRequest)
+			return
+		}
+		// Persistem título, valor e, quando enviados, prioridade e tags (colunas que existem hoje).
+		// Etapa muda só por /api/leads/move; contato, empresa e responsável são vínculos (ids) que
+		// esta rota não grava. Campo ausente no corpo mantém o que está no banco.
+		var prio any // NULL mantém a coluna (COALESCE)
+		if opp.Priority != "" {
+			if validPriority(opp.Priority) { // valor fora do conjunto não bloqueia a edição de título/valor: mantém o do banco
+				prio = opp.Priority
+			}
+		}
+		var tagsArg any
+		if opp.Tags != nil {
+			tj, _ := json.Marshal(opp.Tags)
+			tagsArg = tj
+		}
+		updateQuery := `UPDATE Opportunity SET title = ?, value = ?, priority = COALESCE(?, priority), tags = COALESCE(?, tags), updatedAt = ? WHERE id = ?`
+		res, err := db.Exec(updateQuery, opp.Title, opp.Value, prio, tagsArg, time.Now(), opp.ID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -242,6 +260,8 @@ func handleOpportunities(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
 	}
 }
+
+func validPriority(p string) bool { return p == "LOW" || p == "MEDIUM" || p == "HIGH" }
 
 func handleMoveOpportunity(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
@@ -317,8 +337,7 @@ func handleNotes(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			parsedTime, _ := time.Parse("2006-01-02 15:04:05.999", createdAt)
-			n.CreatedAt = parsedTime
+			n.CreatedAt = parseDT(createdAt)
 			notes = append(notes, n)
 		}
 		if notes == nil {
@@ -444,6 +463,7 @@ func main() {
 	mux.HandleFunc("/api/leads/move", enableCORS(handleMoveOpportunity))
 	mux.HandleFunc("/api/leads/notes", enableCORS(handleNotes))
 	mux.HandleFunc("/api/emails/send", enableCORS(handleSendEmail))
+	mux.HandleFunc("/api/emails/test", enableCORS(handleTestEmail)) // só para o e-mail de quem está logado (emails.go)
 	mux.HandleFunc("/api/blog/articles", enableCORS(handleBlogArticles))
 	mux.HandleFunc("/api/blog/article", enableCORS(handleBlogArticleBySlug))
 	mux.HandleFunc("/api/blog/upload", enableCORS(handleBlogUpload))
