@@ -306,7 +306,7 @@ func TestSemSessaoRecebe401(t *testing.T) {
 	e := setupAuth(t)
 	for _, c := range [][2]string{
 		{"GET", "/api/leads"}, {"POST", "/api/leads"}, {"GET", "/api/crm/people"}, {"GET", "/api/pipelines"},
-		{"GET", "/api/team"}, {"POST", "/api/team"}, {"PUT", "/api/team/x"}, {"GET", "/api/blog/articles"},
+		{"GET", "/api/team"}, {"GET", "/api/team/x"}, {"POST", "/api/team"}, {"PUT", "/api/team/x"}, {"GET", "/api/blog/articles"},
 		{"POST", "/api/blog/articles"}, {"POST", "/api/blog/upload"}, {"GET", "/api/crm/people/p1/document"},
 		{"GET", "/api/blog/articles?published=false"},
 	} {
@@ -365,14 +365,15 @@ func TestPerfisNoServidor(t *testing.T) {
 		{"GET", "/api/blog/articles", 200, 200, 403},
 		{"POST", "/api/blog/articles", 200, 200, 403},
 		{"POST", "/api/blog/upload", 200, 200, 403},
-		{"GET", "/api/team", 200, 403, 403},
-		{"POST", "/api/team", 422, 403, 403}, // 422: Admin passou do perfil e falhou na validação (corpo vazio)
+		{"GET", "/api/team", 200, 200, 200},
+		{"PUT", "/api/team/tm-x", 404, 403, 403}, // 404: Admin passou do perfil, a pessoa não existe
+		{"POST", "/api/team", 422, 403, 403},     // 422: Admin passou do perfil e falhou na validação (corpo vazio)
 	}
 	for _, c := range cases {
 		for who, want := range map[string]int{"admin": c.admin, "manager": c.manager, "seller": c.seller} {
 			ck := map[string]*http.Cookie{"admin": adm, "manager": ger, "seller": ven}[who]
 			body := ""
-			if c.path == "/api/team" && c.method == "POST" {
+			if strings.HasPrefix(c.path, "/api/team") && c.method != "GET" {
 				body = `{}`
 			}
 			if rec := e.do(c.method, c.path, ck, nil, body); rec.Code != want {

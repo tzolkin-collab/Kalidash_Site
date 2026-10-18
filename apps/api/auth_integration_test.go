@@ -173,8 +173,11 @@ func TestIntegrationAuth(t *testing.T) {
 	}
 
 	// equipe pela API
-	if rec := do(gerC, "GET", "/api/team", ""); rec.Code != 403 {
-		t.Errorf("Gerente na equipe: %d", rec.Code)
+	if rec := do(gerC, "POST", "/api/team", `{"email":"x@kalidash.test","role":"SELLER"}`); rec.Code != 403 {
+		t.Errorf("Gerente convidando: %d", rec.Code)
+	}
+	if rec := do(venC, "GET", "/api/team", ""); rec.Code != 200 {
+		t.Errorf("Vendedor lendo a lista da equipe: %d", rec.Code)
 	}
 	if rec := do(admC, "POST", "/api/team", `{"email":"nova@kalidash.test","role":"SELLER"}`); rec.Code != 201 {
 		t.Errorf("Admin convidando: %d %s", rec.Code, rec.Body)

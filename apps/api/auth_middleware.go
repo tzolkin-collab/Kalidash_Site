@@ -139,6 +139,9 @@ func routeAccess(r *http.Request) access {
 		// Lista do site: só publicados. Sem ?published=true entram rascunhos e exige login.
 		return accPublic
 	case strings.HasPrefix(p, "/api/team"):
+		if m == http.MethodGet {
+			return accAny // a lista (nome, e-mail, perfil) alimenta os seletores de responsável de qualquer tela
+		}
 		return accAdmin // convidar, trocar perfil e desativar
 	case strings.HasPrefix(p, "/api/blog/"):
 		return accManager // rascunhos, escrita e upload: Blog não é do Vendedor (docs/system-core.md)
