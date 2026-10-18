@@ -64,9 +64,13 @@ func startSession(w http.ResponseWriter, r *http.Request, memberID string) error
 	if err := authDB.CreateSession(hashToken(token), memberID, clientIP(r), r.UserAgent(), now.Add(sessionTTL)); err != nil {
 		return err
 	}
-	http.SetCookie(w, &http.Cookie{Name: sessionCookie, Value: token, Path: "/", HttpOnly: true, Secure: secureCookie(),
-		SameSite: http.SameSiteLaxMode, Expires: now.Add(sessionTTL), MaxAge: int(sessionTTL.Seconds())})
+	setSessionCookie(w, token, now.Add(sessionTTL))
 	return nil
+}
+
+func setSessionCookie(w http.ResponseWriter, token string, expires time.Time) {
+	http.SetCookie(w, &http.Cookie{Name: sessionCookie, Value: token, Path: "/", HttpOnly: true, Secure: secureCookie(),
+		SameSite: http.SameSiteLaxMode, Expires: expires, MaxAge: int(time.Until(expires).Seconds())})
 }
 
 func endSession(w http.ResponseWriter, r *http.Request) {
@@ -77,13 +81,23 @@ func endSession(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode, MaxAge: -1, Expires: time.Unix(0, 0)})
 }
 
-func sessionMember(r *http.Request) (Member, bool) {
+// sessionMember valida o cookie e RENOVA a sessão: ela dura 7 dias a partir do último uso. Para não
+// escrever no banco a cada requisição, só renova quando já passou da metade do prazo.
+func sessionMember(w http.ResponseWriter, r *http.Request) (Member, bool) {
 	c, err := r.Cookie(sessionCookie)
 	if err != nil || c.Value == "" {
 		return Member{}, false
 	}
-	m, err := authDB.SessionMember(hashToken(c.Value), time.Now())
-	return m, err == nil
+	now := time.Now()
+	hash := hashToken(c.Value)
+	m, err := authDB.SessionMember(hash, now)
+	if err != nil {
+		return Member{}, false
+	}
+	if ok, _ := authDB.ExtendSession(hash, now.Add(sessionTTL), now.Add(sessionTTL/2)); ok {
+		setSessionCookie(w, c.Value, now.Add(sessionTTL))
+	}
+	return m, true
 }
 
 // ---- CORS ----
@@ -190,7 +204,7 @@ func withAuth(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
-		m, ok := sessionMember(r)
+		m, ok := sessionMember(w, r)
 		if !ok {
 			writeAuthErr(w, http.StatusUnauthorized, "faça login")
 			return

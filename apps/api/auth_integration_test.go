@@ -70,6 +70,16 @@ func TestIntegrationAuth(t *testing.T) {
 	if n != 0 {
 		t.Error("PurgeExpired deveria apagar a expirada")
 	}
+	// renovação: só renova quando vence antes do limite
+	if ok, err := authDB.ExtendSession("h-ok", now.Add(7*24*time.Hour), now.Add(30*time.Minute)); err != nil || ok {
+		t.Errorf("sessão com 1h restante não deveria renovar abaixo de 30min: %v %v", ok, err)
+	}
+	if ok, err := authDB.ExtendSession("h-ok", now.Add(7*24*time.Hour), now.Add(2*time.Hour)); err != nil || !ok {
+		t.Errorf("sessão com 1h restante deveria renovar abaixo de 2h: %v %v", ok, err)
+	}
+	if _, err := authDB.SessionMember("h-ok", now.Add(6*24*time.Hour)); err != nil {
+		t.Errorf("depois de renovar, 6 dias adiante ainda vale: %v", err)
+	}
 	off := false
 	if _, err := authDB.UpdateMember(ger.ID, nil, nil, &off); err != nil {
 		t.Fatal(err)

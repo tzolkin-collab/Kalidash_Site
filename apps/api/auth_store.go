@@ -71,6 +71,7 @@ type Member struct {
 	Status     string    `json:"status"`
 	LastAccess *FlexTime `json:"lastAccess,omitempty"`
 	GoogleSub  string    `json:"-"`
+	Root       bool      `json:"root,omitempty"`
 }
 
 var (
@@ -95,6 +96,8 @@ type authStore interface {
 	CreateSession(hash, memberID, ip, ua string, expires time.Time) error
 	// SessionMember devolve o membro ATIVO dono da sessão não expirada.
 	SessionMember(hash string, now time.Time) (Member, error)
+	// ExtendSession renova a sessão para `expires` quando ela vence antes de `below`; diz se renovou.
+	ExtendSession(hash string, expires, below time.Time) (bool, error)
 	DeleteSession(hash string) error
 	DeleteMemberSessions(memberID string) error
 	PurgeExpired(now time.Time) error
@@ -115,6 +118,7 @@ func scanMember(sc interface{ Scan(...any) error }) (Member, error) {
 		return Member{}, err
 	}
 	m.AvatarURL, m.GoogleSub, m.Active = avatar.String, sub.String, active == 1
+	m.Root = root(m)
 	if last.Valid {
 		m.LastAccess = flexFrom(last.String)
 	}
@@ -246,6 +250,15 @@ func (sqlAuthStore) SessionMember(hash string, now time.Time) (Member, error) {
 	return m, err
 }
 
+func (sqlAuthStore) ExtendSession(hash string, expires, below time.Time) (bool, error) {
+	res, err := db.Exec(`UPDATE AuthSession SET expiresAt = ? WHERE tokenHash = ? AND expiresAt < ?`, expires, hash, below)
+	if err != nil {
+		return false, err
+	}
+	n, _ := res.RowsAffected()
+	return n > 0, nil
+}
+
 func (sqlAuthStore) DeleteSession(hash string) error {
 	_, err := db.Exec(`DELETE FROM AuthSession WHERE tokenHash = ?`, hash)
 	return err
@@ -309,31 +322,37 @@ func validateAuthConfig() error {
 	return nil
 }
 
-// bootstrapAdmin cria a primeira conta Admin a partir de AUTH_BOOTSTRAP_ADMIN (um e-mail). Só age
-// quando ainda não existe nenhum Admin ativo; depois disso a variável é ignorada.
+// rootAdminEmail é o Admin raiz (rootDev): a conta central definida no servidor, que a Tzolkin entrega
+// à Kalidash. AUTH_ROOT_ADMIN; AUTH_BOOTSTRAP_ADMIN segue valendo como nome antigo.
+func rootAdminEmail() string {
+	if v := normEmail(os.Getenv("AUTH_ROOT_ADMIN")); v != "" {
+		return v
+	}
+	return normEmail(os.Getenv("AUTH_BOOTSTRAP_ADMIN"))
+}
+
+// bootstrapAdmin garante a conta raiz a CADA subida: cria se não existe e, se existe, volta a ser
+// Admin ativo (quem tem acesso ao servidor sempre consegue recuperar o acesso). Pela tela ela não pode
+// ser rebaixada nem desativada (handleTeamByID).
 func bootstrapAdmin(st authStore) error {
-	email := normEmail(os.Getenv("AUTH_BOOTSTRAP_ADMIN"))
+	email := rootAdminEmail()
 	if email == "" {
 		return nil
 	}
 	if !validEmail(email) {
-		return fmt.Errorf("AUTH_BOOTSTRAP_ADMIN não é um e-mail válido")
-	}
-	n, err := st.CountActiveAdmins()
-	if err != nil || n > 0 {
-		return err
+		return fmt.Errorf("AUTH_ROOT_ADMIN não é um e-mail válido")
 	}
 	cur, err := st.MemberByEmail(email)
 	switch {
 	case errors.Is(err, errMemberNotFound):
 		_, err = st.AddMember(Member{Email: email, Role: roleAdmin}, "")
 	case err != nil:
-	default:
+	case cur.Role != roleAdmin || !cur.Active:
 		role, active := roleAdmin, true
 		_, err = st.UpdateMember(cur.ID, nil, &role, &active)
 	}
 	if err == nil {
-		log.Println("✅ AUTH: primeira conta Admin garantida (AUTH_BOOTSTRAP_ADMIN)")
+		log.Println("✅ AUTH: conta Admin raiz garantida (AUTH_ROOT_ADMIN)")
 	}
 	return err
 }

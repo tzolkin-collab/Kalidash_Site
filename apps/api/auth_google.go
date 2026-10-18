@@ -257,7 +257,7 @@ func handleMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Cache-Control", "no-store")
-	m, ok := sessionMember(r)
+	m, ok := sessionMember(w, r)
 	if !ok {
 		writeJSON(w, http.StatusUnauthorized, map[string]any{"error": "faça login", "google": os.Getenv("GOOGLE_CLIENT_ID") != "", "dev": devLoginOn()})
 		return
@@ -402,6 +402,11 @@ func handleTeamByID(w http.ResponseWriter, r *http.Request) {
 		writeAuthErr(w, http.StatusMethodNotAllowed, "método não permitido")
 		return
 	}
+	if target, err := authDB.MemberByID(id); err == nil && root(target) &&
+		((role != nil && *role != roleAdmin) || (active != nil && !*active)) {
+		writeAuthErr(w, http.StatusConflict, "esta é a conta Admin raiz, definida no servidor (AUTH_ROOT_ADMIN): não pode ser rebaixada nem desativada pela tela")
+		return
+	}
 	me, _ := principalOf(r)
 	if me.ID == id && ((role != nil && *role != me.Role) || (active != nil && !*active)) {
 		writeAuthErr(w, http.StatusConflict, "você não pode mudar nem desativar o seu próprio acesso")
@@ -418,6 +423,8 @@ func handleTeamByID(w http.ResponseWriter, r *http.Request) {
 	log.Printf("AUTH: %s alterou %s (perfil %s, ativo %v)", me.Email, m.Email, m.Role, m.Active)
 	writeJSON(w, http.StatusOK, m)
 }
+
+func root(m Member) bool { return rootAdminEmail() != "" && m.Email == rootAdminEmail() }
 
 func teamErr(w http.ResponseWriter, err error) {
 	switch {

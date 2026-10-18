@@ -151,6 +151,17 @@ func (s *memStore) SessionMember(hash string, now time.Time) (Member, error) {
 	}
 	return *s.members[ss.memberID], nil
 }
+func (s *memStore) ExtendSession(hash string, expires, below time.Time) (bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	ss, ok := s.sessions[hash]
+	if !ok || !ss.expires.Before(below) {
+		return false, nil
+	}
+	ss.expires = expires
+	s.sessions[hash] = ss
+	return true, nil
+}
 func (s *memStore) DeleteSession(hash string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -367,7 +378,7 @@ func TestPerfisNoServidor(t *testing.T) {
 		{"POST", "/api/blog/upload", 200, 200, 403},
 		{"GET", "/api/team", 200, 200, 200},
 		{"PUT", "/api/team/tm-nao-existe", 404, 403, 403}, // 404: Admin passou do perfil, a pessoa não existe
-		{"POST", "/api/team", 422, 403, 403},     // 422: Admin passou do perfil e falhou na validação (corpo vazio)
+		{"POST", "/api/team", 422, 403, 403},              // 422: Admin passou do perfil e falhou na validação (corpo vazio)
 	}
 	for _, c := range cases {
 		for who, want := range map[string]int{"admin": c.admin, "manager": c.manager, "seller": c.seller} {
@@ -773,7 +784,7 @@ func TestEquipeConvidarTrocarDesativar(t *testing.T) {
 	}
 }
 
-func TestBootstrapAdmin(t *testing.T) {
+func TestAdminRaiz(t *testing.T) {
 	e := setupAuth(t)
 	if err := bootstrapAdmin(e.store); err != nil {
 		t.Fatal(err)
@@ -781,22 +792,72 @@ func TestBootstrapAdmin(t *testing.T) {
 	if n, _ := e.store.CountActiveAdmins(); n != 0 {
 		t.Fatal("sem variável não cria ninguém")
 	}
-	t.Setenv("AUTH_BOOTSTRAP_ADMIN", "Gustavo@Kalidash.test")
+	t.Setenv("AUTH_ROOT_ADMIN", "RootDev@Kalidash.test")
 	bootstrapAdmin(e.store)
 	bootstrapAdmin(e.store) // idempotente
-	m, err := e.store.MemberByEmail("gustavo@kalidash.test")
+	m, err := e.store.MemberByEmail("rootdev@kalidash.test")
 	if err != nil || m.Role != roleAdmin || !m.Active {
-		t.Fatalf("bootstrap: %+v %v", m, err)
+		t.Fatalf("raiz: %+v %v", m, err)
 	}
-	// já existe Admin: a variável é ignorada (não ressuscita nem promove ninguém)
-	t.Setenv("AUTH_BOOTSTRAP_ADMIN", "outro@kalidash.test")
+	// a cada subida a raiz volta a ser Admin ativo, mesmo com outros Admins no sistema
+	outro := e.member("outro@kalidash.test", roleAdmin)
+	seller, off := roleSeller, false
+	e.store.UpdateMember(m.ID, nil, &seller, &off)
+	if err := bootstrapAdmin(e.store); err != nil {
+		t.Fatal(err)
+	}
+	if got, _ := e.store.MemberByID(m.ID); got.Role != roleAdmin || !got.Active {
+		t.Errorf("a raiz deveria ser restaurada na subida: %+v", got)
+	}
+	// pela tela ninguém rebaixa nem desativa a raiz, nem outro Admin
+	ck := e.login(outro)
+	for _, body := range []string{`{"role":"SELLER"}`, `{"active":false}`} {
+		if rec := e.do("PUT", "/api/team/"+m.ID, ck, nil, body); rec.Code != 409 {
+			t.Errorf("PUT %s na conta raiz: %d", body, rec.Code)
+		}
+	}
+	if rec := e.do("DELETE", "/api/team/"+m.ID, ck, nil, ""); rec.Code != 409 {
+		t.Errorf("DELETE na conta raiz: %d", rec.Code)
+	}
+	if rec := e.do("PUT", "/api/team/"+m.ID, ck, nil, `{"name":"Dev Central"}`); rec.Code != 200 {
+		t.Errorf("trocar só o nome da raiz pode: %d", rec.Code)
+	}
+	// o nome antigo da variável continua valendo
+	t.Setenv("AUTH_ROOT_ADMIN", "")
+	t.Setenv("AUTH_BOOTSTRAP_ADMIN", "antigo@kalidash.test")
 	bootstrapAdmin(e.store)
-	if _, err := e.store.MemberByEmail("outro@kalidash.test"); err == nil {
-		t.Error("não deveria criar 2º Admin por bootstrap")
+	if _, err := e.store.MemberByEmail("antigo@kalidash.test"); err != nil {
+		t.Errorf("AUTH_BOOTSTRAP_ADMIN: %v", err)
 	}
 	t.Setenv("AUTH_BOOTSTRAP_ADMIN", "lixo")
 	if err := bootstrapAdmin(newMemStore()); err == nil {
 		t.Error("e-mail inválido deveria falhar")
+	}
+}
+
+func TestSessaoRenovaComUso(t *testing.T) {
+	e := setupAuth(t)
+	ck := e.login(e.member("a@kalidash.test", roleAdmin))
+	hash := hashToken(ck.Value)
+	// recém-criada (7 dias): não precisa renovar, nem reescrever o cookie
+	rec := e.do("GET", "/api/leads", ck, nil, "")
+	if rec.Code != 200 || len(rec.Result().Cookies()) != 0 {
+		t.Fatalf("sessão nova: %d cookies=%v", rec.Code, rec.Result().Cookies())
+	}
+	// passou da metade: o uso renova para 7 dias e reenvia o cookie
+	e.store.sessions[hash] = memSession{e.store.sessions[hash].memberID, time.Now().Add(sessionTTL/2 - time.Hour)}
+	rec = e.do("GET", "/api/leads", ck, nil, "")
+	cs := rec.Result().Cookies()
+	if rec.Code != 200 || len(cs) != 1 || cs[0].Name != sessionCookie || cs[0].Value != ck.Value || !cs[0].HttpOnly || cs[0].MaxAge < int(sessionTTL.Seconds())-5 {
+		t.Fatalf("renovação: %d %+v", rec.Code, cs)
+	}
+	if left := time.Until(e.store.sessions[hash].expires); left < sessionTTL-time.Minute {
+		t.Errorf("o prazo no servidor deveria voltar a 7 dias: %v", left)
+	}
+	// sem uso por mais de 7 dias, expira
+	e.store.sessions[hash] = memSession{e.store.sessions[hash].memberID, time.Now().Add(-time.Second)}
+	if rec := e.do("GET", "/api/leads", ck, nil, ""); rec.Code != 401 {
+		t.Errorf("sessão sem uso por 7 dias: %d", rec.Code)
 	}
 }
 

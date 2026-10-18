@@ -335,6 +335,8 @@ export type TeamMember = {
   role: Role;
   status: 'ACTIVE' | 'INVITED' | 'DISABLED';
   lastAccess?: string;
+  /** Conta Admin raiz (AUTH_ROOT_ADMIN): não pode ser rebaixada nem desativada. */
+  root?: boolean;
 };
 
 export type Webhook = {

@@ -72,7 +72,7 @@ function ProfileTab() {
         <h2 className="section-title">Sessão</h2>
         {auth.status === 'in' ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
-            <p className="text-sm text-muted" style={{ margin: 0 }}>Você entrou com a conta Google {me.email}. A sessão dura 7 dias e termina ao sair; se um Admin mudar o seu perfil ou desativar o seu acesso, vale na hora.</p>
+            <p className="text-sm text-muted" style={{ margin: 0 }}>Você entrou com a conta Google {me.email}. A sessão dura 7 dias a partir do último uso e termina ao sair; se um Admin mudar o seu perfil ou desativar o seu acesso, vale na hora.</p>
             <button type="button" className="btn" onClick={() => void logout()}><LogOut size={14} /> Sair</button>
           </div>
         ) : (
@@ -98,7 +98,7 @@ function TeamTab() {
   const remove = (id: string) => (api ? setMemberActive(id, false).then(report) : setTeam((prev) => prev.filter((m) => m.id !== id)));
   const reactivate = (id: string) => setMemberActive(id, true).then(report);
   // O último Admin não perde o perfil nem sai
-  const isLastAdmin = (m: TeamMember) => m.role === 'ADMIN' && m.status !== 'DISABLED' && admins <= 1;
+  const isLastAdmin = (m: TeamMember) => !!m.root || (m.role === 'ADMIN' && m.status !== 'DISABLED' && admins <= 1);
 
   return (
     <div className="settings-pane form-stack">
@@ -114,9 +114,9 @@ function TeamTab() {
             <tbody>
               {team.map((m) => (
                 <tr key={m.id}>
-                  <td><div className="cell-avatar"><span className="avatar">{initials(m.name)}</span><div className="cell-stack"><span className="cell-primary">{m.name}{m.id === meId && <span className="text-muted"> (você)</span>}</span><span className="text-xs text-muted">{m.email}</span></div></div></td>
+                  <td><div className="cell-avatar"><span className="avatar">{initials(m.name)}</span><div className="cell-stack"><span className="cell-primary">{m.name}{m.id === meId && <span className="text-muted"> (você)</span>}{m.root && <span className="text-muted"> · raiz</span>}</span><span className="text-xs text-muted">{m.email}</span></div></div></td>
                   <td>
-                    <CustomSelect className="select select-sm" value={m.role} disabled={readOnly || isLastAdmin(m) || m.status === 'DISABLED' || (api && m.id === meId)} title={isLastAdmin(m) ? 'Não dá para tirar o perfil do último Admin' : api && m.id === meId ? 'Você não pode mudar o seu próprio perfil' : undefined} onChange={(e) => setRole(m.id, e.target.value as Role)} aria-label={`Perfil de ${m.name}`}>
+                    <CustomSelect className="select select-sm" value={m.role} disabled={readOnly || isLastAdmin(m) || m.status === 'DISABLED' || (api && m.id === meId)} title={m.root ? 'Conta Admin raiz, definida no servidor' : isLastAdmin(m) ? 'Não dá para tirar o perfil do último Admin' : api && m.id === meId ? 'Você não pode mudar o seu próprio perfil' : undefined} onChange={(e) => setRole(m.id, e.target.value as Role)} aria-label={`Perfil de ${m.name}`}>
                       {(Object.keys(ROLE_LABEL) as Role[]).map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
                     </CustomSelect>
                   </td>
@@ -126,7 +126,7 @@ function TeamTab() {
                     {readOnly ? null : m.status === 'DISABLED' ? (
                       <button type="button" className="icon-btn bare" onClick={() => reactivate(m.id)} title="Reativar" aria-label={`Reativar ${m.name}`}><RotateCcw size={14} /></button>
                     ) : (
-                      <button type="button" className="icon-btn bare" disabled={isLastAdmin(m) || m.id === meId} onClick={() => remove(m.id)} title={isLastAdmin(m) ? 'O último Admin não pode ser removido' : m.id === meId ? 'Você não pode se remover' : api ? 'Desativar acesso' : 'Remover'} aria-label={`${api ? 'Desativar' : 'Remover'} ${m.name}`}><Trash2 size={14} /></button>
+                      <button type="button" className="icon-btn bare" disabled={isLastAdmin(m) || m.id === meId} onClick={() => remove(m.id)} title={m.root ? 'Conta Admin raiz, definida no servidor' : isLastAdmin(m) ? 'O último Admin não pode ser removido' : m.id === meId ? 'Você não pode se remover' : api ? 'Desativar acesso' : 'Remover'} aria-label={`${api ? 'Desativar' : 'Remover'} ${m.name}`}><Trash2 size={14} /></button>
                     )}
                   </td>
                 </tr>
