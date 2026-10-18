@@ -2,7 +2,7 @@
 
 **Objetivo:** central técnica para conectar ao admin as LPs, sites e formulários que a Kalidash lança, e para gerenciar as chaves e integrações.
 
-> **Status:** planejado. Já existiu como mock no site v1.0 (`.archive/v1.0_site/app/admin/`: `projects.ts`, `connect.ts`, `apikeys.ts`, `IntegrationsSettings.tsx`).
+> **Status (18/10/2026):** a tela existe no admin com **dados de exemplo** (mock em memória: `mocks/projects.ts`); a API de projetos, chaves e `connect.js` ainda **não existe** (WP2) e a chave "emitida" na tela não vale no servidor. Já existiu como mock no site v1.0 (`.archive/v1.0_site/app/admin/`: `projects.ts`, `connect.ts`, `apikeys.ts`, `IntegrationsSettings.tsx`).
 
 ---
 

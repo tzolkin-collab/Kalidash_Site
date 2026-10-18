@@ -225,6 +225,11 @@ export default function OpportunityDetail({
             </div>
           ))}
           {editColumns && <ColumnPicker hidden={hiddenColumns} onAdd={onAddColumn} label="Adicionar propriedade" />}
+          <p className="text-xs text-muted" style={{ margin: '8px 0 0' }}>
+            {opp.isSample
+              ? 'Oportunidade de exemplo: nada daqui é gravado.'
+              : 'Nesta ficha só o título e o valor são editados e gravados. A etapa muda pelo Kanban ou pelos botões abaixo. Prioridade, tags, contato, empresa, responsável e funil são só leitura: ainda não há como alterá-los por aqui.'}
+          </p>
         </section>
 
         <nav className="peek-tabs" role="tablist">

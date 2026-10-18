@@ -22,7 +22,7 @@ const priorityLabel = (priority: string) => PRIORITIES[priority] ?? priority;
 const dash = <span className="text-muted">—</span>;
 
 export const SYSTEM_COLUMNS: ColumnDef[] = [
-  { id: 'title', label: 'Oportunidade', group: 'system', removable: false, render: (o) => <div className="font-semibold">{o.title}{o.isLead && <span className="badge badge-accent lead-badge">Lead</span>}</div> },
+  { id: 'title', label: 'Oportunidade', group: 'system', removable: false, render: (o) => <div className="font-semibold">{o.title}{o.isLead && <span className="badge badge-accent lead-badge">Lead</span>}{o.isLead && o.isSample && <span className="badge badge-warning lead-badge">Exemplo</span>}</div> },
   { id: 'client', label: 'Cliente', group: 'system', removable: true, render: (o) => <ClientCell opp={o} /> },
   { id: 'stage', label: 'Estágio', group: 'system', removable: true, render: (o) => <StageBadge stage={o.stage} opp={o} /> },
   { id: 'tags', label: 'Tags', group: 'system', removable: true, render: (o) => <Tags tags={o.tags} /> },

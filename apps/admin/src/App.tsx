@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { LogOut, Moon, Settings, Sun } from 'lucide-react';
 import PipelineBuilder from './PipelineBuilder';
 import Dashboard from './pages/Dashboard';
+import DashboardDemo from './pages/DashboardDemo';
 import Automations from './pages/Automations';
 import Clients from './pages/Clients';
 import Leads from './pages/Leads';
@@ -110,7 +111,7 @@ export default function App() {
   switch (root) {
     case undefined:
     case 'dashboard':
-      page = <Dashboard />;
+      page = second === 'demonstracao' ? <DashboardDemo /> : <Dashboard />;
       break;
     case 'leads':
       page = <Leads />;

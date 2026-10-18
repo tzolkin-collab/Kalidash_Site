@@ -13,8 +13,9 @@ import {
 } from 'lucide-react';
 import { startEditorDomTranslation } from './easy-email-dom-translate';
 import { API_URL } from './lib/api';
+import { useAuth } from './lib/auth';
 import { emailLog } from './mocks/team';
-import { Badge, Field, Page, PageHeader, PopupDialog, SampleBanner, Tabs } from './components/ui';
+import { Badge, Page, PageHeader, PopupDialog, SampleBanner, Tabs } from './components/ui';
 
 // A lib tipa "categories" como obrigatória, mas já traz um padrão em tempo de execução.
 // Passar [] esvaziaria o painel de blocos, então só ajustamos o tipo.
@@ -37,7 +38,9 @@ export default function Emails() {
   
   const [editingTemplateId, setEditingTemplateId] = useState<number | null>(null);
   const [testDialogOpen, setTestDialogOpen] = useState(false);
-  const [testEmail, setTestEmail] = useState('');
+  // O teste só vai para o e-mail de quem está logado (POST /api/emails/test): nunca há destinatário digitado.
+  const auth = useAuth();
+  const myEmail = auth.status === 'in' ? auth.user?.email : undefined;
   const [sendingTest, setSendingTest] = useState(false);
   const [feedback, setFeedback] = useState<{ title: string; description: string; tone: 'success' | 'danger' } | null>(null);
 
@@ -107,7 +110,7 @@ export default function Emails() {
         >
           {({ values }) => {
             const handleSendTestEmail = async (currentValues: any) => {
-              if (!testEmail.trim()) return;
+              if (!myEmail) return;
               setSendingTest(true);
               setTestDialogOpen(false);
               try {
@@ -120,24 +123,20 @@ export default function Emails() {
                 // HTML final do e-mail, compilado aqui no navegador (mesmo motor do canvas).
                 const { html } = mjml(mjmlString);
 
-                // ATENÇÃO: a API (/api/emails/send) ainda não aceita este formato: ela espera
-                // opportunityId e ignora "to". O envio de teste só passa a funcionar quando a
-                // API ganhar uma rota própria para isso.
-                const response = await fetch(`${API_URL}/api/emails/send`, {
+                const response = await fetch(`${API_URL}/api/emails/test`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    to: testEmail.trim(),
-                    subject: 'Teste de Template: ' + currentValues.subject,
-                    body: html,
-                    isHtml: true
-                  })
+                  body: JSON.stringify({ subject: 'Teste de Template: ' + currentValues.subject, body: html }),
                 });
 
                 if (response.ok) {
-                  setFeedback({ title: 'E-mail de teste enviado', description: `Enviamos uma cópia para ${testEmail.trim()}.`, tone: 'success' });
+                  setFeedback({ title: 'E-mail de teste enviado', description: `Enviamos uma cópia para ${myEmail}.`, tone: 'success' });
                 } else {
-                  setFeedback({ title: 'Não foi possível enviar', description: 'A API não aceitou o envio. Verifique a conexão e se a rota de teste está habilitada.', tone: 'danger' });
+                  const reason = response.status === 401 ? 'Sua sessão não está ativa: entre de novo.'
+                    : response.status === 429 ? 'Muitos testes seguidos. Espere alguns minutos.'
+                    : response.status === 404 ? 'Esta API não tem o envio de teste (atualize a API).'
+                    : 'A API não conseguiu enviar (confira a chave do Resend na API).';
+                  setFeedback({ title: 'Não foi possível enviar', description: reason, tone: 'danger' });
                 }
               } catch (err) {
                 console.error(err);
@@ -179,9 +178,9 @@ export default function Emails() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '12px' }}>
-                    <button onClick={() => { setTestEmail(''); setFeedback(null); setTestDialogOpen(true); }} disabled={sendingTest} style={{ background: '#2563eb', color: '#ffffff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontSize: '14px', fontWeight: 600, display: 'flex', gap: '8px', alignItems: 'center', cursor: 'pointer', boxShadow: 'var(--shadow-sm)', opacity: sendingTest ? 0.65 : 1 }}>
+                    <button onClick={() => { setFeedback(null); setTestDialogOpen(true); }} disabled={sendingTest || !myEmail} title={myEmail ? `Envia uma cópia para ${myEmail}` : 'Entre com a sua conta (login ligado na API) para enviar um teste: ele só vai para o seu próprio e-mail.'} style={{ background: '#2563eb', color: '#ffffff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontSize: '14px', fontWeight: 600, display: 'flex', gap: '8px', alignItems: 'center', cursor: sendingTest || !myEmail ? 'not-allowed' : 'pointer', boxShadow: 'var(--shadow-sm)', opacity: sendingTest || !myEmail ? 0.5 : 1 }}>
                       <Mail size={18} /> Enviar Teste
-                    </button>
+                    </button>{!myEmail && <span className="text-xs text-muted" role="note" style={{ maxWidth: 220 }}>Para enviar um teste, entre com a sua conta: ele só vai para o seu e-mail.</span>}
                     <button onClick={() => { updateCurrentTemplate({ design: values }); setFeedback({ title: 'Layout salvo', description: 'O modelo foi atualizado nesta sessão.', tone: 'success' }); }} style={{ background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', padding: '10px 20px', borderRadius: '8px', fontSize: '14px', fontWeight: 600, display: 'flex', gap: '8px', alignItems: 'center', cursor: 'pointer', boxShadow: 'var(--shadow-sm)' }}>
                       <Save size={18} /> Salvar Layout
                     </button>
@@ -198,12 +197,12 @@ export default function Emails() {
                 {testDialogOpen && <PopupDialog
                   eyebrow="ENVIO DE TESTE"
                   title="Enviar uma prévia"
-                  description="Escolha o endereço que receberá uma cópia deste modelo."
+                  description={`A cópia deste modelo será enviada só para o seu e-mail: ${myEmail}.`}
                   onClose={() => setTestDialogOpen(false)}
-                  footer={<><button type="button" className="btn" onClick={() => setTestDialogOpen(false)}>Cancelar</button><button type="submit" form="email-test-form" className="btn btn-solid" disabled={!testEmail.trim() || sendingTest}>{sendingTest ? 'Enviando…' : 'Enviar teste'}</button></>}
+                  footer={<><button type="button" className="btn" onClick={() => setTestDialogOpen(false)}>Cancelar</button><button type="submit" form="email-test-form" className="btn btn-solid" disabled={!myEmail || sendingTest}>{sendingTest ? 'Enviando…' : 'Enviar teste'}</button></>}
                 >
                   <form id="email-test-form" onSubmit={(event) => { event.preventDefault(); void handleSendTestEmail(values); }}>
-                    <Field label="E-mail de destino"><input className="input" type="email" autoFocus required value={testEmail} onChange={(event) => setTestEmail(event.target.value)} placeholder="nome@empresa.com" /></Field>
+                    <p className="text-sm text-muted" style={{ margin: 0 }}>Por segurança, o teste nunca vai para outro endereço.</p>
                   </form>
                 </PopupDialog>}
 
@@ -265,7 +264,7 @@ export default function Emails() {
         </div>
       ) : (
         <>
-          <SampleBanner phase={6}>O envio de teste e o histórico ainda não têm API: os envios abaixo são de exemplo.</SampleBanner>
+          <SampleBanner phase={6}>Modelos e histórico ainda não têm API: os envios abaixo são de exemplo. O envio de teste do editor é real e vai só para o seu e-mail.</SampleBanner>
           <div className="table-card">
             <div className="table-scroll">
               <table className="data-table data-table-cards">

@@ -10,10 +10,12 @@ Hoje o dashboard calcula tudo no navegador a partir de `/api/leads` (as oportuni
 - **Previsão ponderada**: valor de cada aberta × probabilidade da etapa. Etapa sem probabilidade fica fora (o cartão avisa quantas).
 - **Valor ganho** e **ticket médio**: soma e média das oportunidades ganhas no período. Ganha sem data de fechamento só aparece em "Tudo" (a tela avisa).
 - **Taxa de conversão**: ganhas sobre o total.
-- **Funil por etapa**: quantidade e valor de Entrada, Qualificação e Ganho.
+- **Funil por etapa**: quantidade e valor das etapas do primeiro funil ativo (sem as perdidas).
 - **Maiores oportunidades abertas**: as cinco de maior valor.
 
-Quando a API devolver totais por etapa e por período (fase 1 do plano), os números passam a vir prontos do servidor. Leads por origem, tarefas atrasadas e gráficos por período entram com as fases 3 e 4.
+Quando a API devolver totais por etapa e por período (fase 1 do plano), os números passam a vir prontos do servidor. Leads por origem, tarefas atrasadas e gráficos por período ainda não existem (previstos no WP3).
+
+**Galeria de demonstração (18/10):** os 13+ modelos de gráfico (Recharts) com números inventados ficam em `#/dashboard/demonstracao` (`pages/DashboardDemo.tsx`), com aviso de exemplo e um link discreto no rodapé do Dashboard. Nunca aparecem junto das métricas reais.
 
 ## 🧩 Requisitos
-- 
+- O Dashboard só mostra dado da API; o que for demonstração fica na rota própria acima.

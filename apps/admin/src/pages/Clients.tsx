@@ -35,7 +35,9 @@ export default function Clients() {
   const crmMode = useCrmMode();
   const [people] = useStore(peopleStore);
   const [companies] = useStore(companiesStore);
-  const { all: opps } = useAllOpportunities();
+  // Com o CRM da API ligado, oportunidades de exemplo (criadas no protótipo ao qualificar) não entram nas contas.
+  const { all, opportunities: realOpps } = useAllOpportunities();
+  const opps = crmMode === 'api' ? realOpps : all;
   const [view, setView] = useState<View>('all');
   const [search, setSearch] = useState('');
   const [open, setOpen] = useState<PartyRef>(null);

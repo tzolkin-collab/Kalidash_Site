@@ -10,6 +10,8 @@ import { formatCurrency } from '../lib/format';
 import { SYSTEM_COLUMNS, customColumnsFrom, resolveColumns } from '../lib/columns';
 import { useViewSettings } from '../lib/viewSettings';
 import { useOpportunities } from '../lib/useOpportunities';
+import { useCrmMode } from '../lib/crmMode';
+import { asCreatedOpportunity } from '../lib/opportunityApi';
 import { usePaged } from '../lib/usePaged';
 import { useShell } from '../lib/shell';
 import { useStore } from '../lib/store';
@@ -44,13 +46,14 @@ const LEAD_COLUMNS = [
 
 
 /** Lead exibido como uma linha da lista, ao lado das oportunidades. */
-const leadAsRow = (l: Lead, stageName: string): Opportunity => ({
-  id: l.id, title: l.name, value: 0, stage: stageName, priority: '', tags: l.tags, isLead: true,
+const leadAsRow = (l: Lead, stageName: string, sample: boolean): Opportunity => ({
+  id: l.id, title: l.name, value: 0, stage: stageName, priority: '', tags: l.tags, isLead: true, isSample: sample,
   contactName: l.origin === 'INBOUND' ? l.sourceName : `Trouxe: ${l.sourceName}`,
 });
 
 export default function Opportunities() {
   const { openMenu, navigate } = useShell();
+  const crmMode = useCrmMode();
   const { opportunities, setOpportunities, loading, error } = useOpportunities();
   const [pipelines] = useStore(pipelinesStore);
   const [leads] = useStore(leadsStore);
@@ -126,17 +129,31 @@ export default function Opportunities() {
 
   const closePeek = useCallback(() => setSelectedOpp(null), []);
 
-  const createOpportunity = () => {
-    fetch(`${API_URL}/api/leads`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: 'Nova Oportunidade', value: 1500, stage: firstOpenStageId(activePipeline) ?? 'INBOUND', tags: ['Novo'],
-        pipeline: selectedContext === ALL ? defaultPipeline : selectedContext,
-      }),
-    })
-      .then((res) => res.json())
-      .then((created: Opportunity) => setOpportunities((prev) => [created, ...prev]));
+  const createOpportunity = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/leads`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: 'Nova Oportunidade', value: 1500, stage: firstOpenStageId(activePipeline) ?? 'INBOUND', tags: ['Novo'],
+          pipeline: selectedContext === ALL ? defaultPipeline : selectedContext,
+        }),
+      });
+      if (!res.ok) {
+        pushErro('Não consegui criar a oportunidade', res.status === 401 || res.status === 403 ? 'Seu perfil ou sua sessão não permite criar.' : `A API respondeu ${res.status}. Nada foi criado.`);
+        return;
+      }
+      // só entra na lista algo que tenha cara de oportunidade: nunca um corpo de erro
+      const created = asCreatedOpportunity(await res.json().catch(() => null));
+      if (!created) {
+        pushErro('Não consegui criar a oportunidade', 'A resposta da API veio em formato inesperado. Recarregue a página para conferir.');
+        return;
+      }
+      setOpportunities((prev) => [created, ...prev]);
+    } catch (err) {
+      console.error('Falha ao criar oportunidade:', err);
+      pushErro('Sem conexão com a API', 'A oportunidade não foi criada.');
+    }
   };
 
   // Arrastar e soltar (Kanban)
@@ -181,8 +198,8 @@ export default function Opportunities() {
     const q = search.trim().toLowerCase();
     return contextLeads
       .filter((l) => !stageFilter && (!q || [l.name, l.sourceName, ...l.tags].some((v) => v.toLowerCase().includes(q))))
-      .map((l) => leadAsRow(l, l.stageId.endsWith(':contato') ? 'Em contato' : 'Novos'));
-  }, [showLeads, contextLeads, search, stageFilter]);
+      .map((l) => leadAsRow(l, l.stageId.endsWith(':contato') ? 'Em contato' : 'Novos', crmMode !== 'api'));
+  }, [showLeads, contextLeads, search, stageFilter, crmMode]);
 
   const tableRows = useMemo(() => [...leadRows, ...visibleOpportunities], [leadRows, visibleOpportunities]);
   const paged = usePaged(tableRows, 20);
@@ -297,8 +314,8 @@ export default function Opportunities() {
           </>
         )}
       </div>
-      <button type="button" className={`btn ${showLeads ? 'btn-active' : ''}`} onClick={() => setShowLeads((v) => !v)} aria-pressed={showLeads} title="Mostrar os leads junto das oportunidades">
-        <Users size={14} /> Ver leads
+      <button type="button" className={`btn ${showLeads ? 'btn-active' : ''}`} onClick={() => setShowLeads((v) => !v)} aria-pressed={showLeads} title={crmMode === 'api' ? 'Mostrar os leads junto das oportunidades' : 'Mostrar os leads de EXEMPLO (o CRM não está ligado nesta API)'}>
+        <Users size={14} /> Ver leads{crmMode !== 'api' && ' (exemplo)'}
         <span className="tab-count">{contextLeads.length}</span>
       </button>
       {viewMode === 'table' && editColumns && (
@@ -342,7 +359,7 @@ export default function Opportunities() {
 
           <span className="text-xs text-muted hide-on-mobile">
             {contextOpportunities.length} {contextOpportunities.length === 1 ? 'oportunidade' : 'oportunidades'}
-            {showLeads && ` · ${contextLeads.length} ${contextLeads.length === 1 ? 'lead' : 'leads'}`}
+            {showLeads && ` · ${contextLeads.length} ${contextLeads.length === 1 ? 'lead' : 'leads'}${crmMode !== 'api' ? ' de exemplo' : ''}`}
           </span>
 
           {isContextOpen && (

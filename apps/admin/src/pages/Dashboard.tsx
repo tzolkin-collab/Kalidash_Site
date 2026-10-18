@@ -1,5 +1,5 @@
-import { lazy, Suspense, useMemo, useState } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { FlaskConical, RefreshCw } from 'lucide-react';
 import { formatCurrency } from '../lib/format';
 import { useOpportunities } from '../lib/useOpportunities';
 import { useShell } from '../lib/shell';
@@ -11,11 +11,10 @@ import type { Period } from '../lib/salesMetrics';
 import { StageBadge } from '../components/cells';
 import { EmptyState, Page, PageHeader, StatCard } from '../components/ui';
 
-const AnalyticsChartGallery = lazy(() => import('../components/dashboard/AnalyticsChartGallery'));
-
 // Métricas calculadas na hora a partir de /api/leads (as oportunidades reais); valor ganho e ticket
 // médio seguem o período escolhido (data de ganho). Contas em lib/salesMetrics.ts, em centavos.
-// Leads, tarefas e origem entram quando as fases 3 e 4 do plano chegarem.
+// Leads, tarefas e origem ainda não entram aqui (previsto no WP3). A galeria de gráficos de demonstração
+// fica em /dashboard/demonstracao (DashboardDemo.tsx), separada das métricas reais.
 
 
 const percent = (n: number) => `${(n * 100).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%`;
@@ -129,9 +128,10 @@ export default function Dashboard() {
         </section>
       </div>
 
-      <Suspense fallback={<div className="page-loading" role="status">Carregando modelos de gráfico…</div>}>
-        <AnalyticsChartGallery />
-      </Suspense>
+      <p className="text-xs text-muted" style={{ marginTop: 24 }}>
+        <FlaskConical size={12} style={{ verticalAlign: '-2px' }} />{' '}
+        Quer ver modelos de gráfico? A <button type="button" className="link-btn" onClick={() => navigate('/dashboard/demonstracao')}>galeria de demonstração</button> usa números inventados e fica separada destas métricas.
+      </p>
     </Page>
   );
 }
