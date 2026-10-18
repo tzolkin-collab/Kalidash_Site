@@ -5,14 +5,10 @@ import { useEffect, useState } from "react";
 import styles from "./home.module.css";
 import BrandLogo from "../components/BrandLogo";
 import SidebarMenu from "./SidebarMenu";
-import { nav } from "./content";
+import { nav, navCta } from "./content";
 import { ArrowRight, Close, Menu } from "./icons";
 
-interface HomeHeaderProps {
-  onOpenDiagnostico?: () => void;
-}
-
-export default function HomeHeader({ onOpenDiagnostico }: HomeHeaderProps = {}) {
+export default function HomeHeader() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("");
@@ -35,7 +31,7 @@ export default function HomeHeader({ onOpenDiagnostico }: HomeHeaderProps = {}) 
   // Scrollspy: detecta qual seção está visível na tela
   useEffect(() => {
     const sectionIds = nav
-      .map((item) => (item.href.startsWith("#") ? item.href.slice(1) : null))
+      .map((item) => (item.href.startsWith("/#") ? item.href.slice(2) : null))
       .filter(Boolean) as string[];
 
     const observer = new IntersectionObserver(
@@ -60,14 +56,6 @@ export default function HomeHeader({ onOpenDiagnostico }: HomeHeaderProps = {}) 
     return () => observer.disconnect();
   }, []);
 
-  const handleCtaClick = (e: React.MouseEvent) => {
-    close();
-    if (onOpenDiagnostico) {
-      e.preventDefault();
-      onOpenDiagnostico();
-    }
-  };
-
   return (
     <>
       <header
@@ -89,34 +77,45 @@ export default function HomeHeader({ onOpenDiagnostico }: HomeHeaderProps = {}) 
           </Link>
 
           <nav id="home-nav" className={styles.nav} aria-label="Principal">
-            {nav.map((item) =>
-              item.href.startsWith("/") ? (
-                <Link key={item.label} href={item.href} onClick={close}>
+            {nav.map((item) => {
+              const link = item.href.startsWith("/") ? (
+                <Link href={item.href} data-active={activeSection === item.href.slice(1)} onClick={close}>
                   {item.label}
                 </Link>
               ) : (
                 <a
-                  key={item.label}
                   href={item.href}
                   data-active={activeSection === item.href}
-                  onClick={(e) => {
-                    if (item.href === "#diagnostico" && onOpenDiagnostico) {
-                      handleCtaClick(e);
-                    } else {
-                      close();
-                    }
-                  }}
+                  onClick={close}
                 >
                   {item.label}
                 </a>
-              ),
-            )}
+              );
+
+              if (!item.children) return <span key={item.label}>{link}</span>;
+
+              return (
+                <div key={item.label} className={styles.navGroup} data-has-children>
+                  {link}
+                  <ul className={styles.navDropdown}>
+                    {item.children.map((child) => (
+                      <li key={child.href}>
+                        <Link href={child.href} onClick={close}>
+                          <strong>{child.label}</strong>
+                          <small>{child.hint}</small>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
             <Link
-              href="/diagnostico"
+              href={navCta.href}
               className={styles.navCta}
               onClick={close}
             >
-              Solicitar diagnóstico <ArrowRight />
+              {navCta.label} <ArrowRight />
             </Link>
           </nav>
 
@@ -136,7 +135,6 @@ export default function HomeHeader({ onOpenDiagnostico }: HomeHeaderProps = {}) 
       <SidebarMenu
         isOpen={open}
         onClose={close}
-        onOpenDiagnostico={onOpenDiagnostico}
       />
     </>
   );

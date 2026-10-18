@@ -1,0 +1,343 @@
+/* Hologram 3D Brain & Visual FX Container */
+.hologramWrapper {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 1 / 1;
+  margin: 0 auto;
+  user-select: none;
+}
+
+/* Soft ambient backdrop glow to give holographic contrast on light backgrounds */
+.hologramWrapper::before {
+  content: "";
+  position: absolute;
+  inset: 4%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 236, 222, 0.7) 38%,
+    rgba(243, 135, 99, 0.14) 62%,
+    transparent 76%
+  );
+  filter: blur(10px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Base Holographic Projector FX (Beams & Concentric Rings) */
+.projectorBase {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.projectorBeam {
+  position: absolute;
+  bottom: 12%;
+  left: 50%;
+  width: 56%;
+  height: 58%;
+  transform: translateX(-50%);
+  background: linear-gradient(to top, rgba(243, 135, 99, 0.12), rgba(243, 135, 99, 0.04), transparent);
+  filter: blur(6px);
+  clip-path: polygon(42% 100%, 58% 100%, 100% 0, 0 0);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 18%, black 82%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, black 18%, black 82%, transparent 100%);
+}
+
+.projectorGlow {
+  position: absolute;
+  bottom: 9%;
+  left: 50%;
+  width: 42%;
+  height: 8%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(224, 68, 16, 0.28), rgba(243, 135, 99, 0.12) 45%, transparent 70%);
+  filter: blur(2px);
+}
+
+.projectorRingInner {
+  position: absolute;
+  bottom: 10.5%;
+  left: 50%;
+  width: 32%;
+  height: 4.5%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  border: 1px solid rgba(224, 68, 16, 0.25);
+}
+
+.projectorRingOuter {
+  position: absolute;
+  bottom: 8%;
+  left: 50%;
+  width: 54%;
+  height: 9.5%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  border: 1px solid rgba(224, 68, 16, 0.14);
+}
+
+/* 3D Brain Container & Hologram Effects */
+.brainContainer {
+  position: absolute;
+  inset: 6%;
+  will-change: transform;
+}
+
+.holoGlitch {
+  position: absolute;
+  inset: 0;
+}
+
+.holoFlicker {
+  position: absolute;
+  inset: 0;
+}
+
+.threeScene {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.canvasPlaceholder {
+  position: absolute;
+  inset: 25%;
+  border-radius: 50%;
+  background: rgba(243, 135, 99, 0.22);
+  filter: blur(48px);
+  transition: opacity 0.7s ease;
+  pointer-events: none;
+}
+
+.canvasLoading {
+  opacity: 1;
+  animation: holo-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.canvasLoaded {
+  opacity: 0;
+}
+
+.canvas {
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y;
+  transition: opacity 0.7s ease;
+}
+
+.canvasHidden {
+  opacity: 0;
+}
+
+.canvasVisible {
+  opacity: 1;
+}
+
+.holoScanlines {
+  display: none;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(0deg, rgba(160, 60, 30, 0.05) 0 1px, transparent 1px 4px);
+  -webkit-mask-image: radial-gradient(circle at 50% 46%, #000 24%, transparent 50%);
+  mask-image: radial-gradient(circle at 50% 46%, #000 24%, transparent 50%);
+}
+
+.holoScanMask {
+  display: none;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(circle at 50% 46%, black 20%, transparent 48%);
+  mask-image: radial-gradient(circle at 50% 46%, black 20%, transparent 48%);
+}
+
+.holoScanBar {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 30%;
+  background: linear-gradient(180deg, transparent, rgba(243, 135, 99, 0.1) 46%, rgba(243, 135, 99, 0.22) 50%, rgba(243, 135, 99, 0.1) 54%, transparent);
+  animation: 5.5s linear infinite holo-scan;
+}
+
+/* Connecting Laser Network (SVG) */
+.laserSvg {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.laserLine {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+.laserDot {
+  fill: #f38763;
+  filter: drop-shadow(0 0 5px #ffaa8e);
+}
+
+/* Floating Interactive Tags */
+.tagWrap {
+  position: absolute;
+  z-index: 20;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.tagPing {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 32px;
+  height: 32px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: rgba(250, 202, 139, 0.15);
+  animation: holo-ping 3.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.tagPill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  border: 1px solid rgba(243, 135, 99, 0.35);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 16px rgba(70, 47, 79, 0.12);
+  font-family: var(--font-title, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #6b2a17;
+}
+
+.tagDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f38763;
+  box-shadow: 0 0 12px #e04410;
+  flex-shrink: 0;
+}
+
+/* Keyframes */
+@keyframes holo-glitch {
+  0%, 86%, 100% {
+    clip-path: none;
+    filter: none;
+    transform: none;
+  }
+  87% {
+    clip-path: inset(22% 0 48%);
+    filter: drop-shadow(4px 0 rgba(243, 135, 99, 0.8)) drop-shadow(-4px 0 rgba(255, 190, 70, 0.8));
+    transform: translate(-5px) skew(-2deg);
+  }
+  88% {
+    clip-path: inset(58% 0 14%);
+    filter: drop-shadow(-3px 0 rgba(243, 135, 99, 0.8)) drop-shadow(3px 0 rgba(255, 190, 70, 0.8));
+    transform: translate(4px);
+  }
+  89% {
+    clip-path: none;
+    filter: brightness(1.5);
+    transform: none;
+  }
+  90% {
+    clip-path: none;
+    filter: none;
+    transform: none;
+  }
+  94% {
+    clip-path: inset(40% 0 36%);
+    filter: drop-shadow(2px 0 rgba(255, 180, 80, 0.7));
+    transform: translate(3px);
+  }
+  95% {
+    clip-path: none;
+    filter: none;
+    transform: none;
+  }
+}
+
+@keyframes holo-flicker {
+  0%, 100% { opacity: 1; }
+  31% { opacity: 0.88; }
+  33% { opacity: 1; }
+  61% { opacity: 0.92; }
+  62% { opacity: 0.8; }
+  64% { opacity: 1; }
+}
+
+@keyframes holo-scan {
+  0% {
+    opacity: 0;
+    transform: translateY(-30%);
+  }
+  10% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(330%);
+  }
+}
+
+@keyframes holo-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes holo-ping {
+  75%, 100% {
+    transform: translate(-50%, -50%) scale(2.2);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .hologramWrapper {
+    max-width: 320px;
+    width: 100%;
+  }
+  .hologramWrapper::before {
+    inset: 8%;
+  }
+  .tagPill {
+    padding: 3px 8px;
+    font-size: 8.5px;
+    letter-spacing: 0.1em;
+    gap: 5px;
+  }
+  .tagDot {
+    width: 4.5px;
+    height: 4.5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .holoGlitch, .holoFlicker, .holoScanBar, .tagPing {
+    animation: none !important;
+  }
+}

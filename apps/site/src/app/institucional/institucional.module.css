@@ -1,0 +1,129 @@
+/* Páginas internas (Sobre nós, AI Culture, Advisory, Execução, Soluções).
+ * Reaproveita as variáveis, o header, os botões e o rodapé da Home (home.module.css);
+ * aqui só ficam as peças próprias de página interna. Os textos estão em pages.ts. */
+
+.page {
+  --pad-y: clamp(64px, 9vw, 112px);
+}
+
+/* ---- Hero ---- */
+.hero {
+  width: var(--container); margin: 0 auto;
+  padding: clamp(64px, 9vw, 120px) 0 var(--pad-y);
+}
+.hero h1 {
+  max-width: 1040px; margin-top: 20px;
+  font-family: var(--font-title); font-size: clamp(40px, 6.4vw, 84px); line-height: 1.02; letter-spacing: -0.05em;
+}
+.lead { display: grid; gap: 18px; max-width: 760px; margin-top: 32px; }
+.lead p { font-size: clamp(18px, 1.6vw, 21px); line-height: 1.55; color: #3c373f; }
+.lead strong, .body strong, .card strong { font-weight: 600; color: var(--black-2); }
+.tagline { margin-top: 26px; color: var(--accent); font-size: 19px; font-style: italic; }
+.meta { margin-top: 26px; color: #6b6670; font-size: 15px; letter-spacing: 0.02em; }
+.hero > a { margin-top: 38px; }
+
+/* ---- Seção base: título à esquerda, corpo à direita ---- */
+.section, .offer {
+  display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(32px, 6vw, 96px);
+  width: var(--container); margin: 0 auto; padding: var(--pad-y) 0;
+  border-top: 1px solid var(--line);
+}
+.head { display: flex; flex-direction: column; align-items: flex-start; gap: 18px; }
+.head h2 {
+  font-family: var(--font-title); font-size: clamp(30px, 3.6vw, 46px); line-height: 1.08; letter-spacing: -0.045em;
+}
+.head > p:not(:first-child):not(h2) { font-size: 18px; line-height: 1.6; color: #514c53; }
+.body { display: grid; gap: 22px; align-content: start; }
+.body > p { font-size: 19px; line-height: 1.65; color: #3c373f; }
+.highlight {
+  margin-top: 6px; padding-left: 22px; border-left: 3px solid var(--accent);
+  font-family: var(--font-title); font-size: clamp(22px, 2.2vw, 28px); line-height: 1.25; letter-spacing: -0.03em; color: var(--ink);
+}
+.closing { font-size: 19px; line-height: 1.6; color: var(--ink); font-weight: 500; }
+.note { font-size: 16px; color: #6b6670; }
+.inlineCta { margin-top: 8px; }
+
+/* ---- Cards ---- */
+.cards { display: grid; gap: 1px; margin: 0; padding: 0; list-style: none; background: var(--line); border: 1px solid var(--line); }
+.cards[data-columns="2"] { grid-template-columns: repeat(2, 1fr); }
+.cards[data-columns="3"] { grid-template-columns: repeat(2, 1fr); }
+.card { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 30px; background: #fff; }
+.card h3 { font-family: var(--font-title); font-size: 22px; line-height: 1.2; letter-spacing: -0.03em; }
+.card p { font-size: 17px; line-height: 1.6; color: #514c53; }
+.card > a:last-child { margin-top: auto; }
+
+/* ---- Passos (metodologia / entrega) ---- */
+.section[data-wide] { grid-template-columns: 1fr; }
+.steps {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin: 0; padding: 0; list-style: none;
+  border-top: 1px solid #d9d7d5;
+}
+.steps li { position: relative; padding: 30px 28px 34px 0; }
+.steps li + li { padding-left: 28px; border-left: 1px solid var(--line); }
+.steps span { display: block; color: var(--accent); font-size: 13px; font-weight: 700; letter-spacing: 0.13em; }
+.steps h3 { margin-top: 18px; font-family: var(--font-title); font-size: 24px; letter-spacing: -0.035em; }
+.steps p { margin-top: 12px; font-size: 17px; line-height: 1.6; color: #514c53; }
+.stepsClosing { display: grid; gap: 14px; max-width: 760px; }
+.stepsClosing p { font-size: 18px; line-height: 1.6; color: #514c53; }
+.stepsClosing p[data-lead="true"] { font-family: var(--font-title); font-size: clamp(24px, 2.6vw, 34px); line-height: 1.15; letter-spacing: -0.04em; color: var(--ink); }
+.stepsClosing strong { color: var(--ink); font-weight: 600; }
+
+/* ---- Lista de critérios ---- */
+.checks { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.checks li {
+  position: relative; padding: 18px 0 18px 36px; border-bottom: 1px solid var(--line);
+  font-size: 19px; line-height: 1.5; color: #3c373f;
+}
+.checks li:first-child { border-top: 1px solid var(--line); }
+.checks li::before {
+  content: ""; position: absolute; left: 4px; top: 27px; width: 14px; height: 7px;
+  border-left: 2px solid var(--accent); border-bottom: 2px solid var(--accent); transform: rotate(-45deg);
+}
+
+/* ---- Ofertas (In Company, Experiências, Kognis, Spectra AI) ---- */
+.offers { background: var(--gray-1); border-top: 1px solid var(--line); }
+.offers .offer:first-child { border-top: 0; }
+.features { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; margin: 6px 0 0; padding: 0; list-style: none; background: var(--line); border: 1px solid var(--line); }
+.features li { padding: 24px; background: #fff; }
+.features h3 { font-family: var(--font-title); font-size: 18px; letter-spacing: -0.02em; }
+.features p { margin-top: 8px; font-size: 16px; line-height: 1.55; color: #514c53; }
+
+/* ---- Faixa de prova ---- */
+.proof { background: var(--black-1); color: #fff; padding: var(--pad-y) 0; }
+.proofCols, .proofClosing { width: var(--container); margin: 0 auto; }
+.proofCols { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 6vw, 96px); }
+.proofCols p:not(:first-child) { margin-top: 14px; font-family: var(--font-title); font-size: clamp(20px, 2vw, 28px); line-height: 1.3; letter-spacing: -0.03em; }
+.proofClosing { margin-top: clamp(40px, 6vw, 72px); padding-top: 32px; border-top: 1px solid rgba(255, 255, 255, 0.16); font-family: var(--font-title); font-size: clamp(26px, 3.4vw, 44px); line-height: 1.1; letter-spacing: -0.045em; }
+.proofClosing span:last-child { color: #f0b39f; }
+
+/* ---- CTA final ---- */
+.cta {
+  display: flex; align-items: center; justify-content: space-between; gap: 40px; flex-wrap: wrap;
+  width: var(--container); margin: 0 auto; padding: var(--pad-y) 0;
+  border-top: 1px solid var(--line);
+}
+.cta > div { max-width: 780px; }
+.cta h2 { font-family: var(--font-title); font-size: clamp(32px, 4.2vw, 56px); line-height: 1.05; letter-spacing: -0.05em; }
+.cta p { margin-top: 20px; font-size: 19px; line-height: 1.6; color: #514c53; }
+.cta strong { display: block; margin-top: 16px; color: var(--accent); font-weight: 600; }
+.ctaEyebrow { margin-bottom: 18px; }
+
+@media (max-width: 1100px) {
+  .steps { grid-template-columns: repeat(2, 1fr); }
+  .steps li:nth-child(odd) { padding-left: 0; border-left: 0; }
+  .steps li:nth-child(n + 3) { border-top: 1px solid var(--line); }
+}
+
+@media (max-width: 900px) {
+  .section, .offer { grid-template-columns: 1fr; }
+  .cards[data-columns], .features { grid-template-columns: 1fr; }
+  .proofCols { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .steps { grid-template-columns: 1fr; }
+  .steps li, .steps li + li { padding: 26px 0; border-left: 0; }
+  .steps li + li { border-top: 1px solid var(--line); }
+  .card { padding: 24px; }
+  .cta { flex-direction: column; align-items: flex-start; }
+}

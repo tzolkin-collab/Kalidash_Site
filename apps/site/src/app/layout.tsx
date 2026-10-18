@@ -65,7 +65,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#050507",
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({
@@ -75,8 +75,7 @@ export default function RootLayout({
     <html
       lang="pt-BR"
       className={`${fraunces.variable} ${archivo.variable} ${newsreader.variable} ${manrope.variable}`}
-      // Inline de propósito: vale antes de qualquer folha de estilo carregar.
-      style={{ backgroundColor: "#050507" }}
+      style={{ backgroundColor: "#ffffff" }}
     >
       <body>{children}</body>
     </html>

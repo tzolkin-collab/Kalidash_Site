@@ -124,7 +124,7 @@ export const initialContent = {
     fechamento:
       "Enquanto o mercado fala em IA para substituir pessoas, nós enxergamos a IA como forma de ampliar a capacidade delas e tornar a operação mais inteligente, não artificial. De operações industriais a empresas de serviços, aplicamos IA onde o trabalho realmente acontece.",
     cta: "Ver nossos cases",
-    ctaLink: "#cases",
+    ctaLink: "#experiencia",
   },
 
   depoimentos: {

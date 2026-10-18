@@ -74,11 +74,7 @@
 }
 
 html {
-  /* Sem isto o <html> fica transparente e a tela do navegador aparece branca
-     entre o parse do HTML e a aplicação do CSS — é o clarão que pisca em volta
-     do conteúdo a cada carregamento. O layout ainda repete isso inline no
-     próprio <html>, para valer já no primeiro byte. */
-  background-color: #050507;
+  background-color: #ffffff;
   scroll-behavior: smooth;
   scroll-padding-top: 100px;
 }
@@ -99,24 +95,17 @@ body {
 }
 
 body {
-  /* A home (tema motion) e o blog são escuros — a base escura evita
-     flash claro no overscroll. Rotas claras sobrescrevem no próprio
-     container (.page do artigo, .shell do admin). */
-  background-color: #050507;
+  background-color: #ffffff;
   color: var(--color-fg);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
-/* Foco visível — nenhuma folha pública tinha regra de :focus-visible, então
-   quem navega por teclado dependia só do anel padrão do navegador, que some
-   contra as superfícies escuras. Dois anéis concêntricos funcionam tanto no
-   preto da home quanto no claro do artigo e do admin. */
 :focus-visible {
-  outline: 2px solid #8d5cff;
+  outline: 2px solid var(--color-terracotta);
   outline-offset: 2px;
   border-radius: 3px;
-  box-shadow: 0 0 0 4px rgba(141, 92, 255, 0.28);
+  box-shadow: 0 0 0 4px rgba(183, 101, 77, 0.2);
 }
 
 /* Rótulo "eyebrow" — pequeno, versalete, espaçado. Ecoa o padrão de
@@ -156,58 +145,33 @@ body {
 }
 
 /* ============================================================
-   SCROLLBAR — trilho fino único do projeto.
-   A mesma peça no site escuro, no blog, no artigo claro e no admin:
-   núcleo violeta do tema motion com halo neon. Firefox só aceita
-   scrollbar-width/color (fica fina, sem brilho); WebKit recebe o
-   tratamento completo — borda transparente + background-clip deixam
-   o trilho estreito e sobra espaço para o glow respirar.
+   SCROLLBAR — trilho discreto alinhado à paleta editorial.
    ============================================================ */
 :root {
+  --scrollbar-thumb: rgba(40, 24, 59, 0.26);
   --scrollbar-track: transparent;
-  --scrollbar-core: #8d5cff;
-  --scrollbar-core-top: #b992ff;
-  --scrollbar-core-bottom: #6a2cff;
-  --scrollbar-glow: rgba(141, 92, 255, 0.55);
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-core) var(--scrollbar-track);
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
-::-webkit-scrollbar {
-  width: 11px;
-  height: 11px;
-}
+@supports not (scrollbar-color: auto) {
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
 
-::-webkit-scrollbar-track,
-::-webkit-scrollbar-corner {
-  background: var(--scrollbar-track);
-}
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-corner {
+    background: var(--scrollbar-track);
+  }
 
-::-webkit-scrollbar-thumb {
-  border: 3px solid transparent;
-  border-radius: 999px;
-  background-clip: content-box;
-  background-image: linear-gradient(
-    180deg,
-    var(--scrollbar-core-top),
-    var(--scrollbar-core) 48%,
-    var(--scrollbar-core-bottom)
-  );
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.28),
-    0 0 9px var(--scrollbar-glow);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.45),
-    0 0 14px var(--scrollbar-glow),
-    0 0 26px var(--scrollbar-glow);
-}
-
-::-webkit-scrollbar-thumb:active {
-  background-image: linear-gradient(180deg, #d7c2ff, var(--scrollbar-core));
+  ::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
 }

@@ -5,19 +5,17 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import styles from "./SidebarMenu.module.css";
 import BrandLogo from "../components/BrandLogo";
-import { config, nav } from "./content";
+import { config, nav, navCta } from "./content";
 import { ArrowRight, Close, Facebook, Instagram, Linkedin, WhatsApp, Youtube } from "./icons";
 
 interface SidebarMenuProps {
   isOpen: boolean;
   onClose: () => void;
-  onOpenDiagnostico?: () => void;
 }
 
 export default function SidebarMenu({
   isOpen,
   onClose,
-  onOpenDiagnostico,
 }: SidebarMenuProps) {
   const [mounted, setMounted] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -51,22 +49,6 @@ export default function SidebarMenu({
       clearTimeout(timer);
     };
   }, [isOpen, onClose]);
-
-  const handleLinkClick = (href: string, e: React.MouseEvent) => {
-    onClose();
-    if (href === "#diagnostico" && onOpenDiagnostico) {
-      e.preventDefault();
-      onOpenDiagnostico();
-    }
-  };
-
-  const handleCtaClick = (e: React.MouseEvent) => {
-    onClose();
-    if (onOpenDiagnostico) {
-      e.preventDefault();
-      onOpenDiagnostico();
-    }
-  };
 
   if (!mounted) return null;
 
@@ -125,7 +107,7 @@ export default function SidebarMenu({
                       <a
                         href={item.href}
                         className={styles.navLink}
-                        onClick={(e) => handleLinkClick(item.href, e)}
+                        onClick={onClose}
                       >
                         <div className={styles.navLeft}>
                           <span className={styles.navIndex}>{formattedIndex}</span>
@@ -141,19 +123,29 @@ export default function SidebarMenu({
                       <Link
                         href={item.href}
                         className={styles.navLink}
-                        onClick={(e) => handleLinkClick(item.href, e)}
+                        onClick={onClose}
                       >
                         <div className={styles.navLeft}>
                           <span className={styles.navIndex}>{formattedIndex}</span>
                           <span className={styles.navLabel}>{item.label}</span>
                         </div>
                         <div className={styles.navRight}>
-                          <span className={styles.badge}>Novo</span>
                           <span className={styles.arrowIcon}>
                             <ArrowRight />
                           </span>
                         </div>
                       </Link>
+                    )}
+                    {item.children && (
+                      <ul className={styles.subList}>
+                        {item.children.map((child) => (
+                          <li key={child.href}>
+                            <Link href={child.href} className={styles.subLink} onClick={onClose}>
+                              {child.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
                     )}
                   </li>
                 );
@@ -163,11 +155,11 @@ export default function SidebarMenu({
 
           <div className={styles.actions}>
             <Link
-              href="/diagnostico"
+              href={navCta.href}
               className={styles.ctaButton}
               onClick={onClose}
             >
-              <span>Solicitar diagnóstico</span>
+              <span>{navCta.label}</span>
               <ArrowRight />
             </Link>
 

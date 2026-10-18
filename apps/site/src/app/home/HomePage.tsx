@@ -1,26 +1,21 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Inter, Source_Sans_3 } from "next/font/google";
 import styles from "./home.module.css";
 import HomeHeader from "./HomeHeader";
-import DiagnosticoForm from "./DiagnosticoForm";
+import SiteFooter from "./SiteFooter";
 import ExperienceSyncGallery from "./ExperienceSyncGallery";
+import ProblemHologram from "./ProblemHologram";
 import {
   ArrowDownLeft,
   ArrowRight,
   ChartIcon,
   DatabaseOffIcon,
-  Facebook,
-  Instagram,
-  Linkedin,
   MessageIcon,
   ShareIcon,
   WhatsApp,
-  Youtube,
-  iconByName,
 } from "./icons";
 import FlickeringGrid from "../components/FlickeringGrid";
 import {
@@ -28,7 +23,6 @@ import {
   config,
   diagnostico,
   experience,
-  footer,
   fronts,
   hero,
   people,
@@ -46,6 +40,13 @@ function Eyebrow({ children, inverse = false }: { children: React.ReactNode; inv
 }
 
 function TextLink({ href, children, onClick }: { href: string; children: React.ReactNode; onClick?: (e: React.MouseEvent) => void }) {
+  if (href.startsWith("/")) {
+    return (
+      <Link href={href} className={styles.textLink} data-role="text-link" onClick={onClick}>
+        {children} <ArrowRight />
+      </Link>
+    );
+  }
   return (
     <a href={href} className={styles.textLink} data-role="text-link" onClick={onClick}>
       {children} <ArrowRight />
@@ -84,7 +85,7 @@ export default function HomePage() {
           <div className={styles.heroActions}>
             <Link
               className={styles.primaryButton}
-              href="/diagnostico"
+              href={hero.primaryCta.href}
             >
               {hero.primaryCta.label} <ArrowRight />
             </Link>
@@ -117,16 +118,11 @@ export default function HomePage() {
         {/* 2. O Desafio / Problema — Layout Único com Bento Grid & SVGs Animados */}
         <section id="desafio" className={styles.problem} data-block="home-problem">
           <span className={styles.watermark} aria-hidden>{problem.watermark}</span>
-          <Image
-            className={styles.man}
-            src="/home/homem.png"
-            alt="Consultor da Kalidash sentado em um banco, sorrindo"
-            width={864}
-            height={1235}
-            sizes="(min-width: 1100px) 686px, 60vw"
-            priority
-          />
           <div className={styles.problemGrid}>
+            <div className={styles.hologramCol}>
+              <ProblemHologram tags={problem.hologramTags} />
+            </div>
+
             <div className={styles.problemTop} data-role="problem-intro">
               <FlickeringGrid
                 squareSize={4}
@@ -146,88 +142,90 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Card 01: Trabalho manual */}
-            <article className={styles.problemCard} data-role="problem-card">
-              <FlickeringGrid
-                squareSize={3.5}
-                gridGap={5.5}
-                color="rgb(182, 100, 77)"
-                maxOpacity={0.28}
-                flickerChance={0.2}
-              />
-              <div className={styles.cardVignette} aria-hidden="true" />
-              <div className={styles.problemCardHeader}>
-                <span className={styles.problemCardNumber}>01</span>
-                <div className={styles.problemCardIconWrap}>
-                  <ChartIcon className={styles.cardIcon} />
+            <div className={styles.problemCardsRow}>
+              {/* Card 01: Trabalho manual */}
+              <article className={styles.problemCard} data-role="problem-card">
+                <FlickeringGrid
+                  squareSize={3.5}
+                  gridGap={5.5}
+                  color="rgb(182, 100, 77)"
+                  maxOpacity={0.28}
+                  flickerChance={0.2}
+                />
+                <div className={styles.cardVignette} aria-hidden="true" />
+                <div className={styles.problemCardHeader}>
+                  <span className={styles.problemCardNumber}>01</span>
+                  <div className={styles.problemCardIconWrap}>
+                    <ChartIcon className={styles.cardIcon} />
+                  </div>
                 </div>
-              </div>
-              <div className={styles.problemCardContent}>
-                <h3>{problem.cards[0].title}</h3>
-                <p>{problem.cards[0].text}</p>
-              </div>
-            </article>
+                <div className={styles.problemCardContent}>
+                  <h3>{problem.cards[0].title}</h3>
+                  <p>{problem.cards[0].text}</p>
+                </div>
+              </article>
 
-            {/* Card 02: Depoimento fotográfico vazando da grade */}
-            <article className={styles.quoteCard} data-role="problem-quote">
-              <Image src="/home/depoimento-fundo.jpg" alt="" fill sizes="360px" />
-              <div className={styles.problemCardHeader}>
-                <span className={styles.problemCardNumber} style={{ color: "rgba(255,255,255,0.7)" }}>DEPOIMENTO</span>
-                <div className={styles.problemCardIconWrap} style={{ background: "rgba(255,255,255,0.16)", color: "#fff" }}>
-                  <MessageIcon className={styles.cardIcon} />
+              {/* Card 02: Depoimento fotográfico vazando da grade */}
+              <article className={styles.quoteCard} data-role="problem-quote">
+                <Image src="/home/depoimento-fundo.jpg" alt="" fill sizes="360px" />
+                <div className={styles.problemCardHeader}>
+                  <span className={styles.problemCardNumber} style={{ color: "rgba(255,255,255,0.7)" }}>DEPOIMENTO</span>
+                  <div className={styles.problemCardIconWrap} style={{ background: "rgba(255,255,255,0.16)", color: "#fff" }}>
+                    <MessageIcon className={styles.cardIcon} />
+                  </div>
                 </div>
-              </div>
-              <div>
-                <p>“{problem.quote.text}”</p>
-                <p className={styles.quoteAuthor}>
-                  <strong>{problem.quote.author},</strong> {problem.quote.role}
-                </p>
-              </div>
-            </article>
+                <div>
+                  <p>“{problem.quote.text}”</p>
+                  <p className={styles.quoteAuthor}>
+                    <strong>{problem.quote.author},</strong> {problem.quote.role}
+                  </p>
+                </div>
+              </article>
 
-            {/* Card 03: IA superficial */}
-            <article className={styles.problemCard} data-role="problem-card">
-              <FlickeringGrid
-                squareSize={3.5}
-                gridGap={5.5}
-                color="rgb(168, 138, 88)"
-                maxOpacity={0.28}
-                flickerChance={0.2}
-              />
-              <div className={styles.cardVignette} aria-hidden="true" />
-              <div className={styles.problemCardHeader}>
-                <span className={styles.problemCardNumber}>02</span>
-                <div className={styles.problemCardIconWrap}>
-                  <DatabaseOffIcon className={styles.cardIcon} />
+              {/* Card 03: IA superficial */}
+              <article className={styles.problemCard} data-role="problem-card">
+                <FlickeringGrid
+                  squareSize={3.5}
+                  gridGap={5.5}
+                  color="rgb(168, 138, 88)"
+                  maxOpacity={0.28}
+                  flickerChance={0.2}
+                />
+                <div className={styles.cardVignette} aria-hidden="true" />
+                <div className={styles.problemCardHeader}>
+                  <span className={styles.problemCardNumber}>02</span>
+                  <div className={styles.problemCardIconWrap}>
+                    <DatabaseOffIcon className={styles.cardIcon} />
+                  </div>
                 </div>
-              </div>
-              <div className={styles.problemCardContent}>
-                <h3>{problem.cards[1].title}</h3>
-                <p>{problem.cards[1].text}</p>
-              </div>
-            </article>
+                <div className={styles.problemCardContent}>
+                  <h3>{problem.cards[1].title}</h3>
+                  <p>{problem.cards[1].text}</p>
+                </div>
+              </article>
 
-            {/* Card 04: Operação desconectada */}
-            <article className={styles.problemCard} data-role="problem-card">
-              <FlickeringGrid
-                squareSize={3.5}
-                gridGap={5.5}
-                color="rgb(182, 100, 77)"
-                maxOpacity={0.28}
-                flickerChance={0.2}
-              />
-              <div className={styles.cardVignette} aria-hidden="true" />
-              <div className={styles.problemCardHeader}>
-                <span className={styles.problemCardNumber}>03</span>
-                <div className={styles.problemCardIconWrap}>
-                  <ShareIcon className={styles.cardIcon} />
+              {/* Card 04: Operação desconectada */}
+              <article className={styles.problemCard} data-role="problem-card">
+                <FlickeringGrid
+                  squareSize={3.5}
+                  gridGap={5.5}
+                  color="rgb(182, 100, 77)"
+                  maxOpacity={0.28}
+                  flickerChance={0.2}
+                />
+                <div className={styles.cardVignette} aria-hidden="true" />
+                <div className={styles.problemCardHeader}>
+                  <span className={styles.problemCardNumber}>03</span>
+                  <div className={styles.problemCardIconWrap}>
+                    <ShareIcon className={styles.cardIcon} />
+                  </div>
                 </div>
-              </div>
-              <div className={styles.problemCardContent}>
-                <h3>{problem.cards[2].title}</h3>
-                <p>{problem.cards[2].text}</p>
-              </div>
-            </article>
+                <div className={styles.problemCardContent}>
+                  <h3>{problem.cards[2].title}</h3>
+                  <p>{problem.cards[2].text}</p>
+                </div>
+              </article>
+            </div>
           </div>
         </section>
 
@@ -250,9 +248,7 @@ export default function HomePage() {
                   <h3>{item.title}</h3>
                   <p>{item.text}</p>
                   <strong>{item.closing}</strong>
-                  <TextLink
-                    href={item.link.href === "#diagnostico" ? "/diagnostico" : item.link.href}
-                  >
+                  <TextLink href={item.link.href}>
                     {item.link.label}
                   </TextLink>
                 </div>
@@ -262,67 +258,41 @@ export default function HomePage() {
         </section>
 
         <section id="experiencia" className={styles.experience} data-block="home-experience">
-          <div className={styles.expWrapper}>
-            {/* Camada 1: Cabeçalho com Título & Narrativa em Duas Colunas */}
-            <div className={styles.expHeader}>
-              <div className={styles.expHeaderTop}>
-                <span className={styles.expEyebrow}>{experience.eyebrow}</span>
-                <h2 className={styles.expTitle}>{experience.title}</h2>
-              </div>
-              <div className={styles.expNarrativeGrid}>
-                {experience.paragraphs.map((paragraph) => (
-                  <p key={paragraph} className={styles.expNarrativePara}>
-                    {paragraph}
+          <div className={styles.expIntro}>
+            <Eyebrow>{experience.eyebrow}</Eyebrow>
+            <div className={styles.expIntroLeft}>
+              <h2>{experience.title}</h2>
+              <p className={styles.expProof}>
+                <strong>{experience.proof[0]} {experience.proof[1]}</strong>
+              </p>
+            </div>
+            <div className={styles.expIntroRight}>
+              {experience.paragraphs.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+              <p className={styles.expClosing}>
+                {experience.closing[0]} {experience.closing[1]}
+              </p>
+            </div>
+          </div>
+
+          <ExperienceSyncGallery />
+
+          <div className={styles.expFooter}>
+            <div className={styles.expAuthorityGrid}>
+              {experience.authorities.map((authority) => (
+                <div key={authority.label} className={styles.expAuthorityCol}>
+                  <Eyebrow>{authority.label}</Eyebrow>
+                  <p className={styles.expAuthItems}>
+                    {authority.items.join(" · ")}
                   </p>
-                ))}
-              </div>
+                  <p className={styles.expAuthNote}>{authority.note}</p>
+                </div>
+              ))}
             </div>
-
-            {/* Linha Divisória de Precisão */}
-            <div className={styles.expRule} aria-hidden="true" />
-
-            {/* Axioma Manifesto: Linear & Stripe Editorial Quote */}
-            <div className={styles.expAxiomRow}>
-              <blockquote className={styles.expAxiomBlock}>
-                <p className={styles.expAxiomLine}>“{experience.proof[0]}”</p>
-                <p className={styles.expAxiomLineAccent}>“{experience.proof[1]}”</p>
-              </blockquote>
-              <div className={styles.expClosingBox}>
-                <p className={styles.expClosingLead}>{experience.closing[0]}</p>
-                <p className={styles.expClosingSub}>{experience.closing[1]}</p>
-              </div>
-            </div>
-
-            {/* Camada 2: Galeria Sincronizada Full-Bleed (Estilo Lastlink Club) */}
-            <ExperienceSyncGallery />
-
-            {/* Linha Divisória de Precisão */}
-            <div className={styles.expRule} aria-hidden="true" />
-
-            {/* Camada 3: Régua de Autoridade Institucional (Stripe Enterprise) */}
-            <div className={styles.expAuthorityBar}>
-              <div className={styles.expAuthorityGrid}>
-                {experience.authorities.map((authority) => (
-                  <div key={authority.label} className={styles.expAuthorityCol}>
-                    <span className={styles.expAuthLabel}>{authority.label}</span>
-                    <div className={styles.expAuthList}>
-                      {authority.items.map((item) => (
-                        <span key={item} className={styles.expAuthItem}>
-                          {item}
-                        </span>
-                      ))}
-                    </div>
-                    <span className={styles.expAuthNote}>{authority.note}</span>
-                  </div>
-                ))}
-              </div>
-              <div className={styles.expActionWrap}>
-                <a href={experience.link.href} className={styles.expLink}>
-                  <span>{experience.link.label}</span>
-                  <ArrowRight />
-                </a>
-              </div>
-            </div>
+            <TextLink href={experience.link.href}>
+              {experience.link.label}
+            </TextLink>
           </div>
         </section>
 
@@ -338,7 +308,7 @@ export default function HomePage() {
           </blockquote>
         </section>
 
-        <section id="cases" className={styles.people} data-block="home-cases">
+        <section id="equipe" className={styles.people} data-block="home-people">
           <div className={styles.peopleIntro}>
             <Eyebrow>{people.eyebrow}</Eyebrow>
             <h2>{people.title[0]}<br />{people.title[1]}</h2>
@@ -356,50 +326,32 @@ export default function HomePage() {
 
         <section id="diagnostico" className={styles.diagnostico} data-block="home-diagnostico">
           <div className={styles.diagnosticoText}>
-            <Eyebrow>{diagnostico.fields.submit ? "Diagnóstico" : "Contato"}</Eyebrow>
+            <Eyebrow>Diagnóstico</Eyebrow>
             <h2>{diagnostico.title}</h2>
+          </div>
+          <div className={styles.diagnosticoCtaBox}>
             <p>{diagnostico.text}</p>
             <strong>{diagnostico.microcopy}</strong>
-          </div>
-          <div className={styles.diagnosticoForm}>
-            <DiagnosticoForm />
+            <div className={styles.diagnosticoActions}>
+              <Link className={styles.primaryButton} href="/diagnostico">
+                {diagnostico.fields.submit} <ArrowRight />
+              </Link>
+              {config.whatsappUrl && (
+                <a
+                  className={styles.secondaryButton}
+                  href={config.whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Conversar no WhatsApp <ArrowRight />
+                </a>
+              )}
+            </div>
           </div>
         </section>
       </main>
 
-      <footer className={styles.footer} data-block="home-footer">
-        <div className={styles.footerInner}>
-          <div className={styles.footerBrand}>
-            <Image src="/brand/logo-white.svg" alt="Kalidash" width={173} height={27} unoptimized />
-            <p>{footer.text}</p>
-          </div>
-          {footer.columns.map((column) => (
-            <nav key={column.title} className={styles.footerCol} aria-label={column.title}>
-              <h3>{column.title}</h3>
-              <ul>
-                {column.links.map((link) => (
-                  <li key={link.label}>
-                    {link.href.startsWith("/") && !("external" in link && link.external) ? (
-                      <Link href={link.href}>{link.label}</Link>
-                    ) : (
-                      <a href={link.href} {...("external" in link && link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}>{link.label}</a>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          ))}
-        </div>
-        <div className={styles.footerBottom}>
-          <span>{footer.copyright}</span>
-          <div className={styles.social}>
-            {config.social.instagram && <a href={config.social.instagram} aria-label="Instagram" target="_blank" rel="noopener noreferrer"><Instagram /></a>}
-            {config.social.linkedin && <a href={config.social.linkedin} aria-label="LinkedIn" target="_blank" rel="noopener noreferrer"><Linkedin /></a>}
-            {config.social.facebook && <a href={config.social.facebook} aria-label="Facebook" target="_blank" rel="noopener noreferrer"><Facebook /></a>}
-            {config.social.youtube && <a href={config.social.youtube} aria-label="YouTube" target="_blank" rel="noopener noreferrer"><Youtube /></a>}
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
 
       {config.whatsappUrl && (
         <a

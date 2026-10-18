@@ -13,14 +13,39 @@ export const config = {
   },
 };
 
-export const nav = [
-  { label: "O desafio", href: "#desafio" },
-  { label: "O que fazemos", href: "#o-que-fazemos" },
-  { label: "Experiência", href: "#experiencia" },
-  { label: "Cases", href: "#cases" },
+export type NavItem = {
+  label: string;
+  href: string;
+  children?: Array<{ label: string; href: string; hint: string }>;
+};
+
+/* Navegação conforme "Estrutura do site" (kalidash.com é o masterbrand).
+ * As rotas internas (/sobre-nos, /advisory, /execucao, /solucoes...) ainda serão criadas. */
+export const nav: NavItem[] = [
+  {
+    label: "Para empresas",
+    href: "/#o-que-fazemos",
+    children: [
+      { label: "AI Culture", href: "/treinamento-corporativo-ia", hint: "Carro-chefe · porta de entrada" },
+      { label: "Advisory", href: "/advisory", hint: "Governança, mentorias e assessorias" },
+      { label: "Execução", href: "/execucao", hint: "Mão na massa · projeto técnico" },
+    ],
+  },
+  { label: "Sobre nós", href: "/sobre-nos" },
+  { label: "Cases", href: "/#experiencia" },
   { label: "Blog", href: "/blog" },
-  { label: "Contato", href: "#diagnostico" },
+  {
+    label: "Produtos",
+    href: "/solucoes",
+    children: [
+      { label: "Kognis", href: "/solucoes#kognis", hint: "IA para advocacia trabalhista" },
+      { label: "Spectra AI", href: "/solucoes#spectra-ai", hint: "Visão computacional na operação" },
+    ],
+  },
 ];
+
+/* CTA único e fixo no topo: todo CTA da Home leva para o mesmo lugar. */
+export const navCta = { label: "Diagnóstico", href: "/diagnostico" };
 
 export const hero = {
   eyebrow: "Aceleradora de eficiência operacional",
@@ -29,8 +54,8 @@ export const hero = {
     "A Inteligência Artificial está deixando de apenas responder para também executar tarefas e participar de processos.",
     "A Kalidash prepara pessoas, processos e tecnologia para essa mudança, conectando agentes, automação e novas formas de trabalhar à operação real da empresa, para gerar eficiência e escala de verdade.",
   ],
-  primaryCta: { label: "Preparar minha operação", href: "#diagnostico" },
-  secondaryCta: { label: "Conhecer a Kalidash", href: "#experiencia" },
+  primaryCta: { label: "Preparar minha operação", href: "/diagnostico" },
+  secondaryCta: { label: "Conhecer a Kalidash", href: "/#experiencia" },
   stats: [
     { value: "+10 mil", label: "pessoas capacitadas" },
     { value: "170", label: "operações atendidas" },
@@ -79,6 +104,11 @@ export const problem = {
       text: "Pessoas, processos e tecnologia trabalhando em ritmos diferentes.",
     },
   ],
+  hologramTags: [
+    { label: "tecnologia", from: [95, 97], to: [73.5, 82.4], anchor: [61.8, 66.2] },
+    { label: "execução", from: [4, 94], to: [26.5, 82.4], anchor: [38.2, 66.2] },
+    { label: "decisões", from: [2, 44], to: [12, 37.6], anchor: [31, 43.8] },
+  ] as Array<{ label: string; from: [number, number]; to: [number, number]; anchor: [number, number] }>,
 };
 
 export const fronts = {
@@ -95,7 +125,7 @@ export const fronts = {
       title: "Prepare seu time para uma nova forma de trabalhar.",
       text: "O programa de treinamento corporativo em IA e cultura de IA para grandes operações. Mais do que ensinar ferramentas, desenvolvemos repertório, autonomia e novos hábitos de trabalho para que as pessoas incorporem IA à rotina e passem a identificar oportunidades de melhoria por conta própria.",
       closing: "Capacitação é onde a transformação começa.",
-      link: { label: "Conheça os treinamentos", href: "#diagnostico" },
+      link: { label: "Conheça os treinamentos", href: "/diagnostico" },
       image: { src: "/home/evento-palestra.jpg", alt: "Treinamento corporativo conduzido pela Kalidash" },
     },
     {
@@ -104,7 +134,7 @@ export const fronts = {
       title: "Transforme sem perder o rumo.",
       text: "Acompanhamos a liderança na implementação da inovação com governança, ajudando a priorizar, decidir, medir e manter a transformação conectada aos objetivos do negócio.",
       closing: "Advisory é onde a transformação ganha direção e continuidade.",
-      link: { label: "Conheça o Advisory", href: "#diagnostico" },
+      link: { label: "Conheça o Advisory", href: "/diagnostico" },
       image: { src: "/home/metodo-reuniao.jpg", alt: "Liderança acompanhando indicadores com a Kalidash" },
     },
     {
@@ -113,7 +143,7 @@ export const fronts = {
       title: "Quando a transformação precisa sair do papel.",
       text: "Entramos na operação para implementar agentes, automações, integrações, dados e soluções de IA quando a empresa precisa de capacidade adicional para fazer acontecer.",
       closing: "Execução transforma estratégia em operação.",
-      link: { label: "Conheça a Execução", href: "#diagnostico" },
+      link: { label: "Conheça a Execução", href: "/diagnostico" },
       image: { src: "/home/evento-ai-os.jpg", alt: "Framework de agentes e operação da Kalidash" },
     },
   ],
@@ -143,7 +173,7 @@ export const experience = {
     "A IA não precisa substituir pessoas para transformar uma operação.",
     "Ela pode ampliar a capacidade de quem já faz o trabalho acontecer.",
   ],
-  link: { label: "Conheça nossos cases", href: "#cases" },
+  link: { label: "Conheça nossos cases", href: "/#experiencia" },
   image: { src: "/home/cooxupe.jpg", alt: "Equipe reunida na escadaria da Cooxupé" },
 };
 
@@ -198,16 +228,16 @@ export const footer = {
     {
       title: "A Kalidash",
       links: [
-        { label: "O que fazemos", href: "#o-que-fazemos" },
-        { label: "Experiência", href: "#experiencia" },
+        { label: "O que fazemos", href: "/#o-que-fazemos" },
+        { label: "Experiência", href: "/#experiencia" },
         { label: "Blog", href: "/blog" },
       ],
     },
     {
       title: "Contato",
       links: [
-        { label: "Diagnóstico", href: "#diagnostico" },
-        { label: "Cases", href: "#cases" },
+        { label: "Diagnóstico", href: "/diagnostico" },
+        { label: "Cases", href: "/#experiencia" },
       ],
     },
     {

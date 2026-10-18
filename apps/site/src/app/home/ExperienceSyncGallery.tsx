@@ -92,8 +92,8 @@ export default function ExperienceSyncGallery() {
           ambientOffset.current += 0.35;
         }
 
-        // Card width 260px + 10px gap = 270px. Meio bloco de 12 itens = 3240px
-        const singleSetWidth = 12 * 270;
+        // Card width 280px + 10px gap = 290px. Meio bloco de 12 itens = 3480px
+        const singleSetWidth = 12 * 290;
 
         // Cálculo de translação com scroll parallax + drift suave
         // Linha 1 corre para a esquerda conforme scrolla para baixo
