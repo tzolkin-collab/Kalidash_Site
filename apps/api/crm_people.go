@@ -278,6 +278,9 @@ func handlePeople(w http.ResponseWriter, r *http.Request) {
 		if p.ID == "" {
 			p.ID = wfID("p")
 		}
+		if !canWriteDocument(w, r, p.Document) {
+			return
+		}
 		if err := validatePerson(&p); err != nil {
 			writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": err.Error()})
 			return
@@ -329,6 +332,9 @@ func handlePersonByID(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		p.ID = id
+		if !canWriteDocument(w, r, p.Document) {
+			return
+		}
 		if err := validatePerson(&p); err != nil {
 			writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": err.Error()})
 			return

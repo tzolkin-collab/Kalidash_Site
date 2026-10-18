@@ -212,6 +212,7 @@ func handleHistory(w http.ResponseWriter, r *http.Request) {
 		}
 		now := time.Now()
 		for i := range list {
+			list[i].Actor = actorFor(r, list[i].Actor) // com login, o autor é a sessão
 			if err := validateChange(&list[i], now); err != nil {
 				writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": err.Error()})
 				return

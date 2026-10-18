@@ -266,6 +266,9 @@ func handleCRMLeadByID(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": err.Error()})
 			return
 		}
+		if !canChangeOrigin(w, r, &l) {
+			return
+		}
 		if err := saveLeadRecord(&l, true); err != nil {
 			writeErr(w, err)
 			return

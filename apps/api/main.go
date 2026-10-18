@@ -81,12 +81,25 @@ func initDB() {
 	if crmEnabled() {
 		ensureCRMSchema()
 	}
+	if authEnabled() {
+		ensureAuthSchema()
+	}
 	ensureBlogSchema()
 	initStorage()
 }
 
 func enableCORS(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if authEnabled() {
+			// com login: só as origens de ALLOWED_ORIGINS, com cookie (auth_middleware.go)
+			setAuthCORS(w, r)
+			if r.Method == http.MethodOptions {
+				w.WriteHeader(http.StatusNoContent)
+				return
+			}
+			next(w, r)
+			return
+		}
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
@@ -444,6 +457,14 @@ func main() {
 		registerCRMRoutes(mux)
 	}
 
+	if authEnabled() {
+		registerAuthRoutes(mux)
+	}
+	var handler http.Handler = mux
+	if authEnabled() {
+		handler = withAuth(mux) // protege /api/* e restringe o CORS (auth_middleware.go)
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -453,7 +474,7 @@ func main() {
 	}
 	fmt.Printf("🚀 API do Kalidash (Go + MySQL) rodando em http://localhost:%s\n", port)
 	
-	if err := http.ListenAndServe(":"+port, mux); err != nil {
+	if err := http.ListenAndServe(":"+port, handler); err != nil {
 		log.Fatalf("Erro ao iniciar API: %v", err)
 	}
 }

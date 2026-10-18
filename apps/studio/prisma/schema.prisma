@@ -238,3 +238,35 @@ model Task {
   @@index([entityKind, entityId])
   @@index([pipelineId, done, dueAt])
 }
+
+// Login e perfis da equipe (AUTH_API=1; apps/api/auth_store.go cria estas tabelas na subida).
+// Não confundir com `User`, que é só o dono de oportunidades do protótipo.
+model TeamMember {
+  id          String    @id @db.VarChar(64)
+  email       String    @unique(map: "uq_team_email") @db.VarChar(254) // minúsculo; é a chave do convite
+  name        String    @default("") @db.VarChar(200)
+  avatarUrl   String?   @db.VarChar(500)
+  googleSub   String?   @unique(map: "uq_team_sub") @db.VarChar(64) // vinculado no primeiro login com Google
+  role        String    @db.VarChar(8) // ADMIN | MANAGER | SELLER
+  active      Boolean   @default(true)
+  lastLoginAt DateTime?
+  invitedBy   String?   @db.VarChar(64)
+  createdAt   DateTime
+  updatedAt   DateTime
+
+  sessions AuthSession[]
+}
+
+model AuthSession {
+  tokenHash String   @id @db.Char(64) // HMAC-SHA256 do token do cookie; o token em si nunca é guardado
+  memberId  String   @db.VarChar(64)
+  createdAt DateTime
+  expiresAt DateTime
+  ip        String?  @db.VarChar(45)
+  userAgent String?  @db.VarChar(255)
+
+  member TeamMember @relation(fields: [memberId], references: [id], onDelete: Cascade, map: "fk_session_member")
+
+  @@index([memberId], map: "idx_session_member")
+  @@index([expiresAt], map: "idx_session_expires")
+}
