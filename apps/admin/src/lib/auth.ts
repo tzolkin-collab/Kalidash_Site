@@ -10,7 +10,7 @@ import { createStore, useStore } from './store';
 // A sessão é um cookie HttpOnly: o JavaScript nunca vê o token. Depois que a API confirma que o login
 // está ligado, o fetch passa a mandar o cookie nas chamadas à API (credentials: 'include').
 
-export type SessionUser = { id: string; name: string; email: string; role: Role; avatarUrl?: string };
+export type SessionUser = { id: string; name: string; email: string; role: Role; avatarUrl?: string; /** Escopos efetivos que o servidor aplica (ausente numa API antiga: vale o perfil). */ scopes?: string[] };
 export type AuthState = {
   status: 'loading' | 'off' | 'anon' | 'in';
   user?: SessionUser;

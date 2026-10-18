@@ -15,7 +15,7 @@ export async function loadTeam(): Promise<void> {
     const res = await fetch(`${API_URL}/api/team`);
     if (!res.ok) return;
     const list = (await res.json()) as Wire[];
-    teamStore.set(list.map((m) => ({ id: m.id, name: m.name || m.email, email: m.email, role: m.role, status: m.status, lastAccess: m.lastAccess, root: m.root })));
+    teamStore.set(list.map((m) => ({ id: m.id, name: m.name || m.email, email: m.email, role: m.role, status: m.status, lastAccess: m.lastAccess, root: m.root, scopes: m.scopes, scopesExtra: m.scopesExtra, scopesDenied: m.scopesDenied })));
   } catch {
     // mantém o que já estava
   }

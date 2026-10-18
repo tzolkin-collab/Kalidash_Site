@@ -15,8 +15,9 @@ import { EVENTS } from '../mocks/automations';
 import { CURRENT_USER_ID, auditLog, teamStore, webhooksStore } from '../mocks/team';
 import { Badge, EmptyState, Field, Page, PageHeader, SampleBanner, SearchBox, SidePanel, Switch, Tabs } from '../components/ui';
 import { CustomSelect } from '../components/ui';
+import { PermissionsTab, TokensTab } from '../components/Access';
 
-type Tab = 'profile' | 'team' | 'notifications' | 'webhooks' | 'audit';
+type Tab = 'profile' | 'team' | 'permissions' | 'tokens' | 'notifications' | 'webhooks' | 'audit';
 
 const ROLE_LABEL: Record<Role, string> = { ADMIN: 'Admin', MANAGER: 'Gerente', SELLER: 'Vendedor' };
 const when = (iso?: string) => (iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : 'Nunca');
@@ -36,16 +37,18 @@ export default function Settings() {
     <Page>
       <PageHeader title="Configurações" subtitle="Seu perfil, a equipe e os acessos, os webhooks de saída e o registro do que foi feito." />
       <SampleBanner>
-        {auth.status === 'in' ? 'A equipe e o perfil são reais (login ligado na API), mas os webhooks ainda não têm API.' : 'O login está desligado nesta API (AUTH_API): a equipe e o perfil são de exemplo e o admin abre sem autenticação. Os webhooks ainda não têm API.'}{' '}
+        {auth.status === 'in' ? 'A equipe, o perfil, as permissões e os tokens de API são reais (login ligado na API), mas os webhooks ainda não têm API.' : 'O login está desligado nesta API (AUTH_API): a equipe e o perfil são de exemplo e o admin abre sem autenticação. Os webhooks ainda não têm API.'}{' '}
         {crmMode === 'api' ? 'A Auditoria já mostra o histórico real de mudanças.' : 'A Auditoria só vira real quando o CRM está na API.'} O que é de exemplo não é gravado.
       </SampleBanner>
       <Tabs
-        tabs={[{ id: 'profile' as Tab, label: 'Meu perfil' }, { id: 'team' as Tab, label: 'Equipe e acessos' }, { id: 'notifications' as Tab, label: 'Notificações' }, { id: 'webhooks' as Tab, label: 'Webhooks' }, { id: 'audit' as Tab, label: 'Auditoria' }]}
+        tabs={[{ id: 'profile' as Tab, label: 'Meu perfil' }, { id: 'team' as Tab, label: 'Equipe e acessos' }, { id: 'permissions' as Tab, label: 'Permissões' }, { id: 'tokens' as Tab, label: 'Tokens de API' }, { id: 'notifications' as Tab, label: 'Notificações' }, { id: 'webhooks' as Tab, label: 'Webhooks' }, { id: 'audit' as Tab, label: 'Auditoria' }]}
         value={tab}
         onChange={setTab}
       />
       {tab === 'profile' && <ProfileTab />}
       {tab === 'team' && <TeamTab />}
+      {tab === 'permissions' && <PermissionsTab />}
+      {tab === 'tokens' && <TokensTab />}
       {tab === 'notifications' && <NotificationsTab />}
       {tab === 'webhooks' && <WebhooksTab />}
       {tab === 'audit' && <AuditTab />}
@@ -103,7 +106,7 @@ function TeamTab() {
   return (
     <div className="settings-pane form-stack">
       <div className="pane-head" style={{ marginBottom: 0 }}>
-        <p className="section-sub" style={{ margin: 0 }}>Um único espaço de dados, vários usuários internos, três perfis.</p>
+        <p className="section-sub" style={{ margin: 0 }}>Um único espaço de dados, vários usuários internos, três perfis base. Ajuste o que cada pessoa pode fazer na aba Permissões.</p>
         {!readOnly && <button type="button" className="btn btn-solid" onClick={() => setInviting(true)}><Plus size={14} /> Convidar pessoa</button>}
       </div>
 
