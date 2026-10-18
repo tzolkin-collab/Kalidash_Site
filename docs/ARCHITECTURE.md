@@ -29,8 +29,8 @@
 | Pipelines (funil por oferta), fontes e painel de configurações | admin + api | **Tela pronta, sem API** | Painel dedicado (engrenagem em Oportunidades): etapas, fontes com "Conectar fonte", tarefas, campos personalizados e tags. Hoje os funis existem só no código. |
 | Tarefas, requisitos de etapa e campos personalizados | admin + api | **API pronta (desligada por padrão); admin já sincroniza quando ligada** | Galeria de funis e página do workflow (React Flow), com edição de requisitos e "seguir um registro". **05/10:** a API tem funis, etapas, requisitos, tarefas e o gate de etapa no servidor, testados sem banco e **desligados por padrão** (`WORKFLOW_API=1`); nada foi aplicado ao banco. Ver [api-workflow.md](./api-workflow.md). **06/10:** com a API ligada, o admin carrega e grava funis e tarefas de oportunidades (`lib/workflowSync.ts`) e trata o 409 do gate no `move`; sem ela, segue com os dados de exemplo. **Kanban pelas etapas do funil (06/10):** colunas, filtro, totais, Dashboard e ganho/perdido usam as etapas do funil, e o gate vale nelas; valores antigos de `stage` são traduzidos sem alterar o banco (`lib/stages.ts`). **Falta:** API para leads, pessoas e empresas e o Kanban mostrar vários funis de uma vez. |
 | E-mails (templates) e Automações, em páginas separadas | admin + api | **Tela pronta, sem API** | E-mails (modelos e histórico) e Automações (catálogo, manuais e gerenciadas, execuções) são páginas próprias. |
-| Entrada de leads (`connect.js`, API direta, webhook) | api | Planejado | Contrato já desenhado no v1.0 (`connect.ts`). |
-| Projetos conectados, Integrações e Chaves | admin + api | **Tela pronta, sem API** | Projetos com métricas, snippet e página de exemplo, emissão e revogação de chaves (o token de exemplo não existe no servidor). |
+| Entrada de leads (`connect.js`, API direta, webhook) | api | **Pronto (WP2, 18/10), atrás de `CRM_API=1` + `AUTH_API=1`** | `POST /api/connect/leads` e `GET /api/connect/config` (token `Authorization: Bearer` com `forms:write`) criam um **Lead v2** na pipeline do projeto (fonte e formulário do projeto, pessoa reaproveitada por e-mail, histórico `create`), com `Origin` validado por projeto, limite de taxa por IP e por chave e honeypot; `GET /connect.js` serve o snippet. Webhook de entrada continua planejado. `POST /api/public/leads` segue como está (cria oportunidade INBOUND) até o WP3. Ver [inbound-leads.md](./inbound-leads.md). |
+| Projetos conectados, Integrações e Chaves | admin + api | **Pronto com a API ligada (WP2, 18/10); exemplo sem ela** | Com `CRM_API=1` e `AUTH_API=1`: `/api/projects` (+ `/forms`) grava projetos e formulários rastreados (só `keys:manage`: Admin/Gerente), chaves `kld_live_`/`kld_test_` do snippet ligadas a um projeto emitidas pelo mesmo painel de tokens do WP1.1. Sem as flags a tela segue em dados de exemplo, com o aviso. Métricas de visita/conversão (`analytics:write`) e `ads:read` são ganchos: ainda sem rota. [projects.md](./pagesAdmin/projects.md) |
 | Login e perfis | api + admin | **Pronto, desligado por padrão (18/10)** | Atrás de `AUTH_API=1`: login com Google (OAuth, `state` anti-CSRF) só para e-mails da tabela `TeamMember`; sessão por cookie `HttpOnly` (token opaco, só o HMAC fica no banco); middleware que exige sessão em `/api/*` (exceções públicas: `POST /api/public/leads` e a leitura de artigos publicados e dos textos da galeria); perfis **Admin, Gerente e Vendedor** aplicados **no servidor** como **presets de escopos** (`auth_scopes.go`, 19 escopos; extras e removidos por pessoa; **tokens de API** `kld_live_` em `Authorization: Bearer`); CORS restrito a `ALLOWED_ORIGINS`; modo de desenvolvimento sem Google. Admin: tela de login, usuário real na barra lateral, Equipe gravando na API. **Falta ligar em produção** (criar o OAuth Client ID, primeira conta Admin; ver [auth-study.md](./auth-study.md#implementação-wp1-18102026)). Sem a flag a API segue aberta, como antes. |
 | Blog / CMS | admin + api + site | **Parcial** | Sem Sanity — lista e editor ([BlockNote](https://www.blocknotejs.org/), trocou o Tiptap em 30/09) gravam artigo real via Go API/MySQL (`/api/blog/articles`); `bodyJson` (documento nativo do BlockNote) é a fonte de verdade, `body` (HTML) é gerado a cada save pro site consumir com ISR, publicado/rascunho, destaque e categorias. Upload de imagem implementado (`/api/blog/upload`, redimensiona e comprime antes de subir pro Cloudflare R2) — falta só configurar as credenciais reais do bucket no `.env` da API (passo a passo e verificação em [r2-setup.md](./r2-setup.md); **05/10:** a rota foi endurecida e testada com um S3 falso: tipo pelo conteúdo, sem SVG, orientação EXIF, PNG transparente preservado, GIF intacto, limite de megapixels e de envios por IP). **Atualizado em 01/10:** os cartões de artigo da Galeria Principal são editáveis (bloco do BlockNote; a ordem dos blocos é a ordem no site e o 1º é o destaque); o preview é o próprio site num iframe (`/preview/*`, com clique que foca o campo no editor); e salvar ou excluir um artigo avisa o site (`/api/revalidate`), que regenera em ~2 s em vez de até 60 s. O design do blog fica só no site (ver [blog-design-contrato.md](./blog-design-contrato.md)). **Falta:** sanitização do HTML e login (fase de segurança), `connect.js`. Handoffs: [30/09](./handoffs/2026-09-30-editor-blog-blocknote.md) e [01/10](./handoffs/2026-10-01-preview-home-contrato.md). |
 | Dashboard e analytics | admin | **Parcial** | Métricas reais calculadas de `/api/leads` (valor em aberto e ganho, conversão, funil por etapa). Leads, tarefas e origem ainda não entram (WP3). **18/10:** a galeria de gráficos de demonstração (números inventados) saiu da página e mora em `#/dashboard/demonstracao`, com aviso; o Dashboard só mostra dado real. |
@@ -185,7 +185,8 @@ Definido em `apps/studio/prisma/schema.prisma`:
 | `LeadSubmission` (`sourceId`, `payload`, UTMs, `page_url`, `leadId`) | Guarda cada envio e liga ao **lead** criado ou atualizado (ver plano-schema.md) |
 | `Opportunity` (ver plano-schema.md: `pipelineId`, `stageId`, `origin`, `value` em `Decimal(12,2)`, motivo, previsão, tempo na etapa) | Etapas configuráveis, origem e valores exatos nas somas (com `Float` a soma de centavos acumula erro) |
 | `AuthSession` | **Existe** (com `AUTH_API=1`): sessões do login (HMAC do token, validade, IP) |
-| `ApiToken` (`name`, `prefix`, `last4`, `tokenHash` SHA-256, `scopes`, `createdBy`, `expiresAt` opcional, `lastUsedAt`, `revokedAt`) | **Existe** (com `AUTH_API=1`, WP1.1): tokens de API com escopos, sem validade por padrão. O WP2 acrescenta `env` (`kld_test_`) e `projectId` |
+| `ApiToken` (`name`, `prefix`, `last4`, `tokenHash` SHA-256, `scopes`, `createdBy`, `expiresAt` opcional, `lastUsedAt`, `revokedAt`, `env`, `projectId`) | **Existe** (com `AUTH_API=1`; WP1.1 + WP2): tokens de API com escopos, sem validade por padrão; `env` = `live`/`test`; `projectId` só nas chaves do snippet |
+| `ConnectedProject` e `TrackedForm` | **Existem** (WP2, com `CRM_API=1` + `AUTH_API=1`, `connect_projects.go`; também em `apps/studio/prisma/schema.prisma`): projeto = nome, URL, origens extras, funil + coluna de leads + fonte; formulário = seletor CSS, mapa de campos, consentimento, contagem de envios |
 | `AuditLog` | Trilha de auditoria |
 | `Post` | Blog (rascunho, publicado, slug, imagem de capa) |
 
@@ -380,62 +381,54 @@ Como os leads chegam das LPs e dos formulários que a Kalidash lança.
 
 Um script leve que se cola na LP. **Ele não renderiza nem estiliza formulário**: o markup e o CSS são da página. Ele lê os inputs que já existem, segundo um mapa declarado na config, e envia **sempre o mesmo JSON**.
 
+> **Implementado no WP2 (18/10/2026)** — o que vale é esta seção; o desenho do v1.0 (config JSON na página, `data-token`) foi trocado por uma config guardada no servidor.
+
 ### Snippet
 
 ```html
-<!-- Kalidash Connect -->
-<script
-  src="https://cdn.kalidash.com.br/connect.js"
-  data-token="kld_live_…"
-  defer
-></script>
-<script type="application/json" data-kalidash-config>
-{
-  "form": "#form-contato",
-  "map": { "nome": "#nome", "email": "#email", "empresa": "#empresa", "interesse": "#interesse" },
-  "attribution": true,
-  "consent": "#aceite"
-}
-</script>
+<script src="https://API/connect.js" data-key="kld_live_…" defer></script>
 ```
 
-O domínio do CDN é o do código v1.0 (`cdn.kalidash.com.br`) e deve ser confirmado.
+O script é **servido pela própria API** (`GET /connect.js`, `connect_script.js` embutido no binário), então não há CDN a escolher; a URL pode ganhar versão (`/v1/connect.js`) quando a página sair do repositório. Só carrega uma **chave publicável**. Quais formulários observar (seletor CSS, mapa de campos, caixa de consentimento) vem do painel, por `GET /api/connect/config`. No evento `submit` (captura no documento, vale para formulários criados depois) ele lê os campos (pelo mapa ou, se vazio, por `name`/`id`/`type`: nome, e-mail, telefone…), junta a atribuição e faz `POST /api/connect/leads` em segundo plano, **sem impedir o envio normal** da página. A página pode ouvir `window` `kalidash:lead` (`{ok, status, form}`).
 
-### Contrato do payload (sempre os mesmos campos)
+### Entrada: `POST /api/connect/leads`
+
+`Authorization: Bearer kld_(live|test)_…` (também serve para chamada direta de servidor, sem `Origin`).
 
 ```json
 {
-  "token": "kld_live_…",
   "form": "#form-contato",
-  "lead": {
-    "nome": "…", "email": "…", "telefone": null, "empresa": "…",
-    "cargo": null, "interesse": "…", "mensagem": null
-  },
+  "website": "",
+  "lead": { "nome": "…", "email": "…", "telefone": null, "empresa": "…", "cargo": null, "interesse": "…", "mensagem": null },
   "attribution": { "utm_source": "…", "utm_medium": "…", "utm_campaign": "…", "referrer": "…", "device": "…", "page_url": "…" },
   "context": { "submittedAt": "…", "consent": true }
 }
 ```
 
-Campos ausentes viram `null`. Campos fora do mapa viajam como extras.
+Resposta `201 {"ok":true,"id":"l-…"}`. Cria um **Lead v2** (`INBOUND`) na pipeline e coluna do projeto, `sourceName` = fonte do projeto, pessoa reaproveitada por e-mail (nova com ciclo `LEAD` se não existe; "cliente retornando" se já é cliente), tags `Inbound`, nome do projeto, nome do formulário e `Teste` (chave `kld_test_`), `customData` com `projectId`, `formId`, `via` (`connect.js`/`api`), `env`, empresa/cargo/interesse e a atribuição (só chaves conhecidas), uma linha `create` no histórico e o contador de envios do projeto e do formulário. **Não cria Oportunidade.** Obrigatório: nome e ao menos um contato.
+
+Ordem das barreiras: limite por IP (`CONNECT_RATE_IP`, 10/min; conta toda tentativa, inclusive as recusadas) → chave (401) → escopo `forms:write` e só escopos publicáveis (403) → projeto ativo e `Origin` ∈ origens do projeto (403) → limite por chave (`CONNECT_RATE_TOKEN`, 60/min) → corpo ≤ 16 KB → honeypot (`website` preenchido: `201` sem gravar) → validação (422).
 
 ### Chaves e escopos
 
-Formato: `kld_live_<32 hex>` ou `kld_test_<32 hex>`. Depois da emissão, só o prefixo (18 caracteres) fica visível.
+Formato: `kld_live_<32 caracteres>` ou `kld_test_<32 caracteres>` (192 bits aleatórios em base64url). Depois da emissão, só o prefixo e os 4 últimos caracteres ficam visíveis; no banco só o SHA-256.
 
 | Escopo | Para quê | Pode ir no HTML? |
 |---|---|---|
 | `forms:write` | Criar leads a partir do Connect (o mínimo do snippet) | Sim |
-| `analytics:write` | Pageview, sessão e origem | Sim |
-| `ads:read` | Sincronizar custo e CPL de mídia paga | Não |
+| `analytics:write` | Pageview, sessão e origem (**gancho**: ainda sem rota) | Sim |
+| `ads:read` | Sincronizar custo e CPL de mídia paga (**gancho**) | Não |
 | `leads:read` | Consultar a base pelo servidor | **Nunca** |
+
+Regra aplicada no servidor (`validateTokenScopes`): escopo publicável **fica sozinho** no token, que vai ligado a um projeto (`projectId`); leitura nunca acompanha a chave do HTML (422 na criação, 403 na entrada se o banco for adulterado). Só Admin/Gerente emitem (`keys:manage`).
 
 ### Segurança do Connect
 
 | Ameaça | Proteção |
 |---|---|
-| Chave visível no HTML | É uma chave pública, só com `forms:write` e `analytics:write`: não lê, não altera e não deleta |
-| Spoofing de origem | Validação de `Origin` + rate limit por IP |
-| Flood de requisições falsas | 5 leads/min por IP. Acima disso, `429`. |
+| Chave visível no HTML | É uma chave publicável, só com `forms:write` (e `analytics:write`): não lê, não altera e não deleta; o servidor não emite uma chave que misture leitura |
+| Spoofing de origem | Validação de `Origin` por projeto + rate limit por IP e por chave (quem forja o `Origin` com `curl` continua limitado e só consegue criar leads, marcados com o `tokenId`) |
+| Flood de requisições falsas | 10 tentativas/min por IP e 60 envios/min por chave. Acima disso, `429` com `Retry-After`. (`/api/public/leads`: 5/min por IP.) |
 | Bot / spam | Cloudflare Turnstile (opcional) |
 | Interceptação | HTTPS (TLS 1.3) |
 
@@ -468,6 +461,6 @@ Formato: `kld_live_<32 hex>` ou `kld_test_<32 hex>`. Depois da emissão, só o p
 1. **E-mail:** a meta é a Gmail API (o e-mail sai da caixa do vendedor). O Resend com `onboarding@resend.dev` no código é provisório.
 2. **VPS:** Vultr (São Paulo) ou DigitalOcean, conforme a preferência da Kalidash. Se mantiver o EasyPanel, o plano precisa ter pelo menos 2GB de RAM. A DigitalOcean não tem datacenter no Brasil.
 3. **Hospedagem do site e do admin:** o plano Hobby da Vercel é só para uso pessoal e não comercial. Escolher entre Vercel Pro (US$ 20/mês por assento) e Cloudflare Pages para o admin estático (US$ 0).
-4. **Domínio do CDN do Connect** (`cdn.kalidash.com.br` no código v1.0) e onde o arquivo fica hospedado. O custo é ~US$ 0 em qualquer opção.
+4. **Domínio público da API** (o `connect.js` é servido por ela; as páginas apontam para esse endereço). Pôr um CDN na frente é opcional e custa ~US$ 0.
 5. **Editor de e-mail:** agora tem página própria (E-mails), separada de Automações. Falta persistir os templates.
 6. **Domínio do CRM:** os pontos abertos estão na seção 13 de [dominio.md](./dominio.md).

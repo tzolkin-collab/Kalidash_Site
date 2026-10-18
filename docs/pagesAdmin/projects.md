@@ -2,7 +2,16 @@
 
 **Objetivo:** central técnica para conectar ao admin as LPs, sites e formulários que a Kalidash lança, e para gerenciar as chaves e integrações.
 
-> **Status (18/10/2026):** a tela existe no admin com **dados de exemplo** (mock em memória: `mocks/projects.ts`); a API de projetos, chaves e `connect.js` ainda **não existe** (WP2) e a chave "emitida" na tela não vale no servidor. Já existiu como mock no site v1.0 (`.archive/v1.0_site/app/admin/`: `projects.ts`, `connect.ts`, `apikeys.ts`, `IntegrationsSettings.tsx`).
+> **Status (18/10/2026, WP2):** com `CRM_API=1` **e** `AUTH_API=1` a tela é **real**: projetos, formulários rastreados e chaves ficam gravados na API (`components/ProjectsLive.tsx`, `lib/connectSync.ts`; servidor em `apps/api/connect_projects.go` e `connect_ingest.go`), o aviso de exemplo some e só Admin/Gerente (`keys:manage`) veem e mexem. Sem as duas flags a tela segue como antes, com **dados de exemplo** (`mocks/projects.ts`) e o aviso. Não existe ainda: **visitas, conversão e origem** (analytics) nem `ads:read`: os escopos existem como gancho e a tela real mostra só envios. Já existiu como mock no site v1.0 (`.archive/v1.0_site/app/admin/`).
+
+## ✅ Como funciona (versão real)
+
+1. **Projetos → Conectar projeto:** nome, URL (só envios vindos dessa origem valem; `Outras origens` aceita `https://www…` e `https://*.vercel.app`), **funil + coluna de leads** (tipo Lead) em que o envio entra, **fonte do lead** (padrão: o nome do projeto).
+2. **Formulários rastreados:** nome, seletor CSS (`#form-contato`), mapa opcional de campos (vazio = o `connect.js` acha por `name`/`id`/`type`) e caixa de consentimento opcional. O `connect.js` só observa o que está cadastrado.
+3. **Chaves de API → Criar token → Tipo "Snippet de um projeto":** escolhe o projeto e o ambiente (`kld_live_` ou `kld_test_`). O token aparece **uma vez**, junto com a tag `<script src="…/connect.js" data-key="…" defer>`. É o mesmo painel de tokens de Configurações (WP1.1); aqui a aba mostra criador, ambiente (selo *Teste*), projeto e último uso, e **Revogar** vale na hora.
+4. Cada envio vira um **lead** (não oportunidade) em Leads, com a fonte do projeto, as tags `Inbound`/projeto/formulário (e `Teste` para `kld_test_`) e a atribuição na ficha.
+5. **Desconectar** o projeto arquiva: o `connect.js` e as chaves dele param de aceitar envios; os leads ficam. Revogue as chaves em seguida.
+6. **D13:** em Configurações → Equipe, desativar uma pessoa lista os tokens ativos que ela criou e pede confirmação. Os tokens são da organização e **continuam valendo**; revogue o que não deve sobreviver.
 
 ---
 
@@ -26,8 +35,8 @@ Um projeto agrupa:
 ### Chaves de API
 O token do Connect e o de qualquer outra integração saem deste painel. O snippet não gera nada sozinho: ele só carrega uma chave emitida aqui, com escopo e ambiente definidos.
 
-- **Formato:** `kld_live_<32 hex>` ou `kld_test_<32 hex>`.
-- **O token completo aparece uma única vez**, no momento da emissão. Depois fica só o prefixo (18 caracteres) e um hash SHA-256.
+- **Formato:** `kld_live_<32 caracteres>` ou `kld_test_<32 caracteres>`. O texto abaixo sobre escopos vale como está; a chave do snippet tem **só** `forms:write` (o servidor recusa misturar com leitura).
+- **O token completo aparece uma única vez**, no momento da emissão. Depois ficam só o prefixo, os 4 últimos caracteres e um hash SHA-256 (o formato real é `kld_live_`/`kld_test_` + 32 caracteres base64url).
 - Cada chave mostra ambiente, projeto, escopos, criação, último uso e status (Ativa ou Revogada). Revogar uma chave não afeta as demais.
 
 | Escopo | Para quê | Pode ir no HTML? |
@@ -47,7 +56,7 @@ O token do Connect e o de qualquer outra integração saem deste painel. O snipp
 
 2. **Problema: Spoofing (Forjar a origem do site)**
    - *O risco:* O Go valida a origem da requisição (`Origin` header). Porém, hackers podem usar scripts/Postman para forjar o cabeçalho `Origin` e flodar a API de lixo simulando que vem do site verdadeiro.
-   - *A Solução:* A barreira CORS protege usuários comuns no navegador, mas para proteger o backend de fato, implementaremos *Rate Limiting* (Limite por IP, ex: 5 leads por minuto) e integração com reCAPTCHA invisível/Cloudflare Turnstile no snippet nativo.
+   - *A Solução (implementada):* `Origin` conferido por projeto, limite de **10 tentativas/min por IP** e **60 envios/min por chave** (`429`), honeypot (campo `website`) e corpo ≤ 16 KB. Quem forja o `Origin` com `curl` só consegue criar leads, sob esses limites. Turnstile/reCAPTCHA ficou de fora.
 
 3. **Problema: Chave vazada ou de um projeto desativado**
    - *O risco:* Uma chave que continua válida depois que a LP saiu do ar continua aceitando leads.

@@ -18,14 +18,16 @@ Um lead só entra por uma **fonte** ligada a uma **pipeline** (o funil de uma of
 
 A porta define **como** o envio chega; a fonte define **para onde** ele vai.
 
+> **Estado (WP2, 18/10/2026):** as portas A e B existem de verdade (`POST /api/connect/leads`, `GET /connect.js`), atrás de `CRM_API=1` + `AUTH_API=1`, e criam **Lead** conforme este documento, com o recorte descrito em [ARCHITECTURE.md](./ARCHITECTURE.md#connectjs-o-script-de-captura): a **fonte** vem do **projeto conectado** (a chave está ligada a um projeto, em vez de a um formulário-fonte da pipeline), pessoa por e-mail, sem empresa/CNPJ, sem `LeadSubmission` e sem automações. `POST /api/public/leads` (formulário do diagnóstico da Home) segue criando oportunidade INBOUND até o WP3 migrá-lo (decisão D6).
+
 ### A. Via `connect.js` (o método padrão)
 Para LPs e sites em qualquer stack. A página tem um formulário nativo e recebe a tag de script com o token do projeto.
 - O script observa o formulário indicado na config. No envio, lê os campos mapeados, coleta a atribuição (UTMs, referrer, device, `page_url`), monta o JSON e envia para a API. O markup e o CSS da página não são tocados.
-- **Segurança:** chave **pública**, só de escrita (`forms:write` e `analytics:write`). Pode ficar no HTML porque não lê, não altera e não deleta nada.
+- **Segurança:** chave **publicável**, só de escrita (`forms:write`; `analytics:write` é gancho). Pode ficar no HTML porque não lê, não altera e não deleta nada, e vem ligada a um projeto com `Origin` conferido. Chave de leitura nunca vai no snippet: o servidor nem a emite.
 - Contrato e snippet completos em [ARCHITECTURE.md](./ARCHITECTURE.md#connectjs-o-script-de-captura).
 
 ### B. Via API direta (servidor para servidor)
-Para LPs com backend próprio. O servidor da página faz um `POST` com o mesmo payload. Exige chave **secreta** em `Authorization: Bearer <token>`, que nunca vai para o navegador.
+Para LPs com backend próprio. O servidor da página faz um `POST` com o mesmo payload. Usa o mesmo endpoint, com `Authorization: Bearer <token>` e **sem** `Origin` (a checagem de origem só vale para navegador). Hoje a chave é a mesma do snippet (`forms:write` ligada ao projeto, ou de teste); não há chave "secreta" de escrita à parte.
 
 ### C. Via webhooks de entrada (Zapier, Typeform, Meta Lead Ads)
 Quando o formulário vive numa ferramenta externa. A fonte gera uma URL de webhook única. Colada no Zapier ou no Gerenciador de Anúncios, a API recebe o payload a cada cadastro.
@@ -76,7 +78,7 @@ Qualquer que seja a porta, a API normaliza tudo para o mesmo formato, com os mes
 
 ## 4. O que a API faz com o envio
 
-1. **Rate limiting:** o IP passou de 5 envios por minuto? `429`.
+1. **Rate limiting:** o IP passou de 10 tentativas por minuto (`CONNECT_RATE_IP`) ou a chave de 60 envios (`CONNECT_RATE_TOKEN`)? `429` com `Retry-After`.
 2. **Chave, escopo e origem:** o token existe, não está revogado e tem `forms:write`? O header `Origin` bate com o domínio do projeto?
 3. **Sanitização** de tags HTML e validação de e-mail e documento (dígitos verificadores de CPF e do CNPJ alfanumérico).
 4. **Pessoa:** procura por e-mail e por CPF (**não duplica**); se não existir, cria com ciclo de vida Lead.
