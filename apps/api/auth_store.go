@@ -27,9 +27,6 @@ const (
 
 var validRoles = map[string]bool{roleAdmin: true, roleManager: true, roleSeller: true}
 
-// isManager: Admin e Gerente (mesma regra de `manager` em apps/admin/src/lib/permissions.ts).
-func isManager(role string) bool { return role == roleAdmin || role == roleManager }
-
 const authSchema = `
 CREATE TABLE IF NOT EXISTS TeamMember (
 	id VARCHAR(64) PRIMARY KEY,
@@ -38,6 +35,8 @@ CREATE TABLE IF NOT EXISTS TeamMember (
 	avatarUrl VARCHAR(500) NULL,
 	googleSub VARCHAR(64) NULL,
 	role VARCHAR(8) NOT NULL,
+	extraScopes TEXT NULL,
+	deniedScopes TEXT NULL,
 	active TINYINT(1) NOT NULL DEFAULT 1,
 	lastLoginAt DATETIME NULL,
 	invitedBy VARCHAR(64) NULL,
@@ -58,6 +57,24 @@ CREATE TABLE IF NOT EXISTS AuthSession (
 	INDEX idx_session_expires (expiresAt),
 	CONSTRAINT fk_session_member FOREIGN KEY (memberId) REFERENCES TeamMember(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS ApiToken (
+	id VARCHAR(64) PRIMARY KEY,
+	name VARCHAR(120) NOT NULL,
+	prefix VARCHAR(24) NOT NULL,
+	last4 CHAR(4) NOT NULL,
+	tokenHash CHAR(64) NOT NULL,
+	scopes TEXT NOT NULL,
+	createdBy VARCHAR(64) NULL,
+	createdAt DATETIME NOT NULL,
+	expiresAt DATETIME NULL,
+	lastUsedAt DATETIME NULL,
+	lastUsedIp VARCHAR(45) NULL,
+	revokedAt DATETIME NULL,
+	revokedBy VARCHAR(64) NULL,
+	UNIQUE KEY uq_token_hash (tokenHash),
+	INDEX idx_token_created (createdAt)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 `
 
 // Member é uma pessoa da equipe. Status é derivado: DISABLED (desativada), INVITED (nunca entrou) ou ACTIVE.
@@ -72,6 +89,10 @@ type Member struct {
 	LastAccess *FlexTime `json:"lastAccess,omitempty"`
 	GoogleSub  string    `json:"-"`
 	Root       bool      `json:"root,omitempty"`
+	// Escopos (auth_scopes.go): extras somam ao preset do perfil, removidos tiram dele; Scopes são os efetivos.
+	Extra  []string `json:"scopesExtra"`
+	Denied []string `json:"scopesDenied"`
+	Scopes []string `json:"scopes"`
 }
 
 var (
@@ -91,6 +112,8 @@ type authStore interface {
 	AddMember(m Member, invitedBy string) (Member, error)
 	// UpdateMember muda nome, perfil e/ou situação; recusa deixar a equipe sem Admin ativo.
 	UpdateMember(id string, name *string, role *string, active *bool) (Member, error)
+	// SetMemberScopes grava os escopos extras e removidos da pessoa (o perfil não muda).
+	SetMemberScopes(id string, extra, denied []string) (Member, error)
 	// TouchLogin grava o vínculo com a conta Google, foto, nome (se vazio) e a data do acesso.
 	TouchLogin(id, sub, name, avatar string) error
 	CreateSession(hash, memberID, ip, ua string, expires time.Time) error
@@ -108,17 +131,19 @@ var authDB authStore = sqlAuthStore{}
 
 type sqlAuthStore struct{}
 
-const memberCols = `id, email, name, avatarUrl, googleSub, role, active, lastLoginAt`
+const memberCols = `id, email, name, avatarUrl, googleSub, role, active, lastLoginAt, extraScopes, deniedScopes`
 
 func scanMember(sc interface{ Scan(...any) error }) (Member, error) {
 	var m Member
-	var avatar, sub, last sql.NullString
+	var avatar, sub, last, extra, denied sql.NullString
 	var active int
-	if err := sc.Scan(&m.ID, &m.Email, &m.Name, &avatar, &sub, &m.Role, &active, &last); err != nil {
+	if err := sc.Scan(&m.ID, &m.Email, &m.Name, &avatar, &sub, &m.Role, &active, &last, &extra, &denied); err != nil {
 		return Member{}, err
 	}
+	m.Extra, m.Denied = splitScopes(extra.String), splitScopes(denied.String)
 	m.AvatarURL, m.GoogleSub, m.Active = avatar.String, sub.String, active == 1
 	m.Root = root(m)
+	computeScopes(&m)
 	if last.Valid {
 		m.LastAccess = flexFrom(last.String)
 	}
@@ -228,6 +253,28 @@ func (sqlAuthStore) UpdateMember(id string, name *string, role *string, active *
 	return oneMember(`id = ?`, id)
 }
 
+func (sqlAuthStore) SetMemberScopes(id string, extra, denied []string) (Member, error) {
+	res, err := db.Exec(`UPDATE TeamMember SET extraScopes = ?, deniedScopes = ?, updatedAt = ? WHERE id = ?`,
+		nullStr(strings.Join(normScopes(extra), ",")), nullStr(strings.Join(normScopes(denied), ",")), time.Now(), id)
+	if err != nil {
+		return Member{}, err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		if _, err := oneMember(`id = ?`, id); err != nil {
+			return Member{}, err
+		}
+	}
+	return oneMember(`id = ?`, id)
+}
+
+// splitScopes lê a lista guardada como texto "a:b,c:d".
+func splitScopes(s string) []string {
+	if s == "" {
+		return []string{}
+	}
+	return normScopes(strings.Split(s, ","))
+}
+
 func (sqlAuthStore) TouchLogin(id, sub, name, avatar string) error {
 	_, err := db.Exec(`UPDATE TeamMember SET googleSub = COALESCE(googleSub, ?), avatarUrl = ?, name = CASE WHEN name = '' THEN ? ELSE name END, lastLoginAt = ?, updatedAt = ? WHERE id = ?`,
 		nullStr(sub), nullStr(avatar), name, time.Now(), time.Now(), id)
@@ -241,7 +288,7 @@ func (sqlAuthStore) CreateSession(hash, memberID, ip, ua string, expires time.Ti
 }
 
 func (sqlAuthStore) SessionMember(hash string, now time.Time) (Member, error) {
-	m, err := scanMember(db.QueryRow(`SELECT m.id, m.email, m.name, m.avatarUrl, m.googleSub, m.role, m.active, m.lastLoginAt
+	m, err := scanMember(db.QueryRow(`SELECT m.id, m.email, m.name, m.avatarUrl, m.googleSub, m.role, m.active, m.lastLoginAt, m.extraScopes, m.deniedScopes
 		FROM AuthSession s JOIN TeamMember m ON m.id = s.memberId
 		WHERE s.tokenHash = ? AND s.expiresAt > ? AND m.active = 1`, hash, now))
 	if errors.Is(err, sql.ErrNoRows) {
@@ -295,7 +342,17 @@ func ensureAuthSchema() {
 	}
 	for _, stmt := range splitStatements(authSchema) {
 		if _, err := db.Exec(stmt); err != nil {
-			log.Fatalf("❌ AUTH: erro ao criar tabelas da equipe/sessões: %v", err)
+			log.Fatalf("❌ AUTH: erro ao criar tabelas da equipe/sessões/tokens: %v", err)
+		}
+	}
+	// Bancos criados pelo WP1 não têm as colunas de escopos: acrescenta (só ADD COLUMN, nada é alterado).
+	for _, col := range []string{"extraScopes", "deniedScopes"} {
+		if ok, err := columnExists("TeamMember", col); err != nil {
+			log.Fatalf("❌ AUTH: %v", err)
+		} else if !ok {
+			if _, err := db.Exec("ALTER TABLE TeamMember ADD COLUMN " + col + " TEXT NULL"); err != nil {
+				log.Fatalf("❌ AUTH: erro ao acrescentar %s: %v", col, err)
+			}
 		}
 	}
 	if err := bootstrapAdmin(authDB); err != nil {

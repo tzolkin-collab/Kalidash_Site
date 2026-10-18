@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
@@ -9,7 +10,6 @@ import (
 	"encoding/hex"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -125,47 +125,7 @@ func setAuthCORS(w http.ResponseWriter, r *http.Request) {
 }
 
 // ---- política de acesso por rota ----
-
-type access int
-
-const (
-	accPublic  access = iota // sem login, de propósito (lista abaixo)
-	accAny                   // qualquer pessoa logada
-	accManager               // Admin ou Gerente
-	accAdmin                 // só Admin
-)
-
-// routeAccess é a ÚNICA tabela de quem pode o quê por rota. Cada exceção pública tem o motivo.
-// Regras mais finas (origem do lead, CPF em escrita) ficam no handler: ver requireManagerFor.
-func routeAccess(r *http.Request) access {
-	p, m := r.URL.Path, r.Method
-	switch {
-	case !strings.HasPrefix(p, "/api/"):
-		// /auth/* tem login/callback/logout/me, que se autenticam por conta própria. O resto nem existe (404).
-		return accPublic
-	case p == "/api/public/leads":
-		// Captura de lead pelos formulários das LPs. Tem origem permitida, limite por IP e honeypot próprios.
-		return accPublic
-	case m == http.MethodGet && (p == "/api/blog/article" || p == "/api/blog/settings"):
-		// O site (Next) lê o artigo publicado por slug e os textos da galeria sem login.
-		return accPublic
-	case m == http.MethodGet && p == "/api/blog/articles" && r.URL.Query().Get("published") == "true":
-		// Lista do site: só publicados. Sem ?published=true entram rascunhos e exige login.
-		return accPublic
-	case strings.HasPrefix(p, "/api/team"):
-		if m == http.MethodGet {
-			return accAny // a lista (nome, e-mail, perfil) alimenta os seletores de responsável de qualquer tela
-		}
-		return accAdmin // convidar, trocar perfil e desativar
-	case strings.HasPrefix(p, "/api/blog/"):
-		return accManager // rascunhos, escrita e upload: Blog não é do Vendedor (docs/system-core.md)
-	case strings.HasPrefix(p, "/api/pipelines") && m != http.MethodGet:
-		return accManager // managePipelines: funis, fontes, tags e templates
-	case strings.HasSuffix(p, "/document") && strings.HasPrefix(p, "/api/crm/people/"):
-		return accManager // revealCpf
-	}
-	return accAny
-}
+// A tabela de quem pode o quê por rota é routeScope (auth_scopes.go); aqui só se aplica.
 
 func writeAuthErr(w http.ResponseWriter, status int, msg string) {
 	writeJSON(w, status, map[string]string{"error": msg})
@@ -175,16 +135,17 @@ func isWrite(method string) bool {
 	return method == http.MethodPost || method == http.MethodPut || method == http.MethodPatch || method == http.MethodDelete
 }
 
-// withAuth envolve TODO o mux. Ordem: CORS → preflight → anti-CSRF → sessão → perfil.
+// withAuth envolve TODO o mux. Ordem: CORS → preflight → anti-CSRF → credencial → escopo.
+// Credencial: "Authorization: Bearer kld_live_…" (token de API) ou o cookie de sessão (pessoa logada).
 func withAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		acc := routeAccess(r)
+		scope, public := routeScope(r)
 		if r.URL.Path == "/api/public/leads" {
 			next.ServeHTTP(w, r) // CORS próprio (public_leads.go)
 			return
 		}
 		setAuthCORS(w, r)
-		if origin := r.Header.Get("Origin"); origin != "" && !authOriginOK(origin) && acc != accPublic {
+		if origin := r.Header.Get("Origin"); origin != "" && !authOriginOK(origin) && !public {
 			// requisição de navegador vinda de fora da lista (inclui preflight)
 			writeAuthErr(w, http.StatusForbidden, "origem não permitida")
 			return
@@ -200,37 +161,55 @@ func withAuth(next http.Handler) http.Handler {
 				return
 			}
 		}
-		if acc == accPublic {
+		if public {
 			next.ServeHTTP(w, r)
 			return
 		}
-		m, ok := sessionMember(w, r)
-		if !ok {
-			writeAuthErr(w, http.StatusUnauthorized, "faça login")
-			return
+		var m Member
+		if secret, has := bearerToken(r); has {
+			var err error
+			if m, _, err = tokenPrincipal(r, secret); err != nil {
+				if errors.Is(err, errTokenInvalid) {
+					w.Header().Set("WWW-Authenticate", `Bearer realm="kalidash"`)
+					writeAuthErr(w, http.StatusUnauthorized, "token inválido, expirado ou revogado")
+				} else {
+					writeErr(w, err)
+				}
+				return
+			}
+			if !tokenAllowed(scope) {
+				writeAuthErr(w, http.StatusForbidden, "tokens de API não alcançam esta rota")
+				return
+			}
+		} else {
+			var ok bool
+			if m, ok = sessionMember(w, r); !ok {
+				writeAuthErr(w, http.StatusUnauthorized, "faça login")
+				return
+			}
 		}
-		if (acc == accManager && !isManager(m.Role)) || (acc == accAdmin && m.Role != roleAdmin) {
-			writeAuthErr(w, http.StatusForbidden, "seu perfil não tem permissão para isto")
+		if scope != "" && !hasScope(m.Scopes, scope) {
+			writeAuthErr(w, http.StatusForbidden, "falta a permissão "+scope)
 			return
 		}
 		next.ServeHTTP(w, r.WithContext(withPrincipal(r.Context(), m)))
 	})
 }
 
-// requireManagerFor é a checagem fina dentro do handler: com login ligado, só Admin/Gerente passam.
+// requireScopeFor é a checagem fina dentro do handler: com login ligado, só quem tem o escopo passa.
 // Sem login ligado (AUTH_API desligado) devolve true e nada muda. Escreve o 403 quando nega.
-func requireManagerFor(w http.ResponseWriter, r *http.Request, what string) bool {
+func requireScopeFor(w http.ResponseWriter, r *http.Request, scope, what string) bool {
 	if !authEnabled() {
 		return true
 	}
-	if m, ok := principalOf(r); ok && isManager(m.Role) {
+	if m, ok := principalOf(r); ok && hasScope(m.Scopes, scope) {
 		return true
 	}
-	writeAuthErr(w, http.StatusForbidden, "só Admin e Gerente podem "+what)
+	writeAuthErr(w, http.StatusForbidden, "falta a permissão "+scope+" para "+what)
 	return false
 }
 
-// actorFor: com login, o autor do histórico é a pessoa da sessão (o cliente não escolhe).
+// actorFor: com login, o autor do histórico é a pessoa da sessão (ou o token), o cliente não escolhe.
 func actorFor(r *http.Request, sent string) string {
 	if m, ok := principalOf(r); ok {
 		if m.Name != "" {

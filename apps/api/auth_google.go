@@ -41,6 +41,9 @@ func registerAuthRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/auth/dev/login", handleDevLogin)
 	mux.HandleFunc("/api/team", handleTeam)
 	mux.HandleFunc("/api/team/{id}", handleTeamByID)
+	mux.HandleFunc("/api/access/catalog", handleAccessCatalog)
+	mux.HandleFunc("/api/tokens", handleTokens)
+	mux.HandleFunc("/api/tokens/{id}", handleTokenByID)
 }
 
 func signState(state string) string {
@@ -313,7 +316,7 @@ func handleDevLogin(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, m)
 }
 
-// ---- equipe: GET/POST /api/team e PUT/PATCH/DELETE /api/team/{id} (só Admin: routeAccess) ----
+// ---- equipe: GET/POST /api/team e PUT/PATCH/DELETE /api/team/{id} (team:read / team:manage: routeScope) ----
 
 func handleTeam(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -327,6 +330,8 @@ func handleTeam(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		var in struct {
 			Email, Name, Role string
+			Extra             []string `json:"scopesExtra"`
+			Denied            []string `json:"scopesDenied"`
 		}
 		r.Body = http.MaxBytesReader(w, r.Body, 8<<10)
 		if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
@@ -342,7 +347,15 @@ func handleTeam(w http.ResponseWriter, r *http.Request) {
 			writeAuthErr(w, http.StatusUnprocessableEntity, "perfil inválido")
 			return
 		}
+		extra, denied, status, msg := checkOverrides(in.Role, in.Extra, in.Denied)
+		if status != 0 {
+			writeAuthErr(w, status, msg)
+			return
+		}
 		by, _ := principalOf(r)
+		if !canGrant(w, by, nil, effectiveScopes(in.Role, extra, denied, false)) {
+			return
+		}
 		m, err := authDB.AddMember(Member{Email: in.Email, Name: clean(in.Name, 200), Role: in.Role}, by.ID)
 		if errors.Is(err, errMemberExists) {
 			writeAuthErr(w, http.StatusConflict, err.Error())
@@ -351,11 +364,75 @@ func handleTeam(w http.ResponseWriter, r *http.Request) {
 			writeErr(w, err)
 			return
 		}
+		if len(extra) > 0 || len(denied) > 0 {
+			if m, err = authDB.SetMemberScopes(m.ID, extra, denied); err != nil {
+				writeErr(w, err)
+				return
+			}
+		}
 		log.Printf("AUTH: %s convidou %s como %s", by.Email, m.Email, m.Role)
 		writeJSON(w, http.StatusCreated, m)
 	default:
 		writeAuthErr(w, http.StatusMethodNotAllowed, "método não permitido")
 	}
+}
+
+// checkOverrides valida e normaliza os escopos extras/removidos para o perfil: extras já cobertos pelo preset
+// e removidos que o preset não tem não fazem nada e são descartados. status!=0 é o erro a devolver.
+func checkOverrides(role string, extra, denied []string) (e, d []string, status int, msg string) {
+	if bad := unknownScopes(append(append([]string{}, extra...), denied...)); len(bad) > 0 {
+		return nil, nil, http.StatusUnprocessableEntity, "escopo desconhecido: " + strings.Join(bad, ", ")
+	}
+	extra, denied = normScopes(extra), normScopes(denied)
+	for _, s := range extra {
+		if hasScope(denied, s) {
+			return nil, nil, http.StatusUnprocessableEntity, "o escopo " + s + " está ao mesmo tempo concedido e removido"
+		}
+	}
+	preset := presetScopes(role)
+	e, d = []string{}, []string{}
+	for _, s := range extra {
+		if !hasScope(preset, s) {
+			e = append(e, s)
+		}
+	}
+	for _, s := range denied {
+		if hasScope(preset, s) {
+			d = append(d, s)
+		}
+	}
+	return e, d, 0, ""
+}
+
+// canGrant: ninguém dá o que não tem. Só conta o que a pessoa ganha agora (efetivos novos − os de antes),
+// então editar outra coisa de alguém mais poderoso continua possível. Escreve o 403 quando nega.
+func canGrant(w http.ResponseWriter, by Member, before, after []string) bool {
+	for _, s := range after {
+		if !hasScope(before, s) && !hasScope(by.Scopes, s) {
+			writeAuthErr(w, http.StatusForbidden, "você não pode conceder uma permissão que você mesmo não tem: "+s)
+			return false
+		}
+	}
+	return true
+}
+
+// teamManagerRemains: depois da mudança, ao menos uma pessoa ativa precisa continuar com team:manage,
+// senão ninguém mais consegue consertar a equipe pela tela.
+func teamManagerRemains(id string, role string, extra, denied []string, active bool) bool {
+	list, err := authDB.ListMembers()
+	if err != nil {
+		return true // não bloqueia por falha de leitura; o armazenamento ainda protege o último Admin
+	}
+	for _, m := range list {
+		sc, act := m.Scopes, m.Active
+		if m.ID == id {
+			sc, act = effectiveScopes(role, extra, denied, m.Root), active
+		}
+		if act && hasScope(sc, "team:manage") {
+			return true
+		}
+	}
+	return false
 }
 
 func handleTeamByID(w http.ResponseWriter, r *http.Request) {
@@ -366,6 +443,7 @@ func handleTeamByID(w http.ResponseWriter, r *http.Request) {
 	}
 	var name, role *string
 	var active *bool
+	var extraIn, deniedIn *[]string
 	switch r.Method {
 	case http.MethodGet:
 		m, err := authDB.MemberByID(id)
@@ -377,9 +455,11 @@ func handleTeamByID(w http.ResponseWriter, r *http.Request) {
 		return
 	case http.MethodPut, http.MethodPatch:
 		var in struct {
-			Name   *string `json:"name"`
-			Role   *string `json:"role"`
-			Active *bool   `json:"active"`
+			Name   *string   `json:"name"`
+			Role   *string   `json:"role"`
+			Active *bool     `json:"active"`
+			Extra  *[]string `json:"scopesExtra"`
+			Denied *[]string `json:"scopesDenied"`
 		}
 		r.Body = http.MaxBytesReader(w, r.Body, 8<<10)
 		if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
@@ -394,7 +474,7 @@ func handleTeamByID(w http.ResponseWriter, r *http.Request) {
 			n := clean(*in.Name, 200)
 			in.Name = &n
 		}
-		name, role, active = in.Name, in.Role, in.Active
+		name, role, active, extraIn, deniedIn = in.Name, in.Role, in.Active, in.Extra, in.Denied
 	case http.MethodDelete: // remover = desativar (a pessoa fica no histórico e pode ser reativada)
 		f := false
 		active = &f
@@ -402,14 +482,46 @@ func handleTeamByID(w http.ResponseWriter, r *http.Request) {
 		writeAuthErr(w, http.StatusMethodNotAllowed, "método não permitido")
 		return
 	}
-	if target, err := authDB.MemberByID(id); err == nil && root(target) &&
-		((role != nil && *role != roleAdmin) || (active != nil && !*active)) {
-		writeAuthErr(w, http.StatusConflict, "esta é a conta Admin raiz, definida no servidor (AUTH_ROOT_ADMIN): não pode ser rebaixada nem desativada pela tela")
+	target, terr := authDB.MemberByID(id)
+	if terr != nil {
+		teamErr(w, terr)
+		return
+	}
+	if target.Root && ((role != nil && *role != roleAdmin) || (active != nil && !*active) || (deniedIn != nil && len(*deniedIn) > 0)) {
+		writeAuthErr(w, http.StatusConflict, "esta é a conta Admin raiz, definida no servidor (AUTH_ROOT_ADMIN): não pode ser rebaixada, desativada nem perder permissões pela tela")
 		return
 	}
 	me, _ := principalOf(r)
-	if me.ID == id && ((role != nil && *role != me.Role) || (active != nil && !*active)) {
+	scopesChange := extraIn != nil || deniedIn != nil
+	if me.ID == id && (scopesChange || (role != nil && *role != me.Role) || (active != nil && !*active)) {
 		writeAuthErr(w, http.StatusConflict, "você não pode mudar nem desativar o seu próprio acesso")
+		return
+	}
+	// perfil, extras e removidos resultantes (o que não veio fica como está)
+	newRole, newActive := target.Role, target.Active
+	if role != nil {
+		newRole = *role
+	}
+	if active != nil {
+		newActive = *active
+	}
+	extra, denied := target.Extra, target.Denied
+	if extraIn != nil {
+		extra = *extraIn
+	}
+	if deniedIn != nil {
+		denied = *deniedIn
+	}
+	extra, denied, status, msg := checkOverrides(newRole, extra, denied)
+	if status != 0 {
+		writeAuthErr(w, status, msg)
+		return
+	}
+	if !canGrant(w, me, target.Scopes, effectiveScopes(newRole, extra, denied, target.Root)) {
+		return
+	}
+	if !teamManagerRemains(id, newRole, extra, denied, newActive) {
+		writeAuthErr(w, http.StatusConflict, "alguém ativo precisa continuar com a permissão de gerenciar a equipe (team:manage)")
 		return
 	}
 	m, err := authDB.UpdateMember(id, name, role, active)
@@ -417,10 +529,17 @@ func handleTeamByID(w http.ResponseWriter, r *http.Request) {
 		teamErr(w, err)
 		return
 	}
+	// grava os escopos quando vieram ou quando a troca de perfil os tornou redundantes
+	if scopesChange || len(target.Extra) != len(extra) || len(target.Denied) != len(denied) {
+		if m, err = authDB.SetMemberScopes(id, extra, denied); err != nil {
+			teamErr(w, err)
+			return
+		}
+	}
 	if !m.Active {
 		_ = authDB.DeleteMemberSessions(id)
 	}
-	log.Printf("AUTH: %s alterou %s (perfil %s, ativo %v)", me.Email, m.Email, m.Role, m.Active)
+	log.Printf("AUTH: %s alterou %s (perfil %s, ativo %v, extras %v, removidos %v)", me.Email, m.Email, m.Role, m.Active, m.Extra, m.Denied)
 	writeJSON(w, http.StatusOK, m)
 }
 

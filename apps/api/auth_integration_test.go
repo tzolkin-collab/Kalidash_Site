@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -14,7 +15,7 @@ import (
 
 func TestIntegrationAuth(t *testing.T) {
 	crmDB(t) // abre `db`, recria Contact/Company/Lead/ChangeLog e as tabelas do funil
-	for _, tbl := range []string{"AuthSession", "TeamMember"} {
+	for _, tbl := range []string{"ApiToken", "AuthSession", "TeamMember"} {
 		db.Exec("DROP TABLE IF EXISTS " + tbl)
 	}
 	for k, v := range map[string]string{
@@ -23,11 +24,23 @@ func TestIntegrationAuth(t *testing.T) {
 	} {
 		t.Setenv(k, v)
 	}
-	oldDB := authDB
-	authDB = sqlAuthStore{}
-	t.Cleanup(func() { authDB = oldDB })
+	oldDB, oldTok := authDB, tokenDB
+	authDB, tokenDB = sqlAuthStore{}, sqlTokenStore{}
+	t.Cleanup(func() { authDB, tokenDB = oldDB, oldTok })
+
+	// banco criado pelo WP1 (TeamMember sem as colunas de escopos): a subida acrescenta as colunas e mantém as linhas
+	if _, err := db.Exec(`CREATE TABLE TeamMember (id VARCHAR(64) PRIMARY KEY, email VARCHAR(254) NOT NULL, name VARCHAR(200) NOT NULL DEFAULT '',
+		avatarUrl VARCHAR(500) NULL, googleSub VARCHAR(64) NULL, role VARCHAR(8) NOT NULL, active TINYINT(1) NOT NULL DEFAULT 1,
+		lastLoginAt DATETIME NULL, invitedBy VARCHAR(64) NULL, createdAt DATETIME NOT NULL, updatedAt DATETIME NOT NULL,
+		UNIQUE KEY uq_team_email (email), UNIQUE KEY uq_team_sub (googleSub)) ENGINE=InnoDB`); err != nil {
+		t.Fatal(err)
+	}
+	db.Exec(`INSERT INTO TeamMember (id, email, role, createdAt, updatedAt) VALUES ('tm-velho', 'velho@kalidash.test', 'SELLER', NOW(), NOW())`)
 
 	ensureAuthSchema()
+	if old, err := authDB.MemberByID("tm-velho"); err != nil || old.Role != roleSeller || len(old.Scopes) != len(sellerScopes) || len(old.Extra) != 0 {
+		t.Fatalf("migração do WP1: %+v %v", old, err)
+	}
 	ensureAuthSchema() // idempotente
 	adm, err := authDB.MemberByEmail("adm@kalidash.test")
 	if err != nil || adm.Role != roleAdmin || !adm.Active || adm.Status != "INVITED" {
@@ -194,6 +207,114 @@ func TestIntegrationAuth(t *testing.T) {
 	}
 	if rec := do(admC, "GET", "/api/team", ""); rec.Code != 200 || !strings.Contains(rec.Body.String(), "nova@kalidash.test") {
 		t.Errorf("listar equipe: %d %s", rec.Code, rec.Body)
+	}
+
+	// ---- escopos (extras/removidos) no banco ----
+	if m, err := authDB.SetMemberScopes(ven.ID, []string{"people:document", "blog:read", "nao:existe"}, []string{"emails:send"}); err != nil ||
+		len(m.Extra) != 2 || len(m.Denied) != 1 || !hasScope(m.Scopes, "people:document") || hasScope(m.Scopes, "emails:send") {
+		t.Fatalf("SetMemberScopes: %+v %v", m, err)
+	}
+	if _, err := authDB.SetMemberScopes("nao-existe", nil, nil); err != errMemberNotFound {
+		t.Errorf("escopos de pessoa inexistente: %v", err)
+	}
+	if rec := do(venC, "GET", "/api/crm/people/pa/document", ""); rec.Code != 200 {
+		t.Errorf("Vendedor com people:document revela o CPF: %d %s", rec.Code, rec.Body)
+	}
+	if rec := do(venC, "PUT", "/api/crm/people/pa", `{"name":"Ana","email":"ana@x.co","document":"529.982.247-25"}`); rec.Code != 200 {
+		t.Errorf("Vendedor com people:document troca o CPF: %d %s", rec.Code, rec.Body)
+	}
+	if rec := do(venC, "POST", "/api/emails/send", `{}`); rec.Code != 403 {
+		t.Errorf("Vendedor sem emails:send: %d", rec.Code)
+	}
+	authDB.SetMemberScopes(ger.ID, nil, []string{"leads:origin", "pipelines:manage"})
+	if rec := do(gerC, "PUT", "/api/crm/leads/l1", lead); rec.Code != 403 { // volta Site/INBOUND, origem diferente da atual
+		t.Errorf("Gerente sem leads:origin trocando a origem: %d %s", rec.Code, rec.Body)
+	}
+	if rec := do(gerC, "POST", "/api/pipelines", `{}`); rec.Code != 403 {
+		t.Errorf("Gerente sem pipelines:manage: %d", rec.Code)
+	}
+	// equipe pela API com escopos
+	if rec := do(admC, "PUT", "/api/team/"+ven.ID, `{"scopesExtra":[],"scopesDenied":[]}`); rec.Code != 200 {
+		t.Errorf("limpar escopos: %d %s", rec.Code, rec.Body)
+	}
+	if m, _ := authDB.MemberByID(ven.ID); len(m.Extra) != 0 || len(m.Denied) != 0 {
+		t.Errorf("escopos depois de limpar: %+v", m)
+	}
+
+	// ---- tokens no banco ----
+	var secret, tokID string
+	{
+		rec := do(admC, "POST", "/api/tokens", `{"name":"Zapier","scopes":["leads:read","people:read"]}`)
+		var out struct {
+			Token string
+			Meta  APIToken
+		}
+		if err := json.Unmarshal(rec.Body.Bytes(), &out); rec.Code != 201 || err != nil || !strings.HasPrefix(out.Token, "kld_live_") {
+			t.Fatalf("criar token: %d %s", rec.Code, rec.Body)
+		}
+		secret, tokID = out.Token, out.Meta.ID
+		var hash, scopes string
+		db.QueryRow(`SELECT tokenHash, scopes FROM ApiToken WHERE id = ?`, tokID).Scan(&hash, &scopes)
+		if hash != hashAPIToken(secret) || strings.Contains(hash, secret) || scopes != "leads:read,people:read" {
+			t.Errorf("guardado: hash=%q scopes=%q", hash, scopes)
+		}
+		var n int
+		db.QueryRow(`SELECT COUNT(*) FROM ApiToken WHERE tokenHash = ? OR name = ? OR prefix = ?`, secret, secret, secret).Scan(&n)
+		if n != 0 {
+			t.Error("o segredo não pode estar em nenhuma coluna")
+		}
+	}
+	bearer := func(method, path string) *httptest.ResponseRecorder {
+		r := httptest.NewRequest(method, path, strings.NewReader(""))
+		r.Header.Set("Authorization", "Bearer "+secret)
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, r)
+		return rec
+	}
+	if rec := bearer("GET", "/api/crm/people"); rec.Code != 200 {
+		t.Errorf("token lê pessoas: %d %s", rec.Code, rec.Body)
+	}
+	if rec := bearer("POST", "/api/crm/people"); rec.Code != 403 {
+		t.Errorf("token sem people:write: %d", rec.Code)
+	}
+	if rec := bearer("GET", "/api/team"); rec.Code != 403 {
+		t.Errorf("token sem team:read: %d", rec.Code)
+	}
+	list, err := tokenDB.ListTokens()
+	if err != nil || len(list) != 1 || list[0].Status != "ACTIVE" || list[0].LastUsedAt == nil || list[0].CreatedByName == "" || list[0].ExpiresAt != nil || len(list[0].Scopes) != 2 {
+		t.Errorf("listar tokens: %+v %v", list, err)
+	}
+	if rec := do(admC, "GET", "/api/tokens", ""); rec.Code != 200 || strings.Contains(rec.Body.String(), secret) {
+		t.Errorf("GET /api/tokens: %d", rec.Code)
+	}
+	// o último uso só regrava depois do intervalo
+	first := list[0].LastUsedAt.Time
+	bearer("GET", "/api/crm/people")
+	if again, _ := tokenDB.ListTokens(); !again[0].LastUsedAt.Time.Equal(first) {
+		t.Error("o último uso não deveria mudar dentro do intervalo")
+	}
+	tokenDB.TouchToken(tokID, "10.1.1.1", time.Now().Add(time.Hour), time.Minute)
+	if again, _ := tokenDB.ListTokens(); !again[0].LastUsedAt.After(first) || again[0].LastUsedIP != "10.1.1.1" {
+		t.Errorf("último uso depois do intervalo: %+v", again[0])
+	}
+	// expirado
+	db.Exec(`UPDATE ApiToken SET expiresAt = ? WHERE id = ?`, time.Now().Add(-time.Hour), tokID)
+	if rec := bearer("GET", "/api/crm/people"); rec.Code != 401 {
+		t.Errorf("token expirado: %d", rec.Code)
+	}
+	db.Exec(`UPDATE ApiToken SET expiresAt = NULL WHERE id = ?`, tokID)
+	if rec := bearer("GET", "/api/crm/people"); rec.Code != 200 {
+		t.Errorf("sem validade de novo: %d", rec.Code)
+	}
+	// revogação imediata
+	if rec := do(admC, "DELETE", "/api/tokens/"+tokID, ""); rec.Code != 200 {
+		t.Errorf("revogar: %d %s", rec.Code, rec.Body)
+	}
+	if rec := bearer("GET", "/api/crm/people"); rec.Code != 401 {
+		t.Errorf("token revogado: %d", rec.Code)
+	}
+	if rev, _ := tokenDB.ListTokens(); rev[0].Status != "REVOKED" || rev[0].RevokedAt == nil {
+		t.Errorf("status após revogar: %+v", rev[0])
 	}
 
 	// logout revoga no banco

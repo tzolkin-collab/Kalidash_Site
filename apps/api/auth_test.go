@@ -79,6 +79,8 @@ func (s *memStore) AddMember(m Member, _ string) (Member, error) {
 	return m, nil
 }
 func derive(m *Member) {
+	m.Root = root(*m)
+	computeScopes(m)
 	switch {
 	case !m.Active:
 		m.Status = "DISABLED"
@@ -117,6 +119,17 @@ func (s *memStore) UpdateMember(id string, name, role *string, active *bool) (Me
 	if name != nil {
 		m.Name = *name
 	}
+	derive(m)
+	return *m, nil
+}
+func (s *memStore) SetMemberScopes(id string, extra, denied []string) (Member, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	m, ok := s.members[id]
+	if !ok {
+		return Member{}, errMemberNotFound
+	}
+	m.Extra, m.Denied = normScopes(extra), normScopes(denied)
 	derive(m)
 	return *m, nil
 }
@@ -191,6 +204,68 @@ func (s *memStore) CountActiveAdmins() (int, error) {
 	return n, nil
 }
 
+// memTokens é o tokenStore em memória dos testes de unidade.
+type memTokens struct {
+	mu     sync.Mutex
+	list   []APIToken
+	hashes map[string]string // id -> hash
+	touch  map[string]int    // id -> quantas vezes gravou o último uso
+}
+
+func newMemTokens() *memTokens { return &memTokens{hashes: map[string]string{}, touch: map[string]int{}} }
+
+func (s *memTokens) CreateToken(t APIToken, hash string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.list = append(s.list, t)
+	s.hashes[t.ID] = hash
+	return nil
+}
+func (s *memTokens) ListTokens() ([]APIToken, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	out := append([]APIToken{}, s.list...)
+	for i := range out {
+		out[i].derive(time.Now())
+	}
+	return out, nil
+}
+func (s *memTokens) TokenByHash(hash string) (APIToken, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, t := range s.list {
+		if s.hashes[t.ID] == hash {
+			return t, nil
+		}
+	}
+	return APIToken{}, errTokenNotFound
+}
+func (s *memTokens) RevokeToken(id, by string, at time.Time) (APIToken, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for i := range s.list {
+		if s.list[i].ID == id {
+			if s.list[i].RevokedAt == nil {
+				s.list[i].RevokedAt = &FlexTime{at}
+			}
+			s.list[i].derive(time.Now())
+			return s.list[i], nil
+		}
+	}
+	return APIToken{}, errTokenNotFound
+}
+func (s *memTokens) TouchToken(id, ip string, now time.Time, gap time.Duration) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for i := range s.list {
+		if s.list[i].ID == id && (s.list[i].LastUsedAt == nil || s.list[i].LastUsedAt.Before(now.Add(-gap))) {
+			s.list[i].LastUsedAt, s.list[i].LastUsedIP = &FlexTime{now}, ip
+			s.touch[id]++
+		}
+	}
+	return nil
+}
+
 const (
 	testAdminOrigin = "https://admin.kalidash.test"
 	testAPIOrigin   = "https://api.kalidash.test"
@@ -215,9 +290,9 @@ func setupAuth(t *testing.T) *authEnv {
 	} {
 		t.Setenv(k, v)
 	}
-	oldDB := authDB
-	authDB = e.store
-	t.Cleanup(func() { authDB = oldDB })
+	oldDB, oldTok := authDB, tokenDB
+	authDB, tokenDB = e.store, newMemTokens()
+	t.Cleanup(func() { authDB, tokenDB = oldDB, oldTok })
 
 	e.google = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
@@ -250,6 +325,10 @@ func setupAuth(t *testing.T) *authEnv {
 	mux.HandleFunc("/api/blog/article", enableCORS(ok(200)))
 	mux.HandleFunc("/api/blog/settings", enableCORS(ok(200)))
 	mux.HandleFunc("/api/blog/upload", enableCORS(ok(200)))
+	for _, p := range []string{"/api/tasks", "/api/tasks/{id}", "/api/crm/history", "/api/crm/leads", "/api/crm/leads/{id}", "/api/crm/companies",
+		"/api/crm/people/{id}", "/api/leads/move", "/api/leads/notes", "/api/emails/send", "/api/gate/check", "/api/desconhecida"} {
+		mux.HandleFunc(p, enableCORS(ok(200)))
+	}
 	mux.HandleFunc("/api/public/leads", ok(201))
 	registerAuthRoutes(mux)
 	e.h = withAuth(mux)
@@ -928,7 +1007,7 @@ func TestComFlagDesligadaNadaMuda(t *testing.T) {
 		t.Errorf("sem AUTH_API o CORS segue como antes: %v", rec.Header())
 	}
 	r := httptest.NewRequest("PUT", "/x", nil)
-	if !requireManagerFor(httptest.NewRecorder(), r, "x") || !canWriteDocument(httptest.NewRecorder(), r, "111.444.777-35") {
+	if !requireScopeFor(httptest.NewRecorder(), r, "people:document", "x") || !canWriteDocument(httptest.NewRecorder(), r, "111.444.777-35") {
 		t.Error("sem AUTH_API as regras de perfil não agem")
 	}
 }
