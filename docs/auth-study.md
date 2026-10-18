@@ -364,7 +364,7 @@ Código: `apps/api/auth_store.go` (tabelas, equipe, sessões, bootstrap), `auth_
 | `access_token` na URL e na memória do PWA | Nada de token no JavaScript | O cookie `HttpOnly` não é lido por XSS |
 | Tabelas `team_members` e `sessions` | **`TeamMember`** e **`AuthSession`** (nomes no padrão das demais tabelas; ver `apps/studio/prisma/schema.prisma`) | `User` do Prisma segue como dono de oportunidades do protótipo |
 | `POST /auth/setup` (1º a logar vira Admin) | **`AUTH_ROOT_ADMIN`**: o Admin raiz (rootDev) é definido no `.env`, garantido a cada subida e protegido na tela (decidido pelo PO em 18/10; antes se chamava `AUTH_BOOTSTRAP_ADMIN`, que ainda funciona) | Entrar por qualquer conta do domínio e virar Admin é arriscado; o e-mail é escolhido por quem sobe o servidor |
-| `RequireRole` por rota | `routeAccess` (uma tabela) + `auth_rules.go` | Uma única fonte da política, testada em `auth_test.go` |
+| `RequireRole` por rota | `routeScope` (uma tabela, por **escopo**) + `auth_rules.go` | Uma única fonte da política, testada em `auth_test.go` e `auth_scopes_test.go`. Desde o WP1.1 o perfil é só um preset de escopos (ver abaixo) |
 | Equipe só para o Admin | `GET /api/team` para **qualquer pessoa logada**; escrever é só Admin | A lista (nome, e-mail, perfil) alimenta os seletores de responsável de todas as telas |
 | id_token verificado com `go-oidc` | Lido sem checar a assinatura, **só** por vir direto do endpoint de token do Google (TLS, com `client_secret`); conferimos `iss`, `aud`, `exp`, `email_verified` e, se houver, `hd` | OIDC Core §3.1.3.7; evita dependências novas |
 | `golang.org/x/oauth2`, `jwt` | Nenhuma dependência nova | Troca de código em ~40 linhas de `net/http` |
@@ -379,14 +379,15 @@ Código: `apps/api/auth_store.go` (tabelas, equipe, sessões, bootstrap), `auth_
 | `POST /api/public/leads` | **público** | Captura dos formulários das LPs; tem origem permitida, limite por IP e honeypot próprios |
 | `GET /api/blog/article`, `GET /api/blog/settings`, `GET /api/blog/articles?published=true` | **público** | O site (Next) lê artigo publicado e textos da galeria sem login. Rascunhos e escrita exigem sessão |
 | `/api/revalidate` | — | **Não é da API**: é do site (Next); a API é quem o chama (`revalidate.go`) |
-| `GET /api/team` | qualquer logado | |
-| `POST/PUT/DELETE /api/team…` | Admin | `DELETE` desativa; ninguém muda o próprio acesso; o último Admin não sai |
-| `/api/blog/*` (menos as públicas) | Admin e Gerente | |
-| `POST/PUT/DELETE /api/pipelines…` | Admin e Gerente | `managePipelines` |
-| `GET /api/crm/people/{id}/document` | Admin e Gerente | `revealCpf` |
-| `PUT/POST /api/crm/people` com CPF novo | Admin e Gerente | o CPF mascarado que a API devolve pode ser reenviado por qualquer um |
-| `PUT /api/crm/leads/{id}` trocando origem ou fonte | Admin e Gerente | `editOrigin` |
-| todo o resto de `/api/*` | qualquer logado | |
+| `GET /api/team` | `team:read` (todos os perfis) | |
+| `POST/PUT/DELETE /api/team…` | `team:manage` (Admin) | `DELETE` desativa; ninguém muda o próprio acesso; o último Admin não sai |
+| `/api/blog/*` (menos as públicas) | `blog:read` (GET) / `blog:write` | Admin e Gerente por padrão |
+| `POST/PUT/DELETE /api/pipelines…` | `pipelines:manage` | `managePipelines` |
+| `GET /api/crm/people/{id}/document` | `people:document` | `revealCpf` |
+| `PUT/POST /api/crm/people` com CPF novo | `people:document` | o CPF mascarado que a API devolve pode ser reenviado por qualquer um |
+| `PUT /api/crm/leads/{id}` trocando origem ou fonte | `leads:origin` | `editOrigin` |
+| o resto de `/api/*` | o escopo da tabela (`routeScope`) | ver a lista completa em "Escopos e tokens" |
+| rota de `/api/*` sem escopo mapeado | qualquer **pessoa** logada; **token nunca** | negar por padrão para tokens |
 
 Outras decisões: o **autor do histórico** (`ChangeLog.actor`) passa a ser o nome da sessão, não o que o cliente envia; escritas com `Origin` fora de `ALLOWED_ORIGINS` recebem `403` (anti-CSRF além do `SameSite`); o CORS reflete só origens da lista, com credenciais, nunca `*`, e a API **recusa subir** com `AUTH_API=1` sem `SESSION_SECRET` (32+), `ALLOWED_ORIGINS` e (sem `AUTH_DEV_LOGIN`) `GOOGLE_CLIENT_ID/SECRET`, `GOOGLE_REDIRECT_URL`, `ADMIN_URL`.
 
@@ -399,3 +400,53 @@ Outras decisões: o **autor do histórico** (`ChangeLog.actor`) passa a ser o no
 ### Ligar em produção (ordem)
 
 1. Backup do banco. 2. Google Cloud: criar o OAuth Client ID (tipo Aplicativo da Web) com a URL de redirecionamento `https://<api>/auth/google/callback`. 3. Definir as variáveis (ver `.env.example`), com `AUTH_ROOT_ADMIN` = e-mail do Admin raiz. 4. Admin e API no **mesmo site** (ex.: `admin.` e `api.` do mesmo domínio), senão o navegador não manda o cookie. 5. Subir a API; entrar com a conta do primeiro Admin; convidar o resto em Configurações → Equipe. 6. Manter `AUTH_ROOT_ADMIN` (restaura a conta raiz a cada subida). Nunca `AUTH_DEV_LOGIN` nem `AUTH_COOKIE_INSECURE` em produção.
+
+## Escopos e tokens de API (WP1.1, 18/10/2026)
+
+Decisão do PO: em vez de depender só dos 3 perfis fixos, a permissão é **por escopo**, e há **tokens de API** para sistemas e automações. Continua atrás de `AUTH_API=1`; sem a flag nada muda. Código: `apps/api/auth_scopes.go` (catálogo, presets, `routeScope`), `auth_tokens.go` (tokens, `/api/tokens`, `/api/access/catalog`), `auth_store.go` (colunas e tabela), `auth_middleware.go` (`withAuth`); admin: `lib/scopes.ts`, `lib/accessSync.ts`, `components/Access.tsx` (Configurações → **Permissões** e **Tokens de API**).
+
+### Modelo
+
+`escopos efetivos = (preset do perfil ∪ extras da pessoa) − removidos da pessoa`. O **Admin raiz** (`AUTH_ROOT_ADMIN`) sempre tem todos, mesmo que o banco guarde removidos. O servidor decide; o admin só esconde o que daria `403`. `GET /auth/me` e `GET /api/team` devolvem `scopes` (efetivos), `scopesExtra` e `scopesDenied`.
+
+| Área | Escopo | Vendedor | Gerente | Admin | Rotas |
+|---|---|:-:|:-:|:-:|---|
+| CRM | `leads:read` / `leads:write` | ✅ | ✅ | ✅ | `/api/leads*`, `/api/crm/leads*` (GET / escrita) |
+| CRM | `leads:origin` | — | ✅ | ✅ | trocar origem/fonte de lead existente (regra no handler) |
+| CRM | `people:read` / `people:write` | ✅ | ✅ | ✅ | `/api/crm/people*`, `/api/crm/companies*` |
+| CRM | `people:document` | — | ✅ | ✅ | `GET …/document` e CPF novo em escrita |
+| CRM | `history:read` / `history:write` | ✅ | ✅ | ✅ | `/api/crm/history` |
+| Funis e tarefas | `pipelines:read` | ✅ | ✅ | ✅ | `GET /api/pipelines*` |
+| Funis e tarefas | `pipelines:manage` | — | ✅ | ✅ | escrita em `/api/pipelines*` |
+| Funis e tarefas | `tasks:read` / `tasks:write` | ✅ | ✅ | ✅ | `/api/tasks*`, `/api/gate/check` (leitura) |
+| Conteúdo | `blog:read` / `blog:write` | — | ✅ | ✅ | `/api/blog/*` não público |
+| Conteúdo | `emails:send` | ✅ | ✅ | ✅ | `/api/emails/send` |
+| Automação | `automations:manage` | — | ✅ | ✅ | **gancho**: ainda não há rota (marcado "Em breve") |
+| Administração | `team:read` | ✅ | ✅ | ✅ | `GET /api/team*` |
+| Administração | `team:manage` | — | — | ✅ | escrita em `/api/team*` (**só pessoas**) |
+| Administração | `keys:manage` | — | ✅ | ✅ | `/api/tokens*` (**só pessoas**) |
+
+O Vendedor tem exatamente o que a tabela antiga (`accAny`) lhe dava; Gerente e Admin, o que era deles. Presets: 11 / 18 / 19 escopos. Rotas públicas continuam públicas (`POST /api/public/leads`, leitura de artigo publicado e textos da galeria).
+
+### Regras de edição (`PUT /api/team/{id}`, `POST /api/team`)
+
+Aceitam `scopesExtra` e `scopesDenied` (listas). Escopo desconhecido ou o mesmo escopo nas duas listas: `422`. O servidor **normaliza**: extra que o preset já dá e removido que o preset não tem são descartados; ao trocar o perfil a normalização é refeita. **Ninguém concede o que não tem** (`403`), nem promovendo de perfil. Ninguém mexe nos próprios escopos nem tira escopo da conta raiz (`409`). Depois de qualquer mudança **ao menos uma pessoa ativa continua com `team:manage`** (`409`), além da regra do último Admin.
+
+### Tokens de API
+
+- Formato `kld_live_<32 caracteres aleatórios>` (256 bits). Vai em `Authorization: Bearer <token>`.
+- No banco (`ApiToken`) só o **SHA-256** do token, mais `prefix` (`kld_live_` + 4 caracteres) e `last4` para reconhecê-lo. O segredo completo aparece **uma única vez**, na resposta de `POST /api/tokens` (`Cache-Control: no-store`); a listagem nunca o traz.
+- **Não expira por padrão.** `expiresAt` é opcional (data futura). Revogar (`DELETE /api/tokens/{id}`) vale **na hora**: cada requisição consulta o banco, sem cache. A ficha revogada fica no histórico.
+- `lastUsedAt`/`lastUsedIp` gravam no máximo **1x por minuto** por token (evita escrita a cada requisição); "agora há pouco" é o piso da precisão.
+- Escopos escolhidos na criação, limitados aos que **quem cria tem** na hora. **Nunca** `team:manage` nem `keys:manage` (são `humanOnly`): token não gerencia equipe, permissões nem outros tokens, e `/api/tokens*` responde `403` a token. Rota sem escopo mapeado também responde `403` a token.
+- `401` para token ausente, malformado, inexistente, expirado ou revogado (com `WWW-Authenticate: Bearer`); `403` quando falta o escopo. O cabeçalho `Authorization` manda sobre o cookie. Requisição de navegador com `Origin` fora de `ALLOWED_ORIGINS` continua barrada (o uso esperado é servidor a servidor, sem `Origin`). O CORS não libera o cabeçalho `Authorization` de propósito.
+- O autor do histórico é `API: <nome do token>`.
+- Tokens são **da organização**, não da pessoa: desativar quem criou **não** os revoga (decisão a confirmar com o PO; ver relatório).
+
+### Gancho para o WP2 (`kld_live_`/`kld_test_`)
+
+Já existe: hash SHA-256, prefixo visível, mostrar uma vez, escopos, revogação imediata, último uso, só Admin/Gerente emitem (`keys:manage`) e nunca com mais escopo do que têm. **Sobra para o WP2:** chaves `kld_test_` (`env`), ligação a **projeto conectado** (`projectId`), os escopos `forms:write`/`analytics:write`/`ads:read` (basta acrescentar em `scopeCatalog`; `leads:read` já existe), o endpoint de entrada do `connect.js` com limite de taxa por chave/IP e validação de origem, e a regra "chave de leitura nunca no snippet". A tabela `ApiToken` pode ganhar `env` e `projectId` por `ADD COLUMN` (o mesmo padrão de `ensureAuthSchema`) ou ser fundida com `ApiKey` do `plano-schema.md`.
+
+### Migração
+
+`ensureAuthSchema` cria `ApiToken` (`CREATE TABLE IF NOT EXISTS`) e acrescenta `TeamMember.extraScopes` e `deniedScopes` (`TEXT NULL`) em bancos criados pelo WP1, só com `ADD COLUMN` quando a coluna não existe. Ninguém perde acesso: sem extras nem removidos, os escopos efetivos são os do perfil, idênticos à matriz anterior. **Backup antes de ligar**, como no WP1.
