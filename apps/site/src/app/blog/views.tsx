@@ -1,7 +1,13 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./blog.module.css";
 import articleStyles from "./[slug]/article.module.css";
+import HomeHeader from "../home/HomeHeader";
+import SiteFooter from "../home/SiteFooter";
+import ReadingProgressBar from "./ReadingProgressBar";
+import ShareButtons from "./ShareButtons";
 
 /* Views do blog — UMA implementação só, usada pelas páginas reais (/blog, /blog/[slug]) e
  * pelas rotas de preview do admin (/preview/*). É isso que garante que o preview é o site.
@@ -39,6 +45,13 @@ export type ArticleViewData = {
   body: string;
   publishedAt?: string | null;
 };
+
+export function estimateReadingTime(textOrHtml: string): number {
+  if (!textOrHtml) return 3;
+  const plainText = textOrHtml.replace(/<[^>]+>/g, " ");
+  const wordCount = plainText.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(wordCount / 200));
+}
 
 export function BlogGalleryView({
   heroHtml,
@@ -90,8 +103,6 @@ export function BlogGalleryView({
               data-block-id={item.blockId}
             >
               {item.coverImageUrl && (
-                // URL livre, colada no admin; sem CDN de imagem própria ainda, então sem
-                // next/image aqui (precisaria de remotePatterns pra qualquer domínio).
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   data-role="cover"
@@ -128,46 +139,170 @@ export function BlogGalleryView({
   );
 }
 
-export function ArticleView({ article }: { article: ArticleViewData }) {
+export function ArticleView({
+  article,
+  relatedArticles = [],
+}: {
+  article: ArticleViewData;
+  relatedArticles?: GalleryItem[];
+}) {
+  const readingTime = estimateReadingTime(article.body || article.excerpt);
+  const formattedDate = article.publishedAt
+    ? new Date(article.publishedAt).toLocaleDateString("pt-BR", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : "";
+  const primaryCategory = article.categories?.[0] || "AI Culture";
+
   return (
-    <main className={articleStyles.page}>
-      <header>
-        <Link href="/blog">← Blog</Link>
-        <Link href="/">Kalidash</Link>
-      </header>
+    <div className={articleStyles.page}>
+      <ReadingProgressBar />
+      <HomeHeader />
 
-      <article>
-        <p data-focus="meta">
-          {article.categories?.[0] || "Kalidash"} ·{" "}
-          {article.publishedAt && new Date(article.publishedAt).toLocaleDateString("pt-BR")}
-        </p>
-        <h1 className={articleStyles.title} data-focus="title">
-          {article.title}
-        </h1>
-        <div className={articleStyles.excerpt} data-focus="excerpt">
-          {article.excerpt}
-        </div>
-        <span data-focus="author">{article.authorName}</span>
+      <main className={articleStyles.mainContainer}>
+        {/* Barra superior de navegação / breadcrumb */}
+        <nav className={articleStyles.breadcrumbNav} aria-label="Navegação estrutural">
+          <Link href="/blog" className={articleStyles.backButton}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+            Voltar ao Blog
+          </Link>
+          <div className={articleStyles.breadcrumbTrail}>
+            <Link href="/">Início</Link>
+            <span>/</span>
+            <Link href="/blog">Blog</Link>
+            <span>/</span>
+            <span className={articleStyles.breadcrumbActive}>{primaryCategory}</span>
+          </div>
+        </nav>
 
-        {article.coverImageUrl && (
-          // eslint-disable-next-line @next/next/no-img-element -- ver nota em GalleryView
-          <img
-            className={articleStyles.cover}
-            data-focus="cover"
-            src={article.coverImageUrl}
-            alt={article.title || "Imagem de capa do artigo"}
-            style={{ objectPosition: `50% ${article.coverImagePos}%` }}
+        <article className={articleStyles.articleContent}>
+          {/* Metadados e cabeçalho */}
+          <div className={articleStyles.headerMeta}>
+            <p data-focus="meta" className={articleStyles.categoryBadge}>
+              {primaryCategory}
+            </p>
+            {formattedDate && (
+              <>
+                <span className={articleStyles.metaDot}>·</span>
+                <span className={articleStyles.dateText}>{formattedDate}</span>
+              </>
+            )}
+            <span className={articleStyles.metaDot}>·</span>
+            <span className={articleStyles.readingBadge}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              {readingTime} min de leitura
+            </span>
+          </div>
+
+          <h1 className={articleStyles.title} data-focus="title">
+            {article.title}
+          </h1>
+
+          <div className={articleStyles.excerpt} data-focus="excerpt">
+            {article.excerpt}
+          </div>
+
+          {/* Barra do autor e botões de compartilhamento */}
+          <div className={articleStyles.authorBar}>
+            <div className={articleStyles.authorProfile}>
+              <div className={articleStyles.authorAvatar}>
+                {article.authorName ? article.authorName.slice(0, 2).toUpperCase() : "KD"}
+              </div>
+              <div className={articleStyles.authorDetails}>
+                <span data-focus="author" className={articleStyles.authorName}>
+                  {article.authorName || "Equipe Kalidash"}
+                </span>
+                <small className={articleStyles.authorRole}>Kalidash Intelligence</small>
+              </div>
+            </div>
+
+            <ShareButtons title={article.title} className={articleStyles.shareTop} />
+          </div>
+
+          {article.coverImageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <div className={articleStyles.coverContainer}>
+              <img
+                className={articleStyles.cover}
+                data-focus="cover"
+                src={article.coverImageUrl}
+                alt={article.title || "Imagem de capa do artigo"}
+                style={{ objectPosition: `50% ${article.coverImagePos}%` }}
+              />
+            </div>
+          )}
+
+          <div
+            className={articleStyles.body}
+            data-block="article-body"
+            data-focus="body"
+            dangerouslySetInnerHTML={{ __html: article.body }}
           />
-        )}
 
-        <div
-          className={articleStyles.body}
-          data-block="article-body"
-          data-focus="body"
-          // O corpo já vem como HTML do editor (BlockNote) do admin.
-          dangerouslySetInnerHTML={{ __html: article.body }}
-        />
-      </article>
-    </main>
+          {/* Rodapé do artigo com compartilhamento */}
+          <div className={articleStyles.articleFooterShare}>
+            <ShareButtons title={article.title} />
+          </div>
+
+          {/* Bloco de Conversão Kalidash */}
+          <section className={articleStyles.conversionCta}>
+            <div className={articleStyles.ctaGlow} />
+            <p className={articleStyles.ctaEyebrow}>ACELERADORA DE EFICIÊNCIA OPERACIONAL</p>
+            <h2 className={articleStyles.ctaTitle}>
+              Prepare sua operação para a era dos agentes de IA
+            </h2>
+            <p className={articleStyles.ctaDescription}>
+              Conectamos agentes de IA, automação e novas formas de trabalhar à rotina real
+              da sua empresa para gerar produtividade, previsibilidade e escala.
+            </p>
+            <div className={articleStyles.ctaActions}>
+              <Link href="/diagnostico" className={articleStyles.ctaPrimaryBtn}>
+                Fazer Diagnóstico Operacional ↗︎
+              </Link>
+              <Link href="/#experiencia" className={articleStyles.ctaSecondaryBtn}>
+                Conhecer a Kalidash
+              </Link>
+            </div>
+          </section>
+
+          {/* Artigos recomendados */}
+          {relatedArticles.length > 0 && (
+            <section className={articleStyles.relatedSection}>
+              <h2 className={articleStyles.relatedTitle}>Continue explorando</h2>
+              <div className={articleStyles.relatedGrid}>
+                {relatedArticles.map((item) => (
+                  <Link key={item.id} href={item.href} className={articleStyles.relatedCard}>
+                    {item.coverImageUrl && (
+                      <div className={articleStyles.relatedCoverWrap}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={item.coverImageUrl}
+                          alt={item.title}
+                          style={{ objectPosition: `50% ${item.coverImagePos}%` }}
+                        />
+                      </div>
+                    )}
+                    <span className={articleStyles.relatedMeta}>{item.meta}</span>
+                    <h3 className={articleStyles.relatedCardTitle}>{item.title}</h3>
+                    <p className={articleStyles.relatedExcerpt}>{item.excerpt}</p>
+                    <span className={articleStyles.relatedReadMore}>Ler artigo ↗︎</span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+        </article>
+      </main>
+
+      <SiteFooter />
+    </div>
   );
 }

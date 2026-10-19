@@ -27,26 +27,17 @@ export default function FlickeringGrid({
 }: FlickeringGridProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isInView, setIsInView] = useState(false);
+  const isInViewRef = useRef(false);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
-  const memoizedColor = useMemo(() => {
-    if (typeof window === "undefined") {
-      return "rgba(182, 100, 77,";
-    }
-    const canvas = document.createElement("canvas");
-    canvas.width = canvas.height = 1;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return "rgba(182, 100, 77,";
-    ctx.fillStyle = color;
-    ctx.fillRect(0, 0, 1, 1);
-    const [r, g, b] = Array.from(ctx.getImageData(0, 0, 1, 1).data);
-    return `rgba(${r}, ${g}, ${b},`;
+  // Converte a cor base em string estável para o context do Canvas
+  const baseColor = useMemo(() => {
+    return color;
   }, [color]);
 
   const setupCanvas = useCallback(
     (canvas: HTMLCanvasElement, w: number, h: number) => {
-      const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+      const dpr = typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 1, 2) : 1;
       canvas.width = w * dpr;
       canvas.height = h * dpr;
       canvas.style.width = `${w}px`;
@@ -66,8 +57,9 @@ export default function FlickeringGrid({
 
   const updateSquares = useCallback(
     (squares: Float32Array, deltaTime: number) => {
+      const chance = flickerChance * deltaTime * 60;
       for (let i = 0; i < squares.length; i++) {
-        if (Math.random() < flickerChance * deltaTime * 60) {
+        if (Math.random() < chance) {
           squares[i] = Math.random() * maxOpacity;
         }
       }
@@ -86,21 +78,24 @@ export default function FlickeringGrid({
       dpr: number
     ) => {
       ctx.clearRect(0, 0, w * dpr, h * dpr);
+      ctx.fillStyle = baseColor;
+
+      const step = (squareSize + gridGap) * dpr;
+      const size = squareSize * dpr;
 
       for (let i = 0; i < cols; i++) {
+        const x = i * step;
         for (let j = 0; j < rows; j++) {
           const opacity = squares[i * rows + j];
-          ctx.fillStyle = `${memoizedColor} ${opacity})`;
-          ctx.fillRect(
-            i * (squareSize + gridGap) * dpr,
-            j * (squareSize + gridGap) * dpr,
-            squareSize * dpr,
-            squareSize * dpr
-          );
+          if (opacity > 0.01) {
+            ctx.globalAlpha = opacity;
+            ctx.fillRect(x, j * step, size, size);
+          }
         }
       }
+      ctx.globalAlpha = 1;
     },
-    [memoizedColor, squareSize, gridGap]
+    [baseColor, squareSize, gridGap]
   );
 
   useEffect(() => {
@@ -108,7 +103,7 @@ export default function FlickeringGrid({
     const container = containerRef.current;
     if (!canvas || !container) return;
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
 
     let animationFrameId: number;
@@ -119,19 +114,35 @@ export default function FlickeringGrid({
     let { cols, rows, squares, dpr } = setupCanvas(canvas, currentWidth, currentHeight);
 
     let lastTime = 0;
-    const animate = (time: number) => {
-      if (!lastTime) lastTime = time;
-      const deltaTime = (time - lastTime) / 1000;
-      lastTime = time;
+    let lastDrawTime = 0;
+    const FPS_INTERVAL = 1000 / 30; // 30 FPS estável para economizar CPU/GPU
 
-      if (isInView) {
+    const animate = (time: number) => {
+      if (!isInViewRef.current) {
+        // Pausa o rAF completamente quando fora de tela
+        return;
+      }
+
+      if (!lastTime) lastTime = time;
+      const elapsedSinceDraw = time - lastDrawTime;
+
+      if (elapsedSinceDraw >= FPS_INTERVAL) {
+        const deltaTime = (time - lastTime) / 1000;
+        lastTime = time;
+        lastDrawTime = time;
+
         updateSquares(squares, deltaTime);
         drawGrid(ctx, currentWidth, currentHeight, cols, rows, squares, dpr);
       }
+
       animationFrameId = requestAnimationFrame(animate);
     };
 
-    animationFrameId = requestAnimationFrame(animate);
+    const startAnimation = () => {
+      cancelAnimationFrame(animationFrameId);
+      lastTime = 0;
+      animationFrameId = requestAnimationFrame(animate);
+    };
 
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -145,6 +156,9 @@ export default function FlickeringGrid({
           rows = canvasData.rows;
           squares = canvasData.squares;
           dpr = canvasData.dpr;
+          if (isInViewRef.current) {
+            drawGrid(ctx, currentWidth, currentHeight, cols, rows, squares, dpr);
+          }
         }
       }
     });
@@ -153,7 +167,13 @@ export default function FlickeringGrid({
 
     const intersectionObserver = new IntersectionObserver(
       ([entry]) => {
-        setIsInView(entry.isIntersecting);
+        const inView = entry.isIntersecting;
+        isInViewRef.current = inView;
+        if (inView) {
+          startAnimation();
+        } else {
+          cancelAnimationFrame(animationFrameId);
+        }
       },
       { threshold: 0.05 }
     );
@@ -165,7 +185,7 @@ export default function FlickeringGrid({
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
     };
-  }, [setupCanvas, updateSquares, drawGrid, width, height, isInView]);
+  }, [setupCanvas, updateSquares, drawGrid, width, height]);
 
   return (
     <div

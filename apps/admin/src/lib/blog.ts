@@ -8,7 +8,7 @@ import { checkUploadFile } from './uploadCheck';
 const BASE = `${API_URL}/api/blog/articles`;
 
 export async function listArticles(): Promise<Article[]> {
-  const res = await fetch(BASE);
+  const res = await fetch(BASE, { credentials: 'include' });
   if (!res.ok) throw new Error(`Não foi possível listar os artigos (${res.status}).`);
   return res.json();
 }
@@ -16,20 +16,51 @@ export async function listArticles(): Promise<Article[]> {
 export type ArticleInput = Omit<Article, 'id' | 'createdAt' | 'updatedAt' | 'publishedAt'> & { id?: string };
 
 export async function createArticle(input: ArticleInput): Promise<Article> {
-  const res = await fetch(BASE, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
+  const res = await fetch(BASE, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
   if (!res.ok) throw new Error(await res.text() || `Não foi possível criar o artigo (${res.status}).`);
   return res.json();
 }
 
 export async function updateArticle(id: string, input: ArticleInput): Promise<Article> {
-  const res = await fetch(BASE, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...input, id }) });
+  const res = await fetch(BASE, {
+    method: 'PUT',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...input, id }),
+  });
   if (!res.ok) throw new Error(await res.text() || `Não foi possível salvar o artigo (${res.status}).`);
   return res.json();
 }
 
 export async function deleteArticle(id: string): Promise<void> {
-  const res = await fetch(`${BASE}?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+  const res = await fetch(`${BASE}?id=${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
   if (!res.ok) throw new Error(await res.text() || `Não foi possível excluir o artigo (${res.status}).`);
+}
+
+export type SlugAvailability = {
+  available: boolean;
+  slug: string;
+  reason?: 'taken' | 'reserved' | 'empty' | string;
+};
+
+/** Verifica se um slug é válido, não reservado e se não colide com outros artigos. */
+export async function checkSlugAvailable(slug: string, exceptId?: string): Promise<SlugAvailability> {
+  const params = new URLSearchParams();
+  params.set('slug', slug);
+  if (exceptId) params.set('exceptId', exceptId);
+  const res = await fetch(`${API_URL}/api/blog/slug-available?${params.toString()}`, {
+    credentials: 'include',
+  });
+  if (!res.ok) throw new Error(`Não foi possível verificar a disponibilidade do slug (${res.status}).`);
+  return res.json();
 }
 
 /** Sobe a imagem pro R2 (a API redimensiona e comprime) e devolve a URL pública. */
@@ -38,7 +69,11 @@ export async function uploadImage(file: File): Promise<string> {
   if (problem) throw new Error(problem);
   const form = new FormData();
   form.append('file', file);
-  const res = await fetch(`${API_URL}/api/blog/upload`, { method: 'POST', body: form });
+  const res = await fetch(`${API_URL}/api/blog/upload`, {
+    method: 'POST',
+    credentials: 'include',
+    body: form,
+  });
   if (!res.ok) throw new Error(await res.text() || `Não foi possível subir a imagem (${res.status}).`);
   const data = await res.json();
   return data.url as string;
@@ -62,13 +97,18 @@ export type BlogSettings = {
 };
 
 export async function getBlogSettings(): Promise<BlogSettings> {
-  const res = await fetch(`${API_URL}/api/blog/settings`);
+  const res = await fetch(`${API_URL}/api/blog/settings`, { credentials: 'include' });
   if (!res.ok) throw new Error(`Não foi possível carregar as configurações do blog (${res.status}).`);
   return res.json();
 }
 
 export async function updateBlogSettings(settings: BlogSettings): Promise<BlogSettings> {
-  const res = await fetch(`${API_URL}/api/blog/settings`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings) });
+  const res = await fetch(`${API_URL}/api/blog/settings`, {
+    method: 'PUT',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(settings),
+  });
   if (!res.ok) throw new Error(await res.text() || `Não foi possível salvar as configurações do blog (${res.status}).`);
   return res.json();
 }

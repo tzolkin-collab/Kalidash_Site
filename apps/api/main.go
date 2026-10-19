@@ -104,9 +104,17 @@ func enableCORS(next http.HandlerFunc) http.HandlerFunc {
 			next(w, r)
 			return
 		}
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+
+		origin := r.Header.Get("Origin")
+		if origin != "" {
+			w.Header().Add("Vary", "Origin")
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+		} else {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+		}
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		// sem isto o navegador não deixa o admin ler o total das listas (paginação do CRM)
 		w.Header().Set("Access-Control-Expose-Headers", "X-Total-Count")
 
@@ -469,6 +477,7 @@ func main() {
 	mux.HandleFunc("/api/emails/test", enableCORS(handleTestEmail)) // só para o e-mail de quem está logado (emails.go)
 	mux.HandleFunc("/api/blog/articles", enableCORS(handleBlogArticles))
 	mux.HandleFunc("/api/blog/article", enableCORS(handleBlogArticleBySlug))
+	mux.HandleFunc("/api/blog/slug-available", enableCORS(handleBlogSlugAvailable))
 	mux.HandleFunc("/api/blog/upload", enableCORS(handleBlogUpload))
 	mux.HandleFunc("/api/blog/settings", enableCORS(handleBlogSettings))
 	mux.HandleFunc("/api/public/leads", handlePublicLead) // pública: CORS e limites próprios (public_leads.go)

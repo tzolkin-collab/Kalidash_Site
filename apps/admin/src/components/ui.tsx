@@ -295,7 +295,7 @@ export function SidePanel({ title, subtitle, onClose, children, footer }: PanelP
   );
 }
 
-export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+export function Field({ label, hint, children }: { label: string; hint?: ReactNode; children: ReactNode }) {
   return (
     <label className="field">
       <span className="field-label">{label}</span>
@@ -316,7 +316,7 @@ type PopupDialogProps = {
 };
 
 /** Diálogo compacto para confirmações, entradas rápidas e resultados de ações. */
-export function PopupDialog({ title, description, eyebrow = 'KALIDASH', tone = 'accent', onClose, children, footer }: PopupDialogProps) {
+export function PopupDialog({ title, description, eyebrow = 'KALIDASH', tone = 'accent', onClose, children, footer }: PopupDialogProps): React.ReactElement {
   const titleId = useId();
   const descriptionId = useId();
   const dialogRef = useRef<HTMLElement>(null);
@@ -351,7 +351,7 @@ export function PopupDialog({ title, description, eyebrow = 'KALIDASH', tone = '
     };
   }, []);
 
-  return (
+  return createPortal(
     <div className="popup-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <section ref={dialogRef} className={`popup-card popup-${tone}`} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined} tabIndex={-1}>
         <header className="popup-header">
@@ -366,6 +366,7 @@ export function PopupDialog({ title, description, eyebrow = 'KALIDASH', tone = '
         {children && <div className="popup-body">{children}</div>}
         {footer && <footer className="popup-footer">{footer}</footer>}
       </section>
-    </div>
-  );
+    </div>,
+    document.body
+  ) as unknown as React.ReactElement;
 }

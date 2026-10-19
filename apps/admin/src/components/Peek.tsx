@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import type { ReactNode } from 'react';
 import type { FontSize, OpenMode } from '../lib/viewSettings';
 
@@ -30,13 +31,14 @@ export default function Peek({ mode, fontSize, onClose, children, label = 'Paine
   }, [onClose]);
 
   if (mode === 'center') {
-    return (
+    return createPortal(
       <div className="peek-center-overlay" onClick={onClose}>
         <div className={`peek-center crm-scope crm-fs-${fontSize}`} role="dialog" aria-modal="true" aria-label={label} onClick={(e) => e.stopPropagation()}>
           {children}
         </div>
-      </div>
-    );
+      </div>,
+      document.body
+    ) as unknown as React.ReactElement;
   }
 
   return (

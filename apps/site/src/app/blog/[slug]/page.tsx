@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import PixelTransition from "../../components/PixelTransition";
 import { ArticleView } from "../views";
+import type { GalleryItem } from "../views";
 import { fetchArticleBySlug, fetchPublishedArticles } from "@/lib/blog";
 
 export const revalidate = 60;
@@ -42,9 +43,27 @@ export default async function ArticlePage({ params }: PageProps) {
 
   if (!article) notFound();
 
+  // Busca outros artigos publicados para recomendação
+  const all = await fetchPublishedArticles();
+  const relatedArticles: GalleryItem[] = all
+    .filter((a) => a.slug !== slug && a.slug !== "blog-global")
+    .slice(0, 2)
+    .map((a) => ({
+      id: a.id,
+      title: a.title,
+      excerpt: a.excerpt,
+      coverImageUrl: a.coverImageUrl,
+      coverImagePos: a.coverImagePos,
+      meta: `${a.categories?.[0] || "AI Culture"} · ${
+        a.publishedAt ? new Date(a.publishedAt).toLocaleDateString("pt-BR") : ""
+      }`,
+      authorName: a.authorName || "Equipe Kalidash",
+      href: `/blog/${a.slug}`,
+    }));
+
   return (
-    <PixelTransition color="#050507" duration={1400} pixelDuration={450}>
-      <ArticleView article={article} />
+    <PixelTransition color="#1e1329" duration={1400} pixelDuration={450}>
+      <ArticleView article={article} relatedArticles={relatedArticles} />
     </PixelTransition>
   );
 }

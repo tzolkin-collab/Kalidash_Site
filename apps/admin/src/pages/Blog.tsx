@@ -3,21 +3,22 @@ import { getDefaultReactSlashMenuItems, SuggestionMenuController, useCreateBlock
 import { BlockNoteView } from '@blocknote/mantine';
 import { filterSuggestionItems } from '@blocknote/core';
 import type { PartialBlock } from '@blocknote/core';
-import { ArticleCardsContext, blogSchema, CARD_TYPE, syncCards } from './articleCardBlock';
+import { ArticleCardsContext, blogSchema, CARD_TYPE, SPLIT_MEDIA_TYPE, TWO_COLUMNS_TYPE, syncCards } from './articleCardBlock';
 import { pt as blockNoteLocalePt } from '@blocknote/core/locales';
 import '@blocknote/mantine/style.css';
 import '@blocknote/core/fonts/inter.css';
-import { AlertTriangle, Plus, RefreshCw, Star, Trash2, ImagePlus } from 'lucide-react';
+import { AlertTriangle, Plus, RefreshCw, Star, Trash2, ImagePlus, Divide, Globe, Tag, Link2, Clock, Columns, Crop, Layout } from 'lucide-react';
+import { PhotoCropModal } from '../components/PhotoCropModal';
 import type { Article } from '../domain';
 import { formatDate } from '../lib/format';
-import { createArticle, deleteArticle, listArticles, updateArticle, uploadImage, uploadImageNotifying, getBlogSettings, updateBlogSettings } from '../lib/blog';
+import { createArticle, deleteArticle, listArticles, updateArticle, uploadImage, uploadImageNotifying, getBlogSettings, updateBlogSettings, checkSlugAvailable } from '../lib/blog';
 import type { ArticleInput, BlogSettings } from '../lib/blog';
 import { teamStore } from '../mocks/team';
-import { Badge, EmptyState, Field, Page, PageHeader, Pagination, PopupDialog, SearchBox, Switch, Tabs } from '../components/ui';
+import { Badge, EmptyState, Field, Page, PageHeader, Pagination, PopupDialog, SearchBox, Tabs } from '../components/ui';
 import { useStore } from '../lib/store';
 import { usePaged } from '../lib/usePaged';
-import { CustomSelect } from '../components/ui';
 import { useShell } from '../lib/shell';
+import { resolveAssetUrl } from '../lib/site';
 import { PreviewFrame } from '../components/PreviewFrame';
 import type { PreviewFocus } from '../components/PreviewFrame';
 
@@ -237,6 +238,15 @@ export function BlogSettingsForm() {
   );
 }
 
+function clientSlugify(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 /* ------------------------------ Editor ------------------------------ */
 
 function ArticleEditor({ article, isNew, otherArticles, onBack, onSaved, onDeleted }: { article: Article; isNew: boolean; otherArticles: Article[]; onBack: () => void; onSaved: (a: Article, isNew: boolean) => void; onDeleted: (id: string) => void }) {
@@ -259,19 +269,74 @@ function ArticleEditor({ article, isNew, otherArticles, onBack, onSaved, onDelet
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [imageDialog, setImageDialog] = useState<'cover' | null>(null);
+  const [coverCropOpen, setCoverCropOpen] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [tick, setTick] = useState(0); // a cada edição: reenvia o rascunho pro preview
   const [view, setView] = useState<'edit' | 'split' | 'preview'>('split');
+  const [seoModalOpen, setSeoModalOpen] = useState(false);
   const [flashId, setFlashId] = useState<string | null>(null);
   const shell = useShell();
   const touch = () => { setSaved(false); setDirty(true); setTick((t) => t + 1); };
 
+  const isGlobal = article.slug === 'blog-global';
+
+  // Validação em tempo real da disponibilidade de slug
+  const [slugChecking, setSlugChecking] = useState(false);
+  const [slugStatus, setSlugStatus] = useState<{ available: boolean; cleanSlug: string; reason?: string } | null>(null);
+
+  useEffect(() => {
+    if (isGlobal) return;
+    const trimmed = slug.trim();
+    if (!trimmed) {
+      setSlugStatus(null);
+      setSlugChecking(false);
+      return;
+    }
+    setSlugChecking(true);
+    const timer = setTimeout(() => {
+      checkSlugAvailable(trimmed, isNew ? undefined : article.id)
+        .then((res) => {
+          setSlugStatus({ available: res.available, cleanSlug: res.slug, reason: res.reason });
+        })
+        .catch(() => {
+          setSlugStatus(null);
+        })
+        .finally(() => {
+          setSlugChecking(false);
+        });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [slug, isGlobal, isNew, article.id]);
+
+  const slugHint = useMemo(() => {
+    if (slug.trim() === '') {
+      const generated = clientSlugify(title);
+      return `Gerado do título: /blog/${generated || '…'}`;
+    }
+    if (slugChecking) {
+      return 'Verificando endereço…';
+    }
+    if (slugStatus) {
+      if (slugStatus.available) {
+        return `✓ /blog/${slugStatus.cleanSlug} (disponível)`;
+      }
+      if (slugStatus.reason === 'reserved') {
+        return `✗ /blog/${slugStatus.cleanSlug} é um endereço reservado pelo sistema.`;
+      }
+      if (slugStatus.reason === 'taken') {
+        return `✗ /blog/${slugStatus.cleanSlug} já está em uso por outro artigo.`;
+      }
+    }
+    return `/blog/${slug}`;
+  }, [slug, slugChecking, slugStatus, title]);
+
+  const slugInvalid = !isGlobal && slug.trim() !== '' && slugStatus?.available === false;
+
   // bodyJson é a fonte de verdade (documento nativo do BlockNote); body (HTML) é só o export pro
   // site. Artigo sem bodyJson (migrado do mock antigo, nunca passou pelo BlockNote) começa vazio
   // aqui e é preenchido logo abaixo por tryParseHTMLToBlocks — uma conversão única, na entrada.
-  const isGlobal = article.slug === 'blog-global';
   // Na Galeria Principal o documento tem, além do texto de abertura, um cartão por artigo
   // publicado (syncCards deixa os cartões em dia com os artigos e acrescenta os que faltam).
   const initialContentRef = useRef<PartialBlock[] | undefined>(
@@ -316,7 +381,7 @@ function ArticleEditor({ article, isNew, otherArticles, onBack, onSaved, onDelet
   // verdade, na ordem dos cartões que estão no bodyJson.
   const heroHtml = () => editor.blocksToHTMLLossy(editor.document.filter((b) => b.type !== CARD_TYPE));
 
-  const canSave = title.trim() !== '';
+  const canSave = title.trim() !== '' && !slugInvalid && !slugChecking;
 
   const save = () => {
     if (!canSave || saving) return;
@@ -421,25 +486,56 @@ function ArticleEditor({ article, isNew, otherArticles, onBack, onSaved, onDelet
   };
 
   const editorView = (
-    <BlockNoteView editor={editor} theme={shell.dark ? 'dark' : 'light'} slashMenu={!isGlobal}>
-      {isGlobal && (
-        <SuggestionMenuController
-          triggerCharacter="/"
-          getItems={async (query) => filterSuggestionItems([
-            ...getDefaultReactSlashMenuItems(editor),
-            {
-              title: 'Cartão de artigo',
-              subtext: 'Um artigo do blog na galeria',
-              aliases: ['artigo', 'card', 'cartao', 'post'],
-              group: 'Blog',
-              onItemClick: () => {
-                const current = editor.getTextCursorPosition().block;
-                editor.insertBlocks([{ type: CARD_TYPE }], current, 'after');
-              },
+    <BlockNoteView editor={editor} theme={shell.dark ? 'dark' : 'light'} slashMenu={false}>
+      <SuggestionMenuController
+        triggerCharacter="/"
+        getItems={async (query) => filterSuggestionItems([
+          ...getDefaultReactSlashMenuItems(editor),
+          {
+            title: 'Linha Divisória',
+            subtext: 'Separador horizontal elegante entre seções',
+            aliases: ['divisor', 'linha', 'separador', 'hr', 'divider'],
+            group: 'Layout e Mídia',
+            icon: <Divide size={16} />,
+            onItemClick: () => {
+              const current = editor.getTextCursorPosition().block;
+              editor.insertBlocks([{ type: 'divider' }], current, 'after');
             },
-          ], query)}
-        />
-      )}
+          },
+          {
+            title: 'Foto e Texto Lado a Lado',
+            subtext: 'Imagem e texto alinhados com corte e proporção',
+            aliases: ['lado a lado', 'split', 'foto texto', 'imagem texto', 'colunas'],
+            group: 'Layout e Mídia',
+            icon: <Layout size={16} />,
+            onItemClick: () => {
+              const current = editor.getTextCursorPosition().block;
+              editor.insertBlocks([{ type: SPLIT_MEDIA_TYPE }], current, 'after');
+            },
+          },
+          {
+            title: 'Duas Colunas de Conteúdo',
+            subtext: 'Dois blocos de texto ou tópicos lado a lado',
+            aliases: ['colunas', 'duas colunas', 'grid', '2 colunas'],
+            group: 'Layout e Mídia',
+            icon: <Columns size={16} />,
+            onItemClick: () => {
+              const current = editor.getTextCursorPosition().block;
+              editor.insertBlocks([{ type: TWO_COLUMNS_TYPE }], current, 'after');
+            },
+          },
+          ...(isGlobal ? [{
+            title: 'Cartão de artigo',
+            subtext: 'Um artigo do blog na galeria',
+            aliases: ['artigo', 'card', 'cartao', 'post'],
+            group: 'Blog',
+            onItemClick: () => {
+              const current = editor.getTextCursorPosition().block;
+              editor.insertBlocks([{ type: CARD_TYPE }], current, 'after');
+            },
+          }] : []),
+        ], query)}
+      />
     </BlockNoteView>
   );
 
@@ -460,119 +556,350 @@ function ArticleEditor({ article, isNew, otherArticles, onBack, onSaved, onDelet
       .finally(() => setUploading(false));
   };
 
+  const togglePublished = () => {
+    setPublished((p) => !p);
+    touch();
+  };
+
+  const toggleFeatured = () => {
+    setFeatured((f) => !f);
+    touch();
+  };
+
+  const readingTime = useMemo(() => {
+    let text = `${title} ${excerpt} `;
+    try {
+      const doc = editor.document;
+      if (Array.isArray(doc)) {
+        const walk = (nodes: any[]): string =>
+          nodes.map((n) => {
+            let s = '';
+            if (Array.isArray(n.content)) s += n.content.map((c: any) => c.text || '').join(' ');
+            if (n.children?.length) s += ' ' + walk(n.children);
+            return s;
+          }).join(' ');
+        text += walk(doc);
+      }
+    } catch { /* no-op */ }
+    const words = text.trim().split(/\s+/).filter(Boolean).length;
+    return Math.max(1, Math.ceil(words / 200));
+  }, [title, excerpt, editor.document, tick]);
+
   return (
     <Page>
       <PageHeader
-        title={title || 'Novo artigo'}
-        subtitle={<><Badge tone={published ? 'success' : 'neutral'}>{published ? 'Publicado' : 'Rascunho'}</Badge> {featured && <Badge tone="warning"><Star size={10} /> Destaque</Badge>} {saveError ? <span style={{ color: '#ef4444' }}>{saveError}</span> : saved && <span className="text-muted">Salvo agora.</span>}</>}
+        title={title || (isGlobal ? 'Galeria Principal do Blog' : 'Novo artigo')}
+        subtitle={
+          <>
+            <Badge tone={published ? 'success' : 'neutral'}>
+              {published ? 'Publicado' : 'Rascunho'}
+            </Badge>
+            {featured && <Badge tone="warning"><Star size={10} /> Destaque</Badge>}
+            {saveError ? (
+              <span style={{ color: '#ef4444' }}>{saveError}</span>
+            ) : saved ? (
+              <span className="text-muted">Salvo agora.</span>
+            ) : dirty ? (
+              <span className="text-muted">Alterações não salvas</span>
+            ) : null}
+          </>
+        }
         actions={
           <>
             <button type="button" className="btn" onClick={leave}>Voltar</button>
-            {!isNew && <button type="button" className="btn btn-danger" onClick={() => setDeleteDialogOpen(true)}><Trash2 size={14} /> Excluir</button>}
-            <button type="button" className="btn btn-solid" disabled={!canSave || saving} onClick={save}>{saving ? 'Salvando…' : 'Salvar'}</button>
+            {!isNew && !isGlobal && (
+              <button type="button" className="btn btn-danger" onClick={() => setDeleteDialogOpen(true)}>
+                <Trash2 size={14} /> Excluir
+              </button>
+            )}
+            <button type="button" className="btn btn-solid" disabled={!canSave || saving} onClick={save}>
+              {saving ? 'Salvando…' : 'Salvar'}
+            </button>
           </>
         }
       />
 
-      <div className="editor-layout">
+      <div className="editor-layout no-sidebar">
         <div className="form-stack editor-main">
-          <div className="editor-views" role="tablist" aria-label="Modo do editor">
-            {(['edit', 'split', 'preview'] as const).map((v) => (
-              <button key={v} type="button" role="tab" aria-selected={view === v} className={`btn btn-sm ${view === v ? 'btn-solid' : ''}`} onClick={() => setView(v)}>
-                {{ edit: 'Editar', split: 'Lado a lado', preview: 'Pré-visualizar' }[v]}
-              </button>
-            ))}
+          {/* BARRA SUPERIOR DE CONTROLES: ACIMA DE TUDO (fora da área de edição) */}
+          <div className="editor-super-bar">
+            <div className="super-bar-left">
+              <div className="editor-views" role="tablist" aria-label="Modo do editor">
+                {(['edit', 'split', 'preview'] as const).map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    role="tab"
+                    aria-selected={view === v}
+                    className={`btn btn-sm ${view === v ? 'btn-solid' : ''}`}
+                    onClick={() => setView(v)}
+                  >
+                    {{ edit: 'Editar', split: 'Lado a lado', preview: 'Pré-visualizar' }[v]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {!isGlobal && (
+              <div className="super-bar-right">
+                <button
+                  type="button"
+                  className={`status-pill ${published ? 'is-published' : 'is-draft'}`}
+                  onClick={togglePublished}
+                  title={published ? 'Clique para mudar para Rascunho' : 'Clique para Publicar este artigo'}
+                >
+                  <span className="status-dot" />
+                  <span>{published ? 'Publicado' : 'Rascunho'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  className={`feature-pill ${featured ? 'is-featured' : ''}`}
+                  onClick={toggleFeatured}
+                  title={featured ? 'Artigo em destaque no topo da galeria' : 'Destacar este artigo'}
+                >
+                  <Star size={13} fill={featured ? 'currentColor' : 'none'} />
+                  <span>{featured ? 'Destaque ativo' : 'Destaque'}</span>
+                </button>
+
+                <div className="super-bar-slug" title={slugHint}>
+                  <Link2 size={13} className="text-muted" />
+                  <span className="slug-prefix">/blog/</span>
+                  <input
+                    className={`slug-input ${slugInvalid ? 'is-invalid' : slugStatus?.available ? 'is-available' : ''}`}
+                    value={slug}
+                    onChange={(e) => { setSlug(e.target.value); touch(); }}
+                    placeholder={clientSlugify(title) || 'slug-do-artigo'}
+                  />
+                  {slugStatus?.available && <span className="slug-badge is-ok" title="Disponível">✓</span>}
+                  {slugInvalid && <span className="slug-badge is-err" title={slugHint}>✗</span>}
+                </div>
+
+                <button
+                  type="button"
+                  className={`btn btn-sm super-bar-seo-btn ${seoTitle || seoDescription ? 'has-seo' : ''}`}
+                  onClick={() => setSeoModalOpen(true)}
+                  title="Configurar prévia e títulos para o Google"
+                >
+                  <Globe size={13} />
+                  <span>SEO & Google</span>
+                  {(seoTitle || seoDescription) && <span className="seo-dot" />}
+                </button>
+              </div>
+            )}
           </div>
+
           <div className="editor-split" data-view={view}>
             <div className="editor-pane">
               <div className="editor-box">
                 {isGlobal ? (
                   <ArticleCardsContext.Provider value={{ articles: otherArticles, flashId }}>
-                    <p className="editor-hint">Texto de abertura da página /blog e, abaixo, um cartão por artigo na ordem em que aparecem no site. O primeiro cartão é o destaque. Arraste pelo ⋮⋮ para reordenar; digite / para inserir.</p>
+                    <div className="global-gallery-header">
+                      <p className="editor-hint">
+                        Você está editando a <strong>Galeria Principal</strong> (/blog): o texto de abertura e a ordem dos cartões. O primeiro cartão é o destaque. Arraste pelo <strong>⋮⋮</strong> para reordenar; digite <strong>/</strong> para inserir novos blocos.
+                      </p>
+                    </div>
                     {editorView}
                   </ArticleCardsContext.Provider>
                 ) : (
-                  <div className="article-fields">
-                    <input
-                      id="field-title" className="input title-input" value={title} placeholder="Título da publicação"
-                      onChange={(e) => { setTitle(e.target.value); touch(); }}
-                    />
-                    <textarea
-                      id="field-excerpt" className="textarea" rows={2} value={excerpt} placeholder="Resumo do artigo…"
-                      onChange={(e) => { setExcerpt(e.target.value); touch(); }}
-                    />
-                    <div id="field-cover" tabIndex={-1} className="cover-field">
-                      {coverImageUrl ? (
-                        <>
-                          <img src={coverImageUrl} alt="Capa" style={{ objectPosition: `50% ${coverImagePos}%` }} />
-                          <div className="cover-field-tools">
-                            <input type="range" min="0" max="100" value={coverImagePos} onChange={(e) => { setCoverImagePos(Number(e.target.value)); touch(); }} title="Ajustar corte (cima/baixo)" />
-                            <button type="button" className="btn btn-sm" onClick={() => { setCoverImageUrl(''); touch(); }}>Remover capa</button>
+                  <div className="article-canvas-container">
+                    <article className="article-canvas">
+                      {/* 1. Header Meta: Categoria, Data, Tempo de Leitura (Idêntico ao Preview do Site) */}
+                      <div className="canvas-header-meta">
+                        <div className="canvas-category-badge" title="Categorias do artigo separadas por vírgula">
+                          <Tag size={11} />
+                          <input
+                            id="field-categories"
+                            className="canvas-category-input"
+                            value={categories}
+                            onChange={(e) => { setCategories(e.target.value); touch(); }}
+                            placeholder="AI Culture (digite para alterar categoria)"
+                          />
+                        </div>
+                        <span className="canvas-meta-dot">·</span>
+                        <span className="canvas-date-text">
+                          {published && article.publishedAt ? formatDate(article.publishedAt) : 'Hoje'}
+                        </span>
+                        <span className="canvas-meta-dot">·</span>
+                        <span className="canvas-reading-badge">
+                          <Clock size={13} />
+                          <span>{readingTime} min de leitura</span>
+                        </span>
+                      </div>
+
+                      {/* 2. Título do Artigo (Grande tipografia editorial, idêntica ao h1 do site) */}
+                      <textarea
+                        id="field-title"
+                        className="canvas-title-input"
+                        rows={1}
+                        value={title}
+                        placeholder="Título do seu artigo..."
+                        onChange={(e) => { setTitle(e.target.value); touch(); }}
+                      />
+
+                      {/* 3. Subtítulo / Resumo Editorial (idêntico ao lead/excerpt do site) */}
+                      <textarea
+                        id="field-excerpt"
+                        className="canvas-excerpt-input"
+                        rows={2}
+                        value={excerpt}
+                        placeholder="Adicione um resumo ou subtítulo cativante para introduzir a leitura..."
+                        onChange={(e) => { setExcerpt(e.target.value); touch(); }}
+                      />
+
+                      {/* 4. Barra do Autor (Avatar com gradiente, nome selecionável e cargo 'Kalidash Intelligence') */}
+                      <div className="canvas-author-bar">
+                        <div className="canvas-author-profile">
+                          <div className="canvas-author-avatar">
+                            {authorName ? authorName.slice(0, 2).toUpperCase() : 'KD'}
                           </div>
-                        </>
-                      ) : (
-                        <button type="button" className="btn" onClick={() => { setImageUrl(''); setUploadError(null); setImageDialog('cover'); }}>
-                          <ImagePlus size={16} /> Adicionar foto de capa
-                        </button>
-                      )}
-                    </div>
-                    {editorView}
+                          <div className="canvas-author-details">
+                            <div className="canvas-author-name-row">
+                              <select
+                                id="field-author"
+                                className="canvas-author-select"
+                                value={authorName}
+                                onChange={(e) => { setAuthorName(e.target.value); touch(); }}
+                                title="Trocar autor do artigo"
+                              >
+                                {team.map((m) => <option key={m.id} value={m.name}>{m.name}</option>)}
+                                {!team.some((m) => m.name === authorName) && authorName && <option value={authorName}>{authorName}</option>}
+                              </select>
+                            </div>
+                            <small className="canvas-author-role">Kalidash Intelligence</small>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 5. Imagem de Capa (exatamente onde fica no site: logo após o autor e antes do corpo) */}
+                      <div id="field-cover" className="canvas-cover-container">
+                        {coverImageUrl ? (
+                          <div className="canvas-cover-card">
+                            <img
+                              src={resolveAssetUrl(coverImageUrl)}
+                              alt={title || 'Capa do artigo'}
+                              style={{ objectPosition: `50% ${coverImagePos}%` }}
+                            />
+                            <div className="canvas-cover-floating-tools">
+                              <button
+                                type="button"
+                                className="btn btn-xs btn-solid"
+                                onClick={() => setCoverCropOpen(true)}
+                                title="Abrir estúdio de enquadramento e corte real da foto de capa"
+                              >
+                                <Crop size={12} /> Cortar e Enquadrar
+                              </button>
+                              <span className="canvas-cover-slider" title="Ajuste vertical fino (0% topo, 100% base)">
+                                <span>Ajuste:</span>
+                                <input
+                                  type="range"
+                                  min="0"
+                                  max="100"
+                                  value={coverImagePos}
+                                  onChange={(e) => { setCoverImagePos(Number(e.target.value)); touch(); }}
+                                />
+                              </span>
+                              <button
+                                type="button"
+                                className="btn btn-xs"
+                                onClick={() => { setImageUrl(''); setUploadError(null); setImageDialog('cover'); }}
+                              >
+                                Trocar foto
+                              </button>
+                              <button
+                                type="button"
+                                className="btn btn-xs btn-danger"
+                                onClick={() => { setCoverImageUrl(''); touch(); }}
+                              >
+                                Remover capa
+                              </button>
+                            </div>
+
+                            {coverCropOpen && coverImageUrl && (
+                              <PhotoCropModal
+                                isOpen={coverCropOpen}
+                                imageUrl={coverImageUrl}
+                                initialPos={coverImagePos}
+                                aspectRatio="16:9"
+                                title="Cortar e Enquadrar Capa do Artigo"
+                                onClose={() => setCoverCropOpen(false)}
+                                onApply={(newUrl, meta) => {
+                                  setCoverImageUrl(newUrl);
+                                  if (meta?.pos !== undefined) setCoverImagePos(meta.pos);
+                                  touch();
+                                  setCoverCropOpen(false);
+                                }}
+                              />
+                            )}
+                          </div>
+                        ) : (
+                          <div className="canvas-cover-empty">
+                            <button
+                              type="button"
+                              className="btn-add-cover-canvas"
+                              onClick={() => { setImageUrl(''); setUploadError(null); setImageDialog('cover'); }}
+                            >
+                              <ImagePlus size={16} />
+                              <span>+ Adicionar foto de capa do artigo</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 6. Corpo do Artigo (BlockNote fluindo naturalmente com tipografia de leitura) */}
+                      <div className="canvas-body">
+                        {editorView}
+                      </div>
+                    </article>
                   </div>
                 )}
               </div>
             </div>
+
             <div className="editor-preview-pane">
               <PreviewFrame kind={isGlobal ? 'gallery' : 'article'} tick={tick} getPayload={buildPayload} onFocus={onPreviewFocus} />
             </div>
           </div>
         </div>
+      </div>
 
-        <aside className="form-stack editor-side">
-          {slug !== 'blog-global' && (
-            <div className="panel-card form-stack">
-              <label className="check-row" style={{ cursor: 'pointer' }}>
-                <Switch checked={published} onChange={(v) => { setPublished(v); touch(); }} label="Publicado" />
-                <span style={{ marginLeft: '8px' }}><strong>{published ? 'Publicado' : 'Rascunho'}</strong><div className="text-xs text-muted">{published ? 'Já aparece no site.' : 'Só visível aqui no admin.'}</div></span>
-              </label>
-              <label className="check-row" style={{ cursor: 'pointer' }}>
-                <Switch checked={featured} onChange={(v) => { setFeatured(v); touch(); }} label="Destaque" />
-                <span style={{ marginLeft: '8px' }}><strong>Destaque</strong><div className="text-xs text-muted">Ocupa o bloco grande na lista do blog.</div></span>
-              </label>
-            </div>
-          )}
-
-          {slug !== 'blog-global' && (
-            <div className="panel-card form-stack">
-              <Field label="Endereço (slug)" hint={`/blog/${slug || 'gerado do título'}`}><input className="input mono" value={slug} onChange={(e) => { setSlug(e.target.value); touch(); }} placeholder="deixe em branco pra gerar do título" /></Field>
-              <Field label="Autor">
-                <div id="field-author" tabIndex={-1}><CustomSelect className="select" value={authorName} onChange={(e) => { setAuthorName(e.target.value); touch(); }}>
-                  {team.map((m) => <option key={m.id} value={m.name}>{m.name}</option>)}
-                  {!team.some((m) => m.name === authorName) && authorName && <option value={authorName}>{authorName}</option>}
-                </CustomSelect></div>
-              </Field>
-              <Field label="Categorias" hint="Separe por vírgula."><input id="field-categories" className="input" value={categories} onChange={(e) => { setCategories(e.target.value); touch(); }} /></Field>
-            </div>
-          )}
-
-          {slug === 'blog-global' && (
-            <div className="panel-card form-stack">
-              <h3 className="section-title" style={{ margin: 0 }}>Galeria Principal</h3>
-              <p className="text-sm text-muted">Você está editando a página /blog: o texto de abertura e a ordem dos cartões de artigo. O visual vem do site; aqui você só escolhe conteúdo e ordem.</p>
-            </div>
-          )}
-
-          <div className="panel-card form-stack">
-            <h3 className="section-title" style={{ margin: 0 }}>SEO</h3>
-            <Field label="Título para o Google" hint={`${seoTitle.length}/60`}><input className="input" value={seoTitle} maxLength={70} onChange={(e) => { setSeoTitle(e.target.value); touch(); }} /></Field>
-            <Field label="Descrição" hint={`${seoDescription.length}/160`}><textarea className="textarea" style={{ minHeight: '72px' }} value={seoDescription} maxLength={180} onChange={(e) => { setSeoDescription(e.target.value); touch(); }} /></Field>
+      {/* Modal de SEO & Google */}
+      {seoModalOpen && (
+        <PopupDialog
+          eyebrow="OTIMIZAÇÃO PARA MOTORES DE BUSCA"
+          title="Configurações de SEO & Google"
+          description="Defina como o artigo será exibido nos resultados de pesquisa do Google e nas redes sociais."
+          onClose={() => setSeoModalOpen(false)}
+          footer={<button type="button" className="btn btn-solid" onClick={() => setSeoModalOpen(false)}>Concluído</button>}
+        >
+          <div className="form-stack">
+            <Field label="Título para o Google" hint={`${seoTitle.length}/60 caracteres recomendados`}>
+              <input
+                className="input"
+                value={seoTitle}
+                maxLength={70}
+                placeholder={title || 'Título padrão do artigo'}
+                onChange={(e) => { setSeoTitle(e.target.value); touch(); }}
+              />
+            </Field>
+            <Field label="Descrição para o Google" hint={`${seoDescription.length}/160 caracteres recomendados`}>
+              <textarea
+                className="textarea"
+                style={{ minHeight: '76px' }}
+                value={seoDescription}
+                maxLength={180}
+                placeholder={excerpt || 'Resumo do artigo nos resultados de busca...'}
+                onChange={(e) => { setSeoDescription(e.target.value); touch(); }}
+              />
+            </Field>
             <div className="serp" aria-label="Prévia no Google">
-              <div className="serp-url">kalidash.com.br › blog {slug !== 'blog-global' && `› ${slug || '…'}`}</div>
+              <div className="serp-url">kalidash.com.br › blog {slug !== 'blog-global' && `› ${slug || clientSlugify(title) || '…'}`}</div>
               <div className="serp-title">{shownTitle.slice(0, 60)}</div>
               <div className="serp-desc">{shownDescription.slice(0, 160)}</div>
             </div>
           </div>
-        </aside>
-      </div>
+        </PopupDialog>
+      )}
 
       {leaveDialogOpen && <PopupDialog
         eyebrow="ALTERAÇÕES DO ARTIGO"

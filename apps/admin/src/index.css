@@ -161,10 +161,8 @@ body {
   display: flex;
   flex-direction: column;
   transition: transform 0.3s ease;
-  /* Precisa ficar acima de qualquer z-index que uma página use no próprio conteúdo (o cabeçalho
-     de Oportunidades usa 50) — sem isso, no mobile, o menu hambúrguer abre com o fundo escurecido
-     (.sidebar-backdrop) passando por baixo do cabeçalho da página, que fica sem escurecer. */
-  z-index: 100;
+  /* No desktop a barra lateral fica abaixo de popups, menus flutuantes e modais do conteúdo */
+  z-index: 10;
 }
 
 .main-content {
@@ -172,6 +170,8 @@ body {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  position: relative;
+  z-index: 20;
 }
 
 .header {
@@ -447,18 +447,18 @@ body {
     transform: translateX(-100%); /* Oculta a barra lateral */
     transition: transform 0.3s ease;
     box-shadow: 4px 0 24px rgba(0,0,0,0.1);
+    z-index: 1000;
   }
   .sidebar.mobile-open {
     transform: translateX(0); /* Mostra a barra lateral */
   }
 
-  /* Fundo escuro atrás da sidebar no mobile. Fica logo abaixo de .sidebar (100) mas acima do
-     z-index que uma página usa no próprio conteúdo — mesma razão do z-index da .sidebar acima. */
+  /* Fundo escuro atrás da sidebar no mobile. Fica logo abaixo de .sidebar (1000) */
   .sidebar-backdrop {
     position: fixed;
     inset: 0;
     background-color: rgba(0,0,0,0.5);
-    z-index: 90;
+    z-index: 990;
     display: none;
   }
   .sidebar-backdrop.show {

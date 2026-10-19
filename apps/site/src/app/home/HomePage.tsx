@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Inter, Source_Sans_3 } from "next/font/google";
@@ -8,6 +9,7 @@ import HomeHeader from "./HomeHeader";
 import SiteFooter from "./SiteFooter";
 import ExperienceSyncGallery from "./ExperienceSyncGallery";
 import ProblemHologram from "./ProblemHologram";
+import TestimonialCard from "./TestimonialCard";
 import {
   ArrowDownLeft,
   ArrowRight,
@@ -55,6 +57,7 @@ function TextLink({ href, children, onClick }: { href: string; children: React.R
 }
 
 export default function HomePage() {
+  const [activeQuoteIndex, setActiveQuoteIndex] = useState<number | null>(null);
   const logoLoop = [...clients, ...clients];
 
   return (
@@ -142,9 +145,19 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className={styles.problemCardsRow}>
+            <div
+              className={styles.problemCardsRow}
+              onMouseLeave={() => setActiveQuoteIndex(null)}
+            >
               {/* Card 01: Trabalho manual */}
-              <article className={styles.problemCard} data-role="problem-card">
+              <article
+                className={styles.problemCard}
+                data-role="problem-card"
+                data-active={activeQuoteIndex === 0}
+                data-dimmed={activeQuoteIndex !== null && activeQuoteIndex !== 0}
+                onMouseEnter={() => setActiveQuoteIndex(0)}
+                onClick={() => setActiveQuoteIndex((prev) => (prev === 0 ? null : 0))}
+              >
                 <FlickeringGrid
                   squareSize={3.5}
                   gridGap={5.5}
@@ -154,7 +167,6 @@ export default function HomePage() {
                 />
                 <div className={styles.cardVignette} aria-hidden="true" />
                 <div className={styles.problemCardHeader}>
-                  <span className={styles.problemCardNumber}>01</span>
                   <div className={styles.problemCardIconWrap}>
                     <ChartIcon className={styles.cardIcon} />
                   </div>
@@ -163,11 +175,20 @@ export default function HomePage() {
                   <h3>{problem.cards[0].title}</h3>
                   <p>{problem.cards[0].text}</p>
                 </div>
+                <div className={styles.cardQuoteCue}>
+                  <MessageIcon className={styles.cardQuoteCueIcon} />
+                  <span>Depoimento real</span>
+                </div>
               </article>
 
-              {/* Card 02: Depoimento fotográfico vazando da grade */}
-              <article className={styles.quoteCard} data-role="problem-quote">
-                <Image src="/home/depoimento-fundo.jpg" alt="" fill sizes="360px" />
+              {/* Card 01 Quote: Depoimento fotográfico (Aline Motta) */}
+              <article
+                className={styles.quoteCard}
+                data-role="problem-quote"
+                data-active={activeQuoteIndex === 0}
+                onMouseEnter={() => setActiveQuoteIndex(0)}
+              >
+                <Image src="/home/depoimento-fundo.jpg" alt="" fill sizes="(min-width: 1100px) 380px, 100vw" />
                 <div className={styles.problemCardHeader}>
                   <span className={styles.problemCardNumber} style={{ color: "rgba(255,255,255,0.7)" }}>DEPOIMENTO</span>
                   <div className={styles.problemCardIconWrap} style={{ background: "rgba(255,255,255,0.16)", color: "#fff" }}>
@@ -182,8 +203,15 @@ export default function HomePage() {
                 </div>
               </article>
 
-              {/* Card 03: IA superficial */}
-              <article className={styles.problemCard} data-role="problem-card">
+              {/* Card 02: IA superficial */}
+              <article
+                className={styles.problemCard}
+                data-role="problem-card"
+                data-active={activeQuoteIndex === 1}
+                data-dimmed={activeQuoteIndex !== null && activeQuoteIndex !== 1}
+                onMouseEnter={() => setActiveQuoteIndex(1)}
+                onClick={() => setActiveQuoteIndex((prev) => (prev === 1 ? null : 1))}
+              >
                 <FlickeringGrid
                   squareSize={3.5}
                   gridGap={5.5}
@@ -193,7 +221,6 @@ export default function HomePage() {
                 />
                 <div className={styles.cardVignette} aria-hidden="true" />
                 <div className={styles.problemCardHeader}>
-                  <span className={styles.problemCardNumber}>02</span>
                   <div className={styles.problemCardIconWrap}>
                     <DatabaseOffIcon className={styles.cardIcon} />
                   </div>
@@ -202,10 +229,43 @@ export default function HomePage() {
                   <h3>{problem.cards[1].title}</h3>
                   <p>{problem.cards[1].text}</p>
                 </div>
+                <div className={styles.cardQuoteCue}>
+                  <MessageIcon className={styles.cardQuoteCueIcon} />
+                  <span>Depoimento real</span>
+                </div>
               </article>
 
-              {/* Card 04: Operação desconectada */}
-              <article className={styles.problemCard} data-role="problem-card">
+              {/* Card 02 Quote: Depoimento pareado (Camila Duarte) */}
+              <article
+                className={styles.quoteCard}
+                data-role="problem-quote"
+                data-active={activeQuoteIndex === 1}
+                onMouseEnter={() => setActiveQuoteIndex(1)}
+              >
+                <Image src="/home/evento-mesa.jpg" alt="" fill sizes="(min-width: 1100px) 380px, 100vw" />
+                <div className={styles.problemCardHeader}>
+                  <span className={styles.problemCardNumber} style={{ color: "rgba(255,255,255,0.7)" }}>DEPOIMENTO</span>
+                  <div className={styles.problemCardIconWrap} style={{ background: "rgba(255,255,255,0.16)", color: "#fff" }}>
+                    <MessageIcon className={styles.cardIcon} />
+                  </div>
+                </div>
+                <div>
+                  <p>“{problem.pairedQuotes[0].text}”</p>
+                  <p className={styles.quoteAuthor}>
+                    <strong>{problem.pairedQuotes[0].author},</strong> {problem.pairedQuotes[0].role}
+                  </p>
+                </div>
+              </article>
+
+              {/* Card 03: Operação desconectada */}
+              <article
+                className={styles.problemCard}
+                data-role="problem-card"
+                data-active={activeQuoteIndex === 2}
+                data-dimmed={activeQuoteIndex !== null && activeQuoteIndex !== 2}
+                onMouseEnter={() => setActiveQuoteIndex(2)}
+                onClick={() => setActiveQuoteIndex((prev) => (prev === 2 ? null : 2))}
+              >
                 <FlickeringGrid
                   squareSize={3.5}
                   gridGap={5.5}
@@ -215,7 +275,6 @@ export default function HomePage() {
                 />
                 <div className={styles.cardVignette} aria-hidden="true" />
                 <div className={styles.problemCardHeader}>
-                  <span className={styles.problemCardNumber}>03</span>
                   <div className={styles.problemCardIconWrap}>
                     <ShareIcon className={styles.cardIcon} />
                   </div>
@@ -223,6 +282,32 @@ export default function HomePage() {
                 <div className={styles.problemCardContent}>
                   <h3>{problem.cards[2].title}</h3>
                   <p>{problem.cards[2].text}</p>
+                </div>
+                <div className={styles.cardQuoteCue}>
+                  <MessageIcon className={styles.cardQuoteCueIcon} />
+                  <span>Depoimento real</span>
+                </div>
+              </article>
+
+              {/* Card 03 Quote: Depoimento pareado (Eduardo Lima) */}
+              <article
+                className={styles.quoteCard}
+                data-role="problem-quote"
+                data-active={activeQuoteIndex === 2}
+                onMouseEnter={() => setActiveQuoteIndex(2)}
+              >
+                <Image src="/home/evento-sala.jpg" alt="" fill sizes="(min-width: 1100px) 380px, 100vw" />
+                <div className={styles.problemCardHeader}>
+                  <span className={styles.problemCardNumber} style={{ color: "rgba(255,255,255,0.7)" }}>DEPOIMENTO</span>
+                  <div className={styles.problemCardIconWrap} style={{ background: "rgba(255,255,255,0.16)", color: "#fff" }}>
+                    <MessageIcon className={styles.cardIcon} />
+                  </div>
+                </div>
+                <div>
+                  <p>“{problem.pairedQuotes[1].text}”</p>
+                  <p className={styles.quoteAuthor}>
+                    <strong>{problem.pairedQuotes[1].author},</strong> {problem.pairedQuotes[1].role}
+                  </p>
                 </div>
               </article>
             </div>
@@ -299,13 +384,12 @@ export default function HomePage() {
         <section className={styles.voices} data-block="home-testimonial">
           <Eyebrow>{testimonial.eyebrow}</Eyebrow>
           <h2>{testimonial.title}</h2>
-          <blockquote>
-            <p>“{testimonial.quote}”</p>
-            <footer>
-              <span className={styles.avatarClip}><Image src="/home/avatar-andre.jpg" alt="" width={292} height={195} /></span>
-              <div><strong>{testimonial.author}</strong><span>{testimonial.role}</span></div>
-            </footer>
-          </blockquote>
+          <TestimonialCard
+            quote={testimonial.quote}
+            author={testimonial.author}
+            role={testimonial.role}
+            avatarSrc="/home/avatar-andre.jpg"
+          />
         </section>
 
         <section id="equipe" className={styles.people} data-block="home-people">

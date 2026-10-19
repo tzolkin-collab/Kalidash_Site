@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./home.module.css";
 import BrandLogo from "../components/BrandLogo";
 import SidebarMenu from "./SidebarMenu";
@@ -12,18 +12,55 @@ export default function HomeHeader() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("");
+  const [hidden, setHidden] = useState(false);
+  const openRef = useRef(false);
+  const lastYRef = useRef(0);
   const close = () => setOpen(false);
 
-  // Efeito de rolagem para elevação/desfoque do header
   useEffect(() => {
+    openRef.current = open;
+    if (open) setHidden(false);
+  }, [open]);
+
+  // Efeito de rolagem para elevação/desfoque do header com rAF throttling
+  useEffect(() => {
+    lastYRef.current = window.scrollY;
+    let ticking = false;
+
     const handleScroll = () => {
-      setScrolled(window.scrollY > 15);
-      if (window.scrollY < 120) {
-        setActiveSection("");
-      }
+      if (ticking) return;
+      ticking = true;
+
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        const nextScrolled = y > 15;
+        setScrolled((prev) => (prev !== nextScrolled ? nextScrolled : prev));
+
+        if (y < 120) {
+          setActiveSection((prev) => (prev ? "" : prev));
+        }
+
+        // Esconde ao rolar para baixo, reaparece ao rolar um pouco para cima (apenas mobile/tablet)
+        if (typeof window !== "undefined" && window.innerWidth <= 900) {
+          const delta = y - lastYRef.current;
+          if (openRef.current || y < 80) {
+            setHidden((prev) => (prev ? false : prev));
+            lastYRef.current = y;
+          } else if (delta > 12) {
+            setHidden((prev) => (!prev ? true : prev));
+            lastYRef.current = y;
+          } else if (delta < -12) {
+            setHidden((prev) => (prev ? false : prev));
+            lastYRef.current = y;
+          }
+        } else {
+          setHidden((prev) => (prev ? false : prev));
+        }
+
+        ticking = false;
+      });
     };
 
-    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -63,6 +100,7 @@ export default function HomeHeader() {
         data-block="home-header"
         data-open={open}
         data-scrolled={scrolled}
+        data-hidden={hidden}
       >
         <div className={styles.headerInner}>
           <Link

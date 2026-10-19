@@ -74,7 +74,7 @@ export const clients = [
 ];
 
 export const problem = {
-  watermark: "Falta de controle",
+  watermark: "-   Inteligência Empresarial",
   title: "O problema não é apenas tecnológico.",
   subtitle: "É operacional. É cultural. É humano.",
   text: "Quando pessoas, processos e tecnologia não trabalham juntos, a execução trava e as decisões demoram. Ferramenta nova não resolve isso: muda-se o jeito de trabalhar.",
@@ -104,6 +104,19 @@ export const problem = {
       text: "Pessoas, processos e tecnologia trabalhando em ritmos diferentes.",
     },
   ],
+  /* Depoimentos pareados aos cards 02 e 03 (exibidos no empilhamento mobile). Substituir por depoimentos reais. */
+  pairedQuotes: [
+    {
+      text: "Já tínhamos várias ferramentas de IA, mas nenhuma mudava o resultado. A Kalidash conectou tudo à nossa rotina.",
+      author: "Camila Duarte",
+      role: "head de produto",
+    },
+    {
+      text: "Hoje comercial, operação e tecnologia falam a mesma língua. As decisões deixaram de travar no meio do caminho.",
+      author: "Eduardo Lima",
+      role: "CEO",
+    },
+  ] as Array<{ text: string; author: string; role: string }>,
   hologramTags: [
     { label: "tecnologia", from: [95, 97], to: [73.5, 82.4], anchor: [61.8, 66.2] },
     { label: "execução", from: [4, 94], to: [26.5, 82.4], anchor: [38.2, 66.2] },

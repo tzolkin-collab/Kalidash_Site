@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/sha256"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -99,20 +100,48 @@ func ensureBlogSchema() {
 var slugInvalidChars = regexp.MustCompile(`[^a-z0-9]+`)
 var slugTrim = regexp.MustCompile(`^-+|-+$`)
 
-// slugify: sem acentos e sem lib externa — troca as vogais acentuadas mais comuns em pt-BR e
-// derruba o resto que não é [a-z0-9] pra hífen. É o mesmo espírito do source:'title' do Sanity.
+// defaultReservedSlugs: slugs protegidos que não podem ser usados por artigos normais
+var defaultReservedSlugs = map[string]bool{
+	"blog-global": true,
+	"novo":        true,
+	"editar":      true,
+	"preview":     true,
+	"settings":    true,
+	"feed":        true,
+	"rss":         true,
+	"categoria":   true,
+	"tag":         true,
+	"api":         true,
+}
+
+func isReservedSlug(slug string) bool {
+	return defaultReservedSlugs[strings.ToLower(strings.TrimSpace(slug))]
+}
+
+// slugify: sem dependência externa. Converte minúsculas primeiro para capturar maiúsculas acentuadas
+// (ex.: "Éxito na Operação" -> "exito-na-operacao", "Öffnung" -> "offnung"), troca vogais e consoantes
+// acentuadas e substitui caracteres não-alfanuméricos por hífen. Se o título contiver apenas símbolos
+// ou alfabetos sem mapeamento direto, gera deterministricamente "artigo-<hash-curto>".
 func slugify(s string) string {
+	lower := strings.ToLower(s)
 	replacer := strings.NewReplacer(
-		"á", "a", "à", "a", "ã", "a", "â", "a", "ä", "a",
-		"é", "e", "è", "e", "ê", "e", "ë", "e",
-		"í", "i", "ì", "i", "î", "i", "ï", "i",
-		"ó", "o", "ò", "o", "õ", "o", "ô", "o", "ö", "o",
-		"ú", "u", "ù", "u", "û", "u", "ü", "u",
-		"ç", "c", "ñ", "n",
+		"á", "a", "à", "a", "ã", "a", "â", "a", "ä", "a", "å", "a", "ā", "a", "ă", "a", "ą", "a",
+		"é", "e", "è", "e", "ê", "e", "ë", "e", "ē", "e", "ĕ", "e", "ė", "e", "ę", "e", "ě", "e",
+		"í", "i", "ì", "i", "î", "i", "ï", "i", "ĩ", "i", "ī", "i", "ĭ", "i", "į", "i",
+		"ó", "o", "ò", "o", "õ", "o", "ô", "o", "ö", "o", "ø", "o", "ō", "o", "ŏ", "o", "ő", "o",
+		"ú", "u", "ù", "u", "û", "u", "ü", "u", "ũ", "u", "ū", "u", "ŭ", "u", "ů", "u", "ű", "u", "ų", "u",
+		"ç", "c", "ć", "c", "č", "c",
+		"ñ", "n", "ń", "n", "ň", "n",
+		"ß", "ss", "æ", "ae", "œ", "oe",
 	)
-	lower := strings.ToLower(replacer.Replace(s))
-	dashed := slugInvalidChars.ReplaceAllString(lower, "-")
-	return slugTrim.ReplaceAllString(dashed, "")
+	normalized := replacer.Replace(lower)
+	dashed := slugInvalidChars.ReplaceAllString(normalized, "-")
+	res := slugTrim.ReplaceAllString(dashed, "")
+	if res == "" {
+		h := sha256.Sum256([]byte(s))
+		return fmt.Sprintf("artigo-%x", h[:4])
+	}
+	return res
 }
 
 func scanArticle(rows *sql.Rows) (Article, error) {
@@ -149,16 +178,85 @@ func scanArticle(rows *sql.Rows) (Article, error) {
 	return a, nil
 }
 
+type galleryBlock struct {
+	Type  string `json:"type"`
+	Props struct {
+		ArticleID string `json:"articleId"`
+	} `json:"props"`
+}
+
+// applyGalleryHybridOrder implementa a regra Q14 (docs/po/blog-cms.md):
+// 1. Ordem curada da Galeria ('blog-global' -> articleCard blocks) vem primeiro.
+// 2. Todo artigo publicado fora da ordem curada entra logo depois, ordenado por data/destaque.
+// 3. Garante que novos artigos publicados nunca sejam descartados da lista.
+func applyGalleryHybridOrder(publishedArticles []Article) []Article {
+	if len(publishedArticles) == 0 {
+		return publishedArticles
+	}
+
+	var bodyJSON sql.NullString
+	err := db.QueryRow(`SELECT bodyJson FROM Article WHERE slug = 'blog-global' LIMIT 1`).Scan(&bodyJSON)
+	if err != nil || !bodyJSON.Valid || strings.TrimSpace(bodyJSON.String) == "" {
+		return publishedArticles
+	}
+
+	var blocks []galleryBlock
+	if err := json.Unmarshal([]byte(bodyJSON.String), &blocks); err != nil {
+		return publishedArticles
+	}
+
+	var curatedIDs []string
+	seenCurated := make(map[string]bool)
+	for _, b := range blocks {
+		if b.Type == "articleCard" && b.Props.ArticleID != "" {
+			if !seenCurated[b.Props.ArticleID] {
+				seenCurated[b.Props.ArticleID] = true
+				curatedIDs = append(curatedIDs, b.Props.ArticleID)
+			}
+		}
+	}
+	if len(curatedIDs) == 0 {
+		return publishedArticles
+	}
+
+	byID := make(map[string]Article, len(publishedArticles))
+	for _, a := range publishedArticles {
+		byID[a.ID] = a
+	}
+
+	result := make([]Article, 0, len(publishedArticles))
+	placed := make(map[string]bool, len(publishedArticles))
+
+	// 1. Artigos curados na ordem exata da galeria
+	for _, id := range curatedIDs {
+		if a, ok := byID[id]; ok && !placed[id] {
+			placed[id] = true
+			result = append(result, a)
+		}
+	}
+
+	// 2. Artigos publicados restantes (novos ou não curados), mantendo a ordem por data/destaque
+	for _, a := range publishedArticles {
+		if !placed[a.ID] {
+			placed[a.ID] = true
+			result = append(result, a)
+		}
+	}
+
+	return result
+}
+
 const articleColumns = `id, title, slug, excerpt, body, bodyJson, coverImageUrl, coverImagePos, featured, published, authorName, categories, seoTitle, seoDescription, createdAt, updatedAt, publishedAt`
 
-// handleBlogArticles: GET lista (?published=true filtra pro que o site pode mostrar),
+// handleBlogArticles: GET lista (?published=true filtra pro que o site pode mostrar e aplica ordem hibrida Q14),
 // POST cria, PUT atualiza (id no corpo), DELETE remove (?id=).
 func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		query := `SELECT ` + articleColumns + ` FROM Article`
 		args := []any{}
-		if r.URL.Query().Get("published") == "true" {
+		isPublishedOnly := r.URL.Query().Get("published") == "true"
+		if isPublishedOnly {
 			query += ` WHERE published = 1`
 		}
 		query += ` ORDER BY featured DESC, COALESCE(publishedAt, createdAt) DESC`
@@ -179,6 +277,11 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 			}
 			articles = append(articles, a)
 		}
+
+		if isPublishedOnly {
+			articles = applyGalleryHybridOrder(articles)
+		}
+
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(articles)
 
@@ -198,6 +301,11 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 		} else {
 			a.Slug = slugify(a.Slug)
 		}
+		if isReservedSlug(a.Slug) {
+			http.Error(w, "Este endereço (slug) é reservado pelo sistema.", http.StatusConflict)
+			return
+		}
+
 		now := time.Now()
 		a.CreatedAt = now
 		a.UpdatedAt = now
@@ -219,7 +327,7 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 			a.CreatedAt, a.UpdatedAt, a.PublishedAt,
 		)
 		if err != nil {
-			if strings.Contains(err.Error(), "Duplicate entry") {
+			if strings.Contains(err.Error(), "Duplicate entry") || strings.Contains(err.Error(), "UNIQUE constraint") {
 				http.Error(w, "Já existe um artigo com este endereço (slug).", http.StatusConflict)
 				return
 			}
@@ -241,18 +349,44 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "id é obrigatório", http.StatusBadRequest)
 			return
 		}
-		a.Slug = slugify(a.Slug)
+
+		var alreadyPublishedAt sql.NullTime
+		var previousSlug string
+		err := db.QueryRow(`SELECT publishedAt, slug FROM Article WHERE id = ?`, a.ID).Scan(&alreadyPublishedAt, &previousSlug)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				http.Error(w, "Artigo não encontrado", http.StatusNotFound)
+				return
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Se o slug estiver vazio, gera a partir do título (como prometido na interface).
+		// Se nem título nem slug vierem, preserva o slug existente.
+		if strings.TrimSpace(a.Slug) == "" {
+			if strings.TrimSpace(a.Title) != "" {
+				a.Slug = slugify(a.Title)
+			} else {
+				a.Slug = previousSlug
+			}
+		} else {
+			a.Slug = slugify(a.Slug)
+		}
+
+		// Valida slugs reservados (exceto se for a própria Galeria Principal "blog-global" sendo salva)
+		if isReservedSlug(a.Slug) && previousSlug != a.Slug {
+			http.Error(w, "Este endereço (slug) é reservado pelo sistema.", http.StatusConflict)
+			return
+		}
+
 		a.UpdatedAt = time.Now()
 		if a.Categories == nil {
 			a.Categories = []string{}
 		}
 		categoriesJSON, _ := json.Marshal(a.Categories)
 
-		// Publicou agora pela primeira vez: registra publishedAt. Já publicado antes, mantém a
-		// data original (senão cada edição de um artigo já publicado "resetaria" a data).
-		var alreadyPublishedAt sql.NullTime
-		var previousSlug string
-		db.QueryRow(`SELECT publishedAt, slug FROM Article WHERE id = ?`, a.ID).Scan(&alreadyPublishedAt, &previousSlug)
+		// Publicou agora pela primeira vez: registra publishedAt. Já publicado antes, mantém a data original.
 		if a.Published && !alreadyPublishedAt.Valid {
 			now := time.Now()
 			a.PublishedAt = &now
@@ -266,7 +400,7 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 			a.AuthorName, categoriesJSON, a.SeoTitle, a.SeoDescription, a.UpdatedAt, a.PublishedAt, a.ID,
 		)
 		if err != nil {
-			if strings.Contains(err.Error(), "Duplicate entry") {
+			if strings.Contains(err.Error(), "Duplicate entry") || strings.Contains(err.Error(), "UNIQUE constraint") {
 				http.Error(w, "Já existe um artigo com este endereço (slug).", http.StatusConflict)
 				return
 			}
@@ -356,6 +490,47 @@ func handleBlogArticleBySlug(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(a)
+}
+
+// handleBlogSlugAvailable: GET /api/blog/slug-available?slug=&exceptId=
+// Verifica se um slug é válido, não reservado e não colide com outros artigos.
+func handleBlogSlugAvailable(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+		return
+	}
+	rawSlug := r.URL.Query().Get("slug")
+	clean := slugify(rawSlug)
+	w.Header().Set("Content-Type", "application/json")
+
+	if strings.TrimSpace(rawSlug) == "" || clean == "" {
+		json.NewEncoder(w).Encode(map[string]any{"available": false, "slug": "", "reason": "empty"})
+		return
+	}
+	if isReservedSlug(clean) {
+		json.NewEncoder(w).Encode(map[string]any{"available": false, "slug": clean, "reason": "reserved"})
+		return
+	}
+
+	query := `SELECT COUNT(*) FROM Article WHERE slug = ?`
+	args := []any{clean}
+	exceptID := strings.TrimSpace(r.URL.Query().Get("exceptId"))
+	if exceptID != "" {
+		query += ` AND id != ?`
+		args = append(args, exceptID)
+	}
+
+	var count int
+	if err := db.QueryRow(query, args...).Scan(&count); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if count > 0 {
+		json.NewEncoder(w).Encode(map[string]any{"available": false, "slug": clean, "reason": "taken"})
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]any{"available": true, "slug": clean})
 }
 
 func handleBlogSettings(w http.ResponseWriter, r *http.Request) {
