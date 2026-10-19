@@ -3,8 +3,8 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**"],
-      "env": ["NEXT_PUBLIC_*"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": ["NEXT_PUBLIC_*", "VITE_*"],
       "passThroughEnv": ["API_URL", "REVALIDATE_SECRET"]
     },
     "lint": {},
