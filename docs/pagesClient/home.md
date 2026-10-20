@@ -77,3 +77,9 @@ Blocos novos em `institucional/pages.ts` + `SitePage.tsx` + `Motion.tsx`: `heroM
 - **Barra de prova:** `+10 mil` e `170` no ar. NPS 97 e logos têm `confirmed: false` e **não são renderizados** até a Carol responder as perguntas 1 e 5 do brief (`docs/po/briefs/ai-culture-v2-carol.md`).
 - **Depoimentos:** lista `{nome, cargo, empresa, embedUrl, posterUrl, status}`. Só `status: "approved"` com embed `youtube-nocookie.com/embed/` ou `player.vimeo.com/video/` aparece em produção; itens `pending` só aparecem em `next dev`. Player carrega no clique. Nenhum vídeo no repositório.
 - **Animação:** `Reveal` (IntersectionObserver, só opacity/transform, respeita `prefers-reduced-motion`).
+
+## Home V2 (feedback da Carol, 20/10/2026, parcial)
+
+Aplicado: hero (título, texto, números 10 mil / 170 / 64), bloco "O problema", três frentes (título, subheadlines, "Para quem é", links para `/treinamento-corporativo-ia`, `/advisory`, `/execucao`) e WhatsApp `wa.link/v9grih`.
+
+Pendente (decisão ou material da Carol): selos Parceira Anthropic e Finalista Inovativos (alt. 1), seção "Case em destaque" CBA com rota `/cases/cba` inexistente (alt. 6), troca do CTA "Fale com a Kalidash" (alt. 7, sem indicar qual), alt. 8 e 9 (dependem de prints), logos (ok de uso) e as trocas de imagem do doc "V3 - Imagens" (sem mapa de slots).

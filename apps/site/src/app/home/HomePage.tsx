@@ -332,6 +332,7 @@ export default function HomePage() {
                   <p className={styles.frontLabel}><span>{item.number}</span>{item.name}</p>
                   <h3>{item.title}</h3>
                   <p>{item.text}</p>
+                  {item.audience && <p>{item.audience}</p>}
                   <strong>{item.closing}</strong>
                   <TextLink href={item.link.href}>
                     {item.link.label}

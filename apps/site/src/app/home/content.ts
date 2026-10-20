@@ -3,8 +3,8 @@
 
 export const config = {
   leadEndpoint: process.env.NEXT_PUBLIC_LEAD_ENDPOINT ?? "",
-  // Links enviados pela Kalidash em 02/10/2026. O WhatsApp pode ser trocado por variável de ambiente.
-  whatsappUrl: process.env.NEXT_PUBLIC_WHATSAPP_URL ?? "https://wa.link/9b5sl1",
+  // Links enviados pela Kalidash em 02/10/2026; WhatsApp trocado em 20/10/2026 (Michelle saiu). Pode ser sobrescrito por variável de ambiente.
+  whatsappUrl: process.env.NEXT_PUBLIC_WHATSAPP_URL ?? "https://wa.link/v9grih",
   social: {
     instagram: "https://www.instagram.com/kalidash.ai/",
     linkedin: "https://www.linkedin.com/company/kalidash/",
@@ -49,17 +49,16 @@ export const navCta = { label: "Diagnóstico", href: "/diagnostico" };
 
 export const hero = {
   eyebrow: "Aceleradora de eficiência operacional",
-  title: "Prepare sua operação para a era dos agentes.",
+  title: "Prepare sua operação para a era dos agentes de IA.",
   paragraphs: [
-    "A Inteligência Artificial está deixando de apenas responder para também executar tarefas e participar de processos.",
-    "A Kalidash prepara pessoas, processos e tecnologia para essa mudança, conectando agentes, automação e novas formas de trabalhar à operação real da empresa, para gerar eficiência e escala de verdade.",
+    "Treinamos equipes, estruturamos a governança e implementamos agentes e automações em operações com mais de 500 pessoas. Eficiência medida no resultado, não na ferramenta.",
   ],
   primaryCta: { label: "Preparar minha operação", href: "/diagnostico" },
   secondaryCta: { label: "Conhecer a Kalidash", href: "/#experiencia" },
   stats: [
-    { value: "+10 mil", label: "pessoas capacitadas" },
+    { value: "10 mil", label: "pessoas capacitadas em IA" },
     { value: "170", label: "operações atendidas" },
-    { value: "+500", label: "pessoas por operação" },
+    { value: "64", label: "projetos executados com sucesso" },
   ],
 };
 
@@ -75,9 +74,9 @@ export const clients = [
 
 export const problem = {
   watermark: "-   Inteligência Empresarial",
-  title: "O problema não é apenas tecnológico.",
-  subtitle: "É operacional. É cultural. É humano.",
-  text: "Quando pessoas, processos e tecnologia não trabalham juntos, a execução trava e as decisões demoram. Ferramenta nova não resolve isso: muda-se o jeito de trabalhar.",
+  title: "O problema não é só tecnológico.",
+  subtitle: "É operacional, é cultural, é humano.",
+  text: "Quando pessoas, processos e tecnologia andam em ritmos diferentes, a execução trava e as decisões demoram. Ferramenta nova não resolve. O que resolve é mudar o jeito de trabalhar.",
   closingFinal: "Ferramenta nova não resolve isso. Muda-se o jeito de trabalhar.",
   quote: {
     text: "Nosso time perdia horas com tarefas manuais e retrabalho. Hoje, os processos fluem e focamos no que realmente importa.",
@@ -101,7 +100,7 @@ export const problem = {
       icon: "share",
       number: "03",
       title: "Operação desconectada",
-      text: "Pessoas, processos e tecnologia trabalhando em ritmos diferentes.",
+      text: "Pessoas, processos internos e tecnologia sem a mesma prioridade nem a mesma linguagem.",
     },
   ],
   /* Depoimentos pareados aos cards 02 e 03 (exibidos no empilhamento mobile). Substituir por depoimentos reais. */
@@ -126,37 +125,39 @@ export const problem = {
 
 export const fronts = {
   eyebrow: "O que fazemos",
-  title: "Nem toda empresa começa no mesmo lugar.",
+  title: "Treinamento, governança e execução em IA. Três frentes, um mesmo objetivo.",
   paragraphs: [
-    "Algumas precisam preparar as pessoas. Outras precisam identificar onde existe potencial de eficiência. Outras já sabem o que fazer e precisam de capacidade para colocar em prática.",
-    "Por isso, a Kalidash atua em três frentes que podem funcionar de forma independente ou integrada.",
+    "Nem toda empresa começa no mesmo lugar. Algumas precisam preparar as pessoas. Outras precisam saber onde está o potencial de eficiência. Outras já sabem o que fazer e precisam de braço para executar. As três frentes funcionam juntas ou separadas na Kalidash.",
   ],
   items: [
     {
       number: "01",
       name: "AI Culture",
       title: "Prepare seu time para uma nova forma de trabalhar.",
-      text: "O programa de treinamento corporativo em IA e cultura de IA para grandes operações. Mais do que ensinar ferramentas, desenvolvemos repertório, autonomia e novos hábitos de trabalho para que as pessoas incorporem IA à rotina e passem a identificar oportunidades de melhoria por conta própria.",
+      text: "Programa de treinamento corporativo que desenvolve repertório, autonomia e novos hábitos para que as pessoas incorporem IA à rotina e passem a encontrar melhorias por conta própria.",
+      audience: "Para quem é: empresas que já liberaram ferramentas de IA, mas não viram a rotina mudar.",
       closing: "Capacitação é onde a transformação começa.",
-      link: { label: "Conheça os treinamentos", href: "/diagnostico" },
+      link: { label: "Conheça os treinamentos", href: "/treinamento-corporativo-ia" },
       image: { src: "/home/evento-palestra.jpg", alt: "Treinamento corporativo conduzido pela Kalidash" },
     },
     {
       number: "02",
       name: "Advisory",
       title: "Transforme sem perder o rumo.",
-      text: "Acompanhamos a liderança na implementação da inovação com governança, ajudando a priorizar, decidir, medir e manter a transformação conectada aos objetivos do negócio.",
+      text: "Acompanhamos a liderança para priorizar iniciativas, decidir onde investir, medir resultado e manter a IA conectada aos objetivos do negócio.",
+      audience: "Para quem é: lideranças com muitas ideias de IA na mesa e pouca clareza sobre o que vem primeiro.",
       closing: "Advisory é onde a transformação ganha direção e continuidade.",
-      link: { label: "Conheça o Advisory", href: "/diagnostico" },
+      link: { label: "Conheça o Advisory", href: "/advisory" },
       image: { src: "/home/metodo-reuniao.jpg", alt: "Liderança acompanhando indicadores com a Kalidash" },
     },
     {
       number: "03",
       name: "Execução",
-      title: "Quando a transformação precisa sair do papel.",
-      text: "Entramos na operação para implementar agentes, automações, integrações, dados e soluções de IA quando a empresa precisa de capacidade adicional para fazer acontecer.",
+      title: "Quando a estratégia precisa sair do papel.",
+      text: "Entramos na operação para implementar agentes, automações, integrações e soluções de dados quando a empresa precisa de capacidade extra para fazer acontecer.",
+      audience: "Para quem é: times que já sabem o que querem automatizar e precisam de quem construa.",
       closing: "Execução transforma estratégia em operação.",
-      link: { label: "Conheça a Execução", href: "/diagnostico" },
+      link: { label: "Conheça a Execução", href: "/execucao" },
       image: { src: "/home/evento-ai-os.jpg", alt: "Framework de agentes e operação da Kalidash" },
     },
   ],
