@@ -9,7 +9,7 @@ import HomeHeader from "./HomeHeader";
 import SiteFooter from "./SiteFooter";
 import ExperienceSyncGallery from "./ExperienceSyncGallery";
 import ProblemHologram from "./ProblemHologram";
-import TestimonialCard from "./TestimonialCard";
+import { Reveal } from "../institucional/Motion";
 import {
   ArrowDownLeft,
   ArrowRight,
@@ -396,15 +396,35 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className={styles.voices} data-block="home-testimonial">
-          <Eyebrow>{testimonial.eyebrow}</Eyebrow>
-          <h2>{testimonial.title}</h2>
-          <TestimonialCard
-            quote={testimonial.quote}
-            author={testimonial.author}
-            role={testimonial.role}
-            avatarSrc="/home/avatar-andre.jpg"
-          />
+        <section className={styles.results} data-block="home-testimonial">
+          <header className={styles.resultsHead}>
+            <Eyebrow>{testimonial.eyebrow}</Eyebrow>
+            <h2>{testimonial.title}</h2>
+          </header>
+          <Reveal as="ul" className={styles.resultCards}>
+            {testimonial.cards.map((card, index) => (
+              <li key={card.author} className={styles.resultCard} style={{ "--i": index } as React.CSSProperties}>
+                <div className={styles.resultPhoto}>
+                  {card.photo ? (
+                    <Image src={card.photo} alt={card.author} width={768} height={512} sizes="(min-width: 1100px) 33vw, 100vw" />
+                  ) : (
+                    <span aria-hidden="true">{card.author.split(" ").map((part) => part[0]).slice(0, 2).join("")}</span>
+                  )}
+                </div>
+                <div className={styles.resultBody}>
+                  {card.metric && (
+                    <p className={styles.resultMetric}>
+                      <strong>{card.metric.value}</strong> {card.metric.label}
+                    </p>
+                  )}
+                  <blockquote>“{card.quote}”</blockquote>
+                  <p className={styles.resultAuthor}>
+                    <strong>{card.author}</strong>, {card.role}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </Reveal>
         </section>
 
         <section id="diagnostico" className={styles.diagnostico} data-block="home-diagnostico">

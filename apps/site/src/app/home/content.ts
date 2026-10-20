@@ -205,9 +205,32 @@ export const caseCba = {
 export const testimonial = {
   eyebrow: "Quem viveu a transformação",
   title: "O que muda quando a tecnologia chega ao trabalho real.",
-  quote: "Entregaram além da nossa expectativa e também do acordo. É assim que você surpreende clientes.",
-  author: "André",
-  role: "CMO da Tô Garantido",
+  /* Alt. 8 da Carol (20/10/2026): três cards com foto, métrica e frase. Só o André é depoimento real;
+   * Camila e Eduardo são os mesmos textos provisórios já usados em "O problema" e precisam ser trocados por
+   * depoimentos reais, com foto e, se houver, `metric` (ex.: { value: "R$ 100 mil", label: "em 45 dias" }). */
+  cards: [
+    {
+      quote: "Entregaram além da nossa expectativa e também do acordo. É assim que você surpreende clientes.",
+      author: "André",
+      role: "CMO da Tô Garantido",
+      photo: "/home/avatar-andre.jpg" as string | undefined,
+      metric: undefined as { value: string; label: string } | undefined,
+    },
+    {
+      quote: "Já tínhamos várias ferramentas de IA, mas nenhuma mudava o resultado. A Kalidash conectou tudo à nossa rotina.",
+      author: "Camila Duarte",
+      role: "head de produto",
+      photo: undefined,
+      metric: undefined,
+    },
+    {
+      quote: "Hoje comercial, operação e tecnologia falam a mesma língua. As decisões deixaram de travar no meio do caminho.",
+      author: "Eduardo Lima",
+      role: "CEO",
+      photo: undefined,
+      metric: undefined,
+    },
+  ],
 };
 
 /* Seção "Por trás da transformação" removida da Home em 20/10/2026 (alt. 9 da Carol); conteúdo mantido aqui por referência. */
