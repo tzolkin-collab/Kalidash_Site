@@ -235,22 +235,34 @@ export const diagnostico = {
   ],
 };
 
+export type FooterLink = { label: string; href?: string; external?: boolean };
+export type FooterColumn = { title: string; links: FooterLink[] };
+
 export const footer = {
-  text: "Preparamos pessoas, processos e tecnologia para a era dos agentes.",
+  text: "Preparamos pessoas, processos e tecnologia para a era dos agentes de IA.",
+  // Copy da Carol (20/10/2026). Os rótulos "Cultura de IA · Governança · Execução" aguardam confirmação (pergunta 4 do brief).
   columns: [
     {
-      title: "A Kalidash",
+      title: "Para empresas",
       links: [
-        { label: "O que fazemos", href: "/#o-que-fazemos" },
-        { label: "Experiência", href: "/#experiencia" },
-        { label: "Blog", href: "/blog" },
+        { label: "Cultura de IA", href: "/treinamento-corporativo-ia" },
+        { label: "Governança", href: "/advisory" },
+        { label: "Execução", href: "/execucao" },
+        { label: "Diagnóstico", href: "/diagnostico" },
+      ],
+    },
+    {
+      title: "Produtos",
+      links: [
+        { label: "Kognis", href: "/solucoes#kognis" },
+        { label: "Spectra AI", href: "/solucoes#spectra-ai" },
       ],
     },
     {
       title: "Contato",
       links: [
-        { label: "Diagnóstico", href: "/diagnostico" },
-        { label: "Cases", href: "/#experiencia" },
+        { label: "comercial@kalidash.com", href: "mailto:comercial@kalidash.com" },
+        { label: "Belo Horizonte, MG" },
       ],
     },
     {
@@ -260,6 +272,6 @@ export const footer = {
         { label: "Divulgação responsável", href: "/politica-vulnerabilidades.pdf", external: true },
       ],
     },
-  ],
+  ] as FooterColumn[],
   copyright: "© 2026 Kalidash. Todos os direitos reservados.",
 };

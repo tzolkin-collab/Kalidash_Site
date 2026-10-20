@@ -32,7 +32,47 @@ export type Block =
       }>;
     }
   | { type: "proof"; eyebrow?: string; items: Array<{ label: string; names: string }>; closing?: string[] }
-  | { type: "cta"; eyebrow?: string; title: string; text: string; cta: Cta; microcopy?: string };
+  | { type: "cta"; eyebrow?: string; title: string; text: string; cta: Cta; microcopy?: string }
+  | {
+      type: "heroMedia";
+      eyebrow: string;
+      title: string[];
+      lead: string[];
+      support?: string;
+      cta: Cta;
+      image: Media;
+    }
+  | { type: "proofBar"; metrics: ProofMetric[]; logos?: ProofLogos }
+  | { type: "formats"; eyebrow: string; title: string[]; background: Media; items: FormatCard[] }
+  | { type: "testimonials"; eyebrow: string; title: string[]; items: Testimonial[] };
+
+export type Media = { src: string; alt: string; width: number; height: number };
+
+/* `confirmed: false` = o dado ainda não tem fonte/autorização da Carol; o renderizador NÃO publica o item. */
+export type ProofMetric = { value: string; label: string; confirmed: boolean };
+export type ProofLogos = { caption: string; confirmed: boolean; items: Array<{ name: string; src?: string }> };
+
+export type FormatCard = {
+  title: string;
+  audience: string;
+  text: string;
+  features?: Array<{ title: string; text: string }>;
+  extra?: string;
+  support: string;
+  cta: Cta;
+  ctaStyle: "primary" | "secondary";
+};
+
+/* Depoimento em vídeo. Só `status: "approved"` com `embedUrl` hospedado (YouTube/Vimeo não listado) vai ao ar.
+ * Nenhum arquivo de vídeo entra no repositório; o player só carrega no clique. */
+export type Testimonial = {
+  nome: string;
+  cargo: string;
+  empresa: string;
+  embedUrl: string;
+  posterUrl: string;
+  status: "pending" | "approved";
+};
 
 export type PageContent = {
   slug: string;
@@ -165,77 +205,99 @@ export const aiCulture: PageContent = {
   },
   blocks: [
     {
-      type: "hero",
-      eyebrow: "AI Culture",
-      title: ["Seu time não precisa apenas aprender IA.", "Precisa aprender o que fazer com ela."],
+      type: "heroMedia",
+      eyebrow: "AI Culture · Treinamento corporativo em IA",
+      title: ["Não basta aprender IA. Seu time precisa saber o que fazer com ela."],
       lead: [
-        "Treinamentos corporativos de IA construídos a partir da realidade da sua empresa.",
-        "Desenvolvemos repertório, aplicação prática e autonomia para que os times usem IA no trabalho real, com trilhas por área e governança desde o início.",
+        "Treinamento in company construído sobre a rotina, os processos e os casos reais da sua empresa. Trilhas por área e governança desde o primeiro dia.",
       ],
-      meta: "Turmas a partir de 12 pessoas · Online ou Presencial",
-      cta: { label: "Solicitar proposta para o meu time", href: diagnostico },
+      support: "Turmas a partir de 12 pessoas · Online ou presencial · Carga horária personalizada",
+      cta: { label: "Solicitar proposta", href: diagnostico },
+      image: { src: "/home/evento-sala.jpg", alt: "Turma em sala durante um treinamento da Kalidash", width: 633, height: 814 },
+    },
+    {
+      type: "proofBar",
+      metrics: [
+        { value: "+10 mil", label: "pessoas capacitadas", confirmed: true },
+        { value: "170", label: "operações atendidas", confirmed: true },
+        // NPS 97: falta a fonte (pergunta 1 do brief). Ligar `confirmed` só quando a Carol responder.
+        { value: "97", label: "média de NPS", confirmed: false },
+      ],
+      // Logos: falta o ok de uso e os arquivos de CBA, Sicoob e Cooxupé (pergunta 5 do brief).
+      logos: {
+        caption: "Times treinados em",
+        confirmed: false,
+        items: [
+          { name: "ArcelorMittal", src: "/logos/arcelormittal.svg" },
+          { name: "CBA" },
+          { name: "Sicoob" },
+          { name: "Cooxupé" },
+        ],
+      },
     },
     {
       type: "text",
-      eyebrow: "Por que capacitar?",
-      title: ["Ter acesso à IA não significa saber trabalhar com ela."],
+      title: ["Ter acesso à IA não é saber trabalhar com ela."],
       paragraphs: [
-        "Uma empresa pode disponibilizar ChatGPT, Copilot ou outras ferramentas para todo o time e, ainda assim, continuar trabalhando praticamente da mesma forma.",
-        "O desafio está em fazer as pessoas entenderem onde aplicar, experimentarem na prática e enxergarem oportunidades no próprio trabalho.",
-        "O objetivo é desenvolver capacidade dentro da empresa. **Não ensinar mais uma ferramenta.**",
+        "Muitas empresas já liberaram ChatGPT, Copilot ou Gemini para o time e a rotina continua igual. O gargalo não é a ferramenta, é saber onde aplicar, testar no próprio trabalho e transformar isso em hábito.",
       ],
+      highlight: ["Nosso objetivo é criar capacidade dentro da empresa, não ensinar mais uma ferramenta."],
     },
     {
       type: "steps",
-      eyebrow: "Nossa metodologia",
-      title: ["A gente começa pelo trabalho, não pela ferramenta."],
+      title: ["Começamos pelo trabalho, não pela ferramenta."],
       items: [
-        { title: "Contexto", text: "Entendemos como o trabalho acontece. Conhecemos os times, áreas, processos e desafios que fazem parte da rotina." },
-        { title: "Capacitação", text: "Desenvolvemos repertório para usar IA com segurança e propósito. As pessoas aprendem possibilidades que fazem sentido para o próprio contexto." },
-        { title: "Aplicação", text: "Levamos a IA para problemas reais. O aprendizado acontece sobre situações, tarefas e processos que o time realmente executa." },
-        { title: "Cultura", text: "Criamos autonomia para continuar evoluindo. O time passa a reconhecer oportunidades, testar novas possibilidades e incorporar a IA à rotina." },
+        { title: "Contexto", text: "Mapeamos áreas, processos e desafios do time antes de montar o conteúdo." },
+        { title: "Capacitação", text: "O time aprende a usar IA com segurança, com exemplos do próprio setor." },
+        { title: "Aplicação", text: "Cada pessoa aplica IA em tarefas reais da rotina, durante o treinamento." },
+        { title: "Cultura", text: "O time sai com autonomia para encontrar novas melhorias sozinho." },
       ],
       closing: [
-        "O treinamento termina. A capacidade permanece.",
-        "O objetivo não é criar dependência da Kalidash. **É fazer com que o próprio time consiga continuar encontrando oportunidades de melhoria.**",
+        "**O treinamento termina. A capacidade fica.**",
+        "O próprio time continua evoluindo, sem depender de consultoria.",
       ],
     },
     {
-      type: "cards",
-      eyebrow: "O que muda",
-      title: ["Quando o time aprende a trabalhar de outra forma, a operação muda junto."],
-      columns: 2,
-      items: [
-        { title: "Pessoas", text: "Mais repertório para usar IA no trabalho real." },
-        { title: "Processos", text: "Menos trabalho repetitivo e novas formas de executar." },
-        { title: "Liderança", text: "Mais clareza sobre onde a IA pode gerar valor e onde não deve ser aplicada." },
-        { title: "Cultura", text: "Um time que passa a enxergar IA como parte do trabalho, não como uma ferramenta isolada." },
-      ],
-      cta: { label: "Quero desenvolver meu time", href: diagnostico },
-    },
-    {
-      type: "offers",
+      type: "formats",
+      eyebrow: "Formatos",
+      title: ["Dois formatos, conforme o seu objetivo."],
+      background: { src: "/home/metodo-reuniao.jpg", alt: "", width: 2000, height: 1334 },
       items: [
         {
-          eyebrow: "AI Culture · In Company",
-          title: "Uma capacitação construída para a realidade da sua empresa.",
-          text: "Treinamento corporativo personalizado para desenvolver o uso prático de IA nos diferentes níveis e áreas da organização. Conteúdo, exemplos e aplicações conectados ao contexto real do time.",
+          title: "AI Culture In Company",
+          audience: "Para quem quer **desenvolver capacidade real no time.**",
+          text: "Programa sob medida para diferentes áreas e níveis da empresa, com conteúdo e exemplos do seu contexto.",
           features: [
-            { title: "Trilhas por área", text: "Conteúdos e aplicações diferentes para diferentes funções e necessidades." },
-            { title: "Casos reais da empresa", text: "A IA aplicada sobre situações e processos que fazem parte da rotina." },
-            { title: "Uso responsável e governança", text: "Orientações para usar IA com segurança, contexto e responsabilidade." },
-            { title: "Aplicação prática", text: "Menos teoria. Mais experimentação sobre o trabalho real." },
-            { title: "Turmas a partir de 12 pessoas", text: "O formato foi pensado para desenvolver capacidade de forma coletiva e criar uma mudança que se espalha pelo time." },
+            { title: "Trilhas por área", text: "conteúdo diferente para cada função" },
+            { title: "Casos da sua empresa", text: "IA aplicada aos processos reais" },
+            { title: "Uso responsável", text: "governança e segurança desde o início" },
+            { title: "Mão na massa", text: "todos praticam na hora" },
           ],
+          support: "A partir de 12 pessoas · Online ou presencial · Certificado e plano de aplicação por área inclusos",
           cta: { label: "Solicitar proposta", href: diagnostico },
+          ctaStyle: "primary",
         },
         {
-          eyebrow: "AI Culture · Experiências",
-          title: "Para despertar repertório, provocar novas ideias e acelerar a experimentação.",
-          text: "Palestras, workshops, aulas e experiências sobre **Inteligência Artificial, agentes e novas formas de trabalhar**, para empresas que querem sensibilizar lideranças, provocar seus times ou abrir uma conversa sobre o futuro do trabalho.",
-          note: "Para eventos, encontros de liderança, semanas de inovação e momentos de sensibilização.",
+          title: "AI Culture Experiências",
+          audience: "Para quem quer **sensibilizar lideranças e abrir a conversa sobre IA.**",
+          text: "Palestras, workshops e imersões sobre IA, agentes e o futuro do trabalho.",
+          extra: "Ideal para: eventos corporativos, encontros de liderança e semanas de inovação.",
+          // "5 pessoas" e "Certificado..." podem ter sido copiados do Card 1 (pergunta 2 do brief): copy mantida como no doc.
+          support: "A partir de 5 pessoas · Online ou presencial · Certificado e plano de aplicação por área inclusos",
           cta: { label: "Consultar disponibilidade", href: diagnostico },
+          ctaStyle: "secondary",
         },
+      ],
+    },
+    {
+      type: "testimonials",
+      eyebrow: "Depoimentos",
+      title: ["O resultado não aparece no certificado. Aparece no trabalho."],
+      // Lista desligada em produção até haver embed hospedado + autorização (perguntas 6 do brief).
+      // Itens "pending" só aparecem em `next dev`, como espaço reservado.
+      items: [
+        { nome: "Daniel", cargo: "Cargo (a confirmar)", empresa: "Empresa (a confirmar)", embedUrl: "", posterUrl: "", status: "pending" },
+        { nome: "Larissa", cargo: "Cargo (a confirmar)", empresa: "Empresa (a confirmar)", embedUrl: "", posterUrl: "", status: "pending" },
       ],
     },
     {

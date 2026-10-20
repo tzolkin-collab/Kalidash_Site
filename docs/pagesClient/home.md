@@ -26,7 +26,7 @@ As imagens permanecem em `apps/site/public/home/`. O título e a descrição par
 6. **Depoimento:** relato aprovado de André, CMO da Tô Garantido.
 7. **Cases e encontros:** mosaico com imagens reais já presentes no projeto.
 8. **Diagnóstico:** chamada, formulário e microcopy de retorno em até 24 horas.
-9. **Rodapé:** navegação institucional, privacidade, divulgação responsável e redes configuradas.
+9. **Rodapé** (copy da Carol, 20/10/2026; igual nas 7 páginas internas): assinatura, Para empresas (Cultura de IA, Governança, Execução, Diagnóstico), Produtos (Kognis, Spectra AI), Contato (`mailto:comercial@kalidash.com`, Belo Horizonte, MG em texto), Termos de uso (Privacidade, Divulgação responsável) e redes configuradas. Os rótulos de "Para empresas" aguardam confirmação da Carol.
 
 O botão flutuante de WhatsApp só aparece quando `NEXT_PUBLIC_WHATSAPP_URL` estiver configurada. Isso evita exibir um contato que não leva a um canal real.
 
@@ -69,3 +69,11 @@ Essas métricas servem apenas como regressão local. A aprovação de Web Vitals
 ## Como conferir
 
 Execute `pnpm --filter @kalidash/site dev` e abra a rota `/`. Revise a versão desktop e uma viewport móvel de 390 px. Para validar a integração, configure as variáveis de ambiente e faça um envio de teste identificável, confirmando o registro no Core.
+
+## AI Culture V2 (`/treinamento-corporativo-ia`, 20/10/2026)
+
+Blocos novos em `institucional/pages.ts` + `SitePage.tsx` + `Motion.tsx`: `heroMedia`, `proofBar`, `formats`, `testimonials` (a seção "O que muda" foi removida; metodologia ganhou animação de entrada).
+
+- **Barra de prova:** `+10 mil` e `170` no ar. NPS 97 e logos têm `confirmed: false` e **não são renderizados** até a Carol responder as perguntas 1 e 5 do brief (`docs/po/briefs/ai-culture-v2-carol.md`).
+- **Depoimentos:** lista `{nome, cargo, empresa, embedUrl, posterUrl, status}`. Só `status: "approved"` com embed `youtube-nocookie.com/embed/` ou `player.vimeo.com/video/` aparece em produção; itens `pending` só aparecem em `next dev`. Player carrega no clique. Nenhum vídeo no repositório.
+- **Animação:** `Reveal` (IntersectionObserver, só opacity/transform, respeita `prefers-reduced-motion`).

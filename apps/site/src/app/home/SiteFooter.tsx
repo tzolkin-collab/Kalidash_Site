@@ -20,7 +20,8 @@ export default function SiteFooter() {
             <h3>{column.title}</h3>
             <ul>
               {column.links.map((link) => {
-                const external = "external" in link && link.external;
+                const external = Boolean(link.external);
+                if (!link.href) return <li key={link.label}><span>{link.label}</span></li>;
                 const href = resolve(link.href);
                 return (
                   <li key={link.label}>
