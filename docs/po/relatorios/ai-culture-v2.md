@@ -37,3 +37,12 @@ Ver `git log` (`feat(site): ...`).
 ## (f) O que Gustavo e Carol precisam fazer
 - Carol: responder as perguntas 1 (fonte do NPS), 2, 3, 4, 5 (ok de uso de logos + arquivos de CBA, Sicoob, Cooxupé), 6 (autorização dos depoimentos) e 7 do §3 do brief.
 - Gustavo: decidir o hosting dos vídeos (YouTube/Vimeo não listado recomendado); depois preencher `embedUrl`/`posterUrl` e trocar `status` para `approved` em `pages.ts`; trocar `confirmed` para `true` na barra de prova quando aprovado.
+
+## Adendo (20/10, depois da entrega): Home V2 e imagens
+
+Pedido direto da Carol, fora do brief original. Commits `5392533` (copy da Home: hero, problema, três frentes, WhatsApp `wa.link/v9grih`), `ce19381` (fotos das frentes e da galeria, doc "V3 - Imagens") e `85d7c7d` (case CBA, remoção de "Por trás da transformação", CTA "Fale com a Kalidash").
+
+- **Fonte:** docs do Drive da Carol lidos por metadados/PDF; imagens baixadas por link público para `_assets-carol/` (fora do git) e otimizadas em `public/home/`.
+- **Não feito:** alt. 8 (depoimentos em 3 cards: faltam dados reais e autorização), selos Anthropic/Inovativos na barra de prova (a Home não tem barra), página `/cases/cba` (CTA oculto por `caseCba.pageReady`), logos (ok de uso).
+- **Suposições:** "Química Anastácio" omitida (link repete o da Imersão de Claude); 16ª foto da galeria ("Esse pode manter") assumida como `evento-sala.jpg`; as três imagens das frentes mapeadas pela ordem do doc.
+- **Não verificado:** build completo com a API do blog no ar (o build avisa "Falha ao buscar artigo do blog", que é o blog sem API local, e termina com exit 0); olhar visual de cada foto da galeria.
