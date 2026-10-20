@@ -891,6 +891,22 @@
 .voices h2 { font-size: 58px; line-height: 1.02; letter-spacing: -.05em; }
 /* O blockquote do depoimento agora vive em TestimonialCard.module.css */
 
+.caseFeature {
+  display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 80px; align-items: start;
+  width: var(--container); margin: 0 auto; padding: 96px 0; border-top: 1px solid var(--line);
+}
+.caseFeature h2 { margin-top: 18px; font-size: 46px; line-height: 1.05; letter-spacing: -.045em; }
+.caseBody { display: grid; gap: 22px; justify-items: start; }
+.caseBody > p:first-child { font-size: 19px; line-height: 1.65; color: #3c373f; }
+.caseBadge {
+  padding: 10px 16px; border: 1px solid var(--accent); border-radius: 999px;
+  color: var(--ink); font-size: 14px; font-weight: 600; line-height: 1.4;
+}
+@media (max-width: 900px) {
+  .caseFeature { grid-template-columns: 1fr; gap: 28px; padding: 64px 0; }
+  .caseFeature h2 { font-size: 34px; }
+}
+
 .people { padding: 112px var(--gutter); background: var(--gray-1); }
 .peopleIntro { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; max-width: 1280px; margin: 0 auto 64px; }
 .peopleIntro .eyebrow { grid-column: 1 / -1; margin-bottom: -36px; }

@@ -187,8 +187,19 @@ export const experience = {
     "A IA não precisa substituir pessoas para transformar uma operação.",
     "Ela pode ampliar a capacidade de quem já faz o trabalho acontecer.",
   ],
-  link: { label: "Conheça nossos cases", href: "/#experiencia" },
+  link: { label: "Fale com a Kalidash", href: "/diagnostico" },
   image: { src: "/home/cooxupe.jpg", alt: "Equipe reunida na escadaria da Cooxupé" },
+};
+
+/* Case em destaque (alt. 6 da Carol, 20/10/2026). A página /cases/cba ainda não existe:
+ * enquanto `pageReady` for false o CTA não é exibido (evita link quebrado). */
+export const caseCba = {
+  eyebrow: "Case · CBA",
+  title: "Captura Inteligente do Conhecimento",
+  text: "O que se decidia nas reuniões diárias de rotina ficava só na memória de quem estava na sala. Criamos uma solução de IA que transcreve essas conversas, mesmo com ruído industrial, e as transforma em dado estruturado: problema, solução, criticidade e prazo, validados por quem conhece o processo.",
+  badge: "Finalista Prêmio Inovativos 2026 — categoria Dados, Insights e Decisão",
+  cta: { label: "Ver o case completo", href: "/cases/cba" },
+  pageReady: false,
 };
 
 export const testimonial = {
@@ -199,6 +210,7 @@ export const testimonial = {
   role: "CMO da Tô Garantido",
 };
 
+/* Seção "Por trás da transformação" removida da Home em 20/10/2026 (alt. 9 da Carol); conteúdo mantido aqui por referência. */
 export const people = {
   eyebrow: "Por trás da transformação",
   title: ["Tecnologia é parte da mudança.", "Pessoas fazem ela acontecer."],

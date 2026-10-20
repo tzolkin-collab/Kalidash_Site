@@ -27,7 +27,7 @@ import {
   experience,
   fronts,
   hero,
-  people,
+  caseCba,
   problem,
   testimonial,
 } from "./content";
@@ -382,6 +382,20 @@ export default function HomePage() {
           </div>
         </section>
 
+        <section className={styles.caseFeature} data-block="home-case">
+          <div>
+            <Eyebrow>{caseCba.eyebrow}</Eyebrow>
+            <h2>{caseCba.title}</h2>
+          </div>
+          <div className={styles.caseBody}>
+            <p>{caseCba.text}</p>
+            <p className={styles.caseBadge}>{caseCba.badge}</p>
+            {caseCba.pageReady && (
+              <TextLink href={caseCba.cta.href}>{caseCba.cta.label}</TextLink>
+            )}
+          </div>
+        </section>
+
         <section className={styles.voices} data-block="home-testimonial">
           <Eyebrow>{testimonial.eyebrow}</Eyebrow>
           <h2>{testimonial.title}</h2>
@@ -391,22 +405,6 @@ export default function HomePage() {
             role={testimonial.role}
             avatarSrc="/home/avatar-andre.jpg"
           />
-        </section>
-
-        <section id="equipe" className={styles.people} data-block="home-people">
-          <div className={styles.peopleIntro}>
-            <Eyebrow>{people.eyebrow}</Eyebrow>
-            <h2>{people.title[0]}<br />{people.title[1]}</h2>
-            <p>{people.text}</p>
-          </div>
-          <div className={styles.peopleGrid}>
-            {people.items.map((item, index) => (
-              <figure key={item.src} className={styles.peopleItem} data-size={index === 0 || index === 3 ? "large" : "regular"}>
-                <Image src={item.src} alt={item.alt} fill sizes="(min-width: 1100px) 50vw, 100vw" />
-                <figcaption>{item.title}</figcaption>
-              </figure>
-            ))}
-          </div>
         </section>
 
         <section id="diagnostico" className={styles.diagnostico} data-block="home-diagnostico">
