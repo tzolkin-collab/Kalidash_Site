@@ -14,6 +14,7 @@ const ROW_1: PhotoItem[] = [
   { src: "/home/g01-cupula.jpg", alt: "A Cúpula ∙ Governança e segurança de dados", tag: "A Cúpula ∙ Governança e segurança de dados" },
   { src: "/home/g02-zig.jpg", alt: "ZIG ∙ IA para Financeiro e Processos", tag: "ZIG ∙ IA para Financeiro e Processos" },
   { src: "/home/g03-imersao-claude.jpg", alt: "Imersão presencial de Claude", tag: "Imersão presencial de Claude" },
+  { src: "/home/g04-quimica.jpg", alt: "Química Anastácio ∙ IA para lideranças", tag: "Química Anastácio ∙ IA para lideranças" },
   { src: "/home/g05-sao-carlos.jpg", alt: "São Carlos Experience", tag: "São Carlos Experience" },
   { src: "/home/g06-saam.jpg", alt: "SAAM Towage ∙ IA para alta liderança", tag: "SAAM Towage ∙ IA para alta liderança" },
   { src: "/home/g07-cooxupe.jpg", alt: "Cooxupé ∙ N8N para T.I", tag: "Cooxupé ∙ N8N para T.I" },
@@ -86,7 +87,8 @@ export default function ExperienceSyncGallery() {
         }
 
         // Card width 280px + 10px gap = 290px. Meio bloco = itens de uma linha * 290px
-        const singleSetWidth = ROW_1.length * 290;
+        const setWidth1 = ROW_1.length * 290;
+        const setWidth2 = ROW_2.length * 290;
 
         // Cálculo de translação com scroll parallax + drift suave
         // Linha 1 corre para a esquerda conforme scrolla para baixo
@@ -100,8 +102,8 @@ export default function ExperienceSyncGallery() {
           return mod > 0 ? mod - max : mod;
         };
 
-        const wrapped1 = wrapValue(target1, singleSetWidth);
-        const wrapped2 = wrapValue(target2, singleSetWidth);
+        const wrapped1 = wrapValue(target1, setWidth1);
+        const wrapped2 = wrapValue(target2, setWidth2);
 
         // Interpolação suave (Lerp) para fluidez de 60-120fps nativa
         currentX1.current += (wrapped1 - currentX1.current) * 0.09;
