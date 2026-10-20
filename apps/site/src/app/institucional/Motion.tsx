@@ -11,10 +11,12 @@ export function Reveal({
   as: Tag = "div",
   className,
   children,
+  ...rest
 }: {
   as?: "div" | "ol" | "ul";
   className?: string;
   children: React.ReactNode;
+  [dataAttr: `data-${string}`]: string | number | undefined;
 }) {
   const ref = useRef<HTMLElement>(null);
 
@@ -45,7 +47,7 @@ export function Reveal({
 
   const Component = Tag as React.ElementType;
   return (
-    <Component ref={ref} className={className} data-reveal data-state="idle">
+    <Component ref={ref} className={className} {...rest} data-reveal data-state="idle">
       {children}
     </Component>
   );

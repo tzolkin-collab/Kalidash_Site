@@ -214,3 +214,54 @@
 @media (prefers-reduced-motion: reduce) {
   .steps::before, .steps li, .formatCard { transition: none !important; transform: none !important; }
 }
+
+/* ---- Chips, cards com exemplo, FAQ e vitrine (Advisory/Execução V2) ---- */
+.chips { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.chips li { padding: 10px 18px; border: 1px solid var(--line); border-radius: 999px; background: #fff; font-size: 16px; color: #3c373f; }
+.chips[data-state="hidden"] li { opacity: 0; transform: translateY(10px); }
+.chips[data-state="in"] li { transition: opacity 500ms ease, transform 500ms ease; transition-delay: calc(var(--i) * 90ms); }
+
+.example { padding-top: 12px; border-top: 1px dashed var(--line); font-size: 14px !important; color: #6b6670 !important; }
+.cardsMotion { background: transparent; border: 0; gap: 16px; }
+.cardsMotion .card { border: 1px solid var(--line); border-radius: 8px; transition: transform 220ms ease, box-shadow 220ms ease; }
+.cardsMotion[data-state="hidden"] .card { opacity: 0; transform: translateY(18px); }
+.cardsMotion[data-state="in"] .card { transition: opacity 600ms ease, transform 600ms ease; transition-delay: calc(var(--i) * 120ms); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .cardsMotion[data-state="in"] .card:hover, .cardsMotion[data-state="idle"] .card:hover {
+    transform: translateY(-5px); box-shadow: 0 14px 34px rgba(40, 24, 59, 0.12); transition-delay: 0ms; transition-duration: 220ms;
+  }
+}
+
+.steps[data-count="3"] { grid-template-columns: repeat(3, 1fr); }
+.section[data-wide] > .inlineCta { margin-top: 0; }
+
+.faq { display: grid; align-content: start; border-top: 1px solid var(--line); }
+.faq details { border-bottom: 1px solid var(--line); }
+.faq summary { padding: 22px 36px 22px 0; position: relative; cursor: pointer; list-style: none; font-family: var(--font-title); font-size: 20px; letter-spacing: -0.02em; color: var(--ink); }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; position: absolute; right: 4px; top: 18px; font-size: 26px; color: var(--accent); transition: transform 200ms ease; }
+.faq details[open] summary::after { transform: rotate(45deg); }
+.faq details p { padding: 0 0 24px; font-size: 17px; line-height: 1.6; color: #514c53; }
+
+.showcaseMetrics { padding-top: 0; }
+.showcase { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 24px; }
+.featuredCase { display: flex; flex-direction: column; align-items: flex-start; gap: 18px; padding: clamp(24px, 3vw, 40px); background: var(--ink); color: #fff; border-radius: 8px; }
+.featuredCase p { font-size: 18px; line-height: 1.6; color: #f1eef4; }
+.featuredCase .caseEyebrow { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #f0b39f; }
+.featuredCase .caseBadge { padding: 8px 14px; border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 999px; font-size: 14px; font-weight: 600; }
+.featuredCase a { color: #f0b39f; border-color: #f0b39f; }
+.smallCases { display: grid; gap: 16px; margin: 0; padding: 0; list-style: none; }
+.smallCases .card { border: 1px solid var(--line); border-radius: 8px; height: 100%; }
+.showcase[data-state="hidden"] > * { opacity: 0; transform: translateY(18px); }
+.showcase[data-state="in"] > * { transition: opacity 600ms ease, transform 600ms ease; }
+.showcase[data-state="in"] > *:nth-child(2) { transition-delay: 150ms; }
+
+@media (max-width: 900px) {
+  .showcase { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .steps[data-count="3"] { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chips li, .cardsMotion .card, .showcase > * { transition: none !important; transform: none !important; }
+}

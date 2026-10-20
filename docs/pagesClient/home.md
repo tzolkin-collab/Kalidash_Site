@@ -91,3 +91,10 @@ Pendente (decisão ou material da Carol): selos Parceira Anthropic e Finalista I
 **Alt. 8 (cards de depoimento):** "Quem viveu a transformação" virou três cards (foto, métrica opcional, frase, autor) com entrada em sequência e elevação no hover (`testimonial.cards` em `home/content.ts`). Só o André é depoimento real; Camila Duarte e Eduardo Lima são textos provisórios (iniciais no lugar da foto) e precisam ser trocados por depoimentos reais, com foto e `metric` quando houver.
 
 **Galeria (atualização):** a foto da Química Anastácio (link correto enviado pela Carol no chat de 20/10) entrou como 9ª foto da linha 1; a largura do loop agora é calculada por linha.
+
+## Advisory e Execução V2 (docs da Carol, 20/10/2026)
+
+Aplicados em `institucional/pages.ts` com blocos novos (`faq` com JSON-LD FAQPage, `showcase`) e extensões (`chips`, cards com `example` e `animated`, `steps` com CTA, `list` com `noteLink`).
+
+- **Advisory:** hero com `metodo-reuniao.jpg`, chips, rituais em cards animados, "Como começa" em 3 passos, "Para quem é" com link para o AI Culture e FAQ. URL mantida em `/advisory` (a Carol sugere `/consultoria-governanca-ia` com 301: decisão pendente). O "O que a liderança recebe" é o exemplo que ela deixou entre colchetes; confirmar os entregáveis reais.
+- **Execução:** hero com a foto da frente Execução (a Carol não indicou imagem: confirmar), cards com exemplos, "Nosso diferencial" e a faixa antiga removidos, "Feito para funcionar" como vitrine. Atrás de `confirmed: false`: "12 horas economizadas por semana" e os números do piloto da CBA (1.681 problemas, 97%). CTA `/cases/cba` oculto até `pageReady: true`.

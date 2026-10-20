@@ -174,6 +174,74 @@ function BlockView({ block }: { block: Block }) {
       );
     }
 
+    case "faq":
+      return (
+        <section className={styles.section}>
+          <header className={styles.head}>
+            <h2>{block.title}</h2>
+          </header>
+          <div className={styles.faq}>
+            {block.items.map((item) => (
+              <details key={item.q}>
+                <summary>{item.q}</summary>
+                <p>{item.a}</p>
+              </details>
+            ))}
+          </div>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: block.items.map((item) => ({
+                  "@type": "Question",
+                  name: item.q,
+                  acceptedAnswer: { "@type": "Answer", text: item.a },
+                })),
+              }).replace(/</g, "\\u003c"),
+            }}
+          />
+        </section>
+      );
+
+    case "showcase": {
+      const metrics = block.metrics.filter((metric) => metric.confirmed);
+      const { featured } = block;
+      return (
+        <section className={styles.section} data-wide>
+          <header className={styles.head}>
+            <Eyebrow>{block.eyebrow}</Eyebrow>
+            <h2><Lines lines={block.title} /></h2>
+          </header>
+          <ul className={`${styles.metrics} ${styles.showcaseMetrics}`}>
+            {metrics.map((metric) => (
+              <li key={metric.label}>
+                <strong>{metric.value}</strong> <span>{metric.label}</span>
+              </li>
+            ))}
+          </ul>
+          <Reveal className={styles.showcase}>
+            <article className={styles.featuredCase}>
+              <p className={styles.caseEyebrow}>{featured.eyebrow}</p>
+              <p>{featured.text}{featured.stats?.confirmed ? ` ${featured.stats.text}` : ""}</p>
+              <p className={styles.caseBadge}>{featured.badge}</p>
+              {featured.pageReady && <TextLink href={featured.cta.href}>{featured.cta.label}</TextLink>}
+            </article>
+            <ul className={styles.smallCases}>
+              {block.items.map((item) => (
+                <li key={item.title} className={styles.card}>
+                  <h3>{item.title}</h3>
+                  <p>{item.text}</p>
+                  {item.href && <TextLink href={item.href}>Saiba mais</TextLink>}
+                </li>
+              ))}
+            </ul>
+          </Reveal>
+        </section>
+      );
+    }
+
     case "text":
       return (
         <section className={styles.section}>
@@ -183,6 +251,13 @@ function BlockView({ block }: { block: Block }) {
           </header>
           <div className={styles.body}>
             {block.paragraphs?.map((paragraph) => <p key={paragraph}><Rich text={paragraph} /></p>)}
+            {block.chips && (
+              <Reveal as="ul" className={styles.chips}>
+                {block.chips.map((chip, index) => (
+                  <li key={chip} style={{ "--i": index } as React.CSSProperties}>{chip}</li>
+                ))}
+              </Reveal>
+            )}
             {block.highlight && (
               <p className={styles.highlight}><Lines lines={block.highlight} /></p>
             )}
@@ -199,15 +274,16 @@ function BlockView({ block }: { block: Block }) {
             {block.intro?.map((paragraph) => <p key={paragraph}><Rich text={paragraph} /></p>)}
           </header>
           <div className={styles.body}>
-            <ul className={styles.cards} data-columns={block.columns ?? 3}>
-              {block.items.map((item) => (
-                <li key={item.title} className={styles.card}>
+            <Reveal as="ul" className={block.animated ? `${styles.cards} ${styles.cardsMotion}` : styles.cards} data-columns={block.columns ?? 3}>
+              {block.items.map((item, index) => (
+                <li key={item.title} className={styles.card} style={{ "--i": index } as React.CSSProperties}>
                   <h3>{item.title}</h3>
                   <p><Rich text={item.text} /></p>
+                  {item.example && <p className={styles.example}>{item.example}</p>}
                   {item.href && <TextLink href={item.href}>{item.cta ?? "Saiba mais"}</TextLink>}
                 </li>
               ))}
-            </ul>
+            </Reveal>
             {block.closing?.map((paragraph) => <p key={paragraph} className={styles.closing}><Rich text={paragraph} /></p>)}
             {block.cta && (
               <div className={styles.inlineCta}>
@@ -225,7 +301,7 @@ function BlockView({ block }: { block: Block }) {
             {block.eyebrow && <Eyebrow>{block.eyebrow}</Eyebrow>}
             <h2><Lines lines={block.title} /></h2>
           </header>
-          <Reveal as="ol" className={styles.steps}>
+          <Reveal as="ol" className={styles.steps} data-count={block.items.length}>
             {block.items.map((item, index) => (
               <li key={item.title} style={{ "--i": index } as React.CSSProperties}>
                 <span>{String(index + 1).padStart(2, "0")}</span>
@@ -239,6 +315,13 @@ function BlockView({ block }: { block: Block }) {
               {block.closing.map((paragraph, index) => (
                 <p key={paragraph} data-lead={index === 0}><Rich text={paragraph} /></p>
               ))}
+            </div>
+          )}
+          {block.cta && (
+            <div className={styles.inlineCta}>
+              <Link className={home.primaryButton} href={block.cta.href}>
+                {block.cta.label} <ArrowRight />
+              </Link>
             </div>
           )}
         </section>
@@ -256,6 +339,11 @@ function BlockView({ block }: { block: Block }) {
               {block.items.map((item) => <li key={item}>{item}</li>)}
             </ul>
             {block.note && <p className={styles.highlight}>{block.note}</p>}
+            {block.noteLink && (
+              <div className={styles.inlineCta}>
+                <TextLink href={block.noteLink.href}>{block.noteLink.label}</TextLink>
+              </div>
+            )}
           </div>
         </section>
       );

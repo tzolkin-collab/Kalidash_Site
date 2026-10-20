@@ -6,19 +6,20 @@ export type Cta = { label: string; href: string };
 
 export type Block =
   | { type: "hero"; eyebrow: string; title: string[]; lead: string[]; tagline?: string; meta?: string; cta: Cta }
-  | { type: "text"; eyebrow?: string; title: string[]; paragraphs?: string[]; highlight?: string[] }
+  | { type: "text"; eyebrow?: string; title: string[]; paragraphs?: string[]; chips?: string[]; highlight?: string[] }
   | {
       type: "cards";
       eyebrow?: string;
       title: string[];
       intro?: string[];
-      items: Array<{ title: string; text: string; href?: string; cta?: string }>;
+      items: Array<{ title: string; text: string; example?: string; href?: string; cta?: string }>;
       columns?: 2 | 3;
+      animated?: boolean;
       closing?: string[];
       cta?: Cta;
     }
-  | { type: "steps"; eyebrow?: string; title: string[]; items: Array<{ title: string; text: string }>; closing?: string[] }
-  | { type: "list"; eyebrow?: string; title: string[]; items: string[]; note?: string }
+  | { type: "steps"; eyebrow?: string; title: string[]; items: Array<{ title: string; text: string }>; closing?: string[]; cta?: Cta }
+  | { type: "list"; eyebrow?: string; title: string[]; items: string[]; note?: string; noteLink?: Cta }
   | {
       type: "offers";
       items: Array<{
@@ -43,6 +44,25 @@ export type Block =
       image: Media;
     }
   | { type: "proofBar"; metrics: ProofMetric[]; logos?: ProofLogos }
+  | { type: "faq"; title: string; items: Array<{ q: string; a: string }> }
+  | {
+      type: "showcase";
+      eyebrow: string;
+      title: string[];
+      metrics: ProofMetric[];
+      featured: {
+        eyebrow: string;
+        title: string;
+        text: string;
+        /* Números do case: só vão ao ar com `confirmed: true` (a Carol ainda precisa validar). */
+        stats?: { text: string; confirmed: boolean };
+        badge: string;
+        cta: Cta;
+        /* A página /cases/cba ainda não existe: o CTA só aparece com `pageReady: true`. */
+        pageReady: boolean;
+      };
+      items: Array<{ title: string; text: string; href?: string }>;
+    }
   | { type: "formats"; eyebrow: string; title: string[]; background: Media; items: FormatCard[] }
   | { type: "testimonials"; eyebrow: string; title: string[]; items: Testimonial[] };
 
@@ -312,67 +332,82 @@ export const aiCulture: PageContent = {
 export const advisory: PageContent = {
   slug: "advisory",
   meta: {
-    title: "Advisory — transformação sem perder o rumo",
+    title: "Advisory — consultoria e governança de IA",
     description:
-      "Acompanhamos a liderança durante a implementação de iniciativas de IA e eficiência, com visão de negócio, experiência prática e governança.",
+      "Acompanhamos a liderança na implementação de iniciativas de IA e eficiência: priorizamos, medimos e ajustamos a rota, para que o investimento se pague.",
   },
   blocks: [
     {
-      type: "hero",
-      eyebrow: "Advisory",
-      title: ["Transformação sem perder o rumo."],
+      type: "heroMedia",
+      eyebrow: "Advisory · Consultoria e governança de IA",
+      title: ["Sua estratégia de IA, acompanhada até virar resultado."],
       lead: [
-        "A inovação não termina quando a estratégia é definida. Acompanhamos a liderança durante a implementação de iniciativas de IA e eficiência, com visão de negócio, experiência prática e governança para que a transformação avance na direção certa.",
+        "Acompanhamos a liderança na implementação de iniciativas de IA e eficiência. Priorizamos, medimos e ajustamos a rota, para que o investimento se pague.",
       ],
-      tagline: "Ao lado da liderança. Dentro da transformação.",
-      cta: { label: "Solicitar diagnóstico", href: diagnostico },
+      support: "Ao lado da liderança. Dentro da execução.",
+      cta: { label: "Conversar com um sócio", href: diagnostico },
+      image: { src: "/home/metodo-reuniao.jpg", alt: "Reunião da Kalidash com a diretoria de uma empresa", width: 2000, height: 1334 },
     },
     {
       type: "text",
       title: ["A estratégia foi definida. E agora?"],
       paragraphs: [
-        "Transformar uma operação exige mais do que escolher tecnologias e definir projetos.",
-        "É preciso decidir **o que priorizar, acompanhar o que está funcionando, definir responsáveis e ajustar a rota quando necessário.**",
-        "É nesse espaço entre estratégia e execução que o **Advisory** atua.",
+        "Escolher tecnologias e aprovar projetos é a parte fácil. O difícil vem depois: decidir o que priorizar, medir o que funciona, definir responsáveis e corrigir a rota.",
+        "E o plano raramente sobrevive ao primeiro trimestre. Surgem informações novas, prioridades mudam, uma tecnologia não entrega o esperado, uma área resiste.",
       ],
+      highlight: ["Não entregamos um plano. Acompanhamos o que acontece depois dele."],
     },
     {
       type: "text",
-      title: ["Ajudamos sua liderança a tomar decisões melhores."],
-      paragraphs: [
-        "A Kalidash atua como **conselheira da transformação**, ao lado da liderança e dos times responsáveis pela implementação.",
-        "**Questionamos prioridades · Estruturamos decisões · Acompanhamos indicadores · Identificamos desvios · Conectamos tecnologia aos objetivos do negócio**",
-        "Projeto de transformação raramente segue o plano inicial. Informação nova aparece, prioridade muda, uma tecnologia não entrega o esperado, uma área resiste e outra encontra oportunidade maior.",
+      eyebrow: "O que fazemos",
+      title: ["Ajudamos sua liderança a decidir melhor sobre IA."],
+      paragraphs: ["Atuamos como conselho da implementação, ao lado da diretoria e dos times que executam."],
+      chips: [
+        "Questionamos prioridades",
+        "Estruturamos decisões",
+        "Acompanhamos indicadores",
+        "Identificamos desvios cedo",
+        "Conectamos tecnologia aos objetivos do negócio",
       ],
-      highlight: ["Não entregamos um plano.", "Acompanhamos o que acontece depois dele."],
     },
     {
       type: "cards",
-      title: ["Como isso acontece no dia a dia da sua empresa."],
+      eyebrow: "Como funciona",
+      title: ["Três rituais que mantêm a IA na agenda da diretoria."],
       columns: 3,
+      animated: true,
       items: [
-        { title: "Comitê de transformação", text: "Encontro recorrente com a liderança para revisar prioridades, indicadores e decisões em aberto. É o ritual que impede a transformação de morrer na primeira urgência do mês." },
-        { title: "Acompanhamento de iniciativa", text: "Proximidade com os times que estão executando, para destravar o que emperrou antes de virar problema de diretoria." },
-        { title: "Mentoria executiva", text: "Conversas individuais com líderes que estão conduzindo a transformação e precisam de um olhar externo e experiente." },
+        { title: "Comitê de IA", text: "Encontro mensal com a liderança para revisar prioridades, indicadores e decisões em aberto. É o ritual que impede a iniciativa de morrer na primeira urgência do mês." },
+        { title: "Acompanhamento de iniciativas", text: "Proximidade com os times que executam, para destravar o que emperrou antes de virar problema de diretoria." },
+        { title: "Mentoria executiva", text: "Conversas individuais com líderes que conduzem a mudança e precisam de um olhar externo e experiente." },
       ],
-      closing: [
-        "**Diagnóstico inicial.** Começamos entendendo as iniciativas em andamento, os principais desafios e as prioridades da empresa. A partir disso, definimos a forma de acompanhamento.",
+      // Exemplo sugerido pela Carol entre colchetes no doc; confirmar os entregáveis reais.
+      closing: ["**O que a liderança recebe:** painel com os indicadores das iniciativas · relatório mensal de decisões e desvios · roadmap priorizado, revisado a cada trimestre."],
+    },
+    {
+      type: "steps",
+      eyebrow: "Como começa",
+      title: ["Três passos para começar."],
+      items: [
+        { title: "Diagnóstico", text: "Mapeamos as iniciativas em andamento, os desafios e as prioridades." },
+        { title: "Desenho", text: "Definimos juntos a cadência, os rituais e os indicadores." },
+        { title: "Acompanhamento", text: "Ciclos de 6 meses, com revisão ao fim de cada um." },
       ],
-      cta: { label: "Solicitar diagnóstico", href: diagnostico },
+      cta: { label: "Conversar com um sócio", href: diagnostico },
     },
     {
       type: "list",
       eyebrow: "Para quem é?",
       title: ["O Advisory faz sentido quando…"],
       items: [
-        "A empresa já possui iniciativas de IA ou eficiência em andamento.",
-        "A liderança precisa transformar projetos em resultados.",
-        "Existem muitas oportunidades, mas pouca clareza sobre o que priorizar.",
-        "A empresa precisa de governança para acompanhar a transformação.",
-        "A liderança quer desenvolver capacidade interna, sem criar dependência de um fornecedor.",
-        "Já houve uma tentativa anterior que não se sustentou.",
+        "Já existem iniciativas de IA ou eficiência em andamento.",
+        "Há muitas oportunidades e pouca clareza sobre o que vem primeiro.",
+        "Os projetos existem, mas o resultado não aparece.",
+        "Falta governança para acompanhar o que foi decidido.",
+        "Uma tentativa anterior não se sustentou.",
       ],
-      note: "Se a empresa ainda está começando, o AI Culture pode ser o primeiro passo.",
+      note: "Ainda está começando? O AI Culture é o primeiro passo.",
+      noteLink: { label: "Conheça o AI Culture", href: "/treinamento-corporativo-ia" },
     },
     {
       type: "cta",
@@ -380,60 +415,62 @@ export const advisory: PageContent = {
       text: "Não acreditamos em transformação que depende para sempre de quem a implementou. Conte o que a sua empresa está tentando transformar, vamos entender o cenário e onde a Kalidash pode ajudar.",
       cta: { label: "Solicitar diagnóstico", href: diagnostico },
     },
+    {
+      type: "faq",
+      title: "Perguntas frequentes",
+      items: [
+        { q: "Qual a diferença entre Advisory e uma consultoria tradicional?", a: "Não entregamos um relatório e vamos embora. Acompanhamos as decisões e a execução de forma contínua, ao lado da liderança." },
+        { q: "Quanto tempo dura?", a: "Ciclos de 3, 6 ou 12 meses, renováveis. A cadência é definida no diagnóstico." },
+        { q: "Quem participa do lado da empresa?", a: "A diretoria ou o C-level e os líderes responsáveis pelas iniciativas de IA." },
+        { q: "Vocês também implementam?", a: "Se precisar, sim, pela frente de Execução. Mas o Advisory pode ser contratado sozinho." },
+        { q: "O acompanhamento é presencial ou remoto?", a: "Pode ser no formato que for confortável e ideal para a empresa." },
+        { q: "Como é cobrado?", a: "Valor mensal fixo, definido pelo escopo do acompanhamento, também definido na etapa de diagnóstico." },
+      ],
+    },
   ],
 };
 
 export const execucao: PageContent = {
   slug: "execucao",
   meta: {
-    title: "Execução — da ideia à operação",
+    title: "Execução — implementação de IA e automação",
     description:
-      "Implementamos IA, automação, dados e tecnologia para resolver problemas reais da operação, do processo ao sistema.",
+      "Implementamos agentes de IA, automações, integrações e soluções de dados para resolver problemas reais da operação, do mapeamento do processo à entrega.",
   },
   blocks: [
     {
-      type: "hero",
-      eyebrow: "Execução",
-      title: ["Da ideia à operação."],
+      type: "heroMedia",
+      eyebrow: "Execução · Implementação de IA e automação",
+      title: ["Da ideia à solução de IA rodando na sua operação."],
       lead: [
-        "Implementamos IA, automação, dados e tecnologia para resolver problemas reais da operação.",
-        "A Kalidash entra na execução para transformar oportunidades em soluções funcionando, do processo ao sistema, da primeira análise à implementação.",
+        "Implementamos agentes de IA, automações, integrações e soluções de dados para resolver problemas reais da operação. Do mapeamento do processo à entrega, com o seu time treinado.",
       ],
-      tagline: "Pensamos juntos. Construímos juntos. Colocamos para funcionar.",
+      support: "Escopo, prazo e métricas definidos antes de começar.",
       cta: { label: "Falar sobre o meu projeto", href: diagnostico },
+      // A Carol não indicou a imagem: usei a da frente Execução da Home (confirmar).
+      image: { src: "/home/front-3-entrega.jpg", alt: "Apresentação da entrega de um projeto de IA", width: 1086, height: 1448 },
     },
     {
       type: "text",
-      title: ["Saber o que precisa mudar não significa conseguir implementar."],
+      title: ["Saber o que mudar não é o mesmo que conseguir implementar."],
       paragraphs: [
-        "Muitas empresas já sabem onde estão os gargalos. Existem processos manuais, tarefas repetitivas, sistemas que não conversam e oportunidades claras de automação.",
-        "Mas transformar uma oportunidade em solução funcionando exige processo, tecnologia, integração e capacidade de execução. E nem sempre essa capacidade existe dentro de casa.",
-        "**É aí que entramos.**",
+        "Processos manuais, tarefas repetitivas, sistemas que não conversam. A maioria das empresas sabe onde estão os gargalos. O que falta é tempo, time técnico e método para resolver sem parar a operação.",
       ],
+      highlight: ["É aí que a Kalidash entra."],
     },
     {
       type: "cards",
-      eyebrow: "O que fazemos",
+      eyebrow: "O que construímos",
       title: ["Construímos o que a sua operação precisa."],
       columns: 3,
+      animated: true,
       items: [
-        { title: "Agentes de IA", text: "Agentes que executam tarefas e participam de processos, com supervisão humana onde necessário." },
-        { title: "Automações", text: "Fluxos que reduzem o trabalho manual e tornam processos mais eficientes." },
-        { title: "Integrações", text: "Conectamos sistemas, ferramentas e dados para fazer a operação fluir melhor." },
-        { title: "Dados", text: "Organizamos dados operacionais para gerar informação e apoiar decisões." },
-        { title: "Soluções sob medida", text: "Quando nenhuma solução pronta resolve o problema, construímos o que a operação precisa." },
+        { title: "Agentes de IA", text: "Executam tarefas dentro dos processos, com supervisão humana quando necessário.", example: "Ex.: agente que faz a triagem de solicitações" },
+        { title: "Automações", text: "Eliminam etapas manuais e repetitivas.", example: "Ex.: relatório semanal gerado sozinho" },
+        { title: "Integrações", text: "Fazem sistemas e ferramentas conversarem, sem retrabalho entre áreas.", example: "Ex.: ERP conectado ao CRM" },
+        { title: "Dados", text: "Organizam a informação da operação para apoiar decisões.", example: "Ex.: painel de indicadores da produção" },
+        { title: "Soluções sob medida", text: "Quando nada pronto resolve, construímos do zero.", example: "Ex.: captura inteligente de conhecimento na CBA" },
       ],
-    },
-    {
-      type: "text",
-      eyebrow: "Nosso diferencial",
-      title: ["Não começamos pela tecnologia. Começamos pelo problema."],
-      paragraphs: [
-        "Antes de construir qualquer solução, entendemos o processo que existe por trás dela.",
-        "**Onde existe atrito? Onde existe trabalho manual? Onde a informação se perde? Onde a tecnologia gera impacto de verdade?**",
-        "A partir daí, construímos junto de quem conhece a operação.",
-      ],
-      highlight: ["Tecnologia precisa funcionar. Mas, principalmente, precisa funcionar para quem trabalha."],
     },
     {
       type: "steps",
@@ -451,15 +488,33 @@ export const execucao: PageContent = {
       ],
     },
     {
-      type: "text",
+      type: "showcase",
       eyebrow: "Feito para funcionar",
-      title: ["Projetos construídos para resolver problemas concretos em operações reais."],
-      paragraphs: ["**+100 processos automatizados** · **170 operações atendidas** · **Operações de mais de 500 pessoas**"],
+      title: ["Projetos que já estão rodando."],
+      metrics: [
+        { value: "+100", label: "processos automatizados", confirmed: true },
+        { value: "170", label: "operações atendidas", confirmed: true },
+        // 12 horas/semana e os números do piloto da CBA: sem fonte validada ainda.
+        { value: "12 horas", label: "economizadas por semana até a primeira entrega", confirmed: false },
+      ],
+      featured: {
+        eyebrow: "CBA · Captura Inteligente do Conhecimento",
+        title: "Captura Inteligente do Conhecimento",
+        text: "As reuniões diárias da operação viraram dado estruturado.",
+        stats: { text: "1.681 problemas registrados em 3 meses de piloto, com 97% de encaminhamento definido.", confirmed: false },
+        badge: "Finalista Prêmio Inovativos 2026",
+        cta: { label: "Ver o case", href: "/cases/cba" },
+        pageReady: false,
+      },
+      items: [
+        { title: "Kognis", text: "Plataforma de IA para advocacia trabalhista, desenvolvida pela Kalidash.", href: "/solucoes#kognis" },
+        { title: "Spectra AI", text: "Visão computacional aplicada à operação.", href: "/solucoes#spectra-ai" },
+      ],
     },
     {
       type: "cta",
       title: "Tem um processo que precisa mudar?",
-      text: "Vamos entender o problema antes de construir a solução. Conte o que está acontecendo na sua operação.",
+      text: "Conte o que acontece hoje na sua operação. Entendemos o problema antes de propor a solução, e você recebe escopo, prazo e investimento em poucas horas.",
       cta: { label: "Falar sobre o meu projeto", href: diagnostico },
     },
   ],
