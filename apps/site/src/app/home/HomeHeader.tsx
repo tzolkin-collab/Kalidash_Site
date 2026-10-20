@@ -25,6 +25,7 @@ export default function HomeHeader() {
   // Efeito de rolagem para elevação/desfoque do header com rAF throttling
   useEffect(() => {
     lastYRef.current = window.scrollY;
+    const mountedAt = performance.now();
     let ticking = false;
 
     const handleScroll = () => {
@@ -43,7 +44,10 @@ export default function HomeHeader() {
         // Esconde ao rolar para baixo, reaparece ao rolar um pouco para cima (apenas mobile/tablet)
         if (typeof window !== "undefined" && window.innerWidth <= 900) {
           const delta = y - lastYRef.current;
-          if (openRef.current || y < 80) {
+          // Salto grande (âncora) ou rolagem nos primeiros instantes (restauração do reload, que chega em etapas
+          // conforme a página cresce): não esconde o header.
+          const settling = performance.now() - mountedAt < 1500;
+          if (openRef.current || y < 80 || settling || Math.abs(delta) > 600) {
             setHidden((prev) => (prev ? false : prev));
             lastYRef.current = y;
           } else if (delta > 12) {
@@ -61,8 +65,24 @@ export default function HomeHeader() {
       });
     };
 
+    // Ao recarregar, o navegador restaura a rolagem sem (ou antes de) disparar "scroll":
+    // sincroniza o estado na montagem, no load/pageshow e logo depois da restauração.
+    const sync = () => {
+      lastYRef.current = window.scrollY;
+      handleScroll();
+    };
+    sync();
+    const timer = window.setTimeout(sync, 150);
+
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("load", sync);
+    window.addEventListener("pageshow", sync);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("load", sync);
+      window.removeEventListener("pageshow", sync);
+    };
   }, []);
 
   // Scrollspy: detecta qual seção está visível na tela
