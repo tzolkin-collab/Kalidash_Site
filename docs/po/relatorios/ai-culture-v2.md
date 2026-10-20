@@ -46,3 +46,13 @@ Pedido direto da Carol, fora do brief original. Commits `5392533` (copy da Home:
 - **Não feito:** alt. 8 (depoimentos em 3 cards: faltam dados reais e autorização), selos Anthropic/Inovativos na barra de prova (a Home não tem barra), página `/cases/cba` (CTA oculto por `caseCba.pageReady`), logos (ok de uso).
 - **Suposições:** "Química Anastácio" omitida (link repete o da Imersão de Claude); 16ª foto da galeria ("Esse pode manter") assumida como `evento-sala.jpg`; as três imagens das frentes mapeadas pela ordem do doc.
 - **Não verificado:** build completo com a API do blog no ar (o build avisa "Falha ao buscar artigo do blog", que é o blog sem API local, e termina com exit 0); olhar visual de cada foto da galeria.
+
+## Adendo 2 (20/10): cards da Home, Advisory e Execução
+
+Commits: `8fcc1ec` (cards de depoimento da Home, alt. 8), `82ca18e` (foto da Química Anastácio), `7219177` (Advisory e Execução V2), `201e9f3` (header no reload).
+
+- **Advisory** (`/advisory`): hero com imagem, chips, rituais animados, "Como começa" em 3 passos, "Para quem é" com link para o AI Culture e FAQ com JSON-LD FAQPage (confirmado no navegador). URL mantida; renomear para `/consultoria-governanca-ia` com 301 é decisão do Gustavo.
+- **Execução** (`/execucao`): hero com imagem (a Carol não indicou qual; usei a da frente Execução), cards com exemplo e animação, "Nosso diferencial" e a faixa antiga removidos, vitrine "Feito para funcionar". `+100` e `170` publicados; "12 horas por semana" e os números do piloto da CBA ficam atrás de `confirmed: false`; CTA `/cases/cba` oculto até a página existir.
+- **Verificação:** `tsc` limpo, `npm run build` com exit 0, conteúdo e animações conferidos no navegador (~770 px) e sem overflow horizontal a 390 px em Home, Advisory, Execução e AI Culture. Não conferi 1440 px nas páginas novas nem o hover. O build mostra "Falha ao buscar artigo do blog" porque a API do blog não está no ar localmente.
+- **Header no reload:** `scrolled` volta correto; o caso mobile (header escondido após reload) não foi confirmado porque o painel de preview oculto bloqueia `requestAnimationFrame`. Conferir num reload real.
+- **Pendências de terceiros:** selos da alt. 1 da Home (onde entram), depoimentos reais, `/cases/cba`, logos, fonte do NPS 97 e de "12 horas", entregáveis do Advisory, imagem do hero da Execução.
