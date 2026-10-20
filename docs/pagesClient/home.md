@@ -83,3 +83,5 @@ Blocos novos em `institucional/pages.ts` + `SitePage.tsx` + `Motion.tsx`: `heroM
 Aplicado: hero (título, texto, números 10 mil / 170 / 64), bloco "O problema", três frentes (título, subheadlines, "Para quem é", links para `/treinamento-corporativo-ia`, `/advisory`, `/execucao`) e WhatsApp `wa.link/v9grih`.
 
 Pendente (decisão ou material da Carol): selos Parceira Anthropic e Finalista Inovativos (alt. 1), seção "Case em destaque" CBA com rota `/cases/cba` inexistente (alt. 6), troca do CTA "Fale com a Kalidash" (alt. 7, sem indicar qual), alt. 8 e 9 (dependem de prints), logos (ok de uso) e as trocas de imagem do doc "V3 - Imagens" (sem mapa de slots).
+
+**Imagens (doc "V3 - Imagens", 20/10/2026):** as três frentes usam `front-1-workshop.jpg`, `front-2-comite.jpg` e `front-3-entrega.jpg`; a galeria `ExperienceSyncGallery` passou a ter 8 + 8 fotos com as legendas da Carol (`g01`…`g16` em `public/home/`, JPEG otimizado). "Química Anastácio" ficou de fora (o link no doc repete o da Imersão de Claude) e a 16ª foto ("Esse pode manter") foi assumida como `evento-sala.jpg`. Os PNG/HEIC originais ficam em `_assets-carol/` (fora do git).

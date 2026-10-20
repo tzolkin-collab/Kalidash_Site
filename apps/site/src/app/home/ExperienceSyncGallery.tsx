@@ -9,34 +9,27 @@ interface PhotoItem {
   tag?: string;
 }
 
+// Fotos e legendas enviadas pela Carol em 20/10/2026 (doc "Copy site - V3 - Imagens").
 const ROW_1: PhotoItem[] = [
-  { src: "/home/cooxupe.jpg", alt: "Equipe Kalidash na Cooxupé", tag: "Cooxupé • +500 Colaboradores" },
-  { src: "/home/evento-palestra.jpg", alt: "Keynote Executivo de Inteligência Artificial", tag: "Keynote Executivo" },
-  { src: "/home/evento-sala.jpg", alt: "Imersão Presencial com Lideranças", tag: "Imersão Presencial" },
-  { src: "/home/evento-mesa.jpg", alt: "Laboratório Prático de Operações", tag: "Laboratório de Agentes" },
-  { src: "/home/evento-ai-os.jpg", alt: "Metodologia AI OS em Apresentação", tag: "Arquitetura AI OS" },
-  { src: "/home/metodo-reuniao.jpg", alt: "Alinhamento Estratégico com Diretoria", tag: "Estratégia & Conselho" },
-  { src: "/home/depoimento-fundo.jpg", alt: "Auditório e Plenária de Líderes", tag: "Auditório & Ambiência" },
-  { src: "/founders-studio.jpg", alt: "Carol e André — Fundadores Kalidash", tag: "Liderança Kalidash" },
-  { src: "/home/cooxupe.jpg", alt: "Operação de Campo na Economia Real", tag: "Operação Real" },
-  { src: "/home/evento-palestra.jpg", alt: "Masterclass de IA e Produtividade", tag: "Masterclass de IA" },
-  { src: "/home/evento-sala.jpg", alt: "Formação de Equipes em Agentes Autônomos", tag: "Capacitação de Times" },
-  { src: "/home/evento-mesa.jpg", alt: "Workshops e Sprints de Implementação", tag: "Sprint Prático" },
+  { src: "/home/g01-cupula.jpg", alt: "A Cúpula ∙ Governança e segurança de dados", tag: "A Cúpula ∙ Governança e segurança de dados" },
+  { src: "/home/g02-zig.jpg", alt: "ZIG ∙ IA para Financeiro e Processos", tag: "ZIG ∙ IA para Financeiro e Processos" },
+  { src: "/home/g03-imersao-claude.jpg", alt: "Imersão presencial de Claude", tag: "Imersão presencial de Claude" },
+  { src: "/home/g05-sao-carlos.jpg", alt: "São Carlos Experience", tag: "São Carlos Experience" },
+  { src: "/home/g06-saam.jpg", alt: "SAAM Towage ∙ IA para alta liderança", tag: "SAAM Towage ∙ IA para alta liderança" },
+  { src: "/home/g07-cooxupe.jpg", alt: "Cooxupé ∙ N8N para T.I", tag: "Cooxupé ∙ N8N para T.I" },
+  { src: "/home/g08-clealco.jpg", alt: "Clealco ∙ IA para alta liderança", tag: "Clealco ∙ IA para alta liderança" },
+  { src: "/home/g09-nexa.jpg", alt: "Nexa Resources ∙ IA para jurídico", tag: "Nexa Resources ∙ IA para jurídico" },
 ];
 
 const ROW_2: PhotoItem[] = [
-  { src: "/home/metodo-reuniao.jpg", alt: "Desenho Estratégico de Soluções", tag: "Desenho de Soluções" },
-  { src: "/home/evento-mesa.jpg", alt: "Validação Prática de Modelos em Tempo Real", tag: "Validação em Tempo Real" },
-  { src: "/home/evento-sala.jpg", alt: "Turma Executiva em Treinamento Imersivo", tag: "Treinamento Corporativo" },
-  { src: "/home/evento-palestra.jpg", alt: "Palestra: Da Estratégia à Execução", tag: "Execução Prática" },
-  { src: "/home/cooxupe.jpg", alt: "Transformação de Processos em Grande Escala", tag: "Registro de Campo" },
-  { src: "/home/evento-ai-os.jpg", alt: "Estruturação de Inteligência Operacional", tag: "Framework Kalidash" },
-  { src: "/founders-formal.jpg", alt: "Diretoria e Governança Kalidash", tag: "Diretoria & Governança" },
-  { src: "/home/depoimento-fundo.jpg", alt: "Encontro com Tomadores de Decisão", tag: "Encontro com C-Levels" },
-  { src: "/home/metodo-reuniao.jpg", alt: "Governança e Cultura de Inteligência", tag: "Cultura & Processos" },
-  { src: "/home/evento-mesa.jpg", alt: "Laboratório Hands-On com Gestores", tag: "Workshops" },
-  { src: "/home/evento-palestra.jpg", alt: "Casos Reais e Resultados Práticos", tag: "Resultados Reais" },
-  { src: "/home/cooxupe.jpg", alt: "Vivência de Campo — Operação Real", tag: "Vivência de Campo" },
+  { src: "/home/g10-agir.jpg", alt: "Agir Saúde ∙ Segurança cibernética para a alta diretoria", tag: "Agir Saúde ∙ Segurança cibernética para a alta diretoria" },
+  { src: "/home/g11-conquer.jpg", alt: "Conquer ∙ A era da IA", tag: "Conquer ∙ A era da IA" },
+  { src: "/home/g12-totvs.jpg", alt: "Totvs ∙ Liderança & Gestão de projetos", tag: "Totvs ∙ Liderança & Gestão de projetos" },
+  { src: "/home/g13-bigdata.jpg", alt: "Big Data Experience", tag: "Big Data Experience" },
+  { src: "/home/g14-sicoob.jpg", alt: "Sicoob ∙ IA para alta liderança", tag: "Sicoob ∙ IA para alta liderança" },
+  { src: "/home/g15-sky.jpg", alt: "SKY ∙ IA para produtos", tag: "SKY ∙ IA para produtos" },
+  { src: "/home/g16-votorantim.jpg", alt: "Votorantim ∙ Análise de Dados suportada por IA", tag: "Votorantim ∙ Análise de Dados suportada por IA" },
+  { src: "/home/evento-sala.jpg", alt: "Treinamento Corporativo", tag: "Treinamento Corporativo" },
 ];
 
 // Duplicamos as listas para permitir loop contínuo infinito e sem emendas
@@ -92,8 +85,8 @@ export default function ExperienceSyncGallery() {
           ambientOffset.current += 0.35;
         }
 
-        // Card width 280px + 10px gap = 290px. Meio bloco de 12 itens = 3480px
-        const singleSetWidth = 12 * 290;
+        // Card width 280px + 10px gap = 290px. Meio bloco = itens de uma linha * 290px
+        const singleSetWidth = ROW_1.length * 290;
 
         // Cálculo de translação com scroll parallax + drift suave
         // Linha 1 corre para a esquerda conforme scrolla para baixo

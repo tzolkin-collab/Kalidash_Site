@@ -138,7 +138,7 @@ export const fronts = {
       audience: "Para quem é: empresas que já liberaram ferramentas de IA, mas não viram a rotina mudar.",
       closing: "Capacitação é onde a transformação começa.",
       link: { label: "Conheça os treinamentos", href: "/treinamento-corporativo-ia" },
-      image: { src: "/home/evento-palestra.jpg", alt: "Treinamento corporativo conduzido pela Kalidash" },
+      image: { src: "/home/front-1-workshop.jpg", alt: "Treinamento corporativo conduzido pela Kalidash" },
     },
     {
       number: "02",
@@ -148,7 +148,7 @@ export const fronts = {
       audience: "Para quem é: lideranças com muitas ideias de IA na mesa e pouca clareza sobre o que vem primeiro.",
       closing: "Advisory é onde a transformação ganha direção e continuidade.",
       link: { label: "Conheça o Advisory", href: "/advisory" },
-      image: { src: "/home/metodo-reuniao.jpg", alt: "Liderança acompanhando indicadores com a Kalidash" },
+      image: { src: "/home/front-2-comite.jpg", alt: "Liderança acompanhando indicadores com a Kalidash" },
     },
     {
       number: "03",
@@ -158,7 +158,7 @@ export const fronts = {
       audience: "Para quem é: times que já sabem o que querem automatizar e precisam de quem construa.",
       closing: "Execução transforma estratégia em operação.",
       link: { label: "Conheça a Execução", href: "/execucao" },
-      image: { src: "/home/evento-ai-os.jpg", alt: "Framework de agentes e operação da Kalidash" },
+      image: { src: "/home/front-3-entrega.jpg", alt: "Framework de agentes e operação da Kalidash" },
     },
   ],
 };
