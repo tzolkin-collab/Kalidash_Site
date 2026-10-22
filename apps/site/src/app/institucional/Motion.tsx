@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import styles from "./institucional.module.css";
+import { mediaKind } from "./media";
 import type { Testimonial } from "./pages";
 
 /* Entrada ao rolar: só opacity/transform. Sem JS ou com prefers-reduced-motion o conteúdo fica visível (state "idle"/"in").
@@ -53,17 +53,26 @@ export function Reveal({
   );
 }
 
-/* Só embeds de provedores conhecidos (YouTube sem cookies, Vimeo). */
-const ALLOWED_EMBED = /^https:\/\/(www\.youtube-nocookie\.com\/embed\/|player\.vimeo\.com\/video\/)/;
 
 export function TestimonialCard({ item }: { item: Testimonial }) {
   const [playing, setPlaying] = useState(false);
-  const playable = item.status === "approved" && ALLOWED_EMBED.test(item.embedUrl);
+  const kind = item.status === "approved" ? mediaKind(item.embedUrl) : null;
+  const playable = kind !== null;
 
   return (
     <figure className={styles.testimonial}>
       <div className={styles.video}>
-        {playing && playable ? (
+        {playing && kind === "video" ? (
+          <video
+            src={item.embedUrl}
+            poster={item.posterUrl || undefined}
+            aria-label={`Depoimento de ${item.nome}`}
+            controls
+            autoPlay
+            playsInline
+            preload="none"
+          />
+        ) : playing && kind === "embed" ? (
           <iframe
             src={`${item.embedUrl}${item.embedUrl.includes("?") ? "&" : "?"}autoplay=1`}
             title={`Depoimento de ${item.nome}`}
@@ -73,7 +82,8 @@ export function TestimonialCard({ item }: { item: Testimonial }) {
           />
         ) : (
           <>
-            {item.posterUrl && <Image src={item.posterUrl} alt="" width={640} height={360} sizes="(max-width: 900px) 100vw, 560px" />}
+            {/* eslint-disable-next-line @next/next/no-img-element -- poster em host externo (R2), sem passar pelo otimizador */}
+            {item.posterUrl && <img src={item.posterUrl} alt="" width={640} height={360} loading="lazy" decoding="async" />}
             <button
               type="button"
               className={styles.play}
@@ -89,7 +99,7 @@ export function TestimonialCard({ item }: { item: Testimonial }) {
       </div>
       <figcaption>
         <strong>{item.nome}</strong>
-        <span>{item.cargo} · {item.empresa}</span>
+        {(item.cargo || item.empresa) && <span>{[item.cargo, item.empresa].filter(Boolean).join(" · ")}</span>}
       </figcaption>
     </figure>
   );

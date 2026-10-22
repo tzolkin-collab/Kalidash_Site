@@ -276,13 +276,13 @@ export type FooterColumn = { title: string; links: FooterLink[] };
 
 export const footer = {
   text: "Preparamos pessoas, processos e tecnologia para a era dos agentes de IA.",
-  // Copy da Carol (20/10/2026). Os rótulos "Cultura de IA · Governança · Execução" aguardam confirmação (pergunta 4 do brief).
+  // Copy da Carol (20/10/2026). Em 22/10 o PO definiu que "Para empresas" usa os nomes do menu (AI Culture, Advisory, Execução).
   columns: [
     {
       title: "Para empresas",
       links: [
-        { label: "Cultura de IA", href: "/treinamento-corporativo-ia" },
-        { label: "Governança", href: "/advisory" },
+        { label: "AI Culture", href: "/treinamento-corporativo-ia" },
+        { label: "Advisory", href: "/advisory" },
         { label: "Execução", href: "/execucao" },
         { label: "Diagnóstico", href: "/diagnostico" },
       ],

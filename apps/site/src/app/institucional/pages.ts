@@ -70,7 +70,8 @@ export type Media = { src: string; alt: string; width: number; height: number };
 
 /* `confirmed: false` = o dado ainda não tem fonte/autorização da Carol; o renderizador NÃO publica o item. */
 export type ProofMetric = { value: string; label: string; confirmed: boolean };
-export type ProofLogos = { caption: string; confirmed: boolean; items: Array<{ name: string; src?: string }> };
+/* Logos vêm de public/logos/<slug>.(svg|png|webp). A faixa só aparece com `confirmed: true` E os arquivos de todos os itens presentes. */
+export type ProofLogos = { caption: string; confirmed: boolean; items: Array<{ name: string; slug: string }> };
 
 export type FormatCard = {
   title: string;
@@ -83,8 +84,9 @@ export type FormatCard = {
   ctaStyle: "primary" | "secondary";
 };
 
-/* Depoimento em vídeo. Só `status: "approved"` com `embedUrl` hospedado (YouTube/Vimeo não listado) vai ao ar.
- * Nenhum arquivo de vídeo entra no repositório; o player só carrega no clique. */
+/* Depoimento em vídeo. Em produção só vai ao ar o item `status: "approved"` com `embedUrl` (YouTube-nocookie, Vimeo ou
+ * MP4 em host de ALLOWED_MEDIA_HOSTS), `cargo` e `empresa` preenchidos. Nenhum vídeo entra no repositório;
+ * o player só carrega no clique. */
 export type Testimonial = {
   nome: string;
   cargo: string;
@@ -243,20 +245,22 @@ export const aiCulture: PageContent = {
         // NPS 97: falta a fonte (pergunta 1 do brief). Ligar `confirmed` só quando a Carol responder.
         { value: "97", label: "média de NPS", confirmed: false },
       ],
-      // Logos: falta o ok de uso e os arquivos de CBA, Sicoob e Cooxupé (pergunta 5 do brief).
+      // Logos: a Carol deu o ok de uso (22/10). Faltam os ARQUIVOS cba, sicoob e cooxupe em public/logos/
+      // (hoje só existe arcelormittal.svg). Quando os quatro existirem, basta trocar `confirmed` para true.
       logos: {
         caption: "Times treinados em",
         confirmed: false,
         items: [
-          { name: "ArcelorMittal", src: "/logos/arcelormittal.svg" },
-          { name: "CBA" },
-          { name: "Sicoob" },
-          { name: "Cooxupé" },
+          { name: "ArcelorMittal", slug: "arcelormittal" },
+          { name: "CBA", slug: "cba" },
+          { name: "Sicoob", slug: "sicoob" },
+          { name: "Cooxupé", slug: "cooxupe" },
         ],
       },
     },
     {
       type: "text",
+      eyebrow: "Por que capacitar?",
       title: ["Ter acesso à IA não é saber trabalhar com ela."],
       paragraphs: [
         "Muitas empresas já liberaram ChatGPT, Copilot ou Gemini para o time e a rotina continua igual. O gargalo não é a ferramenta, é saber onde aplicar, testar no próprio trabalho e transformar isso em hábito.",
@@ -265,6 +269,7 @@ export const aiCulture: PageContent = {
     },
     {
       type: "steps",
+      eyebrow: "Nossa metodologia",
       title: ["Começamos pelo trabalho, não pela ferramenta."],
       items: [
         { title: "Contexto", text: "Mapeamos áreas, processos e desafios do time antes de montar o conteúdo." },
@@ -316,8 +321,9 @@ export const aiCulture: PageContent = {
       // Lista desligada em produção até haver embed hospedado + autorização (perguntas 6 do brief).
       // Itens "pending" só aparecem em `next dev`, como espaço reservado.
       items: [
-        { nome: "Daniel", cargo: "Cargo (a confirmar)", empresa: "Empresa (a confirmar)", embedUrl: "", posterUrl: "", status: "pending" },
-        { nome: "Larissa", cargo: "Cargo (a confirmar)", empresa: "Empresa (a confirmar)", embedUrl: "", posterUrl: "", status: "pending" },
+        // Daniel e Larissa estão autorizados (22/10). Faltam cargo, empresa, URL do MP4 no R2 e o poster.
+        { nome: "Daniel", cargo: "", empresa: "", embedUrl: "", posterUrl: "", status: "pending" },
+        { nome: "Larissa", cargo: "", empresa: "", embedUrl: "", posterUrl: "", status: "pending" },
       ],
     },
     {

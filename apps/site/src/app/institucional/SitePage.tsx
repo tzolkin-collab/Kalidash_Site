@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import Image from "next/image";
 import Link from "next/link";
 import { Inter, Source_Sans_3 } from "next/font/google";
@@ -7,6 +9,7 @@ import SiteFooter from "../home/SiteFooter";
 import { ArrowRight, WhatsApp } from "../home/icons";
 import { config } from "../home/content";
 import styles from "./institucional.module.css";
+import { mediaKind } from "./media";
 import { Reveal, TestimonialCard } from "./Motion";
 import type { Block, PageContent } from "./pages";
 
@@ -45,6 +48,19 @@ function TextLink({ href, children }: { href: string; children: React.ReactNode 
       {children} <ArrowRight />
     </Link>
   );
+}
+
+/* Procura public/logos/<slug>.(svg|png|webp). A faixa de logos só aparece se TODOS existirem. */
+function resolveLogos(items: Array<{ name: string; slug: string }>) {
+  const resolved = items.map((item) => {
+    for (const ext of ["svg", "png", "webp"]) {
+      if (fs.existsSync(path.join(process.cwd(), "public", "logos", `${item.slug}.${ext}`))) {
+        return { name: item.name, src: `/logos/${item.slug}.${ext}` };
+      }
+    }
+    return null;
+  });
+  return resolved.every(Boolean) ? (resolved as Array<{ name: string; src: string }>) : null;
 }
 
 function BlockView({ block }: { block: Block }) {
@@ -95,7 +111,8 @@ function BlockView({ block }: { block: Block }) {
     case "proofBar": {
       // Só publica o que está `confirmed` (NPS e logos aguardam resposta da Carol).
       const metrics = block.metrics.filter((metric) => metric.confirmed);
-      const logos = block.logos?.confirmed ? block.logos : undefined;
+      const logoFiles = block.logos?.confirmed ? resolveLogos(block.logos.items) : null;
+      const logos = block.logos && logoFiles ? { caption: block.logos.caption, items: logoFiles } : undefined;
       return (
         <section className={styles.proofBar} aria-label="Resultados">
           <ul className={styles.metrics}>
@@ -111,7 +128,7 @@ function BlockView({ block }: { block: Block }) {
               <ul>
                 {logos.items.map((logo) => (
                   <li key={logo.name}>
-                    {logo.src ? <Image src={logo.src} alt={logo.name} width={140} height={28} unoptimized /> : logo.name}
+                    <Image src={logo.src} alt={logo.name} width={140} height={28} unoptimized />
                   </li>
                 ))}
               </ul>
@@ -158,8 +175,10 @@ function BlockView({ block }: { block: Block }) {
       );
 
     case "testimonials": {
-      // Produção: só depoimentos aprovados. Em `next dev`, os pendentes aparecem como espaço reservado.
-      const items = block.items.filter((item) => item.status === "approved" || process.env.NODE_ENV !== "production");
+      // Produção: só item aprovado, com mídia válida, cargo e empresa. Em `next dev`, os pendentes aparecem como espaço reservado.
+      const ready = (item: (typeof block.items)[number]) =>
+        item.status === "approved" && mediaKind(item.embedUrl) !== null && item.cargo.trim() !== "" && item.empresa.trim() !== "";
+      const items = block.items.filter((item) => ready(item) || process.env.NODE_ENV !== "production");
       if (items.length === 0) return null;
       return (
         <section className={styles.section} data-wide>

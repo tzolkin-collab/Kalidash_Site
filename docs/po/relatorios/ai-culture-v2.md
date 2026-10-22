@@ -56,3 +56,25 @@ Commits: `8fcc1ec` (cards de depoimento da Home, alt. 8), `82ca18e` (foto da Qu�
 - **Verificação:** `tsc` limpo, `npm run build` com exit 0, conteúdo e animações conferidos no navegador (~770 px) e sem overflow horizontal a 390 px em Home, Advisory, Execução e AI Culture. Não conferi 1440 px nas páginas novas nem o hover. O build mostra "Falha ao buscar artigo do blog" porque a API do blog não está no ar localmente.
 - **Header no reload:** `scrolled` volta correto; o caso mobile (header escondido após reload) não foi confirmado porque o painel de preview oculto bloqueia `requestAnimationFrame`. Conferir num reload real.
 - **Pendências de terceiros:** selos da alt. 1 da Home (onde entram), depoimentos reais, `/cases/cba`, logos, fonte do NPS 97 e de "12 horas", entregáveis do Advisory, imagem do hero da Execução.
+
+## V2.1 (22/10): respostas da Carol ao PO
+
+HEAD de partida: `8ddfede`.
+
+| # | Item | Status | Evidência |
+|---|---|---|---|
+| 1 | Rodapé "Para empresas": AI Culture · Advisory · Execução · Diagnóstico | ✅ | `home/content.ts`; navegador (1440 e 390 px): coluna mostra os quatro nomes; links já apontavam para `/treinamento-corporativo-ia`, `/advisory`, `/execucao`, `/diagnostico` |
+| 2 | Eyebrows "Por que capacitar?" e "Nossa metodologia" | ✅ | `pages.ts` (`aiCulture`); navegador: ambos presentes em 1440 e 390 px |
+| 3 | Card 1 mantido; Card 2 inalterado | ✅ | sem mudança de copy |
+| 4 | NPS 97 desligado | ✅ | `confirmed: false`; HTML de produção tem 0 ocorrências de "NPS" |
+| 5 | Faixa de logos só com os 4 arquivos | ✅ | `resolveLogos` em `SitePage.tsx` procura `public/logos/{arcelormittal,cba,sicoob,cooxupe}.(svg\|png\|webp)`. Testado com arquivos temporários (removidos): 4 arquivos + `confirmed: true` → faixa aparece; faltando 1 → some. Hoje: `confirmed: false` e só existe `arcelormittal.svg` |
+| 6 | Player com MP4, `ALLOWED_MEDIA_HOSTS`, aprovação | ✅ ⚠️ | `institucional/media.ts` (lista vazia, com comentário para o Gustavo) e `Motion.tsx` (`<video controls autoplay playsinline preload="none" poster>` no clique; YouTube-nocookie e Vimeo mantidos). `mediaKind` testado em Node: host vazio bloqueia MP4; com host só `https` + `.mp4`; `http`, outro host e `javascript:` bloqueados. Em produção só aparece item `approved` com mídia válida, cargo e empresa. HTML de produção: 0 ocorrências de "Depoimentos". ⚠️ O `<video>` em si não foi exercitado no navegador (não há URL de MP4 nem host); só a lógica |
+| 7 | Não tocar blog, preview, admin, api | ✅ | só `apps/site/src/app/institucional` e `home/content.ts` |
+
+**Restauração do `content.ts`:** a cópia de trabalho de `apps/site/src/app/home/content.ts` estava numa versão anterior aos meus commits (mtime 21/10 19:11), o que desfazia a Home V2 (WhatsApp `wa.link/v9grih`, hero, frentes, cards, rodapé). Com o OK do PO restaurei **só esse arquivo** com `git checkout HEAD -- apps/site/src/app/home/content.ts` (HEAD `8ddfede`) e apliquei o item 1 por cima. O backup da versão antiga ficou com o PO. Conferi `git status` depois do build e do navegador: o arquivo não voltou a regredir. `apps/admin/src/lib/site.ts` (porta 3001) está modificado por outra sessão e não foi tocado.
+
+**Verificação:** `npx tsc --noEmit` limpo; `npm run build` exit 0 (o aviso "Falha ao buscar artigo do blog" é a API do blog fora do ar localmente); navegador em 1440 e 390 px sem overflow. Console: só um erro de script injetado (`<anonymous>`), não do site.
+
+**Ajuste extra:** a legenda dos depoimentos não mostra mais " · " solto quando cargo e empresa estão vazios.
+
+**Para o Gustavo:** colocar `cba`, `sicoob` e `cooxupe` (svg, png ou webp) em `apps/site/public/logos/` e trocar `confirmed` para `true` na faixa de logos; subir os MP4 e posters no R2, preencher `ALLOWED_MEDIA_HOSTS` em `institucional/media.ts`, e preencher `embedUrl`, `posterUrl`, cargo, empresa e `status: "approved"` de Daniel e Larissa.
