@@ -669,7 +669,7 @@ function ArticleEditor({ article, isNew, otherArticles, onBack, onSaved, onDelet
                     className={`slug-input ${slugInvalid ? 'is-invalid' : slugStatus?.available ? 'is-available' : ''}`}
                     value={slug}
                     onChange={(e) => { setSlug(e.target.value); touch(); }}
-                    placeholder={clientSlugify(title) || 'slug-do-artigo'}
+                    placeholder={clientSlugify(title) || 'gerado do título ao salvar'}
                   />
                   {slugStatus?.available && <span className="slug-badge is-ok" title="Disponível">✓</span>}
                   {slugInvalid && <span className="slug-badge is-err" title={slugHint}>✗</span>}
@@ -686,6 +686,9 @@ function ArticleEditor({ article, isNew, otherArticles, onBack, onSaved, onDelet
                   {(seoTitle || seoDescription) && <span className="seo-dot" />}
                 </button>
               </div>
+            )}
+            {slugInvalid && (
+              <div className="slug-msg" role="alert" style={{ color: '#ef4444', fontSize: 12, padding: '4px 2px 0' }}>{slugHint}</div>
             )}
           </div>
 
