@@ -432,8 +432,11 @@ func (sqlConnectStore) IngestLead(in inboundLead) (LeadDTO, error) {
 		lifecycle == "CLIENT", custom, now, now); err != nil {
 		return LeadDTO{}, err
 	}
-	if _, err := tx.Exec(`UPDATE ConnectedProject SET submissions = submissions + 1, lastSubmissionAt = ? WHERE id = ?`, now, in.Project.ID); err != nil {
-		return LeadDTO{}, err
+	// Captura pública da Home (WP3b): não há projeto conectado, então não há contadores a atualizar.
+	if in.Project.ID != "" {
+		if _, err := tx.Exec(`UPDATE ConnectedProject SET submissions = submissions + 1, lastSubmissionAt = ? WHERE id = ?`, now, in.Project.ID); err != nil {
+			return LeadDTO{}, err
+		}
 	}
 	if in.Form != nil {
 		if _, err := tx.Exec(`UPDATE TrackedForm SET submissions = submissions + 1, lastSubmissionAt = ? WHERE id = ? AND projectId = ?`, now, in.Form.ID, in.Project.ID); err != nil {

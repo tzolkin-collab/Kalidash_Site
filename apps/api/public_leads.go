@@ -224,12 +224,66 @@ func handlePublicLead(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := saveLead(in); err != nil {
+	if err := leadSaver(in, clientIP(r)); err != nil {
 		log.Println("❌ captura de lead:", err)
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "não foi possível registrar agora"})
 		return
 	}
 	writeJSON(w, http.StatusCreated, map[string]bool{"ok": true})
+}
+
+// leadSaver escolhe o destino da captura (trocável nos testes). Com CRM_API=1 grava um Lead v2 (decisão D6,
+// docs/dominio.md v2.1); sem a flag segue o caminho antigo (Oportunidade INBOUND), sem nenhuma mudança.
+var leadSaver = func(in leadInput, ip string) error {
+	if crmEnabled() {
+		return saveV2Fn(in, ip)
+	}
+	return saveLegacyFn(in)
+}
+
+var (
+	saveV2Fn     = saveLeadV2
+	saveLegacyFn = saveLead
+)
+
+// publicLeadTarget: funil, etapa (tipo LEAD) e fonte do formulário da Home. PUBLIC_LEAD_PIPELINE_ID,
+// PUBLIC_LEAD_STAGE_ID e PUBLIC_LEAD_SOURCE fixam o destino; sem eles usa a 1ª etapa do tipo LEAD do 1º funil
+// ativo. A fonte padrão é "Site — <source do formulário>", ex.: "Site — site".
+func publicLeadTarget(source string) (pipelineID, stageID, sourceName string, err error) {
+	pipelineID, stageID = strings.TrimSpace(os.Getenv("PUBLIC_LEAD_PIPELINE_ID")), strings.TrimSpace(os.Getenv("PUBLIC_LEAD_STAGE_ID"))
+	if pipelineID == "" || stageID == "" {
+		err = db.QueryRow(`SELECT s.pipelineId, s.id FROM PipelineStage s JOIN Pipeline p ON p.id = s.pipelineId
+			WHERE s.kind = 'LEAD' AND p.archivedAt IS NULL ORDER BY p.position, p.createdAt, s.position LIMIT 1`).Scan(&pipelineID, &stageID)
+		if err != nil {
+			return "", "", "", fmt.Errorf("nenhum funil com etapa do tipo Lead (ligue WORKFLOW_API ou defina PUBLIC_LEAD_PIPELINE_ID/PUBLIC_LEAD_STAGE_ID): %w", err)
+		}
+	}
+	sourceName = strings.TrimSpace(os.Getenv("PUBLIC_LEAD_SOURCE"))
+	if sourceName == "" {
+		sourceName = "Site — " + source
+	}
+	return pipelineID, stageID, sourceName, nil
+}
+
+// saveLeadV2 cria (ou reaproveita, por e-mail) a pessoa e o Lead v2 na etapa de entrada, com fonte, tags e o
+// que a pessoa escreveu na mensagem, mais a linha "create" no histórico. Mesma gravação do connect.js.
+func saveLeadV2(in leadInput, ip string) error {
+	pipelineID, stageID, sourceName, err := publicLeadTarget(in.Source)
+	if err != nil {
+		return err
+	}
+	message := "WhatsApp: " + in.Phone
+	if in.Challenge != "" {
+		message += "\n\nDesafio informado:\n" + in.Challenge
+	}
+	_, err = connectDB.IngestLead(inboundLead{
+		Project: Project{PipelineID: pipelineID, StageID: stageID, SourceName: sourceName},
+		Name:    in.Name, Email: in.Email, Phone: in.Phone, Message: message,
+		Tags:   []string{"Inbound", "Site"},
+		Custom: map[string]any{"via": "formulário do site", "formSource": in.Source},
+		Actor:  "Site", ClientIP: ip,
+	})
+	return err
 }
 
 // saveLead cria (ou reaproveita, por e-mail) o contato, a oportunidade na coluna INBOUND e a nota
