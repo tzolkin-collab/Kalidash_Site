@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
 // API de pessoas, empresas e leads (docs/plano-schema.md §3 e §4, recorte do que o admin usa:
@@ -51,6 +52,13 @@ var crmColumns = []colSpec{
 	{"Company", "archivedAt", "DATETIME NULL"},
 	{"Company", "createdAt", "DATETIME NULL"},
 	{"Company", "updatedAt", "DATETIME NULL"},
+}
+
+// Responsável como pessoa da equipe (TeamMember.id), WP3b. A coluna Opportunity.ownerId aponta para a tabela
+// User do Prisma (com chave estrangeira), que não é a equipe do login, então o vínculo novo é outra coluna.
+var crmOwnerColumns = []colSpec{
+	{"Opportunity", "ownerMemberId", "VARCHAR(64) NULL"},
+	{leadTbl, "ownerMemberId", "VARCHAR(64) NULL"},
 }
 
 var crmIndexes = []struct{ name, table, col string }{
@@ -159,6 +167,19 @@ func ensureCRMSchema() {
 	for _, stmt := range splitStatements(crmTables) {
 		if _, err := db.Exec(stmt); err != nil {
 			log.Fatalf("❌ CRM: erro ao criar tabelas: %v", err)
+		}
+	}
+	for _, c := range crmOwnerColumns { // depois das tabelas: Lead nasce acima
+		name := strings.Trim(c.table, "`")
+		ok, err := columnExists(name, c.col)
+		if err != nil {
+			log.Fatalf("❌ CRM: não consegui ler %s.%s: %v", name, c.col, err)
+		}
+		if ok {
+			continue
+		}
+		if _, err := db.Exec(fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s", c.table, c.col, c.ddl)); err != nil {
+			log.Fatalf("❌ CRM: não consegui adicionar %s.%s: %v", name, c.col, err)
 		}
 	}
 	if _, err := dataKey(); err != nil {

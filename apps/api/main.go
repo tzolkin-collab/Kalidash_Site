@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -38,6 +37,8 @@ type Opportunity struct {
 	OwnerID       *string   `json:"ownerId,omitempty"`
 	OwnerName     *string   `json:"ownerName,omitempty"`
 	OwnerAvatar   *string   `json:"ownerAvatar,omitempty"`
+	// Responsável na equipe (TeamMember), só com CRM_API=1; ownerId é o vínculo antigo com User.
+	OwnerMemberID *string   `json:"ownerMemberId,omitempty"`
 	
 	WonAt         *time.Time `json:"wonAt"`
 	CreatedAt     time.Time `json:"created_at"`
@@ -129,144 +130,11 @@ func enableCORS(next http.HandlerFunc) http.HandlerFunc {
 func handleOpportunities(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		// JOIN com Company, Contact e User (Owner)
-		query := `
-			SELECT 
-				o.id, o.title, o.value, o.stage, o.priority, o.tags, o.createdAt, o.wonAt,
-				o.companyId, c.name as companyName, c.logoUrl as companyLogo,
-				o.contactId, p.name as contactName, p.avatarUrl as contactAvatar,
-				o.ownerId, u.name as ownerName, u.avatarUrl as ownerAvatar
-			FROM Opportunity o
-			LEFT JOIN Company c ON o.companyId = c.id
-			LEFT JOIN Contact p ON o.contactId = p.id
-			LEFT JOIN User u ON o.ownerId = u.id
-			ORDER BY o.createdAt DESC
-		`
-		
-		rows, err := db.Query(query)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		defer rows.Close()
-
-		var opps []Opportunity
-		for rows.Next() {
-			var o Opportunity
-			var tagsJSON []byte
-			var createdAt string
-			var wonAt sql.NullString
-
-			if err := rows.Scan(
-				&o.ID, &o.Title, &o.Value, &o.Stage, &o.Priority, &tagsJSON, &createdAt, &wonAt,
-				&o.CompanyID, &o.CompanyName, &o.CompanyLogo,
-				&o.ContactID, &o.ContactName, &o.ContactAvatar,
-				&o.OwnerID, &o.OwnerName, &o.OwnerAvatar,
-			); err != nil {
-				log.Println("Scan err:", err)
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			
-			if tagsJSON != nil {
-				json.Unmarshal(tagsJSON, &o.Tags)
-			}
-			o.CreatedAt = parseDT(createdAt)
-			if wonAt.Valid {
-				if t := parseDT(wonAt.String); !t.IsZero() {
-					o.WonAt = &t
-				}
-			}
-			
-			opps = append(opps, o)
-		}
-		
-		if opps == nil {
-			opps = []Opportunity{}
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(opps)
-
+		listOpportunities(w, r) // opportunity_links.go (JOIN com Company, Contact, User e a equipe)
 	case http.MethodPost:
-		// Cria Oportunidade Avulsa (sem contatos ainda para simplicidade de demonstração)
-		var newOpp Opportunity
-		if err := json.NewDecoder(r.Body).Decode(&newOpp); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		v, ok := normalizeMoney(newOpp.Value)
-		if !ok {
-			http.Error(w, "Valor inválido", http.StatusBadRequest)
-			return
-		}
-		newOpp.Value = v
-		newOpp.ID = fmt.Sprintf("%d", time.Now().UnixNano())
-		newOpp.CreatedAt = time.Now()
-
-		tagsJSON, _ := json.Marshal(newOpp.Tags)
-		if newOpp.Priority == "" {
-			newOpp.Priority = "MEDIUM"
-		}
-
-		insertQuery := `INSERT INTO Opportunity (id, title, value, stage, priority, tags, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-		_, err := db.Exec(insertQuery, newOpp.ID, newOpp.Title, newOpp.Value, newOpp.Stage, newOpp.Priority, tagsJSON, newOpp.CreatedAt, newOpp.CreatedAt)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(newOpp)
-
+		createOpportunity(w, r) // Oportunidade avulsa
 	case http.MethodPut:
-		var opp Opportunity
-		if err := json.NewDecoder(r.Body).Decode(&opp); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		
-		v, ok := normalizeMoney(opp.Value)
-		if !ok {
-			http.Error(w, "Valor inválido", http.StatusBadRequest)
-			return
-		}
-		opp.Value = v
-		if strings.TrimSpace(opp.Title) == "" {
-			http.Error(w, "Título obrigatório", http.StatusBadRequest)
-			return
-		}
-		// Persistem título, valor e, quando enviados, prioridade e tags (colunas que existem hoje).
-		// Etapa muda só por /api/leads/move; contato, empresa e responsável são vínculos (ids) que
-		// esta rota não grava. Campo ausente no corpo mantém o que está no banco.
-		var prio any // NULL mantém a coluna (COALESCE)
-		if opp.Priority != "" {
-			if validPriority(opp.Priority) { // valor fora do conjunto não bloqueia a edição de título/valor: mantém o do banco
-				prio = opp.Priority
-			}
-		}
-		var tagsArg any
-		if opp.Tags != nil {
-			tj, _ := json.Marshal(opp.Tags)
-			tagsArg = tj
-		}
-		updateQuery := `UPDATE Opportunity SET title = ?, value = ?, priority = COALESCE(?, priority), tags = COALESCE(?, tags), updatedAt = ? WHERE id = ?`
-		res, err := db.Exec(updateQuery, opp.Title, opp.Value, prio, tagsArg, time.Now(), opp.ID)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		affected, _ := res.RowsAffected()
-		if affected == 0 {
-			http.Error(w, "Oportunidade não encontrada", http.StatusNotFound)
-			return
-		}
-		
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(opp)
-
+		updateOpportunity(w, r) // título, valor, prioridade, tags e vínculos
 	default:
 		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
 	}

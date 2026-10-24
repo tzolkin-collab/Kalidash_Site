@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -24,6 +25,8 @@ type LeadDTO struct {
 	Origin                 string         `json:"origin"`     // INBOUND | OUTBOUND
 	SourceName             string         `json:"sourceName"` // inbound: a fonte; outbound: quem da equipe trouxe
 	Owner                  string         `json:"owner,omitempty"`
+	// OwnerID: responsável na equipe (TeamMember.id). Owner segue sendo o texto de quem trouxe um lead outbound.
+	OwnerID                string         `json:"ownerId,omitempty"`
 	EstimatedValue         *float64       `json:"estimatedValue,omitempty"`
 	ExpectedCloseAt        *FlexTime      `json:"expectedCloseAt,omitempty"`
 	Tags                   []string       `json:"tags"`
@@ -100,17 +103,18 @@ func validateLeadRecord(l *LeadDTO) error {
 // LEAD é palavra reservada no MySQL 8: sempre citada.
 const leadTbl = "`Lead`"
 
-const leadCols = `id, name, email, phone, personId, companyId, pipelineId, stageId, origin, sourceName, owner, estimatedValue, expectedCloseAt, tags, message, status, discardReason, wasSeen, firstContactAt, convertedOpportunityId, returningClient, customData, archivedAt, createdAt`
+const leadCols = `id, name, email, phone, personId, companyId, pipelineId, stageId, origin, sourceName, owner, estimatedValue, expectedCloseAt, tags, message, status, discardReason, wasSeen, firstContactAt, convertedOpportunityId, returningClient, customData, archivedAt, createdAt, ownerMemberId`
 
 func scanLead(sc interface{ Scan(...any) error }) (LeadDTO, error) {
 	var l LeadDTO
-	var phone, person, company, owner, expected, message, discard, firstContact, converted, archived, created sql.NullString
+	var ownerMember, phone, person, company, owner, expected, message, discard, firstContact, converted, archived, created sql.NullString
 	var value sql.NullFloat64
 	var tags, custom []byte
 	if err := sc.Scan(&l.ID, &l.Name, &l.Email, &phone, &person, &company, &l.PipelineID, &l.StageID, &l.Origin, &l.SourceName, &owner, &value, &expected, &tags, &message, &l.Status, &discard,
-		&l.WasSeen, &firstContact, &converted, &l.ReturningClient, &custom, &archived, &created); err != nil {
+		&l.WasSeen, &firstContact, &converted, &l.ReturningClient, &custom, &archived, &created, &ownerMember); err != nil {
 		return l, err
 	}
+	l.OwnerID = ownerMember.String
 	l.Phone, l.PersonID, l.CompanyID, l.Owner, l.Message, l.DiscardReason, l.ConvertedOpportunityID = phone.String, person.String, company.String, owner.String, message.String, discard.String, converted.String
 	if value.Valid {
 		l.EstimatedValue = &value.Float64
@@ -124,16 +128,16 @@ func scanLead(sc interface{ Scan(...any) error }) (LeadDTO, error) {
 func saveLeadRecord(l *LeadDTO, replace bool) error {
 	now := time.Now()
 	if !replace {
-		_, err := db.Exec(`INSERT INTO `+leadTbl+` (id, name, email, phone, personId, companyId, pipelineId, stageId, origin, sourceName, owner, estimatedValue, expectedCloseAt, tags, message, status, discardReason, wasSeen, firstContactAt, convertedOpportunityId, returningClient, customData, archivedAt, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		_, err := db.Exec(`INSERT INTO `+leadTbl+` (id, name, email, phone, personId, companyId, pipelineId, stageId, origin, sourceName, owner, estimatedValue, expectedCloseAt, tags, message, status, discardReason, wasSeen, firstContactAt, convertedOpportunityId, returningClient, customData, archivedAt, createdAt, updatedAt, ownerMemberId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			l.ID, l.Name, l.Email, nullStr(l.Phone), nullStr(l.PersonID), nullStr(l.CompanyID), l.PipelineID, l.StageID, l.Origin, l.SourceName, nullStr(l.Owner), l.EstimatedValue, ptrTime(l.ExpectedCloseAt),
 			jsonOrNull(l.Tags), nullStr(l.Message), l.Status, nullStr(l.DiscardReason), l.WasSeen, ptrTime(l.FirstContactAt), nullStr(l.ConvertedOpportunityID), l.ReturningClient, jsonOrNull(l.CustomData),
-			ptrTime(l.ArchivedAt), now, now)
+			ptrTime(l.ArchivedAt), now, now, nullStr(l.OwnerID))
 		return err
 	}
-	res, err := db.Exec(`UPDATE `+leadTbl+` SET name = ?, email = ?, phone = ?, personId = ?, companyId = ?, pipelineId = ?, stageId = ?, origin = ?, sourceName = ?, owner = ?, estimatedValue = ?, expectedCloseAt = ?, tags = ?, message = ?, status = ?, discardReason = ?, wasSeen = ?, firstContactAt = ?, convertedOpportunityId = ?, returningClient = ?, customData = ?, archivedAt = ?, updatedAt = ? WHERE id = ?`,
+	res, err := db.Exec(`UPDATE `+leadTbl+` SET name = ?, email = ?, phone = ?, personId = ?, companyId = ?, pipelineId = ?, stageId = ?, origin = ?, sourceName = ?, owner = ?, estimatedValue = ?, expectedCloseAt = ?, tags = ?, message = ?, status = ?, discardReason = ?, wasSeen = ?, firstContactAt = ?, convertedOpportunityId = ?, returningClient = ?, customData = ?, archivedAt = ?, updatedAt = ?, ownerMemberId = ? WHERE id = ?`,
 		l.Name, l.Email, nullStr(l.Phone), nullStr(l.PersonID), nullStr(l.CompanyID), l.PipelineID, l.StageID, l.Origin, l.SourceName, nullStr(l.Owner), l.EstimatedValue, ptrTime(l.ExpectedCloseAt),
 		jsonOrNull(l.Tags), nullStr(l.Message), l.Status, nullStr(l.DiscardReason), l.WasSeen, ptrTime(l.FirstContactAt), nullStr(l.ConvertedOpportunityID), l.ReturningClient, jsonOrNull(l.CustomData),
-		ptrTime(l.ArchivedAt), now, l.ID)
+		ptrTime(l.ArchivedAt), now, nullStr(l.OwnerID), l.ID)
 	if err != nil {
 		return err
 	}
@@ -172,6 +176,10 @@ func handleCRMLeads(w http.ResponseWriter, r *http.Request) {
 		if v := qs.Get("status"); leadStatuses[v] {
 			where += ` AND status = ?`
 			args = append(args, v)
+		}
+		if me, restricted := ownRestriction(r, "leads", false); restricted { // leads:own: só os dele (WP3b, D4)
+			where += ` AND ownerMemberId = ?`
+			args = append(args, me)
 		}
 		if q := strings.TrimSpace(qs.Get("q")); q != "" {
 			like := "%" + strings.ReplaceAll(strings.ReplaceAll(q, "%", ""), "_", "") + "%"
@@ -219,6 +227,15 @@ func handleCRMLeads(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": err.Error()})
 			return
 		}
+		if me, restricted := ownRestriction(r, "leads", true); restricted {
+			l.OwnerID = me // quem só enxerga o que é dele cria sempre em seu nome
+		}
+		if l.OwnerID != "" {
+			if err := checkOwnerMember(l.OwnerID); err != nil {
+				writeLinkErr(w, err)
+				return
+			}
+		}
 		if err := saveLeadRecord(&l, false); err != nil {
 			if isDup(err) {
 				writeJSON(w, http.StatusConflict, map[string]string{"error": "já existe um lead com este id"})
@@ -246,25 +263,57 @@ func handleCRMLeadByID(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "id inválido"})
 		return
 	}
-	switch r.Method {
-	case http.MethodGet:
-		l, err := getLeadRecord(id)
+	// leads:own (WP3b, D4): quem só enxerga os próprios leads recebe 404 nos dos outros, como se não existissem.
+	ownedOnly := func(write bool) (cur LeadDTO, ok bool) {
+		cur, err := getLeadRecord(id)
 		if err != nil {
 			writeErr(w, err)
+			return cur, false
+		}
+		if me, restricted := ownRestriction(r, "leads", write); restricted && cur.OwnerID != me {
+			writeErr(w, errNotFound)
+			return cur, false
+		}
+		return cur, true
+	}
+	switch r.Method {
+	case http.MethodGet:
+		l, ok := ownedOnly(false)
+		if !ok {
 			return
 		}
 		writeJSON(w, http.StatusOK, l)
 	case http.MethodPut:
-		r.Body = http.MaxBytesReader(w, r.Body, 128<<10)
+		raw, err := io.ReadAll(http.MaxBytesReader(w, r.Body, 128<<10))
 		var l LeadDTO
-		if err := json.NewDecoder(r.Body).Decode(&l); err != nil {
+		if err != nil || json.Unmarshal(raw, &l) != nil {
 			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "corpo inválido"})
 			return
 		}
+		var pr presence
+		json.Unmarshal(raw, &pr)
 		l.ID = id
 		if err := validateLeadRecord(&l); err != nil {
 			writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": err.Error()})
 			return
+		}
+		cur, ok := ownedOnly(true)
+		if !ok {
+			return
+		}
+		// Responsável: corpo sem "ownerId" mantém o atual; "" limpa; quem só enxerga os próprios não reatribui.
+		if !pr.has("ownerId") {
+			l.OwnerID = cur.OwnerID
+		}
+		if _, restricted := ownRestriction(r, "leads", true); restricted && l.OwnerID != cur.OwnerID {
+			writeAuthErr(w, http.StatusForbidden, "falta a permissão leads:write para trocar o responsável")
+			return
+		}
+		if l.OwnerID != "" && l.OwnerID != cur.OwnerID {
+			if err := checkOwnerMember(l.OwnerID); err != nil {
+				writeLinkErr(w, err)
+				return
+			}
 		}
 		if !canChangeOrigin(w, r, &l) {
 			return
@@ -280,6 +329,9 @@ func handleCRMLeadByID(w http.ResponseWriter, r *http.Request) {
 		}
 		writeJSON(w, http.StatusOK, got)
 	case http.MethodDelete:
+		if _, ok := ownedOnly(true); !ok {
+			return
+		}
 		res, err := db.Exec(`UPDATE `+leadTbl+` SET archivedAt = ?, updatedAt = ? WHERE id = ? AND archivedAt IS NULL`, time.Now(), time.Now(), id)
 		if err != nil {
 			writeErr(w, err)
