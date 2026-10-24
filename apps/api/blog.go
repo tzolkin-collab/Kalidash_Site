@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 )
@@ -114,8 +116,18 @@ var defaultReservedSlugs = map[string]bool{
 	"api":         true,
 }
 
+// isReservedSlug: lista padrão + BLOG_RESERVED_SLUGS (separada por vírgula, acrescenta; não remove).
 func isReservedSlug(slug string) bool {
-	return defaultReservedSlugs[strings.ToLower(strings.TrimSpace(slug))]
+	s := strings.ToLower(strings.TrimSpace(slug))
+	if defaultReservedSlugs[s] {
+		return true
+	}
+	for _, extra := range strings.Split(os.Getenv("BLOG_RESERVED_SLUGS"), ",") {
+		if e := strings.ToLower(strings.TrimSpace(extra)); e != "" && e == s {
+			return true
+		}
+	}
+	return false
 }
 
 // slugify: sem dependência externa. Converte minúsculas primeiro para capturar maiúsculas acentuadas
@@ -132,7 +144,7 @@ func slugify(s string) string {
 		"ú", "u", "ù", "u", "û", "u", "ü", "u", "ũ", "u", "ū", "u", "ŭ", "u", "ů", "u", "ű", "u", "ų", "u",
 		"ç", "c", "ć", "c", "č", "c",
 		"ñ", "n", "ń", "n", "ň", "n",
-		"ß", "ss", "æ", "ae", "œ", "oe",
+		"ß", "ss", "æ", "ae", "œ", "oe", "ł", "l", "đ", "d", "ð", "d", "þ", "th", "ı", "i",
 	)
 	normalized := replacer.Replace(lower)
 	dashed := slugInvalidChars.ReplaceAllString(normalized, "-")
@@ -142,6 +154,13 @@ func slugify(s string) string {
 		return fmt.Sprintf("artigo-%x", h[:4])
 	}
 	return res
+}
+
+// isDuplicateKey: erro 1062 do MySQL/MariaDB (o texto varia: "Duplicate entry" no real,
+// "duplicate unique key given" no go-mysql-server dos testes).
+func isDuplicateKey(err error) bool {
+	m := err.Error()
+	return strings.Contains(m, "Error 1062") || strings.Contains(m, "Duplicate entry")
 }
 
 func scanArticle(rows *sql.Rows) (Article, error) {
@@ -185,65 +204,84 @@ type galleryBlock struct {
 	} `json:"props"`
 }
 
-// applyGalleryHybridOrder implementa a regra Q14 (docs/po/blog-cms.md):
-// 1. Ordem curada da Galeria ('blog-global' -> articleCard blocks) vem primeiro.
-// 2. Todo artigo publicado fora da ordem curada entra logo depois, ordenado por data/destaque.
-// 3. Garante que novos artigos publicados nunca sejam descartados da lista.
-func applyGalleryHybridOrder(publishedArticles []Article) []Article {
-	if len(publishedArticles) == 0 {
-		return publishedArticles
+// articleDate: a data que ordena o blog (publicação, ou criação se nunca publicou).
+func articleDate(a Article) time.Time {
+	if a.PublishedAt != nil {
+		return *a.PublishedAt
 	}
+	return a.CreatedAt
+}
 
-	var bodyJSON sql.NullString
-	err := db.QueryRow(`SELECT bodyJson FROM Article WHERE slug = 'blog-global' LIMIT 1`).Scan(&bodyJSON)
-	if err != nil || !bodyJSON.Valid || strings.TrimSpace(bodyJSON.String) == "" {
-		return publishedArticles
-	}
-
-	var blocks []galleryBlock
-	if err := json.Unmarshal([]byte(bodyJSON.String), &blocks); err != nil {
-		return publishedArticles
-	}
-
-	var curatedIDs []string
-	seenCurated := make(map[string]bool)
-	for _, b := range blocks {
-		if b.Type == "articleCard" && b.Props.ArticleID != "" {
-			if !seenCurated[b.Props.ArticleID] {
-				seenCurated[b.Props.ArticleID] = true
-				curatedIDs = append(curatedIDs, b.Props.ArticleID)
-			}
-		}
-	}
-	if len(curatedIDs) == 0 {
-		return publishedArticles
-	}
-
-	byID := make(map[string]Article, len(publishedArticles))
-	for _, a := range publishedArticles {
+// orderGallery aplica a regra Q14 (docs/po/blog-cms.md), função pura:
+//  1. os artigos curados (ids dos cartões da Galeria, na ordem dela) vêm primeiro;
+//  2. todo artigo publicado fora dessa ordem entra depois, do mais novo para o mais antigo;
+//  3. nada é descartado: id curado que não existe/não está publicado é ignorado, e nenhum
+//     artigo publicado fica de fora.
+//
+// A própria Galeria (slug blog-global) não é artigo da grade: vai por último, para o site achá-la
+// por slug sem ela ocupar posição.
+func orderGallery(published []Article, curatedIDs []string) []Article {
+	byID := make(map[string]Article, len(published))
+	for _, a := range published {
 		byID[a.ID] = a
 	}
-
-	result := make([]Article, 0, len(publishedArticles))
-	placed := make(map[string]bool, len(publishedArticles))
-
-	// 1. Artigos curados na ordem exata da galeria
+	result := make([]Article, 0, len(published))
+	placed := make(map[string]bool, len(published))
 	for _, id := range curatedIDs {
-		if a, ok := byID[id]; ok && !placed[id] {
+		if a, ok := byID[id]; ok && !placed[id] && a.Slug != "blog-global" {
 			placed[id] = true
 			result = append(result, a)
 		}
 	}
+	var rest []Article
+	var gallery []Article
+	for _, a := range published {
+		if placed[a.ID] {
+			continue
+		}
+		if a.Slug == "blog-global" {
+			gallery = append(gallery, a)
+			continue
+		}
+		rest = append(rest, a)
+	}
+	sort.SliceStable(rest, func(i, j int) bool { return articleDate(rest[i]).After(articleDate(rest[j])) })
+	result = append(result, rest...)
+	return append(result, gallery...)
+}
 
-	// 2. Artigos publicados restantes (novos ou não curados), mantendo a ordem por data/destaque
-	for _, a := range publishedArticles {
-		if !placed[a.ID] {
-			placed[a.ID] = true
-			result = append(result, a)
+// galleryCuratedIDs lê os ids dos cartões (articleCard) salvos no bodyJson da Galeria, na ordem.
+func galleryCuratedIDs(bodyJSON string) []string {
+	var blocks []galleryBlock
+	if err := json.Unmarshal([]byte(bodyJSON), &blocks); err != nil {
+		return nil
+	}
+	var ids []string
+	seen := map[string]bool{}
+	for _, b := range blocks {
+		if b.Type == "articleCard" && b.Props.ArticleID != "" && !seen[b.Props.ArticleID] {
+			seen[b.Props.ArticleID] = true
+			ids = append(ids, b.Props.ArticleID)
 		}
 	}
+	return ids
+}
 
-	return result
+// applyGalleryHybridOrder: lista pública (?published=true). Sem cartões salvos na Galeria
+// (nunca curada) mantém a ordem da consulta (destaque, depois data), como sempre foi.
+func applyGalleryHybridOrder(published []Article) []Article {
+	if len(published) == 0 {
+		return published
+	}
+	var bodyJSON sql.NullString
+	if err := db.QueryRow(`SELECT bodyJson FROM Article WHERE slug = 'blog-global' LIMIT 1`).Scan(&bodyJSON); err != nil || !bodyJSON.Valid {
+		return published
+	}
+	curated := galleryCuratedIDs(bodyJSON.String)
+	if len(curated) == 0 {
+		return published
+	}
+	return orderGallery(published, curated)
 }
 
 const articleColumns = `id, title, slug, excerpt, body, bodyJson, coverImageUrl, coverImagePos, featured, published, authorName, categories, seoTitle, seoDescription, createdAt, updatedAt, publishedAt`
@@ -327,7 +365,7 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 			a.CreatedAt, a.UpdatedAt, a.PublishedAt,
 		)
 		if err != nil {
-			if strings.Contains(err.Error(), "Duplicate entry") || strings.Contains(err.Error(), "UNIQUE constraint") {
+			if isDuplicateKey(err) {
 				http.Error(w, "Já existe um artigo com este endereço (slug).", http.StatusConflict)
 				return
 			}
@@ -400,7 +438,7 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 			a.AuthorName, categoriesJSON, a.SeoTitle, a.SeoDescription, a.UpdatedAt, a.PublishedAt, a.ID,
 		)
 		if err != nil {
-			if strings.Contains(err.Error(), "Duplicate entry") || strings.Contains(err.Error(), "UNIQUE constraint") {
+			if isDuplicateKey(err) {
 				http.Error(w, "Já existe um artigo com este endereço (slug).", http.StatusConflict)
 				return
 			}

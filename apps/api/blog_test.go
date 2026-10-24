@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 )
 
 func TestSlugify(t *testing.T) {
@@ -137,49 +136,19 @@ func TestApplyGalleryHybridOrderEmpty(t *testing.T) {
 	}
 }
 
-func TestApplyGalleryHybridOrderOrdering(t *testing.T) {
-	// Testa a lógica pura de ordenação híbrida Q14
-	t1 := time.Date(2026, 10, 1, 10, 0, 0, 0, time.UTC)
-	t2 := time.Date(2026, 10, 2, 10, 0, 0, 0, time.UTC)
-	t3 := time.Date(2026, 10, 3, 10, 0, 0, 0, time.UTC)
-
-	articles := []Article{
-		{ID: "art-3", Title: "Artigo 3 (Novo)", Published: true, CreatedAt: t3},
-		{ID: "art-2", Title: "Artigo 2", Published: true, CreatedAt: t2},
-		{ID: "art-1", Title: "Artigo 1", Published: true, CreatedAt: t1},
+func TestSlugAvailableExigeEscopoDoBlog(t *testing.T) {
+	// slug-available cai na regra geral de /api/blog/: leitura -> blog:read, nunca pública.
+	r := httptest.NewRequest(http.MethodGet, "/api/blog/slug-available?slug=x", nil)
+	scope, public := routeScope(r)
+	if scope != "blog:read" || public {
+		t.Errorf("slug-available: scope=%q public=%v", scope, public)
 	}
+}
 
-	// Simula a resolução onde os blocos da galeria definem a ordem curada: [art-1, art-2]
-	curatedIDs := []string{"art-1", "art-2"}
-	byID := make(map[string]Article)
-	for _, a := range articles {
-		byID[a.ID] = a
-	}
-
-	var result []Article
-	placed := make(map[string]bool)
-	for _, id := range curatedIDs {
-		if a, ok := byID[id]; ok && !placed[id] {
-			placed[id] = true
-			result = append(result, a)
+func TestSlugifyLetrasExtras(t *testing.T) {
+	for in, want := range map[string]string{"Łódź": "lod", "Đà Nang": "da-nang", "Þór": "thor"} {
+		if got := slugify(in); got != want {
+			t.Errorf("slugify(%q) = %q, esperado %q", in, got, want)
 		}
-	}
-	for _, a := range articles {
-		if !placed[a.ID] {
-			placed[a.ID] = true
-			result = append(result, a)
-		}
-	}
-
-	if len(result) != 3 {
-		t.Fatalf("esperava 3 artigos, obteve %d", len(result))
-	}
-	// Curados primeiro
-	if result[0].ID != "art-1" || result[1].ID != "art-2" {
-		t.Errorf("ordem curada violada: [0]=%s, [1]=%s", result[0].ID, result[1].ID)
-	}
-	// Artigo novo (não curado) não pode ser descartado e deve vir a seguir
-	if result[2].ID != "art-3" {
-		t.Errorf("artigo novo não foi inserido na lista: [2]=%s", result[2].ID)
 	}
 }
