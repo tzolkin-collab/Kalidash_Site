@@ -60,7 +60,7 @@ func TestCatalogoEPresets(t *testing.T) {
 
 func TestEfetivosSomamExtrasETiramRemovidos(t *testing.T) {
 	got := effectiveScopes(roleSeller, []string{"blog:write", "inventado"}, []string{"emails:send"}, false)
-	if !hasScope(got, "blog:write") || hasScope(got, "emails:send") || hasScope(got, "inventado") || !hasScope(got, "leads:read") {
+	if !hasScope(got, "blog:write") || hasScope(got, "emails:send") || hasScope(got, "inventado") || !hasScope(got, "leads:own") || hasScope(got, "leads:read") {
 		t.Errorf("efetivos do vendedor: %v", got)
 	}
 	if all := effectiveScopes(roleSeller, nil, allScopeIDs(), true); len(all) != len(scopeCatalog) {
@@ -95,7 +95,7 @@ func TestRotaExigeEscopo(t *testing.T) {
 		used[c.scope] = true
 	}
 	for _, s := range scopeCatalog {
-		if !used[s.ID] && !s.Reserved && s.ID != "leads:origin" && s.ID != "forms:write" { // leads:origin é checado no handler (canChangeOrigin); forms:write, em connect_ingest.go (a rota é pública e autentica pelo token)
+		if !used[s.ID] && !s.Reserved && s.ID != "leads:origin" && s.ID != "forms:write" && s.ID != "leads:own" && s.ID != "opportunities:own" { // leads:origin é checado no handler (canChangeOrigin); leads:own e opportunities:own abrem as rotas de leads_read/write só para os registros dela (own_scope.go, TestEscopoOwn...); forms:write, em connect_ingest.go (a rota é pública e autentica pelo token)
 			t.Errorf("o escopo %s não protege nenhuma rota (marque Reserved se for gancho)", s.ID)
 		}
 	}
@@ -234,7 +234,7 @@ func TestEdicaoDeEscoposRegras(t *testing.T) {
 		t.Error("raiz sem blog:write")
 	}
 	// normalização: extra que o preset já dá e removido que o preset não tem são descartados
-	rec := put(rootCk, ven.ID, `{"scopesExtra":["leads:read","blog:read"],"scopesDenied":["blog:write","emails:send"]}`)
+	rec := put(rootCk, ven.ID, `{"scopesExtra":["people:read","blog:read"],"scopesDenied":["blog:write","emails:send"]}`)
 	var got Member
 	json.Unmarshal(rec.Body.Bytes(), &got)
 	if rec.Code != 200 || len(got.Extra) != 1 || got.Extra[0] != "blog:read" || len(got.Denied) != 1 || got.Denied[0] != "emails:send" {

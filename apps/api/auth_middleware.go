@@ -189,7 +189,7 @@ func withAuth(next http.Handler) http.Handler {
 				return
 			}
 		}
-		if scope != "" && !hasScope(m.Scopes, scope) {
+		if scope != "" && !scopeSatisfied(m.Scopes, scope, r.URL.Path) {
 			writeAuthErr(w, http.StatusForbidden, "falta a permissão "+scope)
 			return
 		}

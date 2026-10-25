@@ -165,7 +165,9 @@ func TestIntegrationAuth(t *testing.T) {
 	}
 
 	// origem do lead
-	lead := `{"id":"l1","name":"Renata","email":"r@x.co","pipelineId":"q4","stageId":"q4:novos","origin":"INBOUND","sourceName":"Site"}`
+	// WP3b (D4): o Vendedor só toca nos leads em que é o responsável, então o lead de teste é dele;
+	// um lead de outra pessoa (ou sem responsável) é 404 para ele (own_scope_integration_test.go cobre o resto).
+	lead := `{"id":"l1","name":"Renata","email":"r@x.co","pipelineId":"q4","stageId":"q4:novos","origin":"INBOUND","sourceName":"Site","ownerId":"` + ven.ID + `"}`
 	if rec := do(gerC, "POST", "/api/crm/leads", lead); rec.Code != 201 {
 		t.Fatalf("criar lead: %d %s", rec.Code, rec.Body)
 	}
@@ -182,6 +184,12 @@ func TestIntegrationAuth(t *testing.T) {
 	}
 	if rec := do(gerC, "PUT", "/api/crm/leads/l1", trocaOrigem); rec.Code != 200 {
 		t.Errorf("Gerente trocando a origem: %d %s", rec.Code, rec.Body)
+	}
+	if rec := do(gerC, "POST", "/api/crm/leads", strings.Replace(strings.Replace(lead, `"l1"`, `"l2"`, 1), `,"ownerId":"`+ven.ID+`"`, "", 1)); rec.Code != 201 {
+		t.Fatalf("criar lead sem responsável: %d %s", rec.Code, rec.Body)
+	}
+	if rec := do(venC, "PUT", "/api/crm/leads/l2", strings.Replace(strings.Replace(lead, `"l1"`, `"l2"`, 1), `,"ownerId":"`+ven.ID+`"`, "", 1)); rec.Code != 404 {
+		t.Errorf("Vendedor editando lead sem responsável: %d, queria 404", rec.Code)
 	}
 
 	// histórico: o autor é a sessão, não o que o cliente diz

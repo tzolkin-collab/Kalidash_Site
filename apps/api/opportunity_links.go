@@ -128,9 +128,6 @@ func checkContactLink(table, id string) error {
 
 // checkOwnerMember: o responsável é uma pessoa ativa da equipe. Exige o login ligado (a tabela é dele).
 func checkOwnerMember(id string) error {
-	if !crmEnabled() {
-		return linkError("o responsável exige CRM_API=1")
-	}
 	if !authEnabled() {
 		return linkError("o responsável exige o login ligado (AUTH_API=1)")
 	}
@@ -142,6 +139,14 @@ func checkOwnerMember(id string) error {
 		return linkError("o responsável precisa ser uma pessoa ativa da equipe")
 	}
 	return nil
+}
+
+// checkOppOwner: o responsável da oportunidade mora na coluna ownerMemberId, que só existe com CRM_API=1.
+func checkOppOwner(id string) error {
+	if !crmEnabled() {
+		return linkError("o responsável exige CRM_API=1")
+	}
+	return checkOwnerMember(id)
 }
 
 // oppOwner devolve o responsável atual e se a oportunidade existe.
@@ -220,7 +225,7 @@ func createOpportunity(w http.ResponseWriter, r *http.Request) {
 		owner = me // quem só enxerga o que é dele cria sempre em seu nome
 	}
 	if owner != "" {
-		if err := checkOwnerMember(owner); err != nil {
+		if err := checkOppOwner(owner); err != nil {
 			writeLinkErr(w, err)
 			return
 		}
@@ -308,7 +313,7 @@ func updateOpportunity(w http.ResponseWriter, r *http.Request) {
 	}
 	if pr.has("ownerMemberId") {
 		if id := pr.linkValue("ownerMemberId"); id != "" {
-			if err := checkOwnerMember(id); err != nil {
+			if err := checkOppOwner(id); err != nil {
 				writeLinkErr(w, err)
 				return
 			}

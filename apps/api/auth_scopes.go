@@ -35,6 +35,8 @@ var scopeGroups = []string{"CRM", "Funis e tarefas", "Conteúdo", "Automação",
 var scopeCatalog = []scopeDef{
 	{ID: "leads:read", Group: "CRM", Label: "Ver leads e oportunidades", Desc: "Lista e abre leads, oportunidades e notas."},
 	{ID: "leads:write", Group: "CRM", Label: "Criar e editar leads", Desc: "Cria, edita, move de etapa e anota leads e oportunidades."},
+	{ID: "leads:own", Group: "CRM", Label: "Só os leads dele", Desc: "Vê e edita apenas os leads em que é o responsável. Quem tem Ver/Criar e editar leads enxerga todos.", HumanOnly: true},
+	{ID: "opportunities:own", Group: "CRM", Label: "Só as oportunidades dele", Desc: "Vê e edita apenas as oportunidades em que é o responsável (notas, mover de etapa e e-mail incluídos).", HumanOnly: true},
 	{ID: "leads:origin", Group: "CRM", Label: "Trocar origem e fonte do lead", Desc: "Altera a origem e a fonte de um lead que já existe."},
 	{ID: "people:read", Group: "CRM", Label: "Ver pessoas e empresas", Desc: "Lê contatos e empresas (CPF sempre mascarado)."},
 	{ID: "people:write", Group: "CRM", Label: "Editar pessoas e empresas", Desc: "Cria, edita e remove contatos e empresas."},
@@ -75,15 +77,16 @@ func allScopeIDs() []string {
 	return out
 }
 
-// Presets dos perfis. O Vendedor tem exatamente o que a tabela antiga (accAny) lhe dava; o Gerente soma
-// o que era de Admin/Gerente; o Admin tem tudo.
+// Presets dos perfis. O Vendedor tem o que a tabela antiga (accAny) lhe dava, mas leads e oportunidades só os
+// dele (own_scope.go); o Gerente soma o que era de Admin/Gerente e vê tudo; o Admin tem tudo.
+// WP3b (D4): o Vendedor deixou de ter leads:read/leads:write e passou a ter os escopos "own" (só o que é dele).
 var sellerScopes = []string{
-	"leads:read", "leads:write", "people:read", "people:write", "history:read", "history:write",
+	"leads:own", "opportunities:own", "people:read", "people:write", "history:read", "history:write",
 	"pipelines:read", "tasks:read", "tasks:write", "emails:send", "team:read",
 }
 
 var managerScopes = append(append([]string{}, sellerScopes...),
-	"leads:origin", "people:document", "pipelines:manage", "blog:read", "blog:write", "automations:manage", "keys:manage",
+	"leads:read", "leads:write", "leads:origin", "people:document", "pipelines:manage", "blog:read", "blog:write", "automations:manage", "keys:manage",
 	"forms:write", "analytics:write", "ads:read")
 
 func presetScopes(role string) []string {
