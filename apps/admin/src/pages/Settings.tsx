@@ -29,7 +29,7 @@ const when = (iso?: string) => (iso ? new Date(iso).toLocaleString('pt-BR', { da
 const ROLE_MATRIX: { role: Role; sees: string; does: string }[] = [
   { role: 'ADMIN', sees: 'Todo o funil, o dashboard e todas as configurações.', does: 'Gerencia equipe, integrações, chaves, webhooks e blog. Redistribui leads. Não pode remover o último Admin.' },
   { role: 'MANAGER', sees: 'Todo o funil e o dashboard.', does: 'Opera o CRM, o blog e os projetos conectados, redistribui leads. Não acessa equipe nem webhooks.' },
-  { role: 'SELLER', sees: 'Só as oportunidades atribuídas a ele.', does: 'Opera as próprias oportunidades e pega leads sem dono. Não vê Configurações.' },
+  { role: 'SELLER', sees: 'Só os leads e as oportunidades em que é o responsável (escopos leads:own e opportunities:own).', does: 'Opera os próprios leads e oportunidades. Quem cria fica sempre como responsável; trocar o responsável é do Gerente. Não vê Configurações.' },
 ];
 
 export default function Settings() {
@@ -39,10 +39,17 @@ export default function Settings() {
   return (
     <Page>
       <PageHeader title="Configurações" subtitle="Seu perfil, a equipe e os acessos, os webhooks de saída e o registro do que foi feito." />
-      <SampleBanner>
-        {auth.status === 'in' ? 'A equipe, o perfil, as permissões e os tokens de API são reais (login ligado na API), mas os webhooks ainda não têm API.' : 'O login está desligado nesta API (AUTH_API): a equipe e o perfil são de exemplo e o admin abre sem autenticação. Os webhooks ainda não têm API.'}{' '}
-        {crmMode === 'api' ? 'A Auditoria já mostra o histórico real de mudanças.' : 'A Auditoria só vira real quando o CRM está na API.'} O que é de exemplo não é gravado.
-      </SampleBanner>
+      {/* Com o login e o CRM na API só os Webhooks seguem de exemplo: o aviso fica só nessa aba (WP3b). */}
+      {(!(auth.status === 'in' && crmMode === 'api') || tab === 'webhooks') && (
+        <SampleBanner>
+          {auth.status === 'in' && crmMode === 'api'
+            ? 'Os webhooks de saída ainda não têm API: o que for criado aqui não é gravado e não dispara nada.'
+            : <>
+                {auth.status === 'in' ? 'A equipe, o perfil, as permissões e os tokens de API são reais (login ligado na API), mas os webhooks ainda não têm API.' : 'O login está desligado nesta API (AUTH_API): a equipe e o perfil são de exemplo e o admin abre sem autenticação. Os webhooks ainda não têm API.'}{' '}
+                {crmMode === 'api' ? 'A Auditoria já mostra o histórico real de mudanças.' : 'A Auditoria só vira real quando o CRM está na API.'} O que é de exemplo não é gravado.
+              </>}
+        </SampleBanner>
+      )}
       <Tabs
         tabs={[{ id: 'profile' as Tab, label: 'Meu perfil' }, { id: 'team' as Tab, label: 'Equipe e acessos' }, { id: 'permissions' as Tab, label: 'Permissões' }, { id: 'tokens' as Tab, label: 'Tokens de API' }, { id: 'notifications' as Tab, label: 'Notificações' }, { id: 'webhooks' as Tab, label: 'Webhooks' }, { id: 'audit' as Tab, label: 'Auditoria' }]}
         value={tab}
