@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { diffById, diffPipelines, diffTasks, isRealOpportunityId, isSyncableTask, normalizePipeline, pipelineProjection, planInitialPipelines, shouldSeedCrm, taskProjection } from '../src/lib/workflowDiff.ts';
+import { diffById, diffPipelines, diffTasks, isRealOpportunityId, isSyncableTask, normalizePipeline, pipelineProjection, planInitialPipelines, shouldSeedCrm, taskProjection, withSampleOpportunities } from '../src/lib/workflowDiff.ts';
 
 const pipe = (over: object = {}) => normalizePipeline({
   id: 'p1', name: 'Q4', offer: 'x',
@@ -88,4 +88,12 @@ test('B-02/D37: servidor vazio sem VITE_SEED_DEMO não semeia nada; com ela, só
   assert.equal(shouldSeedCrm([0, 0, 0], false), false);
   assert.equal(shouldSeedCrm([0, 0, 0], true), true);
   assert.equal(shouldSeedCrm([0, 2, 0], true), false);
+});
+
+test('B-10: com a API ligada, oportunidade de exemplo nunca aparece; fora dela, aparece antes das reais', () => {
+  const samples = [{ id: 'o1' }], api = [{ id: '1790000000000000001' }];
+  assert.deepEqual(withSampleOpportunities(samples, api, true), api);
+  assert.deepEqual(withSampleOpportunities(samples, api, false).map((o) => o.id), ['o1', '1790000000000000001']);
+  assert.equal(isRealOpportunityId('o1'), false);
+  assert.equal(isRealOpportunityId('1790000000000000001'), true);
 });

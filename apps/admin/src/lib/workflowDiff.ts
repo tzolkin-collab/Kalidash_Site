@@ -52,8 +52,16 @@ export const planInitialPipelines = (serverCount: number, seedDemo: boolean): 'a
 /** Semear pessoas, empresas e leads: só com as três coleções vazias no servidor e VITE_SEED_DEMO=1 (D37). */
 export const shouldSeedCrm = (serverCounts: number[], seedDemo: boolean): boolean => seedDemo && serverCounts.every((n) => n === 0);
 
-/** Id de oportunidade real: a API o cria como número (nanossegundos). Exemplos do protótipo não são. */
+/**
+ * Id de oportunidade real: a API o cria como número (nanossegundos). Exemplos do protótipo (`o1`, `opp-…`) não são.
+ * Regra (B-10): só as reais sincronizam tarefas com o servidor, então oportunidade de exemplo NUNCA aparece com a API
+ * ligada (`withSampleOpportunities`); assim não há ficha com tarefas "mudas" (concluir na tela e o servidor não saber,
+ * o que deixaria o gate travado). Em produção a semeadura está desligada (D37) e a lista só tem ids reais.
+ */
 export const isRealOpportunityId = (id: string) => /^\d+$/.test(id);
+/** Oportunidades de exemplo (criadas só na memória, ex.: qualificar lead) só valem fora do modo API. */
+export const withSampleOpportunities = <T>(samples: T[], api: T[], apiMode: boolean): T[] => (apiMode ? api : [...samples, ...api]);
+
 /** Com o CRM na API (`crm`), tarefas de leads, pessoas e empresas também vão ao servidor: esses registros existem lá. */
 export const isSyncableTask = (t: TaskItem, crm = false) =>
   (t.entity === 'opportunity' && isRealOpportunityId(t.entityId)) || (crm && (t.entity === 'lead' || t.entity === 'person' || t.entity === 'company'));
