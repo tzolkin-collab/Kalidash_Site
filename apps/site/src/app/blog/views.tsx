@@ -8,6 +8,7 @@ import HomeHeader from "../home/HomeHeader";
 import SiteFooter from "../home/SiteFooter";
 import ReadingProgressBar from "./ReadingProgressBar";
 import ShareButtons from "./ShareButtons";
+import { manrope } from "./manrope";
 import { SITE_URL } from "@/lib/siteUrl";
 
 /* Views do blog — UMA implementação só, usada pelas páginas reais (/blog, /blog/[slug]) e
@@ -62,7 +63,7 @@ export function BlogGalleryView({
   items: GalleryItem[];
 }) {
   return (
-    <main className={styles.page}>
+    <main className={`${styles.page} ${manrope.variable}`}>
       <header>
         <Link href="/">
           <Image src="/brand/logo-white.svg" alt="Kalidash" width={154} height={24} unoptimized />
