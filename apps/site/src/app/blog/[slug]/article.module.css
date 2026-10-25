@@ -56,6 +56,7 @@
 .backButton {
   display: inline-flex;
   align-items: center;
+  min-height: 44px;
   gap: 8px;
   color: var(--accent);
   text-decoration: none;
@@ -75,6 +76,10 @@
 }
 
 .breadcrumbTrail a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 4px;
   color: inherit;
   text-decoration: none;
   transition: color 0.15s ease;
@@ -257,8 +262,71 @@
   color: var(--text-main);
 }
 
+.body h4,
+.body h5,
+.body h6 {
+  font-family: var(--font-title);
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 1.6em 0 0.4em;
+}
+
+.body h4 { font-size: 1.2rem; }
+.body h5 { font-size: 1.05rem; }
+.body h6 {
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
 .body p {
   margin: 0 0 1.4em;
+}
+
+.body details {
+  margin: 1.4em 0;
+  padding: 14px 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(244, 240, 248, 0.45);
+}
+
+.body summary {
+  cursor: pointer;
+  font-family: var(--font-title);
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.body details[open] > summary {
+  margin-bottom: 0.8em;
+}
+
+.body details > :last-child {
+  margin-bottom: 0;
+}
+
+.body :is(video, audio) {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 2.2em 0;
+  border-radius: 12px;
+}
+
+.body video {
+  height: auto;
+  background: #16111e;
+}
+
+/* Foco visível consistente (teclado) */
+.page :is(a, button, summary, input):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
 }
 
 .body ul,
@@ -302,6 +370,31 @@
   height: auto;
   border-radius: 12px;
   box-shadow: 0 6px 24px rgba(20, 10, 30, 0.05);
+}
+
+/* Imagem sem legenda: o editor exporta <img> solta (sem <figure>); recebe margem e o
+   alinhamento do pai (data-text-alignment), como a figure. */
+.body :not(figure, picture) > img,
+.body > img {
+  margin: 2.4em 0;
+}
+
+.body img[data-text-alignment="center"],
+.body [data-text-alignment="center"] > img {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.body img[data-text-alignment="right"],
+.body :not(figure)[data-text-alignment="right"] > img {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.body img[data-text-alignment="left"],
+.body :not(figure)[data-text-alignment="left"] > img {
+  margin-left: 0;
+  margin-right: auto;
 }
 
 .body figure[data-text-alignment="center"] {
@@ -375,20 +468,32 @@
 }
 
 /* Tabelas */
+/* O HTML do editor não traz wrapper: a própria tabela vira o contêiner de rolagem horizontal
+   (no celular, em vez de cortar colunas) e o thead/tbody mantém o layout de tabela. */
 .body table {
+  display: block;
   width: 100%;
+  max-width: 100%;
   margin: 2.2em 0;
-  border-collapse: separate;
-  border-spacing: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border-radius: 12px;
-  overflow: hidden;
   border: 1px solid var(--border);
   font-size: 0.95rem;
   line-height: 1.6;
 }
 
+.body table > :is(thead, tbody, tfoot) {
+  display: table;
+  width: 100%;
+  min-width: max-content;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
 .body th,
 .body td {
+  min-width: 140px;
   padding: 14px 18px;
   text-align: left;
   border-bottom: 1px solid var(--border);
@@ -402,6 +507,15 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--text-main);
+}
+
+.body :is(td, th, li) > p {
+  margin: 0;
+}
+
+.body :is(td, th) > p + p,
+.body li > p + p {
+  margin-top: 0.6em;
 }
 
 .body tr:last-child td {
