@@ -90,6 +90,7 @@ Regras vistas no código: com `AUTH_API=1` a API **não sobe** se faltar `SESSIO
 | Nome | Para que serve | Quem gera |
 |---|---|---|
 | `VITE_SITE_URL` | URL do site (pré-visualização do blog); já criada | Gustavo |
+| `VITE_SEED_DEMO` | **Não crie esta variável em produção.** Só para desenvolvimento (WP4-0, D37): com ela em `1`, o admin grava funis, leads, pessoas e empresas **de exemplo** no servidor quando as tabelas estão vazias. Sem ela, banco vazio continua vazio e as telas mostram estados vazios ("Nenhum funil ainda. Crie o primeiro") | — |
 | URL da API | 🟡 HIPÓTESE: o nome da variável que aponta o admin para a API não foi conferido; procure `import.meta.env` em `apps/admin/src` antes do deploy | Gustavo |
 
 ### Site (Vercel)
@@ -163,12 +164,15 @@ curl -s -o /dev/null -w "%{http_code}\n" $API/auth/google/login
 
 - **O que muda:** cria `Pipeline`, `PipelineStage`, `StageRequirement`, `Task`; libera `/api/pipelines`, `/api/tasks`, `/api/gate/check`; o gate de etapa passa a valer no servidor.
 - Smoke (curl): sem sessão, `curl -s -o /dev/null -w "%{http_code}\n" $API/api/pipelines` deve dar `401` (e `404` significaria a flag desligada).
+- **Semeadura desligada (WP4-0, D37):** com a flag ligada e as tabelas vazias, abrir o admin **não cria nada**: a galeria de Tarefas mostra "Nenhum funil ainda. Crie o primeiro", e Leads, Pessoas e Empresas ficam vazios. Os dados de exemplo só entram com `VITE_SEED_DEMO=1` no build do admin, que é só de desenvolvimento. Conferência: `GET $API/api/pipelines` deve voltar `[]` depois de abrir o admin.
 - Smoke (telas): Tarefas → criar tarefa; Oportunidades → mover um card (o gate bloqueia se faltar requisito); o sino mostra a notificação.
 
 ### 7.3 `CRM_API=1` (por último)
 
 - Antes: `DATA_KEY` gerada e guardada em dois lugares (§4).
 - **O que muda:** `ADD COLUMN` em `Contact` e `Company` (nada é alterado), cria `CompanyStakeholder`, `Lead`, `ChangeLog`; libera `/api/crm/*`. Com `AUTH_API=1` também liga `connect.js`/`/api/connect/*` e cria `ConnectedProject`, `TrackedForm` e colunas em `ApiToken`.
+- **Semeadura desligada (WP4-0, D37):** o admin não cria pessoas, empresas nem leads de exemplo no banco vazio (só com `VITE_SEED_DEMO=1`, desenvolvimento). Conferência: `GET $API/api/crm/people` com `X-Total-Count: 0` depois de abrir o admin.
+- **Fontes do funil (WP4-0, B-05):** "Conectar fonte" no funil lista e grava os **projetos reais**; o vínculo (`pipelineId`, `stageId`, `sourceName`) é do projeto, em Projetos conectados. Desconectar um projeto do funil ainda não é possível pelo funil (a API exige um funil no projeto).
 - Smoke (telas): Leads, Pessoas & Empresas e Clientes abrem sem o aviso de "dados de exemplo"; criar uma pessoa **com CPF** e reabrir (CPF legível = `DATA_KEY` ok; Admin vê, Vendedor não); o histórico mostra a alteração.
 - Smoke do token e do `connect.js` (WP2):
   1. Configurações → Tokens de API (ou Projetos → Chaves): emitir chave `kld_test_`; o segredo aparece **uma vez**, copie para o cofre.

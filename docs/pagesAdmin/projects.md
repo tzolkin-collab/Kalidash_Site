@@ -48,6 +48,10 @@ O token do Connect e o de qualquer outra integração saem deste painel. O snipp
 
 ---
 
+## 🔗 Fonte do funil e projeto conectado (WP4-0, 25/10/2026)
+
+Com `WORKFLOW_API=1` e `CRM_API=1`, o vínculo entre um funil e o que o alimenta é **só o projeto conectado** (`ConnectedProject.pipelineId`, `stageId`, `sourceName`). O painel **Conectar fonte** (Configurações do funil → Fontes, ou o workflow) lista os projetos reais de `GET /api/projects` (com os formulários de cada um) e, ao conectar, grava no projeto o funil escolhido, a **primeira etapa do tipo Lead** do funil e o nome da fonte. As fontes de formulário que aparecem no funil são **derivadas** dos projetos na leitura (`lib/sourceLink.ts`, `lib/projectSources.ts`) e **não** são gravadas em `Pipeline.config.sources`; só cadastro manual, importação e API ficam no `config`. O funil mostra "Sem fonte" apenas se nenhum projeto aponta para ele (quem não tem `keys:manage` não lê os projetos: a tela diz "Fontes indisponíveis" em vez de "Sem fonte"). Um projeto alimenta um só funil: conectar a outro move o vínculo (a tela avisa). **Limite conhecido:** a API recusa projeto sem funil (`422`), então desconectar o projeto do funil não está disponível; troque o funil do projeto ou desconecte o projeto inteiro (arquiva) em Projetos conectados. Sem a API, "Conectar fonte" segue com os formulários de exemplo e uma automação de exemplo que só vive no navegador.
+
 ## ⚠️ Problemas Antecipados & Soluções
 
 1. **Problema: Chave Exposta no Frontend (O Dilema do Snippet)**
