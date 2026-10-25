@@ -42,6 +42,47 @@ Sem uso em nenhum componente vivo; `--font-display` já tem fallback Georgia. Fo
 
 Desktop: LCP 1,1–1,3 s → 0,73–0,89 s; perf 99–100. CLS segue 0.
 
+### 2. PixelTransition respeita `prefers-reduced-motion` (`9aba6b1`)
+CSS `@media (prefers-reduced-motion: reduce)` esconde a grade. Sem efeito nas medições (o Lighthouse não ativa a preferência); não medido.
 
-## Decisões propostas ao PO
-(preenchido ao final)
+### 3. Capa do 1º cartão de `/blog` com `loading=eager` + `fetchpriority=high` (`a0f549b`)
+Era `lazy`, mesmo sendo o elemento LCP. Efeito dentro do ruído (móvel `/blog` 4131 → 4145 ms); mantido por ser a prática correta, sem ganho medido.
+
+### 4. FlickeringGrid/ProblemHologram sob demanda — **testado e descartado**
+`next/dynamic` com `ssr:false` na home: JS 189 → 192 KB e LCP 3593 → 3575 ms (ruído); não reduz o que o Lighthouse mede. Revertido, não commitado.
+
+## Tabela DEPOIS (mediana de 3, após correções 1–3)
+| Perfil / página | Perf | LCP ms | CLS | TBT ms | FCP ms | JS KB | Img KB | Fontes KB |
+|---|---|---|---|---|---|---|---|---|
+| Móvel `/` | 91 | 3575 | 0 | 37 | 1060 | 192 | 158 | 135 |
+| Móvel `/treinamento-corporativo-ia` | 91 | 3446 | 0 | 42 | 1209 | 187 | 60 | 135 |
+| Móvel `/advisory` | 92 | 3374 | 0 | 42 | 1209 | 187 | 28 | 135 |
+| Móvel `/blog` | 87 | 4145 | 0 | 45 | 1058 | 182 | 457 | 135 |
+| Móvel `/blog/artigo-1` | 84 | 4516 | 0 | 41 | 1209 | 187 | 272 | 135 |
+| Desktop `/` | 99 | 801 | 0 | 63 | 392 | 399 | 285 | 135 |
+| Desktop `/treinamento-corporativo-ia` | 100 | 707 | 0 | 0 | 289 | 187 | 122 | 135 |
+| Desktop `/advisory` | 100 | 691 | 0 | 0 | 288 | 187 | 22 | 135 |
+| Desktop `/blog` | 99 | 835 | 0 | 0 | 249 | 182 | 457 | 135 |
+| Desktop `/blog/artigo-1` | 99 | 903 | 0 | 0 | 289 | 187 | 363 | 135 |
+
+## Metas (móvel) — resultado
+- CLS ≤ 0,1 ✅ (0). TBT ≤ 300 ms ✅ (37–45 ms). **LCP ≤ 2,5 s ❌ (3,4–4,5 s)**, melhorou ~2 s mas não chegou.
+- Por que não chegou (hipótese, não confirmada): FCP ~1,1–1,2 s e LCP 2–3 s depois dele no perfil 4G lento simulado; ainda há ~135 KB de fontes e ~190 KB de JS na carga; no blog o PixelTransition cobre a página 1,4 s (o Lighthouse mede o LCP sob a cobertura) e a capa é grande (457 KB no `/blog`). Próximos candidatos: ver decisões abaixo e investigar o que atrasa o FCP/LCP do `<h1>` na home (CSS bloqueante, hidratação de `HomePage` inteira como client component).
+
+## Decisões propostas ao PO (NÃO implementadas)
+1. PixelTransition só na 1ª visita da sessão (ou removido): ataca o LCP de `/blog` e `/blog/<slug>`. **Ganho não medido** — não houve tempo; medir tirando a cortina é o 1º passo.
+2. Reduzir mais as fontes (Archivo + Manrope só onde usadas; pesos de Inter/Source Sans 3): ganho a medir (restam 135 KB).
+3. Home como Server Component (hoje `"use client"` inteira por causa do hover dos cards): reduz hidratação; mudança maior, precisa de decisão.
+
+## Arquivos, commits
+`apps/site/src/app/layout.tsx` (`0fcd192`), `components/pixel.module.css` (`9aba6b1`), `blog/views.tsx` (`a0f549b`), `docs/web-vitals.md`, `docs/web-vitals-medir.mjs`, este relatório (`9327671` + atualizações).
+
+## Verificação
+`npx tsc --noEmit` ✅; `npm run build` ✅ (com a API falsa). **Conferência visual 1440/390 px NÃO feita** (a remoção das fontes não usadas e o CSS de reduced-motion não alteram o visual, mas não olhei no navegador) — o PO deve conferir.
+
+## Riscos
+Medição simulada e local. Imagem de capa do blog medida via localhost. Dois servidores de teste (3199 e 8199) podem estar ativos na máquina.
+
+## O que o Gustavo precisa fazer
+Decidir os itens acima e conferir o visual; depois rodar a medição na URL real da Vercel (Lighthouse/PageSpeed) para validar os números absolutos.
+
