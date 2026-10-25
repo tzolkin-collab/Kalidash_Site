@@ -111,7 +111,8 @@ export function BlogGalleryView({
                   alt={item.title || ""}
                   width={1280}
                   height={720}
-                  loading="lazy"
+                  loading={index === 0 ? "eager" : "lazy"}
+                  fetchPriority={index === 0 ? "high" : undefined}
                   decoding="async"
                   style={{ objectPosition: `50% ${item.coverImagePos}%` }}
                 />
