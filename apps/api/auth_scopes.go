@@ -215,7 +215,7 @@ func routeScope(r *http.Request) (scope string, public bool) {
 	case strings.HasPrefix(p, "/api/tasks"):
 		return pick("tasks:read", "tasks:write"), false
 	case p == "/api/gate/check":
-		return "tasks:read", false // confere requisitos de etapa; não grava
+		return "tasks:read", false // confere requisitos de etapa; consulta pura desde o WP4-1 (não grava tarefa)
 	case strings.HasPrefix(p, "/api/crm/people/") && strings.HasSuffix(p, "/document"):
 		return "people:document", false // revealCpf
 	case strings.HasPrefix(p, "/api/crm/people"), strings.HasPrefix(p, "/api/crm/companies"):

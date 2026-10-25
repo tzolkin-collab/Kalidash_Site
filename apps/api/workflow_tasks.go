@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -12,19 +14,22 @@ import (
 // ---- tarefas (JSON espelha TaskItem de apps/admin/src/domain.ts) ----
 
 type TaskDTO struct {
-	ID            string     `json:"id"`
-	Entity        string     `json:"entity"` // lead | person | company | opportunity | pipeline
-	EntityID      string     `json:"entityId"`
-	EntityName    string     `json:"entityName"`
-	Title         string     `json:"title"`
-	Tag           string     `json:"tag"`
-	Assignee      *string    `json:"assignee,omitempty"`
-	DueAt         *time.Time `json:"dueAt,omitempty"`
-	Done          bool       `json:"done"`
-	DoneAt        *time.Time `json:"doneAt,omitempty"`
-	Source        string     `json:"source"` // manual | passo | requisito
-	RequirementID *string    `json:"requirementId,omitempty"`
-	CreatedAt     time.Time  `json:"createdAt"`
+	ID         string  `json:"id"`
+	Entity     string  `json:"entity"` // lead | person | company | opportunity | pipeline
+	EntityID   string  `json:"entityId"`
+	EntityName string  `json:"entityName"`
+	Title      string  `json:"title"`
+	Tag        string  `json:"tag"`
+	Assignee   *string `json:"assignee,omitempty"` // texto (compatibilidade); assigneeMemberId manda quando vem
+	// AssigneeMemberID: o responsável como pessoa da equipe (TeamMember.id), D36. Com ele o servidor resolve o nome
+	// em `assignee` e o Vendedor passa a ver as tarefas atribuídas a ele.
+	AssigneeMemberID *string    `json:"assigneeMemberId,omitempty"`
+	DueAt            *time.Time `json:"dueAt,omitempty"`
+	Done             bool       `json:"done"`
+	DoneAt           *time.Time `json:"doneAt,omitempty"`
+	Source           string     `json:"source"` // manual | passo | requisito
+	RequirementID    *string    `json:"requirementId,omitempty"`
+	CreatedAt        time.Time  `json:"createdAt"`
 }
 
 var (
@@ -74,13 +79,13 @@ func parseDT(s string) time.Time {
 	return time.Time{}
 }
 
-const taskCols = `id, title, tag, source, entityKind, entityId, entityName, requirementId, assignee, dueAt, done, doneAt, createdAt`
+const taskCols = `id, title, tag, source, entityKind, entityId, entityName, requirementId, assignee, dueAt, done, doneAt, createdAt, assigneeMemberId`
 
 func scanTask(sc interface{ Scan(...any) error }) (TaskDTO, error) {
 	var t TaskDTO
-	var req, assignee sql.NullString
+	var req, assignee, member sql.NullString
 	var due, doneAt, created sql.NullString
-	if err := sc.Scan(&t.ID, &t.Title, &t.Tag, &t.Source, &t.Entity, &t.EntityID, &t.EntityName, &req, &assignee, &due, &t.Done, &doneAt, &created); err != nil {
+	if err := sc.Scan(&t.ID, &t.Title, &t.Tag, &t.Source, &t.Entity, &t.EntityID, &t.EntityName, &req, &assignee, &due, &t.Done, &doneAt, &created, &member); err != nil {
 		return t, err
 	}
 	t.CreatedAt = parseDT(created.String)
@@ -89,6 +94,9 @@ func scanTask(sc interface{ Scan(...any) error }) (TaskDTO, error) {
 	}
 	if assignee.Valid {
 		t.Assignee = &assignee.String
+	}
+	if member.Valid && member.String != "" {
+		t.AssigneeMemberID = &member.String
 	}
 	if due.Valid {
 		d := parseDT(due.String)
@@ -99,6 +107,62 @@ func scanTask(sc interface{ Scan(...any) error }) (TaskDTO, error) {
 		t.DoneAt = &d
 	}
 	return t, nil
+}
+
+// taskEntityExists: o registro da tarefa existe (422 em entityId inventado). Lead, pessoa e empresa só existem
+// para a API com CRM_API=1; sem ele não há como conferir e a tarefa passa (como antes).
+func taskEntityExists(kind, id string) (bool, error) {
+	var table string
+	switch kind {
+	case "opportunity":
+		table = "Opportunity"
+	case "pipeline":
+		table = "Pipeline"
+	case "lead":
+		table = leadTbl
+	case "person":
+		table = "Contact"
+	case "company":
+		table = "Company"
+	}
+	if table == "" || (!crmEnabled() && (kind == "lead" || kind == "person" || kind == "company")) {
+		return true, nil
+	}
+	var n int
+	err := db.QueryRow(`SELECT COUNT(*) FROM `+table+` WHERE id = ?`, id).Scan(&n)
+	return n > 0, err
+}
+
+// resolveAssignee aplica o responsável da equipe: o id precisa ser de uma pessoa ativa e, sem texto explícito, o nome
+// dela vai para `assignee` (o texto segue existindo para quem ainda lê só ele).
+func resolveAssignee(t *TaskDTO, textGiven bool) error {
+	if t.AssigneeMemberID == nil || *t.AssigneeMemberID == "" {
+		t.AssigneeMemberID = nil
+		return nil
+	}
+	if err := checkOwnerMember(*t.AssigneeMemberID); err != nil {
+		return err
+	}
+	if !textGiven {
+		m, err := authDB.MemberByID(*t.AssigneeMemberID)
+		if err != nil {
+			return err
+		}
+		name := m.Name
+		if name == "" {
+			name = m.Email
+		}
+		t.Assignee = &name
+	}
+	return nil
+}
+
+func writeTaskErr(w http.ResponseWriter, err error) {
+	if _, ok := err.(linkError); ok {
+		writeLinkErr(w, err)
+		return
+	}
+	writeErr(w, err)
 }
 
 // GET /api/tasks?entity=&entityId=&pipelineId=&done=0|1&assignee=  |  POST cria tarefa manual.
@@ -123,6 +187,11 @@ func handleTasks(w http.ResponseWriter, r *http.Request) {
 			q += ` AND done = 0`
 		case "1":
 			q += ` AND done = 1`
+		}
+		if me, restricted := taskOwnRestriction(r); restricted { // D19: o Vendedor só vê as tarefas dele
+			clause, own := taskOwnClause(me)
+			q += ` AND ` + clause
+			args = append(args, own...)
 		}
 		q += ` ORDER BY done, dueAt IS NULL, dueAt, createdAt DESC LIMIT 500`
 		rows, err := db.Query(q, args...)
@@ -152,6 +221,21 @@ func handleTasks(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": err.Error()})
 			return
 		}
+		if exists, err := taskEntityExists(t.Entity, t.EntityID); err != nil {
+			writeErr(w, err)
+			return
+		} else if !exists {
+			writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": "o registro da tarefa não existe"})
+			return
+		}
+		if !taskEntityAllowed(r, t.Entity, t.EntityID) { // D19: Vendedor não cria tarefa em registro de outro
+			writeErr(w, errNotFound)
+			return
+		}
+		if err := resolveAssignee(&t, t.Assignee != nil); err != nil {
+			writeTaskErr(w, err)
+			return
+		}
 		t.ID, t.Done, t.DoneAt, t.CreatedAt = wfID("task"), false, nil, time.Now()
 		// Só tarefa de requisito carrega requirementId (o front gera as dos leads; as das oportunidades
 		// nascem no gate do servidor). Ela é idempotente: a chave única (requisito, registro) devolve a
@@ -166,8 +250,8 @@ func handleTasks(w http.ResponseWriter, r *http.Request) {
 		if t.RequirementID != nil {
 			verb = "INSERT IGNORE"
 		}
-		res, err := db.Exec(verb+` INTO Task (id, title, tag, source, entityKind, entityId, entityName, requirementId, assignee, dueAt, done, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)`,
-			t.ID, t.Title, t.Tag, t.Source, t.Entity, t.EntityID, t.EntityName, t.RequirementID, t.Assignee, t.DueAt, t.CreatedAt)
+		res, err := db.Exec(verb+` INTO Task (id, title, tag, source, entityKind, entityId, entityName, requirementId, assignee, assigneeMemberId, dueAt, done, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)`,
+			t.ID, t.Title, t.Tag, t.Source, t.Entity, t.EntityID, t.EntityName, t.RequirementID, t.Assignee, t.AssigneeMemberID, t.DueAt, t.CreatedAt)
 		if err != nil {
 			writeErr(w, err)
 			return
@@ -187,25 +271,43 @@ func handleTasks(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// PUT /api/tasks/{id}: concluir/reabrir e editar título, tag, responsável e prazo.
-// DELETE remove só tarefa manual (as de requisito existem para o gate checar).
+// taskVisible: a tarefa existe e quem pede pode vê-la (o Vendedor só vê as dele; as dos outros são 404).
+func taskVisible(r *http.Request, id string) (bool, error) {
+	q, args := `SELECT COUNT(*) FROM Task WHERE id = ?`, []any{id}
+	if me, restricted := taskOwnRestriction(r); restricted {
+		clause, own := taskOwnClause(me)
+		q += ` AND ` + clause
+		args = append(args, own...)
+	}
+	var n int
+	err := db.QueryRow(q, args...).Scan(&n)
+	return n > 0, err
+}
+
+// PUT /api/tasks/{id}: concluir/reabrir e editar título, tag, responsável e prazo. Campo ausente mantém; `null`
+// explícito limpa (tag, assignee, assigneeMemberId, dueAt). Concluir uma tarefa de requisito FIELD exige o campo
+// preenchido no registro (fieldGap). DELETE remove tarefa manual e a órfã (a de um requisito que foi removido);
+// a de requisito que existe fica (o gate depende dela).
 func handleTaskByID(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	if !idRe.MatchString(id) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "id inválido"})
 		return
 	}
+	if r.Method == http.MethodPut || r.Method == http.MethodDelete {
+		if ok, err := taskVisible(r, id); err != nil {
+			writeErr(w, err)
+			return
+		} else if !ok {
+			writeErr(w, errNotFound)
+			return
+		}
+	}
 	switch r.Method {
 	case http.MethodPut:
-		r.Body = http.MaxBytesReader(w, r.Body, 16<<10)
-		var in struct {
-			Title    *string    `json:"title"`
-			Tag      *string    `json:"tag"`
-			Assignee *string    `json:"assignee"`
-			DueAt    *time.Time `json:"dueAt"`
-			Done     *bool      `json:"done"`
-		}
-		if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		raw, err := io.ReadAll(http.MaxBytesReader(w, r.Body, 16<<10))
+		var pr presence
+		if err != nil || json.Unmarshal(raw, &pr) != nil {
 			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "corpo inválido"})
 			return
 		}
@@ -217,45 +319,123 @@ func handleTaskByID(w http.ResponseWriter, r *http.Request) {
 			writeErr(w, err)
 			return
 		}
-		if in.Title != nil {
-			cur.Title = *in.Title
+		isNull := func(k string) bool { return bytes.Equal(bytes.TrimSpace(pr[k]), []byte("null")) }
+		bad := func(k string) {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "campo inválido: " + k})
 		}
-		if in.Tag != nil {
-			cur.Tag = *in.Tag
+		if pr.has("title") && !isNull("title") {
+			if json.Unmarshal(pr["title"], &cur.Title) != nil {
+				bad("title")
+				return
+			}
 		}
-		if in.Assignee != nil {
-			cur.Assignee = in.Assignee
+		if pr.has("tag") {
+			cur.Tag = ""
+			if !isNull("tag") && json.Unmarshal(pr["tag"], &cur.Tag) != nil {
+				bad("tag")
+				return
+			}
 		}
-		if in.DueAt != nil {
-			cur.DueAt = in.DueAt
+		textGiven := false
+		if pr.has("assignee") {
+			cur.Assignee = nil
+			if !isNull("assignee") {
+				var s string
+				if json.Unmarshal(pr["assignee"], &s) != nil {
+					bad("assignee")
+					return
+				}
+				cur.Assignee, textGiven = &s, true
+			} else if !pr.has("assigneeMemberId") {
+				cur.AssigneeMemberID = nil // limpar o responsável limpa também o vínculo com a equipe
+			}
 		}
-		if in.Done != nil && *in.Done != cur.Done {
-			cur.Done = *in.Done
-			if cur.Done {
-				now := time.Now()
-				cur.DoneAt = &now
-			} else {
-				cur.DoneAt = nil
+		if pr.has("assigneeMemberId") {
+			cur.AssigneeMemberID = nil
+			if !isNull("assigneeMemberId") {
+				var s string
+				if json.Unmarshal(pr["assigneeMemberId"], &s) != nil {
+					bad("assigneeMemberId")
+					return
+				}
+				cur.AssigneeMemberID = &s
+			} else if !pr.has("assignee") {
+				cur.Assignee = nil
+			}
+			if err := resolveAssignee(&cur, textGiven || (pr.has("assignee") && isNull("assignee"))); err != nil {
+				writeTaskErr(w, err)
+				return
+			}
+		}
+		if pr.has("dueAt") {
+			cur.DueAt = nil
+			if !isNull("dueAt") {
+				var d time.Time
+				if json.Unmarshal(pr["dueAt"], &d) != nil {
+					bad("dueAt")
+					return
+				}
+				cur.DueAt = &d
+			}
+		}
+		if pr.has("done") && !isNull("done") {
+			var done bool
+			if json.Unmarshal(pr["done"], &done) != nil {
+				bad("done")
+				return
+			}
+			if done != cur.Done {
+				if done && cur.RequirementID != nil {
+					if msg, err := fieldGap(*cur.RequirementID, cur.Entity, cur.EntityID); err != nil {
+						writeErr(w, err)
+						return
+					} else if msg != "" {
+						writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": msg})
+						return
+					}
+				}
+				cur.Done = done
+				if cur.Done {
+					now := time.Now()
+					cur.DoneAt = &now
+				} else {
+					cur.DoneAt = nil
+				}
 			}
 		}
 		if err := validateTask(&cur); err != nil {
 			writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": err.Error()})
 			return
 		}
-		if _, err := db.Exec(`UPDATE Task SET title = ?, tag = ?, assignee = ?, dueAt = ?, done = ?, doneAt = ? WHERE id = ?`,
-			cur.Title, cur.Tag, cur.Assignee, cur.DueAt, cur.Done, cur.DoneAt, id); err != nil {
+		if _, err := db.Exec(`UPDATE Task SET title = ?, tag = ?, assignee = ?, assigneeMemberId = ?, dueAt = ?, done = ?, doneAt = ? WHERE id = ?`,
+			cur.Title, cur.Tag, cur.Assignee, cur.AssigneeMemberID, cur.DueAt, cur.Done, cur.DoneAt, id); err != nil {
 			writeErr(w, err)
 			return
 		}
 		writeJSON(w, http.StatusOK, cur)
 	case http.MethodDelete:
-		res, err := db.Exec(`DELETE FROM Task WHERE id = ? AND requirementId IS NULL`, id)
-		if err != nil {
+		var req sql.NullString
+		err := db.QueryRow(`SELECT requirementId FROM Task WHERE id = ?`, id).Scan(&req)
+		if errors.Is(err, sql.ErrNoRows) {
+			writeErr(w, errNotFound)
+			return
+		} else if err != nil {
 			writeErr(w, err)
 			return
 		}
-		if n, _ := res.RowsAffected(); n == 0 {
-			writeJSON(w, http.StatusConflict, map[string]string{"error": "tarefa inexistente ou criada por um requisito de etapa"})
+		if req.Valid {
+			var n int
+			if err := db.QueryRow(`SELECT COUNT(*) FROM StageRequirement WHERE id = ?`, req.String).Scan(&n); err != nil {
+				writeErr(w, err)
+				return
+			}
+			if n > 0 { // o requisito ainda existe: a tarefa é a trava do gate
+				writeJSON(w, http.StatusConflict, map[string]string{"error": "tarefa criada por um requisito de etapa"})
+				return
+			}
+		}
+		if _, err := db.Exec(`DELETE FROM Task WHERE id = ?`, id); err != nil {
+			writeErr(w, err)
 			return
 		}
 		writeJSON(w, http.StatusOK, map[string]bool{"ok": true})

@@ -151,6 +151,3 @@ func leadStageGuard(l *LeadDTO, fromStage string, attempt bool) ([]Blocker, erro
 	}
 	return checkGate(gateInput{EntityKind: "lead", EntityID: l.ID, EntityName: l.Name, FromStageID: fromStage, ToStageID: l.StageID}, attempt)
 }
-
-// taskEntityAllowed: provisório até o item 5 (tarefas por dono).
-func taskEntityAllowed(r *http.Request, kind, id string) bool { return true }
