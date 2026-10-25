@@ -17,7 +17,7 @@
   - Arrastar um **lead** para uma etapa aberta o **qualifica** (cria a oportunidade). O botão "Qualificar" faz o mesmo.
   - Arrastar para **Perdida** exige o **motivo** (lista configurável).
   - Arrastar para **Ganha** pede o **valor final** e marca o cliente (Empresa, ou Pessoa se não houver empresa).
-  - Um requisito de etapa pode **impedir entrar** (ou sair) de uma etapa até uma tarefa ser cumprida. Ex.: empresa sem CNPJ **não entra em Assinatura do contrato**.
+  - Um requisito de etapa pode **impedir entrar** (ou sair) de uma etapa até uma tarefa ser cumprida. Ex.: empresa sem CNPJ **não entra em Assinatura do contrato**. **Desde o WP4-1 quem impõe é o servidor** (também ao criar a oportunidade direto na etapa, ao mover o lead e ao mudar de funil), e a tarefa de campo (ex.: "Informar CNPJ") só conclui com o campo preenchido; o Vendedor vê só as tarefas dos registros dele.
 
 ### B. Visão Lista
 - **Colunas:** Oportunidade, Cliente (com o tipo Empresa ou Pessoa), Etapa, Tags, Valor, Dono, Próxima tarefa.

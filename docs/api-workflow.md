@@ -47,12 +47,12 @@ Ele apaga e recria as tabelas `Task`, `StageRequirement`, `PipelineStage`, `Pipe
 |---|---|
 | `GET /api/pipelines` (`?archived=1`) | Lista os funis com etapas, requisitos, `counts`/`values` por etapa (de `Opportunity`) e `blocked`/`overdue` por requisito (de `Task`). |
 | `POST /api/pipelines` | Cria um funil inteiro. Ids que faltarem são gerados. |
-| `GET` · `PUT` · `DELETE /api/pipelines/{id}` | Lê; **substitui** o funil inteiro (o admin edita o objeto todo); **arquiva** (nunca apaga). Remover uma etapa que ainda tem oportunidades devolve **409**. |
+| `GET` · `PUT` · `DELETE /api/pipelines/{id}` | Lê; **substitui** o funil inteiro (o admin edita o objeto todo); **arquiva** (nunca apaga). Remover uma etapa que ainda tem oportunidades ou leads devolve **409** (ver "Integridade no servidor"). |
 | `GET /api/tasks` | Filtros `entity`, `entityId`, `pipelineId`, `assignee`, `done=0|1`. Máx. 500. |
 | `POST /api/tasks` | Cria tarefa manual. |
 | `PUT /api/tasks/{id}` | Concluir/reabrir e editar título, tag, responsável e prazo. |
 | `DELETE /api/tasks/{id}` | Só tarefa manual; a de requisito fica (o gate depende dela). |
-| `POST /api/gate/check` | `{entity, entityId, entityName, fromStageId, toStageId}` → `{blocked, blockers[]}`. Cria a tarefa dos requisitos aplicáveis se faltar. |
+| `POST /api/gate/check` | `{entity, entityId, entityName, fromStageId, toStageId}` → `{blocked, blockers[]}`. Consulta pura desde o WP4-1: não cria tarefa (a tentativa de mover é que cria). |
 
 **Gate no servidor:** com `WORKFLOW_API=1`, `POST /api/leads/move` também checa o gate e devolve **409** `{"error":"gate","blockers":[…]}` se algo trava. Regras iguais às de [notificacoes.md](./notificacoes.md) §4: `ENTER` vale para a etapa de destino, `EXIT` para a de origem, e **todas** as tarefas que travam a mesma fronteira precisam estar concluídas. Etapa que não pertence a nenhum funil (valor legado) não tem gate. Isto fecha a pergunta em aberto de onde o gate roda: **nas duas pontas** (o front checa antes para animar a recusa; a API garante).
 
@@ -63,3 +63,29 @@ Ele apaga e recria as tabelas `Task`, `StageRequirement`, `PipelineStage`, `Pipe
 3. Notificações geradas por tarefa (criada, atrasada, concluída) usando `pushNotificacao`.
 4. Autenticação: como o resto da API, estas rotas estão abertas (CORS `*`) até a fase de segurança.
 5. Tabelas próprias para `Source`, `CustomField` e `Automation` (hoje dentro do `config`).
+
+## Integridade no servidor (WP4-1, 25/10/2026)
+
+Antes disto o servidor só validava o formato; as regras do funil viviam na tela (ver `docs/po/relatorios/audit-pipelines-tarefas-automacoes.md`). Agora o servidor impõe, com `WORKFLOW_API=1` (e `CRM_API=1`/`AUTH_API=1` onde citado). Relatório: [wp4-1-integridade.md](./po/relatorios/wp4-1-integridade.md).
+
+**Gate** (`ENTER` no destino, `EXIT` na origem, inclusive entre funis; mesma etapa não passa por gate):
+
+| Onde | Resposta barrada |
+|---|---|
+| `POST /api/leads/move` (oportunidade) | `409 {"error":"gate","blockers":[…]}` e a **tarefa do requisito nasce** (é uma tentativa de mover) |
+| `POST /api/leads` (criar oportunidade direto numa etapa travada) | `409` com os requisitos que faltam (`taskId` vazio); **nada é gravado**, nem tarefa |
+| `PUT /api/crm/leads/{id}` (mudar `stageId`/`pipelineId` do lead) | `409` + tarefa criada, como no move |
+| `POST /api/crm/leads` (lead nascendo em etapa travada) | `409`, nada gravado |
+| `POST /api/gate/check` | **consulta pura**: `{blocked, blockers[]}`, não cria tarefa (`taskId` vazio quando ainda não existe). Quem só tem `tasks:read` pode chamar |
+
+**Etapa de destino:** precisa existir (`PipelineStage`) ou ser um valor antigo (`INBOUND`, `QUALIFICATION`, `WON`, `LOST`), que o servidor traduz para a etapa equivalente do funil como o admin faz (`stages.ts`); senão **422**. Lead: a etapa precisa ser do funil dele (422). Mover para a **mesma etapa** é `200` (404 só se a oportunidade não existe).
+
+**Funil (`POST`/`PUT /api/pipelines`):** exige ao menos uma etapa `WON` e uma `LOST` e 1–40 etapas (422). No `PUT`: remover etapa com oportunidades **ou leads ativos** → `409`; mudar o **tipo** de etapa que tem registros → `409`; requisito removido leva as **tarefas abertas** dele, e as concluídas viram tarefa comum (`source=manual`, sem `requirementId`), que pode ser apagada.
+
+**Concorrência:** o funil devolve `updatedAt` (versão, precisão de segundo; toda gravação a muda). `PUT` aceita `If-Match: "<updatedAt RFC 3339>"` ou o campo `expectedUpdatedAt`; se divergir: `409 {"error":"conflict","message":…,"current":<funil atual>}` e nada é gravado. Sem nenhum dos dois, vale o último a gravar (como antes).
+
+**Tarefas:** `PUT /api/tasks/{id}` distingue campo ausente (mantém) de `null` (limpa) em `tag`, `assignee`, `assigneeMemberId` e `dueAt`. `POST` confere que o registro existe (`422`; lead/pessoa/empresa só com `CRM_API=1`). `DELETE` apaga tarefa manual e a **órfã** (de requisito que não existe mais); a de requisito vigente segue `409`. Concluir a tarefa de um requisito `FIELD` exige o campo preenchido (`422` com a mensagem): o servidor reconhece pelo **título** do requisito `CNPJ` (CNPJ da empresa do registro), `CPF`, `e-mail`, `telefone`/`celular`/`WhatsApp`; outros títulos `FIELD` e todo `ACTION` concluem livres. Só com `CRM_API=1` (os campos moram nas tabelas do CRM).
+
+**Tarefas por dono (D19, D36):** coluna aditiva `Task.assigneeMemberId` (→ `TeamMember`). `POST`/`PUT` aceitam `assigneeMemberId` (pessoa ativa da equipe; 422 senão; exige `AUTH_API=1`) e preenchem `assignee` com o nome dela; o texto `assignee` segue valendo sozinho. Com `AUTH_API=1`, quem só tem `leads:own`/`opportunities:own` (Vendedor) vê em `GET /api/tasks` apenas as tarefas atribuídas a ele ou ligadas a oportunidades/leads cujo responsável é ele; nas dos outros `PUT`/`DELETE` dão `404`, e `POST /api/tasks`/`gate/check` em registro alheio dão `404`. Gerente, Admin e tokens veem tudo.
+
+**Funil da oportunidade:** coluna aditiva `Opportunity.pipelineId` (preenchida na criação e no move; as antigas, no startup, pelo id da etapa). `GET /api/pipelines` traz por funil `stats {records, openTasks, overdue, blocked}`: valores antigos de `stage` caem no primeiro funil ativo na etapa equivalente, `blocked` conta **registros** bloqueados e `overdue` inclui tarefas manuais.
