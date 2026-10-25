@@ -49,3 +49,22 @@ func ownRestriction(r *http.Request, area string, write bool) (string, bool) {
 	}
 	return m.ID, true // sem o escopo cheio: só o que é dela (o middleware já barrou quem não tem nem o "own")
 }
+
+// canTouchOpportunity: quem só enxerga as próprias oportunidades recebe 404 nas dos outros (notas, mover de
+// etapa, e-mail), como se não existissem. Quem tem o escopo cheio, ou o login desligado, passa direto.
+func canTouchOpportunity(w http.ResponseWriter, r *http.Request, oppID string, write bool) bool {
+	me, restricted := ownRestriction(r, "opportunities", write)
+	if !restricted {
+		return true
+	}
+	owner, found, err := oppOwner(oppID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return false
+	}
+	if !found || owner != me {
+		http.Error(w, "Oportunidade não encontrada", http.StatusNotFound)
+		return false
+	}
+	return true
+}

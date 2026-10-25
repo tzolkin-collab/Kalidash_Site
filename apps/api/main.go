@@ -153,6 +153,9 @@ func handleMoveOpportunity(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !canTouchOpportunity(w, r, payload.ID, true) { // opportunities:own (WP3b, D4)
+		return
+	}
 	if workflowEnabled() {
 		blockers, err := gateForMove(payload.ID, payload.Stage)
 		if err != nil {
@@ -186,8 +189,20 @@ func handleMoveOpportunity(w http.ResponseWriter, r *http.Request) {
 
 func handleNotes(w http.ResponseWriter, r *http.Request) {
 	oppID := r.URL.Query().Get("opportunityId")
+	var posted *Note // no POST o id também pode vir no corpo (é assim que a ficha do admin envia)
+	if oppID == "" && r.Method == http.MethodPost {
+		var n Note
+		if err := json.NewDecoder(r.Body).Decode(&n); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		posted, oppID = &n, n.OpportunityID
+	}
 	if oppID == "" {
 		http.Error(w, "opportunityId is required", http.StatusBadRequest)
+		return
+	}
+	if !canTouchOpportunity(w, r, oppID, r.Method != http.MethodGet) { // opportunities:own (WP3b, D4)
 		return
 	}
 
@@ -227,10 +242,13 @@ func handleNotes(w http.ResponseWriter, r *http.Request) {
 
 	case http.MethodPost:
 		var n Note
-		if err := json.NewDecoder(r.Body).Decode(&n); err != nil {
+		if posted != nil {
+			n = *posted
+		} else if err := json.NewDecoder(r.Body).Decode(&n); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		n.OpportunityID = oppID
 		n.ID = fmt.Sprintf("%d", time.Now().UnixNano())
 		n.CreatedAt = time.Now()
 		if n.Type == "" {
@@ -270,6 +288,9 @@ func handleSendEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !canTouchOpportunity(w, r, req.OpportunityID, true) { // opportunities:own (WP3b, D4)
+		return
+	}
 	resendKey := os.Getenv("RESEND_API_KEY")
 	if resendKey == "" {
 		http.Error(w, "API Key do Resend não configurada na VPS", http.StatusInternalServerError)

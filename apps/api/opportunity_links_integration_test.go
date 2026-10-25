@@ -55,6 +55,10 @@ func putOpp(t *testing.T, body string) (int, Opportunity) {
 
 func TestIntegrationOportunidadeVinculos(t *testing.T) {
 	adm := oppEnv(t)
+	wantOwner := adm.Name // sem nome cadastrado a ficha mostra o e-mail
+	if wantOwner == "" {
+		wantOwner = adm.Email
+	}
 	str := func(p *string) string {
 		if p == nil {
 			return ""
@@ -64,14 +68,14 @@ func TestIntegrationOportunidadeVinculos(t *testing.T) {
 
 	// D10: pessoa, empresa e responsável (equipe) gravam e voltam com os nomes
 	code, o := putOpp(t, `{"id":"o1","title":"Acme","value":100,"contactId":"cont1","companyId":"comp1","ownerMemberId":"`+adm.ID+`"}`)
-	if code != 200 || str(o.ContactID) != "cont1" || str(o.ContactName) != "João Antigo" || str(o.CompanyName) != "Acme Antiga" || str(o.OwnerMemberID) != adm.ID || str(o.OwnerName) != adm.Name {
+	if code != 200 || str(o.ContactID) != "cont1" || str(o.ContactName) != "João Antigo" || str(o.CompanyName) != "Acme Antiga" || str(o.OwnerMemberID) != adm.ID || str(o.OwnerName) != wantOwner {
 		t.Fatalf("vínculos: %d %+v", code, o)
 	}
 	rec := httptest.NewRecorder()
 	handleOpportunities(rec, httptest.NewRequest("GET", "/api/leads", nil))
 	var list []Opportunity
 	json.Unmarshal(rec.Body.Bytes(), &list)
-	if len(list) != 1 || str(list[0].ContactName) != "João Antigo" || str(list[0].OwnerName) != adm.Name || str(list[0].OwnerMemberID) != adm.ID {
+	if len(list) != 1 || str(list[0].ContactName) != "João Antigo" || str(list[0].OwnerName) != wantOwner || str(list[0].OwnerMemberID) != adm.ID {
 		t.Fatalf("lista: %+v", list)
 	}
 

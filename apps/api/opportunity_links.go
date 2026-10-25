@@ -28,7 +28,7 @@ func oppQuery(where string) string {
 	if crmEnabled() {
 		ownerMember = "o.ownerMemberId"
 		if authEnabled() {
-			ownerName, ownerAvatar = "COALESCE(tm.name, u.name)", "COALESCE(tm.avatarUrl, u.avatarUrl)"
+			ownerName, ownerAvatar = "COALESCE(NULLIF(tm.name, ''), tm.email, u.name)", "COALESCE(NULLIF(tm.avatarUrl, ''), u.avatarUrl)"
 			join = " LEFT JOIN TeamMember tm ON tm.id = o.ownerMemberId"
 		}
 	}
