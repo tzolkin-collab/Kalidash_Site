@@ -1,5 +1,6 @@
 import type { Role } from '../domain';
 import { API_URL } from './api';
+import { clearUserCaches } from './cacheClean';
 import { createStore, useStore } from './store';
 
 // Sessão do admin (docs/auth-study.md). O servidor decide tudo: aqui só se pergunta "quem sou eu?"
@@ -88,6 +89,7 @@ export async function logout(): Promise<void> {
   try {
     await fetch(`${API_URL}/auth/logout`, { method: 'POST', credentials: 'include' });
   } finally {
+    await clearUserCaches();
     // recarrega para largar da memória tudo o que a pessoa carregou
     window.location.reload();
   }
