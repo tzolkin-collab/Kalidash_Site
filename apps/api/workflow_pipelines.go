@@ -65,6 +65,10 @@ type PipelineDTO struct {
 	ExpectedUpdatedAt *time.Time `json:"expectedUpdatedAt,omitempty"`
 	Stages       []PStage           `json:"stages"`
 	Requirements []PRequirement     `json:"requirements"`
+	// Stats são os números do card, calculados no servidor pelo funil de cada registro (Opportunity.pipelineId, com o
+	// legado resolvido como o admin faz): registros, tarefas abertas, atrasadas (inclui as manuais) e registros
+	// bloqueados (um registro conta uma vez, por mais requisitos que o travem).
+	Stats        PipelineStats      `json:"stats"`
 	Counts       map[string]int     `json:"counts"`
 	Values       map[string]float64 `json:"values"`
 	pipelineConfig
@@ -253,6 +257,7 @@ func loadPipelines(id string, includeArchived bool) ([]PipelineDTO, error) {
 		return nil, err
 	}
 	defer stageRows.Close()
+	stageOwner, stagesByPipe := map[string]string{}, map[string][]PStage{} // de TODOS os funis: o legado e o funil da oportunidade dependem disso
 	for stageRows.Next() {
 		var s PStage
 		var pid string
@@ -260,6 +265,8 @@ func loadPipelines(id string, includeArchived bool) ([]PipelineDTO, error) {
 		if err := stageRows.Scan(&s.ID, &pid, &s.Name, &s.Kind, &s.Color, &prob, &alert); err != nil {
 			return nil, err
 		}
+		stageOwner[s.ID] = pid
+		stagesByPipe[pid] = append(stagesByPipe[pid], PStage{ID: s.ID, Name: s.Name, Kind: s.Kind})
 		if i, ok := index[pid]; ok {
 			if prob.Valid {
 				v := int(prob.Int64)
@@ -328,29 +335,9 @@ func loadPipelines(id string, includeArchived bool) ([]PipelineDTO, error) {
 		}
 	}
 
-	// contagem e valor por etapa (oportunidades; leads não entram)
-	cntRows, err := db.Query(`SELECT stage, COUNT(*), COALESCE(SUM(value), 0) FROM Opportunity GROUP BY stage`)
-	if err != nil {
+	// contagem e valor por etapa, e os números do card (registros, tarefas abertas, atrasadas, bloqueados)
+	if err := fillCountsAndStats(out, index, reqIdx, stageOwner, stagesByPipe); err != nil {
 		return nil, err
-	}
-	defer cntRows.Close()
-	byStage := map[string][2]float64{}
-	for cntRows.Next() {
-		var st string
-		var n int
-		var v float64
-		if err := cntRows.Scan(&st, &n, &v); err != nil {
-			return nil, err
-		}
-		byStage[st] = [2]float64{float64(n), v}
-	}
-	for i := range out {
-		for _, s := range out[i].Stages {
-			if c, ok := byStage[s.ID]; ok {
-				out[i].Counts[s.ID] = int(c[0])
-				out[i].Values[s.ID] = c[1]
-			}
-		}
 	}
 	return out, nil
 }

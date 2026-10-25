@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"encoding/json"
+	"testing"
+)
 
 // seedBasePipeline cria os funis "q4" e "b2b" que os testes de CRM, de escopo "own" e de oportunidades usam como
 // pano de fundo. Desde o WP4-1 o servidor recusa lead/oportunidade em etapa que não existe, então os funis precisam
@@ -29,4 +32,12 @@ func seedBasePipeline(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+}
+
+func mustJSON(v any) []byte {
+	b, err := json.Marshal(v)
+	if err != nil {
+		panic(err)
+	}
+	return b
 }
