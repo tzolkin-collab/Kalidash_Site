@@ -12,6 +12,7 @@ import PeopleCompanies from './pages/PeopleCompanies';
 import PipelineSettings from './pages/PipelineSettings';
 import Projects from './pages/Projects';
 import Login from './pages/Login';
+import Unreachable from './pages/Unreachable';
 import SettingsPage from './pages/Settings';
 import Tasks from './pages/Tasks';
 import { NAV_GROUPS, isActive } from './nav';
@@ -105,6 +106,7 @@ export default function App() {
 
   if (auth.status === 'loading') return <div className="app-wrapper"><Loading /></div>;
   if (auth.status === 'anon') return <div className="app-wrapper"><Login /></div>;
+  if (auth.status === 'unreachable') return <div className="app-wrapper"><Unreachable /></div>;
 
   const [root, second, third] = segments;
   let page: ReactNode;

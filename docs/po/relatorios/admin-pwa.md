@@ -24,13 +24,23 @@ Testes: `tsc -b` ok, `npm test` 67/67, `npm run build` exit 0.
 ## (c) Commits
 `9dd3a13` (ícones, index.html), `c910e32` (SW, aviso, cache, deps), este relatório + docs + teste.
 
+## Follow-up D26: servidor inalcançável com login ligado
+| Item | Estado | Evidência |
+|---|---|---|
+| Decisão pura `decideAuth/classifyMe` | ✅ | `tests/authDecision.test.ts`; `npm test` 72/72, `tsc -b` ok. |
+| Com indicador de login ligado + API fora do ar → tela "Sem conexão com o servidor" | ✅ | Chrome real, build servido: com `kalidash.auth.configured.v1=1` e nada em `localhost:8080`, só aparece a tela e o botão "Tentar de novo" (sem menu nem dados). |
+| "Tentar de novo" com API ainda fora | ✅ | Volta à mesma tela, sem entrar. |
+| Sem indicador (dev, API nunca vista) | ✅ | Segue em modo de exemplo, como antes. |
+| Com API ligada e voltando | ⚠️ | Não provado (sem API descartável): o ramo `ok`/`unauthorized` é o código antigo. |
+Limite: um navegador que nunca viu o login ligado ainda cai em modo de exemplo com o servidor fora; o indicador é local. Arquivos: `lib/authDecision.ts`, `lib/auth.ts` (status `unreachable`, `retryAuth`), `pages/Unreachable.tsx`, `App.tsx` (1 import + 1 linha).
+
 ## (d) Ficou de fora
 - Tela de e-mails offline (chunk > 2 MB fora do precache).
 - Push notifications (planejado nos docs, não faz parte deste pacote).
 - Página offline dedicada: o app shell serve de fallback.
 
 ## (e) Riscos
-- Offline com sessão: `initAuth` cai em `status:'off'` (trata "API fora do ar" como "sem login") e o app abre sem a tela de login, só com o shell. Está em `auth.ts`/`App.tsx`; decisão do PO.
+- (resolvido pelo follow-up D26, com o limite descrito acima.)
 - `theme_color`/`background_color` passaram de `#635bff`/`#ffffff` para `#28183b` (cor da marca): confirmar.
 - Quem tem o app aberto só vê a versão nova ao clicar em "Atualizar" (ou fechar todas as abas).
 

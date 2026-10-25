@@ -1,6 +1,7 @@
 import type { Role } from '../domain';
 import { API_URL } from './api';
 import { clearUserCaches } from './cacheClean';
+import { classifyMe, decideAuth, readConfigured, writeConfigured } from './authDecision';
 import { createStore, useStore } from './store';
 
 // Sessão do admin (docs/auth-study.md). O servidor decide tudo: aqui só se pergunta "quem sou eu?"
@@ -8,12 +9,14 @@ import { createStore, useStore } from './store';
 //   off     a API está sem AUTH_API (ou fora do ar): nada muda, o admin abre direto como antes
 //   anon    a API exige login e não há sessão: mostra a tela de entrada
 //   in      há sessão: `user` é a pessoa real, com o perfil que o servidor aplica
+//   unreachable  o login já foi visto ligado nesta instalação e agora o servidor não responde: tela
+//           "Sem conexão com o servidor", sem entrar na área logada nem em modo de exemplo (authDecision.ts)
 // A sessão é um cookie HttpOnly: o JavaScript nunca vê o token. Depois que a API confirma que o login
 // está ligado, o fetch passa a mandar o cookie nas chamadas à API (credentials: 'include').
 
 export type SessionUser = { id: string; name: string; email: string; role: Role; avatarUrl?: string; /** Escopos efetivos que o servidor aplica (ausente numa API antiga: vale o perfil). */ scopes?: string[] };
 export type AuthState = {
-  status: 'loading' | 'off' | 'anon' | 'in';
+  status: 'loading' | 'off' | 'anon' | 'in' | 'unreachable';
   user?: SessionUser;
   /** A API tem o login com Google configurado. */
   google: boolean;
@@ -53,22 +56,32 @@ function installSessionFetch() {
 }
 
 export async function initAuth(): Promise<void> {
+  let res: Response | null = null;
   try {
-    const res = await fetch(`${API_URL}/auth/me`, { credentials: 'include' });
-    if (res.status === 200) {
-      installSessionFetch();
-      authStore.set({ status: 'in', user: (await res.json()) as SessionUser, google: false, dev: false });
-    } else if (res.status === 401) {
-      installSessionFetch();
-      const body = (await res.json().catch(() => ({}))) as { google?: boolean; dev?: boolean };
-      authStore.set({ status: 'anon', google: !!body.google, dev: !!body.dev });
-    } else {
-      authStore.set({ status: 'off', google: false, dev: false });
-    }
+    res = await fetch(`${API_URL}/auth/me`, { credentials: 'include' });
   } catch {
-    // API sem login (a rota não existe, sem CORS) ou fora do ar: segue como antes
-    authStore.set({ status: 'off', google: false, dev: false });
+    /* rede fora do ar, CORS ou API desligada */
   }
+  const outcome = classifyMe(res ? res.status : null);
+  if (outcome === 'ok' || outcome === 'unauthorized') writeConfigured(true);
+  else if (outcome === 'missing') writeConfigured(false);
+  const decision = decideAuth(outcome, readConfigured());
+  if (decision === 'in' && res) {
+    installSessionFetch();
+    authStore.set({ status: 'in', user: (await res.json()) as SessionUser, google: false, dev: false });
+  } else if (decision === 'anon' && res) {
+    installSessionFetch();
+    const body = (await res.json().catch(() => ({}))) as { google?: boolean; dev?: boolean };
+    authStore.set({ status: 'anon', google: !!body.google, dev: !!body.dev });
+  } else {
+    authStore.set({ status: decision === 'unreachable' ? 'unreachable' : 'off', google: false, dev: false });
+  }
+}
+
+/** Botão "Tentar de novo" da tela de sem conexão. */
+export function retryAuth(): void {
+  authStore.set({ status: 'loading', google: false, dev: false });
+  void initAuth();
 }
 
 export const startGoogleLogin = () => { window.location.href = `${API_URL}/auth/google/login`; };

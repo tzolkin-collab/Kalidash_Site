@@ -16,3 +16,6 @@ Qualquer resposta de outra origem (a API em Go) e de `/api/*` e `/auth/*`: regra
 
 ## Offline
 Sem rede o app mostra a última interface carregada e uma faixa "Sem conexão"; os dados do CRM não carregam. A faixa depende do `navigator.onLine`.
+
+## Servidor inalcançável (decisão D26)
+Depois que esta instalação vê a API responder `/auth/me` com o login ligado (200 ou 401), um indicador local (`kalidash.auth.configured.v1`) fica salvo. Se depois o servidor não responder (rede fora do ar ou 5xx), o app mostra "Sem conexão com o servidor" com o botão "Tentar de novo" e não entra na área logada nem em modo de exemplo. O modo de exemplo só vale quando a API nunca respondeu com login (desenvolvimento) ou a rota `/auth/me` não existe (404). Limite: num navegador que nunca viu o login ligado, o servidor fora do ar ainda cai no modo de exemplo. A decisão fica em `src/lib/authDecision.ts`.
