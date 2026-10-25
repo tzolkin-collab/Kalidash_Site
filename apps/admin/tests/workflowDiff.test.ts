@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { diffById, diffPipelines, diffTasks, isRealOpportunityId, isSyncableTask, normalizePipeline, pipelineProjection, planInitialPipelines, shouldSeedCrm, taskProjection, withSampleOpportunities } from '../src/lib/workflowDiff.ts';
+import { diffById, diffPipelines, diffTasks, isRealOpportunityId, isSyncableTask, normalizePipeline, pipelineProjection, planInitialPipelines, shouldSeedCrm, taskProjection, withSampleOpportunities, taskUpdateBody } from '../src/lib/workflowDiff.ts';
 
 const pipe = (over: object = {}) => normalizePipeline({
   id: 'p1', name: 'Q4', offer: 'x',
@@ -96,4 +96,13 @@ test('B-10: com a API ligada, oportunidade de exemplo nunca aparece; fora dela, 
   assert.deepEqual(withSampleOpportunities(samples, api, false).map((o) => o.id), ['o1', '1790000000000000001']);
   assert.equal(isRealOpportunityId('o1'), false);
   assert.equal(isRealOpportunityId('1790000000000000001'), true);
+});
+
+test('B-07: limpar prazo ou responsável envia null no PUT; preenchidos seguem como estão', () => {
+  const limpa = JSON.parse(JSON.stringify(taskUpdateBody(task({ assignee: undefined, dueAt: undefined, done: true }))));
+  assert.deepEqual(limpa, { title: 'Ligar', tag: 'Comercial', assignee: null, dueAt: null, done: true });
+  assert.ok('dueAt' in limpa && 'assignee' in limpa); // as chaves existem no JSON (undefined sumiria)
+  const cheia = taskUpdateBody(task({ assignee: 'Diego', dueAt: '2026-10-30T00:00:00Z' }));
+  assert.equal(cheia.assignee, 'Diego');
+  assert.equal(cheia.dueAt, '2026-10-30T00:00:00Z');
 });

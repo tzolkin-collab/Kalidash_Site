@@ -4,7 +4,7 @@ import { tasksStore } from '../mocks/tasks.ts';
 import { API_URL } from './api.ts';
 import { crmModeStore } from './crmMode.ts';
 import { markTasksSeen } from './taskNotify.ts';
-import { diffPipelines, diffTasks, isSyncableTask, normalizePipeline, pipelineProjection, planInitialPipelines, taskProjection } from './workflowDiff.ts';
+import { diffPipelines, diffTasks, isSyncableTask, normalizePipeline, pipelineProjection, planInitialPipelines, taskProjection, taskUpdateBody } from './workflowDiff.ts';
 import { pushAviso, pushErro, pushNotificacao } from './notify.ts';
 import { writableSources } from './sourceLink.ts';
 import { SEED_DEMO } from './seedDemo.ts';
@@ -139,7 +139,7 @@ async function flushTasks() {
     if (t.done) update.push({ ...t, id: saved.id });
   }
   for (const t of update) {
-    const res = await api(`/api/tasks/${encodeURIComponent(t.id)}`, { method: 'PUT', body: JSON.stringify({ title: t.title, tag: t.tag, assignee: t.assignee, dueAt: t.dueAt, done: t.done }) });
+    const res = await api(`/api/tasks/${encodeURIComponent(t.id)}`, { method: 'PUT', body: JSON.stringify(taskUpdateBody(t)) });
     if (res.ok) taskSnap.set(t.id, taskProjection(t));
     else pushErro('Não consegui atualizar a tarefa', await serverError(res));
   }
