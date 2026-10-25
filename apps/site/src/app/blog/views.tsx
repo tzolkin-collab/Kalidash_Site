@@ -8,6 +8,7 @@ import HomeHeader from "../home/HomeHeader";
 import SiteFooter from "../home/SiteFooter";
 import ReadingProgressBar from "./ReadingProgressBar";
 import ShareButtons from "./ShareButtons";
+import { SITE_URL } from "@/lib/siteUrl";
 
 /* Views do blog — UMA implementação só, usada pelas páginas reais (/blog, /blog/[slug]) e
  * pelas rotas de preview do admin (/preview/*). É isso que garante que o preview é o site.
@@ -108,6 +109,10 @@ export function BlogGalleryView({
                   data-role="cover"
                   src={item.coverImageUrl}
                   alt={item.title || ""}
+                  width={1280}
+                  height={720}
+                  loading="lazy"
+                  decoding="async"
                   style={{ objectPosition: `50% ${item.coverImagePos}%` }}
                 />
               )}
@@ -142,10 +147,14 @@ export function BlogGalleryView({
 export function ArticleView({
   article,
   relatedArticles = [],
+  shareUrl,
 }: {
   article: ArticleViewData;
   relatedArticles?: GalleryItem[];
+  /** URL absoluta do artigo (montada no servidor com SITE_URL + slug); sem ela, vale a do blog */
+  shareUrl?: string;
 }) {
+  const url = shareUrl ?? `${SITE_URL}/blog`;
   const readingTime = estimateReadingTime(article.body || article.excerpt);
   const formattedDate = article.publishedAt
     ? new Date(article.publishedAt).toLocaleDateString("pt-BR", {
@@ -224,7 +233,7 @@ export function ArticleView({
               </div>
             </div>
 
-            <ShareButtons title={article.title} className={articleStyles.shareTop} />
+            <ShareButtons title={article.title} url={url} className={articleStyles.shareTop} />
           </div>
 
           {article.coverImageUrl && (
@@ -235,6 +244,10 @@ export function ArticleView({
                 data-focus="cover"
                 src={article.coverImageUrl}
                 alt={article.title || "Imagem de capa do artigo"}
+                width={1600}
+                height={900}
+                fetchPriority="high"
+                decoding="async"
                 style={{ objectPosition: `50% ${article.coverImagePos}%` }}
               />
             </div>
@@ -249,7 +262,7 @@ export function ArticleView({
 
           {/* Rodapé do artigo com compartilhamento */}
           <div className={articleStyles.articleFooterShare}>
-            <ShareButtons title={article.title} />
+            <ShareButtons title={article.title} url={url} />
           </div>
 
           {/* Bloco de Conversão Kalidash */}
@@ -286,6 +299,10 @@ export function ArticleView({
                         <img
                           src={item.coverImageUrl}
                           alt={item.title}
+                          width={1280}
+                          height={720}
+                          loading="lazy"
+                          decoding="async"
                           style={{ objectPosition: `50% ${item.coverImagePos}%` }}
                         />
                       </div>

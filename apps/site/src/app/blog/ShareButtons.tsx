@@ -4,19 +4,19 @@ import { useState } from "react";
 
 type ShareButtonsProps = {
   title: string;
+  /** URL absoluta do artigo, igual no servidor e no cliente (sem window.location no render) */
+  url: string;
   className?: string;
 };
 
-export default function ShareButtons({ title, className }: ShareButtonsProps) {
+export default function ShareButtons({ title, url, className }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
     try {
-      if (typeof window !== "undefined") {
-        await navigator.clipboard.writeText(window.location.href);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2200);
-      }
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2200);
     } catch {
       // Fallback simples caso clipboard falhe
       setCopied(true);
@@ -24,8 +24,7 @@ export default function ShareButtons({ title, className }: ShareButtonsProps) {
     }
   };
 
-  const getShareUrl = () =>
-    typeof window !== "undefined" ? encodeURIComponent(window.location.href) : "";
+  const getShareUrl = () => encodeURIComponent(url);
   const getEncodedTitle = () => encodeURIComponent(title);
 
   return (
