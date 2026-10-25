@@ -51,3 +51,10 @@
     border-radius: 0%;
   }
 }
+
+/* Quem pede menos movimento não vê a cortina de pixels. */
+@media (prefers-reduced-motion: reduce) {
+  .pixelGrid {
+    display: none !important;
+  }
+}
