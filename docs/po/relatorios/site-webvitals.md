@@ -29,7 +29,19 @@ Metas móvel: CLS ≤ 0,1 ✅ (0); TBT ≤ 300 ms ✅ (88–149); **LCP ≤ 2,5 
 - PixelTransition só roda em `/blog` e `/blog/[slug]` (não na home); cobre a página ~1,4 s e ignora `prefers-reduced-motion`.
 
 ## Correções
-(preenchido a cada commit)
+### 1. Fontes: remover Fraunces e Newsreader do layout raiz (`perf(site): remove fontes nao usadas`)
+Sem uso em nenhum componente vivo; `--font-display` já tem fallback Georgia. Fontes: 520 → 135 KB.
+
+| Móvel | LCP antes → depois | Perf | TBT |
+|---|---|---|---|
+| `/` | 5749 → 3593 | 78 → 90 | 95 → 42 |
+| `/treinamento-corporativo-ia` | 5668 → 3445 | 79 → 91 | 88 → 41 |
+| `/advisory` | 5588 → 3370 | 77 → 92 | 149 → 41 |
+| `/blog` | 6292 → 4131 | 77 → 87 | 90 → 45 |
+| `/blog/artigo-1` | 7183 → 4582 | 75 → 84 | 93 → 38 |
+
+Desktop: LCP 1,1–1,3 s → 0,73–0,89 s; perf 99–100. CLS segue 0.
+
 
 ## Decisões propostas ao PO
 (preenchido ao final)

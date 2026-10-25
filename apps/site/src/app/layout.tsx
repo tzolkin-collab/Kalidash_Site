@@ -1,26 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Archivo, Newsreader, Manrope } from "next/font/google";
+import { Archivo, Manrope } from "next/font/google";
 import "./globals.css";
-
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-fraunces",
-  axes: ["opsz", "SOFT", "WONK"],
-  style: ["normal", "italic"],
-  weight: "variable",
-});
 
 const archivo = Archivo({
   subsets: ["latin"],
   variable: "--font-archivo",
   weight: ["400", "500", "600", "700"],
-});
-
-const newsreader = Newsreader({
-  subsets: ["latin"],
-  variable: "--font-newsreader",
-  style: ["normal", "italic"],
-  weight: "variable",
 });
 
 const manrope = Manrope({
@@ -74,7 +59,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${fraunces.variable} ${archivo.variable} ${newsreader.variable} ${manrope.variable}`}
+      className={`${archivo.variable} ${manrope.variable}`}
       style={{ backgroundColor: "#ffffff" }}
     >
       <body>{children}</body>
