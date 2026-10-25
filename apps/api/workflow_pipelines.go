@@ -47,6 +47,7 @@ type pipelineConfig struct {
 	CustomFields       json.RawMessage `json:"customFields,omitempty"`
 	TaskTags           json.RawMessage `json:"taskTags,omitempty"`
 	QualifyRequires    json.RawMessage `json:"qualifyRequires,omitempty"`
+	LostReasons        json.RawMessage `json:"lostReasons,omitempty"` // WP4-2 (D28): motivos de perda do funil, lista de textos
 	Steps              json.RawMessage `json:"steps,omitempty"`
 	TemplateID         json.RawMessage `json:"templateId,omitempty"`
 	PostSaleTemplateID json.RawMessage `json:"postSaleTemplateId,omitempty"`
