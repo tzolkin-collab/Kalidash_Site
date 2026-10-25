@@ -126,11 +126,153 @@ Evidência: **[C]** código · **[T]** teste · **[N]** navegador (admin 5197 �
 
 ## 3. Tarefas e gate
 
-_(pendente)_
+### 3.1 Tarefas
+
+| Item | | Evidência |
+|---|---|---|
+| Tipos `requisito` / `manual` / `passo` | ✅ no modelo | [C] `Task.source`; `requisito` nasce no gate (servidor, `INSERT IGNORE` por `(requirementId, entityKind, entityId)`) ou no "seguir registro" (front); `manual` pela ficha; `passo` só quando a ação `tarefa.criar` roda **no navegador** (`events.ts`) |
+| Vínculo com oportunidade, lead, pessoa, empresa | ⚠️ | [C] oportunidade só sincroniza se o **id for numérico** (`isRealOpportunityId = /^\d+$/`); lead/pessoa/empresa só com `CRM_API=1`. [N] oportunidade `o1` (id de texto, semente) concluiu "Informar CNPJ" na tela e o servidor continuou `done:false` (a tarefa nunca foi enviada). Em produção, oportunidades criadas fora da API (Prisma/seed com cuid) cairiam nesse buraco 🟡 HIPÓTESE (não vi os ids reais) |
+| Servidor confere se a entidade existe | ❌ | [H] `POST /api/tasks {entity:'opportunity', entityId:'nao-existe'}` → **201** |
+| Prazo, atraso, responsável, tag | ✅ cria / ❌ **não consegue limpar** | [H] `PUT /api/tasks/{id} {dueAt:null, assignee:null}` → 200 mas continua com `dueAt` e `assignee` (ponteiro nulo = "não enviado", `workflow_tasks.go:226-231`). Na tela, limpar o prazo "funciona" e volta no F5 (B-07) |
+| Responsável | ⚠️ texto livre | `assignee VARCHAR(120)`; o template grava o texto "Vendedor responsável" (visto), não um `TeamMember`; D19 (filtrar por responsável) depende de trocar isso por id |
+| Concluir / reabrir | ✅ grava (numérico) / ❌ não valida | [N] clique em "Concluir" → `done:true` no servidor (Opp Gate). [H] qualquer pessoa com `tasks:write` conclui, **inclusive "Informar CNPJ" sem CNPJ** e a de oportunidade de outro vendedor (§5) |
+| Excluir | ✅ só manual | [H] tarefa de requisito → 409 (por desenho, o gate a recriaria); a **órfã** (requisito removido) também → 409 e fica para sempre (B-06). [N] aviso "Esta tarefa não pode ser apagada" apareceu duas vezes na minha sessão sem eu excluir nada (⚠️ causa não isolada: o diff `remove` do `workflowSync` tenta `DELETE` de ids que saíram da store, p.ex. depois de `reloadTasks`) |
+| Histórico | ⚠️ | `logChange` (browser) → `/api/crm/history` só para pessoa/empresa/lead com `CRM_API`; tarefa de oportunidade não tem histórico no servidor |
+| Notificação `tarefa.criada` | ⚠️ browser | `taskNotify.ts`: só para tarefa de **requisito com `notifyAssignee` e responsável definido**; manual nunca avisa; não há canal servidor (sem push com o painel fechado) |
+| Notificação `tarefa.atrasada` | ✅ no navegador / ❌ sem navegador | [N] criei "Ligar para o cliente (atrasada)" com prazo 20/10: apareceu "Tarefa atrasada: … prazo 20/10/2026" e "Aviso da automação para Responsável da tarefa". **Duas cópias de cada** (⚠️ B-12). O "uma vez por tarefa" fica em `localStorage`: outro navegador/aparelho avisa de novo; navegador fechado, ninguém é avisado |
+| Tarefa de CNPJ ("Informar CNPJ") na etapa "Assinatura do contrato" | ✅ existe, ⚠️ não confere o CNPJ | [H][N] nos 3 funis de exemplo e no funil criado pelo template: `kind FIELD · gate ENTER · etapa Assinatura do contrato · responsável "Vendedor responsável"`. Barra a entrada (409) até alguém marcar a tarefa; **não verifica se a empresa tem CNPJ** (o doc §8: "preencher o campo conclui a tarefa") |
+
+### 3.2 Contagens do card do funil (Tarefas)
+
+Card "Q4 Sales Pipeline" depois dos meus testes: **3 registros · 6 tarefas · 2 bloqueados** (nenhum "atrasadas" mostrado).
+
+| Número do card | Como é calculado | Bate com os dados? |
+|---|---|---|
+| Registros | `Σ counts[etapa]` = `COUNT(*) FROM Opportunity GROUP BY stage`, casando por **id exato** da etapa (`loadPipelines`) | ❌ **não bate com o Kanban** (5 oportunidades do funil). Faltam as 2 oportunidades com valor legado (`INBOUND`, `WON`), que o Kanban resolve por `legacyStage` e o servidor não. Leads não entram (por desenho). Oportunidade em etapa inexistente não entra em nenhum funil |
+| Tarefas | `requirements.length` (modelo), não tarefas abertas | ⚠️ o nome engana: é o nº de **requisitos** do funil |
+| Atrasadas | `Σ overdue` por requisito: tarefas de **requisito** abertas com `dueAt < agora` | ⚠️ tarefa manual atrasada (a que criei) **não conta**; é só do requisito |
+| Bloqueados | `Σ blocked` = tarefas abertas de requisito com `gate != NONE` | ❌ conta **tarefas, não registros**, e inclui tarefas de registros que **já não estão** na etapa (a oportunidade que passou pela brecha entre funis continuou contando em "Enviar a proposta"). A tarefa nasce na **tentativa** de mover, então um card que voltou (revertido) também conta como "bloqueado" |
+
+### 3.3 O gate bloqueia e libera como o doc diz?
+
+| Cenário | Esperado (`notificacoes.md` §4, `api-workflow.md`) | Resultado | |
+|---|---|---|---|
+| Mover para etapa com ENTER aberto | 409 + tarefa criada | `409 {"error":"gate","blockers":[{requirementId:"q4:r-cnpj",…}]}`, tarefa criada | ✅ [H] |
+| Concluir e mover | passa | 200 | ✅ [H] |
+| Duas tarefas na mesma fronteira: todas fecham | trava até as duas | confirmado por [T] (`TestIntegrationPipelineTaskGate` passo 4) | ✅ |
+| Reabrir a tarefa depois de entrar | volta a barrar quem tenta entrar de novo | 409 na tentativa seguinte; quem **já está** na etapa fica lá | ✅/⚠️ coerente com "fronteira" |
+| EXIT na mesma pipeline (`Enviar a proposta` sai de Proposta) | 409 | 409 | ✅ [H] |
+| EXIT ao sair para **outro funil** | 409 | **200** (a checagem só olha o funil da etapa de **destino**: `pipelineId` de `ToStageID`) | ❌ [H] `exitEntreFunis=200` |
+| **Criar** a oportunidade direto na etapa com ENTER | 409 | **201** (nenhum gate no `POST /api/leads`) | ❌ [H] "GateDireto" nasceu em "Assinatura do contrato" sem tarefa |
+| Mover para etapa que não existe | recusar | 200 (tratada como "valor legado") | ❌ [H] |
+| Mover Lead (v2) entre etapas | o mesmo gate | **sem gate no servidor** (`PUT /api/crm/leads/{id}` não chama `checkGate`; teste 5b: "o gate de lead roda no front") | ❌ [H] `leadMoveParaGated=200` |
+| Mover para a etapa onde já está | idempotente | **404** "Oportunidade não encontrada" | ❌ [H] (B-04) |
+| `POST /api/gate/check` é "só consulta" | `tasks:read`, "não grava" (`auth_scopes.go:218`) | **grava**: cria a tarefa de cada requisito aplicável | ⚠️ [H][C] — um token só de leitura cria linhas |
+| Concluir sem cumprir (campo vazio) | `FIELD` conclui quando o campo é preenchido | qualquer um marca `done` | ❌ — o gate vale o que a tarefa vale |
+| **409 reverte o card?** | sim | Kanban: card volta para "Qualificação", servidor segue em `INBOUND`, a tarefa "Informar CNPJ" nasceu, toast/caixa: "**Consultoria Acme não pode avançar — Pendente: Informar CNPJ.**" (Aviso) | ✅ [N] (drop sintético via `DragEvent`: o Kanban usa HTML5 DnD) |
+| O mesmo em tela de celular | — | Kanban é HTML5 `draggable` (`Opportunities.tsx:222`): no celular depende do arrasto nativo por toque longo (**não testei em aparelho**) e **não há alternativa** "Mover para…" nem por teclado; a ficha só tem "Marcar como ganho/perdido" | ⚠️ B-08 |
+| "Marcar como perdido" | pede **motivo** (`dominio.md` §6) | move direto, sem motivo | ❌ [N] "Opp Exit" foi para Perdido sem perguntar |
+
+### 3.4 Página do workflow (React Flow)
+
+- **1440 px ✅** [N]: `#/tarefas/q4` desenha fontes → etapas com requisitos, cadeado, contagens; painel "Estrutura do funil" aberto à direita (≈ 30% da largura); controles de zoom e minimapa.
+- **390 px ⚠️** [N]: funciona, mas o painel lateral **abre por padrão e ocupa ~85% da tela**; é preciso tocar em "Painel" para ver o desenho. Com o painel fechado o diagrama aparece, a barra de ferramentas quebra em 3 linhas e o **minimapa ocupa ~¼ da altura**. Não tem `fitView` (abre em zoom 0.85 deslocado), `nodesFocusable` padrão, `elementsSelectable=false`. Pan/zoom por toque é o padrão do React Flow, **não testei pinça** (ferramenta só tem mouse).
+- **Escala ⚠️ (não medida):** 10 nós / ~900 elementos de DOM com 8 etapas e 6 requisitos (os requisitos são `button` dentro do nó, sem virtualização: `onlyRenderVisibleElements` não está ligado). Limites do servidor: 40 etapas, 200 requisitos. Estimo que ~40 etapas × 5 requisitos (200 botões) ainda renderize, mas **não testei** e o layout só calcula posições "da esquerda para a direita" (`buildGraph`, `TaskWorkflow.tsx:864`).
+- **Dívida:** arquivo de **1098 linhas** com 20 hooks de estado/efeito, três componentes grandes (nós, dock, painel de registro) no mesmo módulo, mais `lint` com `set-state-in-effect`/`exhaustive-deps`.
 
 ## 4. Automações
 
-_(pendente)_
+### 4.0 A resposta curta: onde rodam e o que acontece com o navegador fechado
+
+**Toda automação roda no navegador de quem está com o admin aberto, na hora da ação, com a memória do navegador como estado. Nada roda no servidor. Com o navegador fechado, nada acontece.** O servidor Go não tem tabela de automação, fila, agendador, nem cliente HTTP de saída (só o `emails.go` e o `revalidate.go`).
+
+Consequências medidas:
+
+1. **O lead que entra por formulário (`connect.js` / `/api/public/leads`) nunca dispara nada.** Ele é gravado pelo servidor; nenhum navegador emitiu `lead.criado`. As automações "Lead entra no funil" (boas-vindas por e-mail, notificar o responsável) **não rodam para o fluxo mais importante da Kalidash**.
+2. **9 dos 20 eventos do catálogo não são emitidos por lugar nenhum** do código (`grep "emit('"` em `apps/admin/src`): `formulario.enviado`, `fonte.conectada`, `oportunidade.ganha`, `oportunidade.perdida`, `oportunidade.parada`, `lead.sem_contato`, `notificacao.lida`, `email.enviado`, `email.falhou`. Em especial **"Ganhou: vira cliente" nunca dispara**: mover a oportunidade para Ganho (`/api/leads/move`) não emite `oportunidade.ganha`; o ciclo de vida só vira Cliente por clique manual.
+3. `oportunidade.mudou_de_etapa` só é emitido para **lead** (`leadFlow.ts:133`); o Kanban de oportunidades não emite. `oportunidade.criada` e `lead.qualificado` só saem do `qualifyLead` falso (§3).
+4. `tarefa.atrasada` roda num `setInterval` do navegador (`taskNotify.ts`) e o "já avisei" fica no `localStorage`: com dois navegadores abertos, as ações disparam **duas vezes**; e, **causa provável (não isolada com depurador)**, a troca do id local pelo id do servidor depois do POST (`workflowSync.flushTasks`) faz a mesma tarefa parecer nova para `notifiedOverdue` (chaveado por id): visto 2 notificações e 2 "avisos da automação" para uma única tarefa atrasada.
+5. A tela diz "Dados de exemplo… nada aqui é gravado e recarregar restaura o exemplo": **verdadeiro**. Visto: a automação gerenciada nascida de "Conectar fonte" apareceu na lista e **sumiu no F5**, enquanto a fonte (`Pipeline.config.sources`) ficou gravada. Fonte e automação divergem depois do primeiro recarregamento.
+6. As contagens da lista ("Execuções 47, 12, 9, 6, 22") e o histórico `r1…r8` são **dados fabricados** no mock (`mocks/automations.ts`).
+
+### 4.1 Eventos (gatilhos): emitidos × só no catálogo
+
+| Evento | Quem emite hoje | Roda no servidor? |
+|---|---|---|
+| `pessoa.criada`, `empresa.criada` | cadastro manual / import no navegador (`NewPartyPanels`, `leadFlow`) | ❌ (o `connect.js` cria Pessoa no servidor sem emitir) |
+| `campo.mudou` | `lib/edit.ts` (edição na ficha) | ❌ |
+| `lead.criado` | `leadFlow.ts:106` (cadastro manual) | ❌ — **formulário não emite** |
+| `lead.descartado` | `leadFlow.ts:140` | ❌ |
+| `lead.qualificado`, `oportunidade.criada` | só `qualifyLead` (que não cria oportunidade real) | ❌ |
+| `oportunidade.mudou_de_etapa` | só lead (`moveLeadStage`) | ❌ |
+| `tarefa.criada` (só requisito com "notificar"), `tarefa.concluida`, `tarefa.atrasada` | `RecordTabs`, `taskActions`, `taskNotify` | ❌ |
+| `formulario.enviado`, `fonte.conectada`, `oportunidade.ganha`, `oportunidade.perdida`, `oportunidade.parada`, `lead.sem_contato`, `notificacao.lida`, `email.enviado`, `email.falhou` | **ninguém** | ❌ |
+
+### 4.2 Ações: reais (no navegador) × simuladas
+
+| Ação | O que faz hoje (`events.ts: runAction`) | Real? | Persiste? |
+|---|---|---|---|
+| `ciclo.definir` | muda `lifecycle` de pessoa/empresa na store (só avança; Cliente = empresa se houver) | ✅ no navegador | ✅ com `CRM_API` (via `crmSync`); histórico `ChangeLog` |
+| `tarefa.criar` | `addTask` (prazo = atraso em dias) | ✅ no navegador | ✅ só se entidade sincroniza (numérica / CRM) |
+| `tarefa.concluir` | conclui tarefa aberta de mesmo título | ✅ | idem |
+| `tag.adicionar`, `responsavel.atribuir` | lead/pessoa na store; responsável é **texto** do lead | ✅ | ⚠️ `owner` texto (não `ownerMemberId`) |
+| `notificar.equipe` | `pushNotificacao` na caixa **do navegador** | ✅ só para quem está na tela | ❌ `localStorage` |
+| `email.enviar` | devolve "E-mail enviado (simulado)" | ❌ **simulada**: nunca chama `/api/emails/send` | — |
+| `lead.criar`, `contato.criar`, `empresa.criar`, `lead.qualificar`, `oportunidade.mover`, `webhook.chamar` | cai no `default`: "`<ação>` (simulada)" | ❌ **simuladas** | — |
+| Atraso por ação (`delayDays` > 0, exceto `tarefa.criar`) | só escreve "agendada para daqui a N dias" e marca `SCHEDULED`; **ninguém agenda** | ❌ | ❌ |
+
+### 4.3 Catálogo: cada automação (6 manuais/gerenciadas de exemplo + passos dos templates)
+
+"Real?" = a ação executa de verdade quando o evento acontece **com o navegador aberto**. "Server" = o que falta para rodar sem navegador (S1 evento no outbox; S2 agendador; S3 fila/worker com retry; S4 cliente de e-mail; S5 tabela de execuções; S6 idempotência).
+
+| Automação | Gatilho → ação | Origem | Real? | Persistida? | Falta no servidor |
+|---|---|---|---|---|---|
+| Criar lead a partir do formulário da LP | `formulario.enviado` → `lead.criar` | gerenciada (mock) | ❌ (o lead real já nasce do `connect_ingest.go`; a automação é rótulo) | ❌ some no F5 | nada: **virar configuração do `ConnectedProject`** (pipeline/etapa/dono), não "automação" |
+| Importar contatos da planilha de parcerias | `formulario.enviado` → `contato.criar` | gerenciada (mock) | ❌ | ❌ | importação em lote é outro recurso |
+| Tarefa "Informar CNPJ" ao entrar em Negociação | `oportunidade.mudou_de_etapa` → `tarefa.criar` | gerenciada (mock) | ❌ nunca dispara (Kanban não emite) | ❌ | S1+S3: emitir evento no `move` |
+| Resumo por e-mail ao ganhar | `oportunidade.ganha` → `email.enviar` | manual (mock) | ❌ evento nunca emitido **e** ação simulada | ❌ | S1+S3+S4 (reaproveitar `emails.go`) |
+| Cobrar tarefas atrasadas | `tarefa.atrasada` → `notificar.equipe` | manual (mock) | ✅ navegador aberto (duplica com 2 abas) | ❌ | S2 (varredura de `Task.dueAt`) + canal de notificação no servidor |
+| Reenviar e-mails que falharam | `email.falhou` → `email.enviar` | manual (mock) | ❌ evento nunca emitido | ❌ | S4 + retorno do provedor |
+| Lead entra no funil (passo) | `lead.criado` → ciclo LEAD, notificar responsável, e-mail "Boas-vindas (Inbound)" | passo do template (persiste em `config.steps`) | ⚠️ cadastro manual: ciclo + notificar ✅, e-mail simulado ❌; **formulário: nada** | passo ✅ / execução ❌ | S1 no `IngestLead`, S3, S4 |
+| Lead sem contato (passo) | `lead.sem_contato` → notificar responsável do lead | passo | ❌ nunca emitido | passo ✅ | **S2 + SLA** (hoje não há prazo nem varredura) |
+| Empresa sem CNPJ vira tarefa (passo) | `empresa.criada` → `tarefa.criar` "Informar CNPJ" (3 dias) | passo | ⚠️ só empresa criada na tela; a criada pelo servidor (CRM/connect) não | passo ✅ | S1 em `crm_companies`/ingest |
+| CNPJ informado conclui a tarefa (passo) | `campo.mudou` (cnpj) → `tarefa.concluir` | passo | ✅ ao editar na ficha | idem | S1 em `PUT /api/crm/companies`; hoje edição por API/token não conclui |
+| Lead qualificado vira oportunidade (passo) | `lead.qualificado` → ciclo PROSPECT | passo | ⚠️ roda, mas o "qualificar" é falso (§3) | passo ✅ | qualificar real (WP4) |
+| Follow-up depois da proposta (passo) | `oportunidade.mudou_de_etapa` → `tarefa.criar` (3 dias) | passo (Q4) | ❌ Kanban não emite | passo ✅ | S1 no `move` |
+| Oportunidade parada (passo) | `oportunidade.parada` → notificar dono | passo | ❌ nunca emitido (`alertDays` é só leitura de tela) | passo ✅ | **S2** usando `PipelineStage.alertDays` (não há `enteredStageAt`) |
+| Ganhou: vira cliente (passo) | `oportunidade.ganha` → ciclo CLIENT | passo | ❌ nunca emitido | passo ✅ | S1 no `move` quando a etapa é `WON` (hoje o **cliente** manda `won:true`; o servidor não conhece o tipo da etapa) |
+| Perdeu: fica inativo (passo) | `oportunidade.perdida` → INACTIVE | passo | ❌ | passo ✅ | idem + **motivo** |
+| Lead descartado: fica inativo (passo) | `lead.descartado` → INACTIVE (se não há outro lead ativo) | passo | ✅ ao descartar na tela | passo ✅ | S1 em `PUT /api/crm/leads` |
+| Onboarding do cliente / Check-ins e renovação (passos pós-venda) | `oportunidade.ganha` → 3+ tarefas e e-mail "Boas-vindas ao cliente" | passo | ❌ | passo ✅ | idem ganha |
+| NDA ao negociar (Parcerias) | `oportunidade.mudou_de_etapa` → `tarefa.criar` "Assinar o NDA" | passo | ❌ | passo ✅ | S1 |
+
+Categorias: `Fontes, Cadastros, Leads, Oportunidades, Pendências, Ciclo de vida, Notificações, E-mails` (8, só rótulo). Origens: `MANUAL` (editável, excluir) e `MANAGED` (só pausar; a edição manda para a pipeline). Nenhuma permissão por automação (a rota nem existe; `automations:manage` está **Reserved**).
+
+### 4.4 O que falta para rodar no servidor e a distância da Entrega 3
+
+Infra mínima (nada existe hoje):
+
+| Peça | Estado | Observação |
+|---|---|---|
+| Tabela `Automation` (+ `AutomationRun`) com `idempotencyKey` único | ❌ | substitui `automationsStore`; o executor passa a ler dela |
+| **Outbox de eventos** gravado na mesma transação da mudança (`lead.criado`, `…mudou_de_etapa`, `…ganha`) | ❌ | sem isso o servidor não sabe que "aconteceu algo" |
+| Worker/fila com retry e backoff | ❌ | ver §8, comparação A × B |
+| Agendador para eventos de tempo (`lead.sem_contato`, `oportunidade.parada`, `tarefa.atrasada`) | ❌ | falta `Opportunity.stageEnteredAt` e `Lead.firstResponseDueAt` |
+| Webhook de saída (URL, segredo/HMAC, eventos, tentativas, `Deliveries`) | ❌ (tela de Webhooks é mock) | assinatura `X-Kalidash-Signature`, timeout, limite de corpo, DLQ |
+| Auditoria (quem criou/alterou automação; quem executou) | ⚠️ `ChangeLog` do CRM serve de modelo | escopo `automations:manage` hoje só reservado |
+| Permissões | ⚠️ escopo existe, rota não | Vendedor sem; Gerente/Admin com |
+
+**Entrega 3 (09–23/11) × hoje:**
+
+| Exigência | Hoje | Distância |
+|---|---|---|
+| Ciclo de vida do lead **Novo → Contatado → Negociação → Ganho/Perdido (com motivo)** | colunas de lead "Novos/Em contato" (`LEAD`), etapas abertas e `WON`/`LOST`; `Lead.status` ACTIVE/QUALIFIED/DISCARDED; `discardReason` só no lead; **sem motivo de perda** na oportunidade; qualificar falso | médio-alto: qualificar real + motivo + `firstContactAt` automático |
+| Deduplicação por **e-mail + projeto** | pessoa deduplica por e-mail; lead **não** (2 envios = 2 leads); `connect_ingest` conhece o projeto | médio: índice/regra `(email, projectId)` em `IngestLead` + política (atualiza / ignora / marca "retornando") |
+| **Rodízio** (round-robin) | nada; responsável manual; Vendedor não vê lead sem dono (D18) | médio: pool de elegíveis + cursor; depende de `TeamMember` ativo |
+| **SLA** de primeiro contato | coluna `firstContactAt`; nada mede nem alerta | médio: prazo por pipeline + agendador + notificação |
+| **Tags e filtros** | tags em lead/oportunidade ✅; filtro por tag na tela ✅ (cliente); servidor não filtra por tag | baixo |
+| **Catálogo de fluxos** | catálogo de eventos/ações/templates **só front** (mock + `config.steps`) | médio: persistir `Automation` e templates |
+| **Webhooks de saída ao marcar Ganho** | nada | alto (depende de outbox + worker) |
 
 ## 5. Permissões
 
