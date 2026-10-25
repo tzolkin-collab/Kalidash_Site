@@ -276,15 +276,168 @@ Infra mínima (nada existe hoje):
 
 ## 5. Permissões
 
-_(pendente)_
+Fonte: `auth_scopes.go` (`routeScope`, `sellerScopes`, `managerScopes`), `own_scope.go`. Provas: login de desenvolvimento como **Admin raiz** e como **Vera (Vendedor)**, chamadas `curl` com o cookie dela (**[H]**).
+
+| Ação | Admin | Gerente | Vendedor | Servidor impõe? | Prova |
+|---|---|---|---|---|---|
+| Ver funis, etapas, requisitos | ✅ | ✅ | ✅ `pipelines:read` | ✅ | [H] `GET /api/pipelines` 200 |
+| Criar/editar/arquivar funil, requisito, fonte, template | ✅ `pipelines:manage` | ✅ | ❌ | ✅ | [H] `PUT /api/pipelines/q4` como Vera → **403** `falta a permissão pipelines:manage` |
+| Ver tarefas | ✅ | ✅ | ✅ `tasks:read` — **de todos** | ✅ (escopo) / ❌ (dono) | [H] `GET /api/tasks` como Vera listou tarefas de oportunidades que não são dela |
+| Criar/concluir/editar tarefa | ✅ | ✅ | ✅ `tasks:write` — **de qualquer registro** | ❌ não há dono | [H] Vera: `PUT /api/tasks/{id} {done:true}` na tarefa de "Opp Gate" (de Admin) → **200**; `POST /api/tasks` em oportunidade alheia → 201 |
+| Excluir tarefa manual | ✅ | ✅ | ✅ de qualquer um | ❌ | [H] Vera apagou a tarefa manual "Manual" (responsável "Ana") → 200 |
+| `POST /api/gate/check` | ✅ | ✅ | ✅ `tasks:read` | ⚠️ grava | [H] Vera: consulta de oportunidade alheia devolveu os bloqueios e **criou** tarefas (rota tem escopo de leitura, efeito de escrita) |
+| Mover oportunidade/gate | ✅ | ✅ | **só as dela** (`opportunities:own`) | ✅ | [H] mover a alheia → **404**; a própria para a mesma etapa → 404 (bug B-04, não permissão) |
+| Mover **Lead** de etapa (sem gate) | ✅ `leads:write` | ✅ | só os dela (`leads:own`) | ✅ dono / ❌ gate | [C] `PUT /api/crm/leads/{id}` |
+| Criar/editar/excluir **automação** | — | — | — | ❌ **rota inexistente** (404) | [H] `GET /api/automations` → 404. `automations:manage` está no preset do Gerente/Admin como `Reserved`: concede um escopo que ainda não protege nada |
+| Webhook de saída | — | — | — | ❌ sem rota, sem escopo | tela Configurações → Webhooks é mock |
+| Tokens de API | token com `tasks:read` | | | ⚠️ | um token só de leitura cria tarefa via `gate/check` |
+
+**Lacunas (ordenadas):**
+
+1. **Vendedor conclui tarefa de oportunidade que não é dele** (e a "Informar CNPJ" que destrava o gate dela): `tasks:write` não considera dono. Como a oportunidade alheia dá 404 para o Vendedor, ele **não vê** o registro, mas vê e age sobre a tarefa. D19 ("Vendedor vê as tarefas dos seus registros") exige filtrar `GET /api/tasks` e `PUT/DELETE /api/tasks/{id}` pelo dono do `entityId` (junção com `Opportunity.ownerMemberId`/`Lead.ownerMemberId`) — um "escopo own" para tarefas, no mesmo molde de `own_scope.go`.
+2. **Responsável da tarefa é texto livre** (`Task.assignee`): quem edita pode pôr qualquer nome; o filtro `?assignee=` compara string. Trocar por `TeamMember.id` (como no WP3b) antes do filtro por responsável.
+3. **`gate/check` precisa de `tasks:write`** (ou virar `POST` sem efeito colateral, só calculando).
+4. **Gerente** recebe `automations:manage` sem rota: quando a rota existir, decidir se Vendedor pode **ver** execuções (`automations:read` não existe).
+5. Sem trilha de auditoria de **quem** concluiu/reabriu uma tarefa no servidor (`Task` não tem `doneBy`; o histórico do CRM é gravado pelo navegador e só para pessoa/empresa/lead).
+6. Quem tem `pipelines:manage` pode apagar requisito e etapa sem as proteções da tela (§2.2). Para a Entrega 3, mover as invariantes para o servidor ou reduzir o escopo a Admin.
 
 ## 6. Prova executada
 
-_(pendente)_
+### 6.1 Ambiente (tudo fora do repositório, tudo descartável)
+
+- **Banco:** `memmysql.exe` (go-mysql-server, binário já existente no scratchpad de outra sessão, copiado para o meu) em `127.0.0.1:3327` (demonstração) e `:3328` (suíte de testes). Tabelas Prisma (`Opportunity`, `Contact`, `Company`, `User`, `Note`) semeadas por um programa `seed` **no scratchpad** (2 oportunidades legadas: `INBOUND` e `WON`).
+- **API:** `go build` do `apps/api` para o scratchpad, rodada **de dentro do scratchpad** (não carrega nenhum `.env`), porta **8097**, `WORKFLOW_API=1 CRM_API=1 AUTH_API=1`, `AUTH_DEV_LOGIN=1`, `SESSION_SECRET`/`DATA_KEY` fictícios, `AUTH_ROOT_ADMIN=adm@kalidash.test`. **Não toquei** a API da 8080 nem o `apps/api/.env`; nenhuma credencial lida.
+- **Admin:** `vite` do `apps/admin` na porta **5197** com `VITE_API_URL=http://localhost:8097` (variável só do processo; `.claude/launch.json` intacto).
+- **Navegador:** painel do app (Chrome embutido), 1440×900 e 390×844. Para ver o que o **servidor** aceita independentemente da tela, chamei a API de dentro da própria página (cookie de sessão de dev) — marcado **[H]**.
+- Ressalvas do ambiente: o MySQL em memória **não é** MySQL real (§ Riscos); `ensureConnectSchema` morre ao reiniciar a API sobre o mesmo banco (`bodyJson already exists`, limitação do servidor em memória: precisei zerar o banco entre reinícios); a primeira rodada do admin sem `phone`/`website` nas tabelas semente deu `500` em `/api/crm/people` (tabela semente incompleta, **não** bug do produto).
+
+### 6.2 Roteiro pedido × resultado
+
+| # | Passo | | O que vi |
+|---|---|---|---|
+| 1 | Criar funil pelo template | ✅ [N] | "Auditoria Funil" (Venda consultiva B2B + pós-venda): 8 etapas, 6 requisitos, 12 passos; `GET /api/pipelines` já o devolve (id gerado no navegador: `pl-mvo2wdcs30`) |
+| 2 | Adicionar etapa | ✅ [N] | Configurações → Etapas → "Adicionar etapa": `OPEN:Nova etapa` entra antes de Ganho e persiste no servidor em ~2 s |
+| 3 | Adicionar requisito | ✅ [N] | Tarefas → "Nova tarefa" (tipo Ação, "Reunião de diagnóstico (auditoria)"): gravado em `StageRequirement`. A janela seguinte diz "o avançado **cria uma automação de verdade**" — a automação é só de memória (§4) |
+| 4 | Criar oportunidade | ✅ [H] | `POST /api/leads` (a tela "Nova Oportunidade" é a mesma chamada; B-F1 do WP-B já tratado). **Também aceitei** criação direto em etapa travada e em etapa inexistente (B-03) |
+| 5 | Tentar mover bloqueada | ✅ [N][H] | Kanban (drop sintético via `DragEvent`, pois o arrasto nativo HTML5 não é simulável com a ferramenta): **o card voltou para Qualificação**, o servidor seguiu em `INBOUND`, nasceu a tarefa "Informar CNPJ" e o Aviso "**Consultoria Acme não pode avançar — Pendente: Informar CNPJ.**" entrou na caixa. [H] confirmou o `409 {"error":"gate","blockers":[…]}` |
+| 6 | Concluir o requisito e mover | ✅ [N][H] | Concluir na ficha (aba Tarefas) sincronizou `done:true` (oportunidade numérica) e o `move` seguinte deu 200. **Em oportunidade com id de texto (`o1`) o "Concluir" não chegou ao servidor** (`isRealOpportunityId`), então o gate continuaria barrando |
+| 7 | Tarefa manual atrasada + notificação | ✅ [N] | Prazo 20/10/2026 criado na ficha de "Opp Gate": `dueAt 2026-10-20T15:00:00Z` no servidor e **"Tarefa atrasada: Ligar para o cliente (atrasada)"** + "Aviso da automação para Responsável da tarefa" na caixa, **em duplicata** (B-12) |
+| 8 | Workflow a 1440 e a 390 px | ✅ 1440 / ⚠️ 390 [N] | ver §3.4 |
+| 9 | Automação gerenciada ao conectar fonte | ⚠️ [N] | "Cadastro manual": cria a fonte, **sem** automação. "Formulário": só oferece formulários **de exemplo**; com um deles a automação "Criar lead a partir de "Modal de inscrição"" apareceu em Automações e **sumiu no F5**; a fonte ficou gravada com `formId:"lp-consultoria:modal"` (id inexistente no servidor) |
+| 10 | O que persiste ao recarregar | ✅/❌ | **Persiste:** funis, etapas, requisitos, fontes (JSON), tarefas de oportunidades numéricas, notificações (`localStorage`). **Perde:** automações (gerenciadas e manuais), execuções, a edição de limpar prazo/responsável de tarefa (volta o valor antigo), tarefas de oportunidade com id não numérico |
+
+### 6.3 Provas extras de servidor (pelo console da página, [H])
+
+| Teste | Resultado |
+|---|---|
+| Criar oportunidade em `q4:assinatura` (ENTER travado) | **201**, sem tarefa |
+| Criar oportunidade em `xyz:nada` | **201** |
+| Mover para `lixo:zzz` | **200** |
+| EXIT de Proposta (Q4) ao ir para `b2b:qualificacao` | **200** (brecha entre funis) |
+| Mover Lead v2 para etapa travada | **200** |
+| `PUT /api/pipelines/q4` removendo a etapa `q4:novos` com 1 lead | **200**, lead fica em `q4:novos` |
+| `PUT` mudando "Assinatura" para `WON` com 2 oportunidades | **200** |
+| `POST /api/pipelines` com só 1 etapa `OPEN` | **201** |
+| Remover requisito com tarefa aberta, depois `DELETE /api/tasks/{id}` | **200** e **409** (tarefa órfã permanente) |
+| `PUT /api/tasks/{id} {dueAt:null,assignee:null}` | 200 e **nada muda** |
+| `POST /api/tasks` com `entityId` inexistente | 201 |
+| `POST /api/leads/move` para a etapa em que já está | **404** |
+| Qualificar lead (tela Leads → Qualificar → valor R$ 8.000) | `Lead.status = QUALIFIED`, `convertedOpportunityId = "opp-mvo35qo134"`, **`GET /api/leads` continua com 2 oportunidades**: a "oportunidade" não existe (B-01) |
+| Marcar oportunidade como perdida (ficha) | vai para Perdido **sem pedir motivo** |
+| Reiniciar com banco vazio e abrir o admin | semeia 3 funis + pessoas/empresas/leads de exemplo no servidor (visto em "Ativos 10") |
+
+### 6.4 Testes executados
+
+| Comando | Resultado |
+|---|---|
+| `go vet .` (apps/api) | limpo |
+| `go test -count=1 .` (sem `TEST_DSN`) | **99 PASS, 11 SKIP** (os 11 `TestIntegration*`) |
+| `TEST_DSN='…:3328/kalidash_test' go test -count=1 -v .` | **110 PASS, 0 FAIL** |
+| mesmo com `…?parseTime=true` | **110 PASS, 0 FAIL** |
+| `npm test` (apps/admin) | **72 pass / 0 fail** (14 arquivos de teste) |
+| Notas | `TestIntegrationEscopoOwn` **falha** num banco sem a tabela Prisma `Note` (`table not found: Note`, 1ª rodada minha); passa depois de semeá-la: o teste depende de uma tabela que ele não cria. Algum teste (não identifiquei qual; de `storage`/blog) loga `Erro ao subir pro R2 … 403` durante `go test`, ou seja, parece tentar uma chamada de rede real ao R2 com credenciais inválidas (nenhuma credencial minha estava no ambiente; vale um teste de olho: `go test` não deveria sair da máquina) |
+
+### 6.5 Cobertura do que importa (e o que NÃO tem teste)
+
+| Área | Coberto | Sem teste |
+|---|---|---|
+| Validação de funil/requisito/tarefa | `TestValidatePipelineOK/Rejects`, `TestValidateTask`, `TestPipelineJSONShape` | — |
+| Gate no servidor (ENTER/EXIT, duas tarefas, idempotência, `wonAt`, editar/arquivar) | `TestApplicableGates`, `TestIntegrationPipelineTaskGate` (1 fluxo longo) | **EXIT entre funis, criar direto, etapa inexistente, Lead, remover requisito com tarefa aberta, remover etapa com lead, mudar tipo da etapa, mover para a mesma etapa, limpar prazo/responsável, `gate/check` com efeito colateral, permissões de tarefa por dono** |
+| Escopos | `TestRotaExigeEscopo`, `TestCadaEscopoAbreSoSuaRota`, matrizes de perfil | Vendedor × tarefa de outro (não existe regra) |
+| Admin: diff de sincronização, stages, alertas de tarefa, métricas | `workflowDiff`, `stages`, `taskAlerts`, `dashboardMetrics`… | **`events.ts` (motor de automações), `gate.ts`, `taskActions.ts`, `taskNotify.ts` (duplicidade), `pipelineTemplate.ts`, `lifecycle.ts`, `leadFlow.ts` (`qualifyLead`), `TaskWorkflow.tsx`/`buildGraph`, qualquer componente** |
+| Ponta a ponta (admin × API) | nenhum | tudo da §6.2 foi manual |
+| MySQL/MariaDB reais | nenhum (WP3a bloqueado por Docker) | `COALESCE` em JSON, `RowsAffected` sem `clientFoundRows` (B-04) |
 
 ## 7. Bugs, dívida técnica, desempenho, acessibilidade
 
-_(pendente)_
+### 7.1 Bugs (reproduzidos, salvo indicação)
+
+**Bloqueia a Entrega 3 ou o uso em produção**
+
+| ID | Bug | Passos para reproduzir | Onde |
+|---|---|---|---|
+| **B-01** | **Qualificar lead corrompe o dado**: o lead vira `QUALIFIED` apontando para uma oportunidade que **não existe** | Ligar `CRM_API`/`WORKFLOW_API`/`AUTH_API`; criar um lead; Leads → "Qualificar" → informar valor → confirmar. `GET /api/crm/leads` mostra `status:QUALIFIED, convertedOpportunityId:"opp-…"`; `GET /api/leads` não ganhou linha | `leadFlow.ts:qualifyLead` cria a oportunidade só na store/`sampleOppsStore`; a API aceita `convertedOpportunityId` sem FK |
+| **B-02** | **Semeadura de exemplo no banco real**: com tabelas vazias, o primeiro admin que abrir o app cria no servidor 3 funis de exemplo e 9 leads/pessoas/empresas "Renata Moura…" | Subir API com as flags e banco vazio → abrir o admin → "Ativos 10"; `GET /api/pipelines` devolve 3 funis que ninguém criou | `workflowSync.initWorkflowSync` (servidor vazio → POST dos mocks), `crmSync.initCrmSync → seed()` |
+| **B-03** | **Gate tem 4 brechas e um calcanhar**: (a) criar oportunidade direto em etapa travada; (b) EXIT ao mudar de funil; (c) mover para etapa inexistente; (d) Lead sem gate; (e) "concluir" sem cumprir o requisito, por qualquer perfil com `tasks:write` | §6.3 | `checkGate` olha só o funil da etapa de destino; `createOpportunity` não chama o gate; `crm_leads` não chama o gate; `PUT /api/tasks` não valida |
+| **B-05** | **"Conectar fonte" não conecta nada real**: lista só formulários de exemplo; a fonte guarda `formId` de mock; a automação gerenciada some no F5; duas "fontes de verdade" (`Pipeline.config.sources` × `ConnectedProject.pipelineId`) | §6.2 passos 9 | `PipelineEditors.tsx:ConnectSourcePanel` lê `projectsStore` (mock), não `useApiProjects` |
+| **B-09** | **O servidor não dispara nada**: formulário → lead não aciona automação; `oportunidade.ganha/perdida/parada`, `lead.sem_contato`, `formulario.enviado` nunca são emitidos; "Ganhou: vira cliente" não roda; e-mail e webhook são simulados | §4 | `events.ts`, `leadFlow.ts`, `Opportunities.tsx` (não emite) |
+| **B-10** | Tarefas de oportunidade com **id não numérico** não sincronizam (concluir "Informar CNPJ" na tela não libera o gate) | `o1` da semente: "Concluir" na ficha → `done:false` no servidor | `workflowDiff.isRealOpportunityId = /^\d+$/`. 🟡 HIPÓTESE de impacto real: só afeta oportunidades criadas fora de `createOpportunity` (cuid do Prisma/seed). Conferir os ids da base real antes de ligar |
+
+**Incomoda**
+
+| ID | Bug | Passos | Onde |
+|---|---|---|---|
+| **B-04** | Mover para a etapa em que a oportunidade **já está** dá 404 "Oportunidade não encontrada" | `POST /api/leads/move` com a mesma etapa | `main.go:174-184` (`RowsAffected()==0`); em MySQL real sem `clientFoundRows` também zera |
+| **B-06** | **Tarefa órfã permanente**: remover um requisito deixa tarefas abertas que não somem, não contam e não podem ser excluídas | `PUT` sem o requisito; `DELETE /api/tasks/{id}` → 409 | `handleTaskByID` (só `requirementId IS NULL`) + `writePipeline` sem varrer tarefas |
+| **B-07** | **Limpar prazo ou responsável não grava** (volta no F5) | `PUT /api/tasks/{id} {dueAt:null,assignee:null}`; na ficha, editar tarefa e esvaziar o prazo | ponteiro nulo = "não enviado" em `handleTaskByID`; `diffTasks` envia `undefined` |
+| **B-08** | Mover card só por arrasto HTML5; sem teclado e sem "Mover para…" (celular depende do toque longo, não testado) | Kanban em 390 px | `Opportunities.tsx:222`, `handleDrop` |
+| **B-11** | Contagens do card/lista de funis erradas: legados fora; "bloqueados" conta tarefas (inclui de registros que já saíram); "Tarefas" = nº de requisitos; "atrasadas" ignora manuais; lista da esquerda dizia "0 registros" com 2 oportunidades legadas | §3.2 | `loadPipelines` (match por id exato), `pipelineStats.ts` |
+| **B-12** | Notificação "tarefa atrasada" e "aviso da automação" **em duplicata**; aviso "Esta tarefa não pode ser apagada" espúrio | criar tarefa manual atrasada pela ficha; abrir a caixa | `taskNotify.ts` (chave por id) × `workflowSync.flushTasks` (troca de id); causa provável, não isolada |
+| **B-13** | Integridade do funil só na tela: remover etapa Lead com leads, mudar tipo da etapa com registros, funil sem Ganha/Perdida, e `PUT` last-write-wins | §2.2 | `writePipeline`/`validatePipeline` |
+| **B-14** | "Marcar como perdido" sem motivo; Opportunity sem coluna de motivo | ficha → Marcar como perdido | `OpportunityDetail.tsx`, `Opportunity` |
+| **B-16** | Textos que prometem o que não existe: "o avançado cria uma automação **de verdade**"; "Conclui sozinha quando o campo é preenchido" (só se a automação rodar no navegador); "Execuções 47/12/…" inventadas | §6.2 passo 3; Automações | `PipelineEditors.tsx`, `mocks/automations.ts` |
+| **B-17** | `POST /api/gate/check` tem escopo de leitura mas **grava** (cria tarefas) | token só `tasks:read` | `auth_scopes.go:217` × `checkGate` |
+| **B-18** | Vendedor lê, conclui, cria e apaga tarefas de registros que não são dele | §5 | `tasks:write` sem dono (D19) |
+
+**Cosmético / a confirmar**
+
+| ID | Bug | Observação |
+|---|---|---|
+| B-19 | "Em contato" aparece como "Novos" em "Ver leads" para funis criados pelo template | `Opportunities.tsx:201` compara `stageId.endsWith(':contato')`; ids do template terminam em `…:<n>-<chave>`. [C], não vi na tela |
+| B-20 | Lista de Automações repete os 12 passos de cada funil (45 linhas, "Lead entra no funil" ×4) sem mostrar o funil na linha | só `managedBy` no `title` do selo |
+| B-21 | `CustomSelect` exposto como `generic` na árvore de acessibilidade (não `combobox`/`button`) e a lista ficou aberta depois de escolher uma opção até clicar fora (pode ser atraso da captura) | [N] |
+| B-22 | `Opportunities` mostra id cru da etapa (`xyz:nada`) para etapa desconhecida | consequência de B-03(c) |
+
+### 7.2 Dívida técnica
+
+1. **`TaskWorkflow.tsx` (1098 linhas)**: nós (`StageNode`, `SourceNode`), grafo (`buildGraph`), dock de estrutura, painel de registro (`RecordTaskPanel`) e 20 hooks no mesmo módulo; sem teste; avisos de lint (`set-state-in-effect`, `exhaustive-deps`). Separar em `workflow/{nodes,graph,dock,record}.tsx` e testar `buildGraph`.
+2. **O mesmo gate escrito duas vezes** (`gate.ts` e `checkGate` em Go) e **duas resoluções de "em que etapa está"** (`stages.ts: legacyStage` × `loadPipelines`), que divergem (B-11). Uma só (no servidor) e o front só consome.
+3. **Estado local × servidor:** o navegador é o dono do estado e o servidor um disco: `PUT` do funil **inteiro** a cada edição (600 ms, `workflowDiff`), recarregar a lista num 409 **descarta edições locais pendentes** (`flushPipelines → reloadPipelines`), flag global `silent`, sem versão/ETag. Para multiusuário (equipe de vendas) é o ponto mais frágil.
+4. **Código de produção importa de `mocks/`** (`pipelinesStore`, `tasksStore`, `automationsStore`, `projectsStore`, `leadsStore`): o mock **é** o store.
+5. **Motor de automações (`events.ts`) 100% acoplado às stores** (lê/escreve `peopleStore`, `leadsStore`, `tasksStore`…). Não portável: a versão do servidor precisa ser reescrita em Go (e a do front vira só leitura de execuções).
+6. **`Pipeline.config` é JSON opaco** (fontes, campos, passos, templates): sem migração, sem consulta, 256 KB, e o servidor não pode agir sobre ele (ex.: um passo "ao ganhar → webhook").
+7. **`workflowSync`/`crmSync`** repetem o mesmo andaime (snapshot, diff, `schedule`, `silent`, seed): candidato a um núcleo comum.
+8. `Opportunity` não tem `pipelineId` (o funil é deduzido do id da etapa e de nome): o próprio WP0 e o `dominio.md` dependem disso; qualquer relatório por funil precisa de `LEFT JOIN PipelineStage`.
+9. Testes só unitários no admin (14 arquivos) e nenhum de integração admin × API.
+
+### 7.3 Desempenho
+
+- `loadPipelines` faz **5 varreduras completas** a cada `GET /api/pipelines` (todas as `PipelineStage`, todas as `StageRequirement`, `Task` agrupada, `Opportunity` agrupada), mesmo para `GET /api/pipelines/{id}` (a consulta de etapas/requisitos não filtra pelo funil). Tolerável hoje (dezenas de linhas); cresce com `Task` e `Opportunity`. O admin chama isso na abertura, depois de cada 409 e no `reloadPipelines`.
+- `GET /api/tasks` tem `LIMIT 500` **silencioso**: acima disso o admin hidrata a lista truncada e o `diffTasks` pode apagar localmente o que não veio. Sem paginação.
+- `checkGate` faz 3–4 consultas por requisito aplicável (sem transação): ok para 2 requisitos, mas a consulta é por tentativa de arrasto.
+- Semente do admin: POSTs **sequenciais** (3 funis, dezenas de pessoas) na primeira abertura.
+- Workflow: 10 nós / ~900 elementos de DOM com o funil padrão; sem virtualização; não medi com 40 etapas (§3.4). Bundle do admin avisa chunk grande (já no WP0).
+- `taskNotify` roda `check()` a cada `CHECK_MS` varrendo todas as tarefas (O(n) por tick) e dá `setInterval` sem `clearInterval`.
+
+### 7.4 Acessibilidade (observação em tela, 1440 e 390 px; contraste **não medido** com ferramenta)
+
+- ✅ Região do workflow rotulada (`role="region" aria-label="Workflow de …"`), botão do painel com `aria-pressed`, nós do React Flow focáveis, botões de ícone com `aria-label` ("Excluir Informar CNPJ", "Editar …").
+- ❌ **Mover card sem teclado** (HTML5 DnD); "Marcar como ganho/perdido" é a única alternativa.
+- ⚠️ `CustomSelect` não é `<select>` nem `combobox` na árvore de acessibilidade; em celular e leitor de tela vira texto genérico.
+- ⚠️ Painel lateral do workflow abre por padrão e cobre ~85% da tela a 390 px; o foco não vai para ele (não conferi `inert`).
+- ⚠️ Alvos de toque pequenos nos ícones de ordem/exclusão das etapas (≈ 16–24 px) a 390 px (estimado pela captura, 🟡 HIPÓTESE).
+- ⚠️ Estado só por cor em parte dos selos (Aberta/Lead/Ganha usam cor + texto; "Sem fonte" laranja sobre branco parece de contraste baixo, **não medido**).
+- ⚠️ Avisos do gate aparecem como toast + caixa; não conferi `aria-live`.
 
 ## 8. Recomendação para a Entrega 3
 
