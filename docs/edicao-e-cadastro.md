@@ -61,7 +61,7 @@ Isso não muda "Conectar fonte": conectar uma fonte cria a automação de criar 
 5. **Nada some sem rastro:** excluir é **arquivar** (volta atrás). Exclusão definitiva só de Admin, e só para registro sem histórico.
 6. **Toda mudança vira histórico** (quem, quando, campo, valor antigo e novo) e aparece na linha do tempo da ficha e na Auditoria.
 7. **Campos personalizados (jsonb `customData`) valem para todas as entidades**, não só para a oportunidade, e podem virar coluna, filtro e requisito de etapa.
-8. **Perfis:** Vendedor só edita o que é dele (seus leads e oportunidades); Gerente e Admin editam tudo; pipelines, fontes e tags só Admin e Gerente.
+8. **Perfis:** Vendedor só edita o que é dele (seus leads e oportunidades; **no servidor desde o WP3b**, escopos `leads:own`/`opportunities:own`, com o responsável sendo uma pessoa da equipe); Gerente e Admin editam tudo; pipelines, fontes e tags só Admin e Gerente.
 
 ## 4. Escopo por entidade
 

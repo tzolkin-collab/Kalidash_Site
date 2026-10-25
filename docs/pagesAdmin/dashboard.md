@@ -13,7 +13,11 @@ Hoje o dashboard calcula tudo no navegador a partir de `/api/leads` (as oportuni
 - **Funil por etapa**: quantidade e valor das etapas do primeiro funil ativo (sem as perdidas).
 - **Maiores oportunidades abertas**: as cinco de maior valor.
 
-Quando a API devolver totais por etapa e por período (fase 1 do plano), os números passam a vir prontos do servidor. Leads por origem, tarefas atrasadas e gráficos por período ainda não existem (previstos no WP3).
+Quando a API devolver totais por etapa e por período (fase 1 do plano), os números passam a vir prontos do servidor. 
+**Leads, origem e tarefas (WP3b, 24/10):** abaixo das métricas de oportunidade, duas seções que só mostram número com dado real (com os exemplos a seção explica o que falta ligar):
+- **Leads e origem** (`CRM_API=1`): leads ativos (e quantos ainda não foram abertos), novos no período, aguardando contato (ativos sem primeiro contato), qualificados (com descartados e taxa de qualificação) e a **origem por fonte** (inbound por fonte; outbound por quem trouxe; as menores viram "Outras").
+- **Tarefas** (`WORKFLOW_API=1`): abertas, atrasadas, a vencer em 7 dias, concluídas no período, e a lista das cinco mais atrasadas.
+Contas em `lib/dashboardMetrics.ts` (puro, `tests/dashboardMetrics.test.ts`). O Vendedor vê as métricas de leads e oportunidades **só do que é dele** (o servidor já filtra); as tarefas ainda não são filtradas por responsável. Gráficos por período seguem sem existir.
 
 **Galeria de demonstração (18/10):** os 13+ modelos de gráfico (Recharts) com números inventados ficam em `#/dashboard/demonstracao` (`pages/DashboardDemo.tsx`), com aviso de exemplo e um link discreto no rodapé do Dashboard. Nunca aparecem junto das métricas reais.
 

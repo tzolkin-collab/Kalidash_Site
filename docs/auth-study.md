@@ -393,7 +393,7 @@ Outras decisões: o **autor do histórico** (`ChangeLog.actor`) passa a ser o no
 
 ### Fora do escopo do WP1 (continua pendente)
 
-- Vendedor ver **só as oportunidades atribuídas a ele** (filtro por responsável na API): a matriz de `permissions.ts` não tem essa regra e o dono da oportunidade hoje é um texto livre.
+- ~~Vendedor ver só as oportunidades atribuídas a ele~~ → **feito no WP3b (24/10)**: ver "Escopos own" abaixo.
 - `AuditLog` genérico de segurança (login, convite, troca de perfil): hoje vai para o log do servidor (`AUTH: …`), não para uma tabela.
 - Limite de tentativas em `/auth/*` (o Google já faz o trabalho pesado) e rotação do `SESSION_SECRET` sem derrubar sessões.
 
@@ -426,7 +426,20 @@ Decisão do PO: em vez de depender só dos 3 perfis fixos, a permissão é **por
 | Administração | `team:manage` | — | — | ✅ | escrita em `/api/team*` (**só pessoas**) |
 | Administração | `keys:manage` | — | ✅ | ✅ | `/api/tokens*` (**só pessoas**) |
 
-O Vendedor tem exatamente o que a tabela antiga (`accAny`) lhe dava; Gerente e Admin, o que era deles. Presets: 11 / 18 / 19 escopos. Rotas públicas continuam públicas (`POST /api/public/leads`, leitura de artigo publicado e textos da galeria).
+O Vendedor tem o que a tabela antiga (`accAny`) lhe dava, **exceto** que leads e oportunidades são só os dele (WP3b, abaixo); Gerente e Admin, o que era deles. Presets: 11 / 23 / 24 escopos. Rotas públicas continuam públicas (`POST /api/public/leads`, leitura de artigo publicado e textos da galeria).
+
+### Escopos own (WP3b, 24/10/2026): o Vendedor vê só o que é dele
+
+| Escopo | Vendedor | Gerente | Admin | O que faz |
+|---|:-:|:-:|:-:|---|
+| `leads:own` | ✅ | ✅ | ✅ | Em `/api/crm/leads*`: lista, abre, edita, arquiva e cria **só os leads em que é o responsável** (`Lead.ownerMemberId`). |
+| `opportunities:own` | ✅ | ✅ | ✅ | Em `/api/leads*` (oportunidades, notas, mover etapa, `/api/emails/send`): idem, por `Opportunity.ownerMemberId`. |
+
+- Quem tem **só** o "own" de uma área passa nas rotas de `leads:read`/`leads:write` daquela área (`scopeSatisfied`) e o servidor restringe (`ownRestriction`, `own_scope.go`). Quem tem `leads:read`/`leads:write` (Gerente, Admin ou extra) vê tudo. O Vendedor deixou de ter `leads:read`/`leads:write` no preset; o Gerente os ganhou (hierarquia Vendedor ⊂ Gerente ⊂ Admin mantida).
+- Registro de outra pessoa ou sem responsável: **404** (como se não existisse). Criar fica **sempre em nome dele**, mesmo que o corpo peça outro responsável. Trocar o responsável (`ownerMemberId`/`ownerId`) é **403** para ele; o Gerente reatribui.
+- `leads:own` e `opportunities:own` são **só de pessoas** (`humanOnly`): token de API não tem "dono". Sem `AUTH_API=1` nada disto age.
+- **Responsável = pessoa da equipe:** `Opportunity.ownerMemberId` e `Lead.ownerMemberId` (colunas acrescentadas por `ensureCRMSchema`, `CRM_API=1`) apontam para `TeamMember.id`. A coluna antiga `Opportunity.ownerId` aponta para a tabela `User` do Prisma (com chave estrangeira) e segue valendo só como nome de quem já tinha. O texto livre `Lead.owner` continua sendo "quem trouxe" nos leads outbound.
+- **Não filtrado (conhecido):** tarefas (`/api/tasks`), histórico (`/api/crm/history`), pessoas e empresas continuam visíveis a quem tem `tasks:read`/`history:read`/`people:read`.
 
 ### Regras de edição (`PUT /api/team/{id}`, `POST /api/team`)
 

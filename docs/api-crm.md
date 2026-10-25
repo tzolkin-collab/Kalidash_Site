@@ -21,7 +21,7 @@ Sem `CRM_API` a API não toca no banco nem expõe as rotas. **Faça backup antes
 | `GET` · `POST /api/crm/companies` | Mesmos filtros (busca por nome e razão social). |
 | `GET` · `PUT` · `DELETE /api/crm/companies/{id}` | O `PUT` substitui também os **stakeholders**. |
 | `GET` · `POST /api/crm/leads` | Filtros `pipelineId`, `stageId`, `status`, `personId`, `companyId`, `q`, `archived`. |
-| `GET` · `PUT` · `DELETE /api/crm/leads/{id}` | Mover de etapa, marcar como visto, qualificar (`status: QUALIFIED` + `convertedOpportunityId`) e descartar passam pelo `PUT`. |
+| `GET` · `PUT` · `DELETE /api/crm/leads/{id}` | Mover de etapa, marcar como visto, qualificar (`status: QUALIFIED` + `convertedOpportunityId`) e descartar passam pelo `PUT`. **WP3b:** `ownerId` é o responsável na equipe (`TeamMember.id`, exige `AUTH_API=1`): `PUT` sem `ownerId` mantém o atual, `""` limpa; quem só tem `leads:own` só enxerga/edita os próprios (404 nos demais) e não reatribui (403). `POST /api/public/leads` passa a criar lead aqui com `CRM_API=1`. |
 | `GET` · `POST /api/crm/history` | Histórico de mudanças (ver abaixo). **Não existe `PUT` nem `DELETE`.** |
 
 ## Regras
