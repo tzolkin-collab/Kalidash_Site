@@ -1,36 +1,41 @@
-# Relatório — admin-pwa (PARCIAL: limite de uso atingido)
+# Relatório — admin-pwa
 
-## (a) Itens
+## (a) Itens (provados em Chrome real contra `npm run build` + `vite preview`, porta 4173, HTTP em localhost)
 | Item | Estado | Evidência |
 |---|---|---|
-| Manifesto (name, short_name, start_url, scope, standalone, theme/background, id, lang) | ✅ | `dist/manifest.webmanifest` do build: lang era `en` e não havia `id`; agora `pt-BR` e `id: "/"`. Não conferido no navegador. |
-| Ícones 192/512 + maskable | ✅ | maskable 512 refeito com área segura (logo a 80%), maskable 192 criado; PNGs gerados da marca existente. |
-| apple-touch-icon + metas mobile | ✅ | `apple-touch-icon.png` 180px; `theme-color`, `lang=pt-BR`, metas mobile no `index.html`. |
-| Precache do app shell | ✅ | build: 24 entradas (3,7 MiB); chunk `Emails-*` fica de fora (editor de e-mail não funciona offline). |
-| Fallback SPA offline | ⚠️ | `NavigationRoute` para `index.html` presente no `sw.js` gerado; **não testado offline no navegador**. |
-| Segurança do cache (API/auth NetworkOnly) | ✅ no código / ⚠️ sem teste no navegador | `sw.js` gerado contém `registerRoute(({url})=>url.origin!==self.location.origin||/^\/(api\|auth)\//..., NetworkOnly)` e `denylist:[/^\/api\//,/^\/auth\//]`. Não há outro runtimeCaching: só o precache existe. |
-| Logout limpa cache | ✅ (código) | `lib/cacheClean.ts` apaga todo cache que não seja `precache`; chamado em `logout()`. Não testado no navegador. |
-| Atualização | ✅ (código) | `registerType: 'prompt'`; aviso "Atualizar" em `PwaPrompt.tsx`; checagem a cada 1 h. Antes era autoUpdate silencioso (risco de perder edição). Não visto no navegador. |
-| Aviso de offline | ✅ (código) | faixa "Sem conexão" em `PwaPrompt.tsx`. |
-| SW de dev em porta alternativa (B-F6) | ✅ (código) | `devOptions.enabled` só com `PWA_DEV=1`. |
-| Instalabilidade Chrome / janela standalone | ❌ não verificado | exige HTTPS em produção + Chrome real. |
+| Manifesto | ✅ | `fetch('/manifest.webmanifest')`: `id:"/"`, `lang:"pt-BR"`, `display:"standalone"`, scope/start_url `/`, 4 ícones (any 192/512, maskable 192/512). Antes: `lang:"en"`, sem `id`. |
+| Ícones, apple-touch-icon, metas | ✅ | maskable com área segura (logo a 80%); `apple-touch-icon.png` 180; `<html lang="pt-BR">`, theme-color `#28183b`. Não vi o ícone instalado (precisa de instalação real). |
+| SW registrado no build | ✅ | `getRegistration()`: scope `http://localhost:4173/`, `active: activated`; `controller` ativo após o 2º load. |
+| Precache do app shell | ✅ | `caches.keys()` = só `workbox-precache-v2-http://localhost:4173/`, 24 entradas (index.html, assets, ícones, manifesto). |
+| Segurança: API/auth fora do cache | ✅ | Com a página controlada pelo SW: `fetch('/api/leads')`, `fetch('/auth/me')` e `fetch('http://localhost:8080/auth/me')` (cross-origin; recusado, sem API local) → depois, 24 entradas, nenhuma com `/api`, `/auth` ou `8080`. `sw.js` gerado tem `NetworkOnly` para outra origem e `/api|auth` e `denylist` na navegação. |
+| Logout limpa cache | ✅ | `lib/cacheClean.ts` + `tests/cacheClean.test.ts` (apaga tudo menos precache; não quebra sem Cache Storage). O clique de logout em si não foi exercitado (sem login real). |
+| Rota profunda offline | ✅ | Derrubei o servidor de preview e recarreguei `/pipelines` (rota inexistente): o SW serviu o app shell completo (menu e a tela "Página não encontrada" do próprio app). |
+| Aviso de nova versão | ✅ | Rebuild com `<title>` alterado + servidor novo: `reg.update()` → `waiting:true` e `role=alert` "Há uma versão nova do Kalidash…" com botão "Atualizar". Clique: recarregou, título novo, `waiting:false`, sem aviso, 24 entradas. (A mudança de título foi só para o teste e foi revertida.) |
+| Faixa "Sem conexão" | ⚠️ | Só no código: depende de `navigator.onLine`, que não mudou com o servidor derrubado. Não testado com o DevTools offline. |
+| SW de dev em porta alternativa (B-F6) | ✅ (código) | `devOptions.enabled` só com `PWA_DEV=1`; não rodei o dev server. |
+| Instalabilidade / janela standalone | ⚠️ | Manifesto e SW atendem os critérios; instalar de fato e a janela standalone não foram testados. Produção precisa ser HTTPS. |
+| Painel de navegador embutido | — | Não registra service workers (erro "unknown error fetching the script" mesmo com `sw.js` 200); por isso a prova foi no Chrome real. |
 
-Testes: `tsc -b` ok, `npm test` 65/65, `npm run build` exit 0.
+Testes: `tsc -b` ok, `npm test` 67/67, `npm run build` exit 0.
 
 ## (b) Arquivos
-`apps/admin/vite.config.ts`, `index.html`, `tsconfig.app.json`, `package.json` (+`workbox-window@7.4.1`), `pnpm-lock.yaml` (3 linhas), `public/` (3 PNGs), `src/main.tsx`, `src/lib/pwa.ts`, `src/lib/cacheClean.ts`, `src/lib/auth.ts` (1 linha no logout), `src/components/PwaPrompt.tsx`.
+`apps/admin/vite.config.ts`, `index.html`, `tsconfig.app.json`, `package.json` (+`workbox-window@7.4.1`), `pnpm-lock.yaml` (3 linhas), `public/` (3 PNGs), `src/main.tsx`, `src/lib/pwa.ts`, `src/lib/cacheClean.ts`, `src/lib/auth.ts` (1 linha no logout), `src/components/PwaPrompt.tsx`, `tests/cacheClean.test.ts`, `docs/pwa.md`.
 
 ## (c) Commits
-`9dd3a13` (ícones, index.html), `c910e32` (SW, aviso, cache, deps).
+`9dd3a13` (ícones, index.html), `c910e32` (SW, aviso, cache, deps), este relatório + docs + teste.
 
 ## (d) Ficou de fora
-- Prova no navegador (preview, `getRegistration`, `caches.keys()`, offline, aviso de atualização).
-- `docs/pwa.md` (como instalar/atualizar, o que é cacheado) e atualização de `docs/pagesAdmin/settings.md`.
-- Teste de unidade do `cacheClean`.
+- Tela de e-mails offline (chunk > 2 MB fora do precache).
+- Push notifications (planejado nos docs, não faz parte deste pacote).
+- Página offline dedicada: o app shell serve de fallback.
 
 ## (e) Riscos
-- Offline com a API logada: `initAuth` cai em `status: 'off'` (trata "API fora do ar" como "sem login") e o app abre sem a tela de login, só com a faixa de offline. Isso está em `auth.ts`/`App.tsx`; precisa de decisão do PO.
-- `theme_color` mudou de `#635bff` para `#28183b` (cor da marca): confirmar com o PO.
+- Offline com sessão: `initAuth` cai em `status:'off'` (trata "API fora do ar" como "sem login") e o app abre sem a tela de login, só com o shell. Está em `auth.ts`/`App.tsx`; decisão do PO.
+- `theme_color`/`background_color` passaram de `#635bff`/`#ffffff` para `#28183b` (cor da marca): confirmar.
+- Quem tem o app aberto só vê a versão nova ao clicar em "Atualizar" (ou fechar todas as abas).
 
-## (f) Gustavo
-Em Chrome real, com o build em HTTPS: instalar pelo menu, abrir standalone, DevTools > Application > Cache Storage (só precache), offline numa rota profunda, e publicar uma versão nova para ver o aviso.
+## (f) Gustavo, num Chrome real, em HTTPS
+1. Instalar pelo menu e abrir a janela standalone; ver o ícone (maskable no Android).
+2. DevTools > Application > Cache Storage: só `workbox-precache`; Service Workers > Offline e abrir uma rota profunda.
+3. Logar, navegar, sair e confirmar que o Cache Storage continua só com o precache.
+4. Publicar uma versão nova e ver o aviso "Atualizar".
