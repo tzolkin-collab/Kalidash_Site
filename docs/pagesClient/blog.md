@@ -21,3 +21,12 @@
 **Ordem da galeria (Q14).** `GET /api/blog/articles?published=true` (pública) devolve: 1º os artigos cujos cartões (`articleCard`, `props.articleId`) estão salvos no `bodyJson` do `blog-global`, na ordem dos cartões (repetidos, rascunhos e ids apagados são ignorados); 2º **todo** artigo publicado fora dessa lista, do mais novo para o mais antigo (`publishedAt`, senão `createdAt`); por último o próprio `blog-global`. Se a Galeria nunca teve cartões salvos, vale a ordem de sempre (destaque, depois data). A lista do admin (sem `published=true`) não muda.
 
 **O que o site precisa ler (BC-0b, quem faz o site):** usar a ordem da lista pública como a ordem final da grade, **sem** `flatMap`/filtro por cartões (hoje `blog/page.tsx` descarta o que não está nos cartões); tirar o `blog-global` da grade e dar 404 em `/blog/blog-global`; ler o `blog-global` por slug só para o hero. Capas de template chegam como caminho relativo (`/arquivo.png`): o site resolve na própria origem, o admin resolve contra `VITE_SITE_URL`.
+
+## O que o site lê (BC-0b, 24/10/2026)
+
+- **`/blog`**: `GET /api/blog/articles?published=true` na ordem recebida é a ordem final da grade (sem `flatMap`/filtro por cartões); itens com slug `blog-global` são removidos da grade. O `blog-global` é lido por slug (`/api/blog/article?slug=blog-global`) só para o hero (`body`) e para o SEO da galeria (`seoTitle`, `seoDescription`; fallback ao texto fixo). Canonical `SITE_URL/blog`.
+- **`/blog/blog-global`**: 404 (página, `generateStaticParams`, `generateMetadata` com `noindex`, e fora do sitemap).
+- **`/blog/[slug]`**: `<title>` = `seoTitle` ou `title` (se já contém "Kalidash", usa `title.absolute`, sem o sufixo do layout); `description` = `seoDescription` ou `excerpt`; `alternates.canonical`; Open Graph completo (`og:image` = `ogImageUrl` → `coverImageUrl` → `/kalidash-hero-sculpture.png`, `og:site_name`, `og:locale`, `article:published_time/modified_time/author`); Twitter `summary_large_image`; JSON-LD `Article` + `BreadcrumbList` (`lib/blogSeo.ts`).
+- **Campos do BC-1 (opcionais, ainda não existem na API)**: `noindex` (→ `robots: noindex, follow` na página e some do sitemap), `ogImageUrl` e `canonicalUrl`. Quando a API passar a enviá-los, o site já os respeita sem mudança.
+- Compartilhar (`ShareButtons`) recebe a URL absoluta (`SITE_URL` + slug) do servidor; sem `window.location` na renderização.
+- Capa do artigo: `width/height`, `fetchpriority="high"`; cartões e relacionados: `width/height`, `loading="lazy"`.

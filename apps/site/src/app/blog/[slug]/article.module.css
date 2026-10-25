@@ -486,7 +486,6 @@
 .body table > :is(thead, tbody, tfoot) {
   display: table;
   width: 100%;
-  min-width: max-content;
   border-collapse: separate;
   border-spacing: 0;
 }
