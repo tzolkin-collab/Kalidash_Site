@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, Copy, Link2, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Copy, FlaskConical, Link2, Plus, Trash2 } from 'lucide-react';
 import type { AutomationCategory, LifecycleTemplate, Pipeline, Step } from '../domain';
 import { useShell } from '../lib/shell';
 import { actionText } from '../lib/steps';
@@ -17,6 +17,8 @@ type Tab = 'automations' | 'templates' | 'catalog' | 'runs';
 /** Uma linha da lista: automação solta ou passo do ciclo de vida de uma pipeline. */
 type Row = AutomationRow & { stepOf?: { pipelineId: string; stepId: string } };
 
+/** Selo de toda automação: nada roda no servidor (D34, B-16). */
+const NOT_ON_SERVER = 'Exemplo, não roda no servidor';
 const TEMPLATE_NAMES = ['Boas-vindas (Inbound)', 'Follow-up Reunião', 'Boas-vindas ao cliente'];
 const when = (iso?: string) => (iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '—');
 const categoryOf = (triggerId: string): AutomationCategory => EVENTS.find((e) => e.id === triggerId)?.category ?? 'Oportunidades';
@@ -43,6 +45,7 @@ export default function Automations() {
   const [tab, setTab] = useState<Tab>('automations');
   const [category, setCategory] = useState<'' | AutomationCategory>('');
   const [origin, setOrigin] = useState<'' | 'MANUAL' | 'MANAGED'>('');
+  const [funnel, setFunnel] = useState('');
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState<Row | 'new' | null>(null);
   const [templateId, setTemplateId] = useState<string | null>(null);
@@ -54,8 +57,9 @@ export default function Automations() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return rows.filter((a) => (!category || a.category === category) && (!origin || a.origin === origin) && (!q || `${a.name} ${a.trigger} ${a.action}`.toLowerCase().includes(q)));
-  }, [rows, category, origin, search]);
+    return rows.filter((a) => (!category || a.category === category) && (!origin || a.origin === origin) && (!funnel || a.pipeline === funnel) && (!q || `${a.name} ${a.trigger} ${a.action} ${a.pipeline}`.toLowerCase().includes(q)));
+  }, [rows, category, origin, funnel, search]);
+  const funnels = useMemo(() => [...new Set(rows.map((a) => a.pipeline))], [rows]);
 
   const toggle = (row: Row, active: boolean) => {
     if (row.stepOf) {
@@ -78,10 +82,10 @@ export default function Automations() {
     <Page>
       <PageHeader
         title="Automações"
-        subtitle="Tudo o que o sistema faz sozinho, classificado por assunto. As gerenciadas nascem por trás dos panos: ao conectar uma fonte, marcar um campo como tarefa ou copiar um template de ciclo de vida para a pipeline."
+        subtitle="Os passos de ciclo de vida de cada funil e as automações avulsas, por assunto. Hoje todas rodam só neste navegador, com o admin aberto: nenhuma roda no servidor. Os passos nascem ao copiar um template de ciclo de vida para o funil."
         actions={<button type="button" className="btn btn-solid" onClick={() => setEditing('new')}><Plus size={14} /> Nova automação</button>}
       />
-      <SampleBanner phase={5} />
+      <SampleBanner>Nenhuma automação roda no servidor: elas só executam neste navegador, enquanto o admin está aberto, e o que chega por formulário no site não dispara nenhuma. As automações de exemplo somem ao recarregar e não há histórico de execuções do servidor.</SampleBanner>
 
       <Tabs
         tabs={[{ id: 'automations' as Tab, label: 'Automações', count: rows.length }, { id: 'templates' as Tab, label: 'Templates de ciclo de vida', count: templates.length }, { id: 'catalog' as Tab, label: 'Catálogo' }, { id: 'runs' as Tab, label: 'Execuções', count: runs.length }]}
@@ -106,12 +110,16 @@ export default function Automations() {
               <option value="MANUAL">Manuais</option>
               <option value="MANAGED">Gerenciadas ({managedCount})</option>
             </CustomSelect>
+            <CustomSelect className="select select-sm" value={funnel} onChange={(e) => setFunnel(e.target.value)} aria-label="Filtrar por funil">
+              <option value="">Todos os funis</option>
+              {funnels.map((n) => <option key={n} value={n}>{n}</option>)}
+            </CustomSelect>
           </div>
 
           <div className="table-card">
             <div className="table-scroll">
               <table className="data-table data-table-cards">
-                <thead><tr><th>Automação</th><th>Quando → Então</th><th>Última execução</th><th>Execuções</th><th style={{ width: '70px' }}>Ativa</th></tr></thead>
+                <thead><tr><th>Automação</th><th>Quando → Então</th><th>Última execução (nesta aba)</th><th>Execuções (nesta aba)</th><th style={{ width: '70px' }}>Ativa</th></tr></thead>
                 <tbody>
                   {filtered.map((a) => (
                     <tr key={a.id} className="clickable" onClick={() => setEditing(a)} style={{ opacity: a.active ? 1 : 0.6 }}>
@@ -121,6 +129,8 @@ export default function Automations() {
                           <span className="tag-row" style={{ marginTop: '4px' }}>
                             <Badge tone={a.origin === 'MANAGED' ? 'accent' : 'neutral'} title={a.managedBy}>{a.origin === 'MANAGED' ? <><Link2 size={10} /> {a.stepOf ? 'Passo do ciclo de vida' : 'Gerenciada'}</> : 'Manual'}</Badge>
                             <Badge>{a.category}</Badge>
+                            <Badge title="Funil a que a automação pertence">{a.pipeline === 'Todas' ? 'Todos os funis' : a.pipeline}</Badge>
+                            <Badge tone="warning" title="Roda só neste navegador, com o admin aberto. O servidor não executa automações."><FlaskConical size={10} /> {NOT_ON_SERVER}</Badge>
                           </span>
                         </div>
                       </td>
@@ -129,7 +139,7 @@ export default function Automations() {
                         <div className="text-xs text-muted">{a.detail}</div>
                       </td>
                       <td className="text-muted" data-label="Última execução">{when(a.lastRun)}</td>
-                      <td data-label="Execuções">{a.runs}</td>
+                      <td data-label="Execuções (nesta aba)">{a.runs > 0 ? a.runs : '—'}</td>
                       <td data-label="Ativa" onClick={(e) => e.stopPropagation()}><Switch checked={a.active} onChange={(v) => toggle(a, v)} label={`Ativar ${a.name}`} /></td>
                     </tr>
                   ))}
@@ -179,6 +189,7 @@ export default function Automations() {
             <table className="data-table data-table-cards">
               <thead><tr><th>Quando</th><th>Automação</th><th>Evento</th><th>Resultado</th><th>Detalhe</th></tr></thead>
               <tbody>
+                {runs.length === 0 && <tr><td colSpan={5}><EmptyState title="Nenhuma execução nesta aba">As automações só rodam neste navegador, com o admin aberto, e o registro some ao recarregar. O servidor não guarda histórico de execuções.</EmptyState></td></tr>}
                 {runs.map((r) => (
                   <tr key={r.id}>
                     <td className="text-muted" data-label="Quando">{when(r.at)}</td>
@@ -385,7 +396,7 @@ function AutomationPanel({ automation, pipelineNames, onClose, onSave, onDelete,
             <dt>Quando</dt><dd>{automation?.trigger}</dd>
             <dt>Então</dt><dd>{automation?.detail}</dd>
             <dt>Pipeline</dt><dd>{automation?.pipeline}</dd>
-            <dt>Execuções</dt><dd>{automation?.runs} · última em {when(automation?.lastRun)}</dd>
+            <dt>Execuções (nesta aba)</dt><dd>{automation?.runs ? `${automation.runs} · última em ${when(automation.lastRun)}` : 'Nenhuma ainda'}</dd>
           </dl>
         </div>
       ) : (

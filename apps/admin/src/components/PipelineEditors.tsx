@@ -236,7 +236,7 @@ export function RequirementPanel({ pipeline, requirement, stageId: presetStage, 
     return (
       <SidePanel
         title="Quer avisar alguém?"
-        subtitle={`A tarefa "${saved.label}" foi ${editing ? 'salva' : 'criada'}. O caminho simples já está pronto; o avançado cria uma automação de verdade.`}
+        subtitle={`A tarefa "${saved.label}" foi ${editing ? 'salva' : 'criada'}. O caminho simples já está pronto; o avançado cria uma automação de exemplo, que só roda neste navegador e não roda no servidor.`}
         onClose={onClose}
         footer={<><button type="button" className="btn" onClick={onClose}>Não, só a tarefa</button><button type="button" className="btn btn-solid" onClick={createAutomation}><Sparkles size={14} /> Criar automação</button></>}
       >
@@ -244,10 +244,10 @@ export function RequirementPanel({ pipeline, requirement, stageId: presetStage, 
           {saved.notifyAssignee && (
             <div className="task-callout" role="status">
               <Bell size={16} />
-              <div><strong>Caminho simples já ligado.</strong><div className="text-xs">{saved.assignee} recebe um push quando esta tarefa nascer. Não precisa configurar nada aqui.</div></div>
+              <div><strong>Caminho simples já ligado.</strong><div className="text-xs">{saved.assignee} recebe um aviso no admin quando esta tarefa nascer, só enquanto o admin estiver aberto no navegador dessa pessoa. Ainda não há envio pelo servidor.</div></div>
             </div>
           )}
-          <p className="text-sm text-muted" style={{ margin: 0 }}>Caminho avançado: escolha o evento — a ação (notificar {saved.assignee || 'o responsável'}) já vem pronta.</p>
+          <p className="text-sm text-muted" style={{ margin: 0 }}>Caminho avançado (exemplo, só neste navegador): escolha o evento; a ação (notificar {saved.assignee || 'o responsável'}) já vem pronta.</p>
           <div className="vs-seg" role="radiogroup" aria-label="Evento">
             {events.map((e) => (
               <button key={e.id} type="button" role="radio" aria-checked={event === e.id} className={`vs-seg-btn ${event === e.id ? 'active' : ''}`} onClick={() => setEvent(e.id)}>{e.label}</button>
@@ -274,7 +274,7 @@ export function RequirementPanel({ pipeline, requirement, stageId: presetStage, 
       }
     >
       <div className="form-stack">
-        <Field label="Tipo" hint={kind === 'FIELD' ? 'Conclui sozinha quando o campo é preenchido.' : 'Uma ação que alguém da equipe faz e marca como feita.'}>
+        <Field label="Tipo" hint={kind === 'FIELD' ? 'Conclui quando o campo é preenchido na ficha, com o admin aberto no navegador. O servidor ainda não confere o campo.' : 'Uma ação que alguém da equipe faz e marca como feita.'}>
           <div className="vs-seg" role="radiogroup" aria-label="Tipo de tarefa">
             <button type="button" role="radio" aria-checked={kind === 'FIELD'} className={`vs-seg-btn ${kind === 'FIELD' ? 'active' : ''}`} onClick={() => setKind('FIELD')}>Campo do cadastro</button>
             <button type="button" role="radio" aria-checked={kind === 'ACTION'} className={`vs-seg-btn ${kind === 'ACTION' ? 'active' : ''}`} onClick={() => setKind('ACTION')}>Ação</button>
@@ -317,7 +317,7 @@ export function RequirementPanel({ pipeline, requirement, stageId: presetStage, 
           linked ? (
             <div className="task-callout" role="status"><Link2 size={16} /><div><strong>Automação ligada</strong><div className="text-xs">{linked.name} — {linked.trigger}. Edite em Automações; ela some junto com a tarefa.</div></div></div>
           ) : (
-            <button type="button" className="btn" disabled={!valid} onClick={() => { const req = build(); onSave(req); offerFor(req); }}><Sparkles size={14} /> Criar automação a partir desta tarefa</button>
+            <button type="button" className="btn" disabled={!valid} onClick={() => { const req = build(); onSave(req); offerFor(req); }}><Sparkles size={14} /> Criar automação de exemplo a partir desta tarefa</button>
           )
         )}
       </div>

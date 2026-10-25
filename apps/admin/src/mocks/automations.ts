@@ -1,7 +1,8 @@
 import { createStore } from '../lib/store';
 import type { Automation, AutomationCategory } from '../domain';
 
-// Dados de exemplo (fase 5 do plano). Ver docs/dominio.md §9.
+// Catálogo (eventos e ações) e automações de EXEMPLO. Nada daqui roda no servidor: o que executa, executa só no
+// navegador aberto (events.ts). As contagens de execução e os logs inventados foram removidos (D34, B-16).
 
 export const CATEGORIES: AutomationCategory[] = ['Fontes', 'Cadastros', 'Leads', 'Oportunidades', 'Pendências', 'Ciclo de vida', 'Notificações', 'E-mails'];
 
@@ -54,23 +55,15 @@ export const actionLabel = (id: string) => ACTIONS.find((a) => a.id === id)?.lab
 export type AutomationRow = Automation & { triggerId: string; actionId: string; detail: string; pipeline: string };
 
 export const automationsStore = createStore<AutomationRow[]>([
-  { id: 'au1', name: 'Criar lead a partir do formulário da LP Consultoria', category: 'Fontes', trigger: 'Formulário enviado', action: 'Criar lead', triggerId: 'formulario.enviado', actionId: 'lead.criar', detail: 'Pipeline Q4 Sales Pipeline, etapa Novos', pipeline: 'Q4 Sales Pipeline', origin: 'MANAGED', managedBy: 'Conectar fonte: Formulário da LP Consultoria', active: true, lastRun: '2026-09-27T07:58:00Z', runs: 47 },
-  { id: 'au2', name: 'Importar contatos da planilha de parcerias', category: 'Fontes', trigger: 'Formulário enviado', action: 'Criar contato (pessoa)', triggerId: 'formulario.enviado', actionId: 'contato.criar', detail: 'Pipeline Parcerias B2B, etapa Novos', pipeline: 'Parcerias B2B', origin: 'MANAGED', managedBy: 'Conectar fonte: Importação de planilha', active: true, lastRun: '2026-09-22T16:20:00Z', runs: 12 },
-  { id: 'au3', name: 'Tarefa "Informar CNPJ" ao entrar em Negociação', category: 'Pendências', trigger: 'Oportunidade mudou de etapa', action: 'Criar tarefa', triggerId: 'oportunidade.mudou_de_etapa', actionId: 'tarefa.criar', detail: 'Tag Dados da empresa, prazo de 3 dias', pipeline: 'Q4 Sales Pipeline', origin: 'MANAGED', managedBy: 'Marcar como tarefa: CNPJ da empresa', active: true, lastRun: '2026-09-25T10:12:00Z', runs: 9 },
-  { id: 'au6', name: 'Resumo por e-mail ao ganhar', category: 'Oportunidades', trigger: 'Oportunidade ganha', action: 'Enviar e-mail com um modelo', triggerId: 'oportunidade.ganha', actionId: 'email.enviar', detail: 'Modelo: Follow-up Reunião', pipeline: 'Todas', origin: 'MANUAL', active: true, lastRun: '2026-09-25T10:15:00Z', runs: 6 },
-  { id: 'au8', name: 'Cobrar tarefas atrasadas', category: 'Pendências', trigger: 'Tarefa atrasada', action: 'Notificar alguém da equipe', triggerId: 'tarefa.atrasada', actionId: 'notificar.equipe', detail: 'Responsável da tarefa', pipeline: 'Todas', origin: 'MANUAL', active: true, lastRun: '2026-09-27T06:00:00Z', runs: 22 },
+  { id: 'au1', name: 'Criar lead a partir do formulário da LP Consultoria', category: 'Fontes', trigger: 'Formulário enviado', action: 'Criar lead', triggerId: 'formulario.enviado', actionId: 'lead.criar', detail: 'Pipeline Q4 Sales Pipeline, etapa Novos', pipeline: 'Q4 Sales Pipeline', origin: 'MANAGED', managedBy: 'Conectar fonte: Formulário da LP Consultoria', active: true, runs: 0 },
+  { id: 'au2', name: 'Importar contatos da planilha de parcerias', category: 'Fontes', trigger: 'Formulário enviado', action: 'Criar contato (pessoa)', triggerId: 'formulario.enviado', actionId: 'contato.criar', detail: 'Pipeline Parcerias B2B, etapa Novos', pipeline: 'Parcerias B2B', origin: 'MANAGED', managedBy: 'Conectar fonte: Importação de planilha', active: true, runs: 0 },
+  { id: 'au3', name: 'Tarefa "Informar CNPJ" ao entrar em Negociação', category: 'Pendências', trigger: 'Oportunidade mudou de etapa', action: 'Criar tarefa', triggerId: 'oportunidade.mudou_de_etapa', actionId: 'tarefa.criar', detail: 'Tag Dados da empresa, prazo de 3 dias', pipeline: 'Q4 Sales Pipeline', origin: 'MANAGED', managedBy: 'Marcar como tarefa: CNPJ da empresa', active: true, runs: 0 },
+  { id: 'au6', name: 'Resumo por e-mail ao ganhar', category: 'Oportunidades', trigger: 'Oportunidade ganha', action: 'Enviar e-mail com um modelo', triggerId: 'oportunidade.ganha', actionId: 'email.enviar', detail: 'Modelo: Follow-up Reunião', pipeline: 'Todas', origin: 'MANUAL', active: true, runs: 0 },
+  { id: 'au8', name: 'Cobrar tarefas atrasadas', category: 'Pendências', trigger: 'Tarefa atrasada', action: 'Notificar alguém da equipe', triggerId: 'tarefa.atrasada', actionId: 'notificar.equipe', detail: 'Responsável da tarefa', pipeline: 'Todas', origin: 'MANUAL', active: true, runs: 0 },
   { id: 'au9', name: 'Reenviar e-mails que falharam', category: 'E-mails', trigger: 'E-mail falhou', action: 'Enviar e-mail com um modelo', triggerId: 'email.falhou', actionId: 'email.enviar', detail: 'Mesmo modelo, uma nova tentativa', pipeline: 'Todas', origin: 'MANUAL', active: false, runs: 0 },
 ]);
 
 export type RunEntry = { id: string; at: string; automation: string; event: string; result: 'OK' | 'FAILED' | 'SCHEDULED'; note: string };
 
-export const runsStore = createStore<RunEntry[]>([
-  { id: 'r1', at: '2026-09-27T08:02:00Z', automation: 'Boas-vindas ao lead inbound', event: 'lead.criado', result: 'OK', note: 'E-mail enviado para renata.moura@exemplo.com.br' },
-  { id: 'r2', at: '2026-09-27T07:58:00Z', automation: 'Criar lead a partir do formulário da LP Consultoria', event: 'formulario.enviado', result: 'OK', note: 'Lead "Renata Moura" criado em Novos' },
-  { id: 'r3', at: '2026-09-27T07:58:00Z', automation: 'Avisar o vendedor quando um lead entra', event: 'lead.criado', result: 'OK', note: 'Notificação entregue a Diego Costa' },
-  { id: 'r4', at: '2026-09-27T06:00:00Z', automation: 'Cobrar tarefas atrasadas', event: 'tarefa.atrasada', result: 'OK', note: '2 tarefas em atraso, 2 avisos' },
-  { id: 'r5', at: '2026-09-26T17:11:00Z', automation: 'Boas-vindas ao lead inbound', event: 'lead.criado', result: 'FAILED', note: 'Provedor recusou o endereço contato@estudiolumen.com.br' },
-  { id: 'r6', at: '2026-09-26T09:00:00Z', automation: 'Alerta de oportunidade parada', event: 'oportunidade.parada', result: 'OK', note: '"Mentoria Individual" parada há 8 dias em Qualificação' },
-  { id: 'r7', at: '2026-09-25T10:15:00Z', automation: 'Resumo por e-mail ao ganhar', event: 'oportunidade.ganha', result: 'OK', note: 'E-mail enviado (Treinamento de Equipe)' },
-  { id: 'r8', at: '2026-09-25T10:12:00Z', automation: 'Tarefa "Informar CNPJ" ao entrar em Negociação', event: 'oportunidade.mudou_de_etapa', result: 'OK', note: 'Tarefa criada para Marina Alves' },
-]);
+/** Execuções registradas por events.ts nesta aba do navegador. Começa vazia: nada aqui é histórico real do servidor. */
+export const runsStore = createStore<RunEntry[]>([]);
