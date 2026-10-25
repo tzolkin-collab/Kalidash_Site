@@ -5,7 +5,11 @@
 
 ## 0. Resumo executivo
 
-_(preencher no fim)_
+- **Funis e tarefas gravam de verdade** (com `WORKFLOW_API=1`): criar pelo template, adicionar etapa/requisito, fontes, tarefas de oportunidade, recarregar mantém. O gate barra e libera como o doc diz **no caminho feliz** (409 reverte o card e avisa), e "Informar CNPJ" existe na etapa "Assinatura do contrato". 
+- **A integridade vive na tela, não no servidor**: dá para furar o gate (criar direto na etapa, mudar de funil, Lead, "concluir" sem cumprir), apagar etapa onde há leads e deixar tarefa órfã. Contagens do card divergem do Kanban (legados fora; "bloqueados" conta tarefas).
+- **Automações não existem no servidor.** Rodam só no navegador aberto, em memória (somem no F5); 9 dos 20 eventos nunca são emitidos (inclusive `oportunidade.ganha`), e-mail e webhook são simulados, e **o lead que chega por formulário não dispara nada**.
+- **"Qualificar lead" corrompe o dado** (lead `QUALIFIED` apontando para oportunidade inexistente) e o admin **semeia exemplos no banco real** se abrir com tabelas vazias: os dois precisam ser resolvidos antes de ligar as flags em produção.
+- **Entrega 3:** hoje existem só as colunas (`firstContactAt`, `discardReason`, tags); faltam dedup lead+projeto, rodízio, SLA, motivo de perda, catálogo persistido e webhooks de saída. Recomendo **outbox + tabela de jobs no MySQL com workers em goroutine** (não Redis) e 8 pacotes (~27,5 dias, caminho crítico 17): ver §8. Provas: API em MySQL em memória (110 testes Go passam, admin 72/72), nada de produção tocado.
 
 ## 1. Modelo e fluxo
 
@@ -439,10 +443,105 @@ Fonte: `auth_scopes.go` (`routeScope`, `sellerScopes`, `managerScopes`), `own_sc
 - ⚠️ Estado só por cor em parte dos selos (Aberta/Lead/Ganha usam cor + texto; "Sem fonte" laranja sobre branco parece de contraste baixo, **não medido**).
 - ⚠️ Avisos do gate aparecem como toast + caixa; não conferi `aria-live`.
 
-## 8. Recomendação para a Entrega 3
+## 8. Recomendação para a Entrega 3 (09 a 23/11/2026)
 
-_(pendente)_
+### 8.1 Decisão técnica: como executar automações no servidor
 
-## Ficou de fora / Riscos / Perguntas ao PO
+Escala real: uma API Go em **uma** VPS, dezenas de leads/dia, centenas de execuções/dia, **sem Redis hoje**, MySQL já é a única dependência (`docs/architecture-decisions.md` §3 já escolheu "goroutines nativas, zero dependência extra" para webhooks).
 
-_(pendente)_
+| | **A. Outbox + tabela de jobs no MySQL, workers em goroutine (polling)** | **B. Fila externa (Redis + BullMQ ou, em Go, `asynq`)** |
+|---|---|---|
+| Consistência | evento e mudança de negócio na **mesma transação** (outbox): não perde nem duplica por falha entre "gravou" e "enfileirou" | escrita dupla (MySQL e Redis): precisa de outbox mesmo assim, ou aceita perder/duplicar |
+| Infra nova | **nenhuma** | Redis na VPS (memória, persistência AOF, backup, monitoramento, segurança, atualização) |
+| Linguagem | Go puro | **BullMQ é biblioteca Node**: usar com a API Go exige um worker Node à parte (mais um serviço) ou trocar por `asynq` |
+| Retry/backoff/agendamento | `attempts`, `runAt`, `nextAttemptAt`, backoff exponencial em SQL | nativo |
+| Visibilidade | `SELECT … FROM Job` (e o admin lê a mesma tabela para "Execuções") | painel da fila (bull-board/asynqmon) à parte |
+| Throughput | centenas/s com polling a cada 1–2 s, claim por `UPDATE … WHERE status='pending' AND runAt<=now() ORDER BY id LIMIT n` (portável: MySQL 8, MariaDB, e o MySQL em memória dos testes; `SKIP LOCKED` fica opcional) | milhares/s |
+| Várias instâncias da API | funciona com o claim atômico (lock por `lockedUntil`) | funciona |
+| Teste | o mesmo `TEST_DSN` dos demais; sem container extra (hoje o Docker nem está instalado: WP3a bloqueado) | exige Redis nos testes |
+| Custo | ~0 dia de infra | +3 a 4 dias (instalar, operar, runbook, testes) e +1 ponto de falha |
+| Quando vira o limite | > ~50 jobs/s sustentados, jobs longos (minutos) ou necessidade de fan-out entre serviços | — |
+
+**Recomendação: A.** Tabelas `DomainEvent` (outbox), `Job` (execução com `idempotencyKey` único, `attempts`, `runAt`, `lockedUntil`, `status` pending/running/done/failed/dead, `lastError`) e `AutomationRun`/`WebhookDelivery` como visões do mesmo `Job`; um *dispatcher* (lê `DomainEvent`, cria `Job` por automação/webhook ativo) e N workers goroutine; reinício seguro (jobs `running` com `lockedUntil` vencido voltam a `pending`); backoff 1 min → 5 min → 30 min → 2 h → 12 h e depois `dead` + notificação ao Admin. Agendador (eventos de tempo) = mesma tabela com `runAt` ou um tick que varre `Lead`/`Opportunity`/`Task`. **Gatilho para migrar para B:** carga sustentada > 50 jobs/s, ou segundo serviço (não Go) precisando consumir a fila.
+
+### 8.2 O que construir (pacotes, ordem, dependências)
+
+Numeração a combinar com o PO; "WP4" mantém o nome da D20. Custo em dias de uma pessoa, já com testes e verificação no navegador.
+
+| Pacote | Entrega | Arquivos principais | Depende de | Critério de aceite (testável) | Dias | Risco |
+|---|---|---|---|---|---|---|
+| **WP4-0 Higiene de produção** | semeadura de exemplo só com `SEED_DEMO=1` (B-02); "Conectar fonte" lê os projetos reais e grava `ConnectedProject.pipelineId` como **única** fonte (B-05); ids não numéricos (B-10); banner/textos (B-16) | `workflowSync.ts`, `crmSync.ts`, `PipelineEditors.tsx`, `connect_projects.go` | — | Banco vazio + admin aberto ⇒ **0** linhas criadas; formulário real aparece na lista; F5 mantém a fonte | 1,5 | baixo |
+| **WP4-1 Integridade do servidor (gate e tarefas)** | gate no `POST /api/leads` e no `PUT /api/crm/leads/{id}`; EXIT entre funis; etapa inexistente → 422; mover para a mesma etapa → 200; remover etapa com **leads** → 409; funil exige ≥1 Ganha e ≥1 Perdida; mudar tipo de etapa com registros → 409; requisito removido leva as tarefas abertas (ou as marca `archived`); `PUT /api/tasks` aceita `null` para limpar; `gate/check` sem efeito colateral; **tarefas por dono** (D19) e `assignee` como `TeamMember.id`; `Opportunity.pipelineId` | `workflow_tasks.go`, `workflow_pipelines.go`, `main.go` (move/create), `crm_leads.go`, `own_scope.go`, `auth_scopes.go` | — | Cada linha da §6.3 vira teste de integração com o resultado certo; Vendedor `GET /api/tasks` só vê as dele; `go test` com e sem `parseTime` | 4 | médio (muda regras que a tela já assume; migrar `assignee`) |
+| **WP4-2 Qualificar lead real + motivo de perda** (D20) | `POST /api/crm/leads/{id}/qualify` transacional: cria `Opportunity` na 1ª etapa aberta, copia pessoa/empresa/dono/valor/tags, move as tarefas, marca o lead, exige `qualifyRequires` no servidor; `Opportunity.lostReason` (+ lista configurável), obrigatório ao entrar em etapa `LOST`; tela de Leads e ficha usam isso e `sampleOppsStore` sai do caminho | `crm_leads.go`, `opportunity_links.go`, `main.go`, `leadFlow.ts`, `LeadPanels.tsx`, `OpportunityDetail.tsx` | WP4-1 | Qualificar ⇒ `GET /api/leads` +1 e `Lead.convertedOpportunityId` existe; repetir ⇒ 409 idempotente; mover para Perdido sem motivo ⇒ 422 | 4 | médio-alto (toca o núcleo e a ficha) |
+| **WP4-3 Eventos + jobs (fundação do servidor)** | `DomainEvent` (outbox na transação), `Job`, dispatcher + workers, retry/backoff, `idempotencyKey`, painel de execuções (API de leitura); eventos emitidos pelo **servidor**: `lead.criado`, `lead.qualificado`, `oportunidade.mudou_de_etapa/ganha/perdida`, `tarefa.concluida` | novo `jobs.go`, `events.go`; ganchos em `public_leads.go`, `connect_ingest.go`, `main.go`, `crm_leads.go`, `workflow_tasks.go` | WP4-2 | Derrubar a API no meio ⇒ ao subir, o job pendente roda **uma** vez; evento sem automação ⇒ nada; mesmo `idempotencyKey` ⇒ 1 execução; teste com banco em memória | 5 | alto (concorrência, reinício) |
+| **WP4-4 Deduplicação + rodízio** | dedup `(e-mail, projeto)` em `IngestLead`: existe lead ativo ⇒ não cria outro, registra o envio e marca "retornando"; **rodízio**: `Pipeline.config.assignment` + cursor, aplicado na captura e no cadastro sem dono; Vendedor passa a ver o que recebeu | `crm_leads.go`, `connect_ingest.go`, `public_leads.go`, `own_scope.go`, tela de pipeline | WP4-1 (pode correr em paralelo ao WP4-2) | 2 envios do mesmo e-mail+projeto ⇒ 1 lead + 2 submissões; 6 leads com 3 vendedores ativos ⇒ 2 a 2; vendedor inativo é pulado | 3 | médio |
+| **WP4-5 SLA de primeiro contato** | `Pipeline.config.sla.firstContactMinutes`; `Lead.firstResponseDueAt`; `firstContactAt` automático (1ª anotação/ligação/e-mail/tarefa concluída); varredura no worker emite `lead.sem_contato` + notificação **no servidor** (tabela `Notification`) ao responsável e ao Gerente; cartão com borda vermelha | `jobs.go`, `crm_leads.go`, `Leads.tsx`, `Opportunities.tsx` | WP4-3, WP4-4 | Lead sem contato após o prazo ⇒ exatamente 1 notificação (mesmo reiniciando a API); contato antes do prazo ⇒ nenhuma | 3 | médio |
+| **WP4-6 Webhooks de saída (Ganho)** | `Webhook` (URL, segredo, eventos, ativo) + `WebhookDelivery`; entrega por job com HMAC `X-Kalidash-Signature`, timeout 10 s, 5 tentativas com backoff, bloqueio de IP privado/loopback (SSRF), "enviar teste"; tela Webhooks real; escopo `webhooks:manage` (**HumanOnly**, Admin) | `jobs.go`, novo `webhooks.go`, `Settings.tsx`, `auth_scopes.go` | WP4-3 | Mover para Ganho ⇒ POST ao receptor de teste com assinatura válida; receptor 500 ⇒ 5 tentativas; 2 movimentos para Ganho ⇒ 1 entrega por oportunidade; URL `http://127.0.0.1` ⇒ 422 | 4 | médio-alto (rede, segurança) |
+| **WP4-7 Catálogo de fluxos persistido + execuções** | tabela `Automation` com os **fluxos do sistema** (boas-vindas, SLA, atrasada, ganho→webhook, ciclo de vida) ligáveis/desligáveis, leitura de execuções e log; `GET/PUT /api/automations` (`automations:manage`); Automações lê da API e **para de rodar o `events.ts` para os eventos que o servidor já cobre** (evita execução dupla) | `automations.go`, `Automations.tsx`, `events.ts` | WP4-3 | F5 mantém estado ligado/desligado; execução aparece com `result`/erro; Vendedor 403; nenhum evento executa no navegador **e** no servidor | 3 | médio |
+
+**Total ≈ 27,5 dias** de uma pessoa: **não cabe em uma pessoa** até 23/11 (≈ 21 dias úteis, 26/10 → 23/11). **Caminho crítico** WP4-1 (4) → WP4-2 (4) → WP4-3 (5) → WP4-6 (4, o mais longo dos três finais) = **17 dias**, mais 1,5 de WP4-0 = ~18,5: cabe com **duas sessões em paralelo** e quase nenhuma folga. Ordem sugerida: **semana 1** WP4-0 + WP4-1 (e WP4-4 em paralelo, arquivos diferentes); **semana 2** WP4-2; **semana 3** WP4-3; **semana 4** WP4-5, 6 e 7 em paralelo (arquivos disjuntos). Se faltar tempo, cortar nesta ordem: WP4-7 (vira só leitura das execuções) → WP4-5 (SLA só notificação, sem borda vermelha) → WP4-6 sem tela de Webhooks (cadastro por API). Todas as estimativas são minhas, sem MySQL real e sem ter escrito a fundação: o risco de estourar está no WP4-3.
+
+Regras da casa a lembrar em cada pacote: flag desligada por padrão (`JOBS_API=1`), `go test` com e sem `parseTime`, nada de produção, `docs/` no mesmo commit, e **nenhum worker de teste fala com a rede de verdade** (receptor local `httptest`).
+
+### 8.3 O que NÃO construir (cortar para caber)
+
+| Não construir agora | Motivo |
+|---|---|
+| Gatilhos por webhook de entrada por pipeline (`gatilhos-personalizados.md`) | não está na Entrega 3; exige URL assinada, mapeamento e freio por ritmo |
+| Construtor livre "qualquer evento × qualquer ação", `campo.mudou` genérico e atraso por ação | 90% do valor vem de ~6 fluxos fixos; o construtor é o item mais caro de testar e mais fácil de errar |
+| "Atualizar a partir do template" / "aplicar aos registros existentes" / ramificação se-senão / pós-venda encadeado | conforto; o template continua sendo cópia |
+| WebSocket, Web Push, notificação por e-mail do sistema | a tabela `Notification` + leitura periódica (30–60 s) basta; push fica para depois |
+| Calendário "Acompanhamento" (Google Calendar) | fora do contrato |
+| Filtro de tarefas por tag/busca no servidor, paginação de `GET /api/tasks`, virtualização do workflow, polimento mobile do React Flow | só importam com volume que ainda não existe; registrar o limite de 500 como dívida |
+| Rodízio com pesos, disponibilidade/escala, horário comercial no SLA | regra simples primeiro (círculo entre ativos) |
+| Migrar os leads antigos `INBOUND` (D17 já decidiu conviver) | — |
+| Redis/BullMQ | §8.1 |
+
+### 8.4 Perguntas de produto para o PO
+
+1. **"Catálogo de fluxos"** do contrato = lista de fluxos prontos que a pessoa liga/desliga (WP4-7) **ou** construtor livre? (a recomendação assume a primeira)
+2. **Motivo de perda:** lista fechada configurável por funil, ou texto livre? Obrigatório sempre? Também para lead descartado (hoje `discardReason` texto)?
+3. **Deduplicação:** duplicado vira (a) **ignora e registra o envio**, (b) cria novo lead marcado "retornando", (c) atualiza o lead aberto? E se o lead antigo já foi qualificado ou perdido? "Projeto" = `ConnectedProject` (LP) — dois formulários do mesmo projeto contam como o mesmo?
+4. **Rodízio:** só entre **Vendedores ativos**? Inclui Gerente? Por funil ou global? O que fazer com lead sem ninguém elegível (fila, Gerente)? D18 ("lead sem dono o Vendedor não vê") continua?
+5. **SLA:** quantos minutos (por funil)? conta em horário comercial? quem é avisado (responsável, Gerente, ambos)? o que "conta como contato" (anotação, ligação, e-mail enviado, tarefa concluída)?
+6. **Webhook de saída:** quais campos no payload de Ganho (valor, contato, empresa, UTM)? destinatário único ou vários por funil? o receptor da Carol já existe (que sistema)? Precisamos de reenvio manual?
+7. **Ciclo de vida do lead (contrato):** "Novo → Contatado → Negociação → Ganho/Perdido" = renomear as colunas **Novos / Em contato** e as etapas abertas, ou um campo `leadStage` separado do funil?
+8. **Automações já mostradas na tela** ("Execuções 47…", "Resumo por e-mail ao ganhar"): aceitam ser **removidas** da tela até existirem de verdade (hoje parecem reais)?
+9. **Gerente e Vendedor** podem desligar um fluxo do sistema? (hoje só `automations:manage`, concedido ao Gerente).
+10. **Responsável da tarefa** passa a ser sempre uma pessoa da equipe (não "Vendedor responsável")? E "função" (papel) como destino, resolve-se para quem?
+11. **Semente de exemplo:** posso remover do produto (apenas `SEED_DEMO=1`) ou a Carol usa a demonstração em produção?
+12. **E-mail de boas-vindas** automático ao lead: entra na Entrega 3 (precisa do domínio verificado no Resend, runbook WP3c)?
+
+---
+
+## Ficou de fora desta auditoria
+
+- **Arrasto real e toque no celular:** só drop sintético (`DragEvent`) no Kanban; a ferramenta não faz pinça/toque longo. Não testei em aparelho.
+- **Carga:** nenhuma medição com dezenas de etapas/centenas de tarefas; números de desempenho são de leitura de código.
+- **Contraste** e leitor de tela: não medi com ferramenta (só inspeção).
+- **Banco real:** MySQL/MariaDB reais, `COALESCE` em JSON e `clientFoundRows` (B-04) não exercitados.
+- **E-mail/Resend e Google real**: não tocados.
+- Core ("tarefa Entrega 3" do Tzolkin Core): não consultei; usei o resumo do pedido e do `admin-checklist.md`.
+- `Projects.tsx`/`connect.js` só no que toca a "Conectar fonte"; `Opportunities.tsx` só no gate e no Kanban; `Leads.tsx` só em qualificar.
+
+## Riscos
+
+- **R1 (alto):** ligar `WORKFLOW_API`/`CRM_API` em produção hoje cria dados de exemplo no banco (B-02) e deixa o gate furável por API (B-03). Ajustar WP4-0/1 **antes** de qualquer `NEXT_PUBLIC_LEAD_ENDPOINT` com tráfego real.
+- **R2 (alto):** "Qualificar" corrompe o vínculo lead→oportunidade (B-01): não usar a tela de Leads em produção até o WP4-2.
+- **R3 (médio):** sem o servidor executar automações, qualquer promessa de "e-mail automático/webhook ao ganhar" é falsa hoje.
+- **R4 (médio):** o ambiente de prova é MySQL em memória; `SKIP LOCKED`/claim por `UPDATE … LIMIT` e `RowsAffected` precisam de MySQL/MariaDB real (WP3a).
+- **R5 (médio):** `go test` parece fazer uma chamada de rede real ao R2 (log `403`); revisar para que os testes não saiam da máquina.
+- **R6 (baixo):** a numeração WP4-x é minha; o PO decide nomes e ordem.
+
+## O que o Gustavo precisa fazer
+
+1. Decidir as perguntas §8.4 (1, 3, 5 e 6 mudam o desenho).
+2. Instalar Docker (ou apontar um MySQL/MariaDB descartável) para o WP3a e para testar o worker em banco real antes do WP4-3.
+3. Antes de ligar as flags em produção: conferir se existem oportunidades com id não numérico (B-10) e **não** abrir o admin com o banco vazio (B-02).
+
+## Arquivos e commits
+
+- Criado: `docs/po/relatorios/audit-pipelines-tarefas-automacoes.md` (único arquivo do repositório tocado). Nenhum código editado; nenhum arquivo de `apps/site`.
+- Artefatos fora do repositório (scratchpad da sessão): `run/api.exe`, `run/memmysql.exe`, `seed*/` (semente do banco em memória), `vite.log`.
+- Commits: `1afd90e` (§1–2), `9f9b074` (§3–4), `8ba855b` (§5–7) e o commit final (§0, §8 e fechamento).
+
