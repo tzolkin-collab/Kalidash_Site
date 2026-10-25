@@ -148,7 +148,7 @@ export function restoreLead(lead: Lead) {
 /** O que falta para qualificar, segundo a pipeline (D5): valor e dono só se ela exigir. */
 export function missingForQualify(lead: Lead): ('value' | 'owner')[] {
   const pipe = pipelinesStore.get().find((p) => p.id === lead.pipelineId);
-  return (pipe?.qualifyRequires ?? []).filter((r) => (r === 'value' ? !lead.estimatedValue : !lead.owner));
+  return (pipe?.qualifyRequires ?? []).filter((r) => (r === 'value' ? !lead.estimatedValue : !lead.owner && !lead.ownerId));
 }
 
 /** Qualificar cria a oportunidade na primeira etapa aberta e leva tarefas e histórico. */

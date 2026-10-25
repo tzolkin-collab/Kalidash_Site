@@ -33,6 +33,8 @@ export function groupScopes(catalog: Catalog, opts: { forTokens?: boolean } = {}
 const PHRASE: Record<string, string> = {
   'leads:read': 'ver leads e oportunidades',
   'leads:write': 'criar e editar leads',
+  'leads:own': 'ver e editar só os leads dele',
+  'opportunities:own': 'ver e editar só as oportunidades dele',
   'leads:origin': 'trocar a origem do lead',
   'people:read': 'ver pessoas e empresas',
   'people:write': 'editar pessoas e empresas',

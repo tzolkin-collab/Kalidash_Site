@@ -25,3 +25,13 @@ test('com escopos do servidor, valem os escopos e não o perfil', () => {
   assert.equal(hasScope('MANAGER', undefined, 'team:manage'), false);
   assert.equal(hasScope('ADMIN', undefined, 'team:manage'), true);
 });
+
+test('WP3b: o Vendedor vê só o que é dele (escopos own); o Gerente continua vendo tudo', () => {
+  assert.equal(hasScope('SELLER', undefined, 'leads:own'), true);
+  assert.equal(hasScope('SELLER', undefined, 'opportunities:own'), true);
+  assert.equal(hasScope('SELLER', undefined, 'leads:read'), false);
+  assert.equal(hasScope('SELLER', undefined, 'leads:write'), false);
+  assert.equal(hasScope('MANAGER', undefined, 'leads:read'), true);
+  assert.equal(hasScope('MANAGER', undefined, 'leads:write'), true);
+  assert.equal(hasScope('ADMIN', undefined, 'leads:read'), true);
+});

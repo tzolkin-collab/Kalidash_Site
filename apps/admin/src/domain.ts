@@ -229,6 +229,8 @@ export type Lead = {
   /** Inbound: nome da fonte. Outbound: quem da equipe trouxe. */
   sourceName: string;
   owner?: string;
+  /** Responsável na equipe (id do membro, com o login e o CRM ligados). `owner` segue sendo o texto de quem trouxe (outbound). */
+  ownerId?: string;
   estimatedValue?: number;
   expectedCloseAt?: string;
   tags: string[];

@@ -5,8 +5,9 @@ import type { Role } from '../domain';
 // Os presets abaixo espelham auth_scopes.go; com o login ligado a tela usa os escopos que o servidor devolve
 // (/auth/me) e o catálogo de GET /api/access/catalog, então esta cópia só vale sem login.
 
-const SELLER_SCOPES = ['leads:read', 'leads:write', 'people:read', 'people:write', 'history:read', 'history:write', 'pipelines:read', 'tasks:read', 'tasks:write', 'emails:send', 'team:read'];
-const MANAGER_SCOPES = [...SELLER_SCOPES, 'leads:origin', 'people:document', 'pipelines:manage', 'blog:read', 'blog:write', 'automations:manage', 'keys:manage'];
+// WP3b (D4): o Vendedor tem os escopos "own" (só o que é dele) no lugar de leads:read/leads:write.
+const SELLER_SCOPES = ['leads:own', 'opportunities:own', 'people:read', 'people:write', 'history:read', 'history:write', 'pipelines:read', 'tasks:read', 'tasks:write', 'emails:send', 'team:read'];
+const MANAGER_SCOPES = [...SELLER_SCOPES, 'leads:read', 'leads:write', 'leads:origin', 'people:document', 'pipelines:manage', 'blog:read', 'blog:write', 'automations:manage', 'keys:manage'];
 
 /** Escopos padrão do perfil (sem extras nem removidos). `null` para o Admin = todos. */
 export function presetScopes(role: Role): string[] | null {

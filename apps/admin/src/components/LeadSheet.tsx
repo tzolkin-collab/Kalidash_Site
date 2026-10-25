@@ -5,6 +5,8 @@ import { editRecord, setArchived } from '../lib/edit';
 import { formatCurrency, formatDate, formatDateTime, moneyToInput, parseMoney } from '../lib/format';
 import { leadCtx, moveLeadStage, restoreLead } from '../lib/leadFlow';
 import { avisoForBlockers, pushAviso } from '../lib/notify';
+import { useAuth } from '../lib/auth';
+import { useCrmMode } from '../lib/crmMode';
 import { useCan } from '../lib/permissions';
 import { useStore } from '../lib/store';
 import { useLeadActions } from '../lib/useLeadActions';
@@ -38,6 +40,8 @@ export default function LeadSheet({ leadId, onClose, onOpenParty, onNotice }: Pr
   const [team] = useStore(teamStore);
   const { settings, update } = useViewSettings();
   const can = useCan();
+  const crmMode = useCrmMode();
+  const auth = useAuth();
   const [tab, setTab] = useState('overview');
   const [stageDenied, setStageDenied] = useState(false);
   const actions = useLeadActions(onNotice, onClose);
@@ -156,7 +160,19 @@ export default function LeadSheet({ leadId, onClose, onOpenParty, onNotice }: Pr
               </div>
               <SelectField label="Origem" value={lead.origin} options={ORIGINS} readOnly={!can.editOrigin} hint="Só Admin e Gerente trocam a origem." onCommit={(v) => changeOrigin(v as LeadOrigin)} />
               <SelectField label={lead.origin === 'INBOUND' ? 'Fonte' : 'Quem trouxe'} value={lead.sourceName} options={sourceValues.map((s) => ({ value: s, label: s }))} readOnly={!can.editOrigin} hint="Todo lead precisa de origem." onCommit={(v) => save({ sourceName: v }, lead.origin === 'INBOUND' ? 'Fonte' : 'Quem trouxe', lead.sourceName, v)} />
-              <SelectField label="Dono" value={lead.owner ?? ''} empty="Sem dono" options={team.map((m) => ({ value: m.name, label: m.name }))} onCommit={(v) => save({ owner: v || undefined }, 'Dono', lead.owner, v)} />
+              {crmMode === 'api' && auth.status === 'in' ? (
+                <SelectField
+                  label="Responsável"
+                  value={lead.ownerId ?? ''}
+                  empty="Sem responsável"
+                  readOnly={!can.has('leads:write')}
+                  hint={can.has('leads:write') ? 'Pessoa da equipe. Quem só vê os próprios leads vê só os dele.' : 'Só quem tem a permissão leads:write troca o responsável.'}
+                  options={team.filter((m) => m.status !== 'DISABLED' || m.id === lead.ownerId).map((m) => ({ value: m.id, label: m.name }))}
+                  onCommit={(v) => save({ ownerId: v }, 'Responsável', team.find((m) => m.id === lead.ownerId)?.name, team.find((m) => m.id === v)?.name)}
+                />
+              ) : (
+                <SelectField label="Dono" value={lead.owner ?? ''} empty="Sem dono" options={team.map((m) => ({ value: m.name, label: m.name }))} onCommit={(v) => save({ owner: v || undefined }, 'Dono', lead.owner, v)} />
+              )}
               <TextField
                 label="Valor estimado"
                 value={lead.estimatedValue ? moneyToInput(lead.estimatedValue) : ''}
