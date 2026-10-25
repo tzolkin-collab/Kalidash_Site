@@ -58,6 +58,11 @@ type PipelineDTO struct {
 	Offer        string             `json:"offer"`
 	Position     int                `json:"position"`
 	ArchivedAt   *time.Time         `json:"archivedAt,omitempty"`
+	// UpdatedAt é a versão do funil (só leitura): mande-a de volta em If-Match ou expectedUpdatedAt no PUT para
+	// detectar edição concorrente. Precisão de segundo; toda gravação a muda.
+	UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+	// ExpectedUpdatedAt (só entrada): a versão que quem edita carregou. Diferente da atual → 409 "conflict".
+	ExpectedUpdatedAt *time.Time `json:"expectedUpdatedAt,omitempty"`
 	Stages       []PStage           `json:"stages"`
 	Requirements []PRequirement     `json:"requirements"`
 	Counts       map[string]int     `json:"counts"`
@@ -94,8 +99,10 @@ func validatePipeline(p *PipelineDTO) error {
 		return fmt.Errorf("o funil precisa de 1 a %d etapas", maxStages)
 	}
 	seen := map[string]bool{}
+	hasWon, hasLost := false, false
 	for i := range p.Stages {
 		s := &p.Stages[i]
+		hasWon, hasLost = hasWon || s.Kind == "WON", hasLost || s.Kind == "LOST"
 		s.Name = strings.TrimSpace(s.Name)
 		if s.ID != "" && !idRe.MatchString(s.ID) {
 			return fmt.Errorf("id de etapa inválido: %q", s.ID)
@@ -121,6 +128,9 @@ func validatePipeline(p *PipelineDTO) error {
 		if len(s.Color) > 16 {
 			return errors.New("cor inválida")
 		}
+	}
+	if !hasWon || !hasLost {
+		return errors.New("o funil precisa de ao menos uma etapa Ganha e uma Perdida")
 	}
 	if len(p.Requirements) > maxReqs {
 		return fmt.Errorf("no máximo %d requisitos por funil", maxReqs)
@@ -189,7 +199,7 @@ func fillIDs(p *PipelineDTO) {
 // loadPipelines devolve os funis (ativos, ou todos com includeArchived) já com etapas, requisitos,
 // contagens/valores por etapa (de Opportunity) e blocked/overdue por requisito (de Task).
 func loadPipelines(id string, includeArchived bool) ([]PipelineDTO, error) {
-	q := `SELECT id, name, offer, position, config, archivedAt FROM Pipeline WHERE 1=1`
+	q := `SELECT id, name, offer, position, config, archivedAt, updatedAt FROM Pipeline WHERE 1=1`
 	var args []any
 	if id != "" {
 		q += ` AND id = ?`
@@ -210,9 +220,12 @@ func loadPipelines(id string, includeArchived bool) ([]PipelineDTO, error) {
 	for rows.Next() {
 		var p PipelineDTO
 		var cfg []byte
-		var archived sql.NullString
-		if err := rows.Scan(&p.ID, &p.Name, &p.Offer, &p.Position, &cfg, &archived); err != nil {
+		var archived, updated sql.NullString
+		if err := rows.Scan(&p.ID, &p.Name, &p.Offer, &p.Position, &cfg, &archived, &updated); err != nil {
 			return nil, err
+		}
+		if t := parseDT(updated.String); !t.IsZero() {
+			p.UpdatedAt = &t
 		}
 		if len(cfg) > 0 {
 			_ = json.Unmarshal(cfg, &p.pipelineConfig)
@@ -344,9 +357,27 @@ func loadPipelines(id string, includeArchived bool) ([]PipelineDTO, error) {
 
 // ---- escrita ----
 
-// writePipeline grava o funil inteiro (metadados, etapas e requisitos) numa transação. Em `replace`
-// ele já existe: etapas removidas só passam se nenhuma oportunidade estiver nelas.
-func writePipeline(p *PipelineDTO, replace bool) error {
+// errStale: o funil mudou desde a versão que quem editou carregou (If-Match / expectedUpdatedAt).
+var errStale = errors.New("o funil foi alterado por outra pessoa")
+
+// recordsIn conta o que está numa etapa: oportunidades e (com o CRM ligado) leads ativos.
+func recordsIn(tx *sql.Tx, stageID string) (opps, leads int, err error) {
+	if err = tx.QueryRow(`SELECT COUNT(*) FROM Opportunity WHERE stage = ?`, stageID).Scan(&opps); err != nil {
+		return
+	}
+	if crmEnabled() {
+		err = tx.QueryRow(`SELECT COUNT(*) FROM `+leadTbl+` WHERE stageId = ? AND archivedAt IS NULL`, stageID).Scan(&leads)
+	}
+	return
+}
+
+// writePipeline grava o funil inteiro (metadados, etapas e requisitos) numa transação. Em `replace` ele já existe e
+// o servidor impõe as regras que antes eram só da tela (WP4-1):
+//   - etapa que sai não pode ter oportunidades nem leads ativos (409);
+//   - etapa que muda de TIPO não pode ter registros (409): wonAt e o funil dependem do tipo;
+//   - requisito que sai leva as tarefas ABERTAS dele; as concluídas viram tarefa comum (histórico, apagável);
+//   - expected (If-Match / expectedUpdatedAt), quando vem, precisa ser a versão atual, senão errStale.
+func writePipeline(p *PipelineDTO, replace bool, expected *time.Time) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return err
@@ -354,46 +385,93 @@ func writePipeline(p *PipelineDTO, replace bool) error {
 	defer tx.Rollback()
 
 	cfg, _ := json.Marshal(p.pipelineConfig)
-	now := time.Now()
+	now := time.Now().UTC().Truncate(time.Second)
 	if replace {
-		res, err := tx.Exec(`UPDATE Pipeline SET name = ?, offer = ?, position = ?, config = ?, archivedAt = ?, updatedAt = ? WHERE id = ?`, p.Name, p.Offer, p.Position, cfg, p.ArchivedAt, now, p.ID)
+		var curStr sql.NullString
+		if err := tx.QueryRow(`SELECT updatedAt FROM Pipeline WHERE id = ?`, p.ID).Scan(&curStr); errors.Is(err, sql.ErrNoRows) {
+			return errNotFound
+		} else if err != nil {
+			return err
+		}
+		cur := parseDT(curStr.String)
+		if expected != nil && expected.Unix() != cur.Unix() {
+			return errStale
+		}
+		if !now.After(cur) { // toda gravação muda a versão, mesmo dentro do mesmo segundo
+			now = cur.Add(time.Second)
+		}
+		res, err := tx.Exec(`UPDATE Pipeline SET name = ?, offer = ?, position = ?, config = ?, archivedAt = ?, updatedAt = ? WHERE id = ? AND updatedAt = ?`, p.Name, p.Offer, p.Position, cfg, p.ArchivedAt, now, p.ID, cur)
 		if err != nil {
 			return err
 		}
 		if n, _ := res.RowsAffected(); n == 0 {
-			var exists int
-			if err := tx.QueryRow(`SELECT COUNT(*) FROM Pipeline WHERE id = ?`, p.ID).Scan(&exists); err != nil || exists == 0 {
-				return errNotFound
-			}
+			return errStale // alguém gravou entre a leitura e a escrita
 		}
-		// etapas que estão saindo não podem ter oportunidades
-		keep := map[string]bool{}
+
+		keep := map[string]PStage{}
 		for _, s := range p.Stages {
-			keep[s.ID] = true
+			keep[s.ID] = s
 		}
-		rows, err := tx.Query(`SELECT id FROM PipelineStage WHERE pipelineId = ?`, p.ID)
+		rows, err := tx.Query(`SELECT id, kind FROM PipelineStage WHERE pipelineId = ?`, p.ID)
 		if err != nil {
 			return err
 		}
-		var removed []string
+		type stored struct{ id, kind string }
+		var current []stored
 		for rows.Next() {
-			var sid string
-			if err := rows.Scan(&sid); err != nil {
+			var s stored
+			if err := rows.Scan(&s.id, &s.kind); err != nil {
 				rows.Close()
 				return err
 			}
-			if !keep[sid] {
-				removed = append(removed, sid)
-			}
+			current = append(current, s)
 		}
 		rows.Close()
-		for _, sid := range removed {
-			var n int
-			if err := tx.QueryRow(`SELECT COUNT(*) FROM Opportunity WHERE stage = ?`, sid).Scan(&n); err != nil {
+		for _, s := range current {
+			next, kept := keep[s.id]
+			if kept && next.Kind == s.kind {
+				continue
+			}
+			opps, leads, err := recordsIn(tx, s.id)
+			if err != nil {
 				return err
 			}
-			if n > 0 {
-				return fmt.Errorf("%w: a etapa %q ainda tem %d oportunidade(s); mova-as antes de removê-la", errConflict, sid, n)
+			switch {
+			case opps+leads == 0:
+			case !kept:
+				return fmt.Errorf("%w: a etapa %q ainda tem %d oportunidade(s) e %d lead(s); mova-os antes de removê-la", errConflict, s.id, opps, leads)
+			default:
+				return fmt.Errorf("%w: a etapa %q tem %d oportunidade(s) e %d lead(s); mova-os antes de mudar o tipo dela (%s → %s)", errConflict, s.id, opps, leads, s.kind, next.Kind)
+			}
+		}
+
+		// requisitos que saem: a tarefa aberta deles não faz mais sentido (nada a travar); a concluída é histórico
+		keepReq := map[string]bool{}
+		for _, r := range p.Requirements {
+			keepReq[r.ID] = true
+		}
+		rrows, err := tx.Query(`SELECT id FROM StageRequirement WHERE pipelineId = ?`, p.ID)
+		if err != nil {
+			return err
+		}
+		var gone []string
+		for rrows.Next() {
+			var id string
+			if err := rrows.Scan(&id); err != nil {
+				rrows.Close()
+				return err
+			}
+			if !keepReq[id] {
+				gone = append(gone, id)
+			}
+		}
+		rrows.Close()
+		for _, id := range gone {
+			if _, err := tx.Exec(`DELETE FROM Task WHERE requirementId = ? AND done = 0`, id); err != nil {
+				return err
+			}
+			if _, err := tx.Exec(`UPDATE Task SET requirementId = NULL, source = 'manual' WHERE requirementId = ?`, id); err != nil {
+				return err
 			}
 		}
 		if _, err := tx.Exec(`DELETE FROM StageRequirement WHERE pipelineId = ?`, p.ID); err != nil {
@@ -477,7 +555,7 @@ func handlePipelines(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": err.Error()})
 			return
 		}
-		if err := writePipeline(p, false); err != nil {
+		if err := writePipeline(p, false, nil); err != nil {
 			writeErr(w, err)
 			return
 		}
@@ -522,7 +600,26 @@ func handlePipelineByID(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": err.Error()})
 			return
 		}
-		if err := writePipeline(p, true); err != nil {
+		expected := p.ExpectedUpdatedAt // a versão que quem editou carregou: If-Match (RFC 3339) ou expectedUpdatedAt
+		if h := strings.TrimSpace(r.Header.Get("If-Match")); h != "" {
+			t, err := time.Parse(time.RFC3339Nano, strings.Trim(strings.TrimPrefix(h, "W/"), `"`))
+			if err != nil {
+				writeJSON(w, http.StatusBadRequest, map[string]string{"error": "If-Match inválido (use o updatedAt do funil, RFC 3339)"})
+				return
+			}
+			expected = &t
+		}
+		if err := writePipeline(p, true, expected); err != nil {
+			if errors.Is(err, errStale) {
+				// 409 com o estado atual: quem editou decide entre recarregar e refazer a edição
+				cur, lerr := loadPipelines(id, true)
+				if lerr != nil || len(cur) == 0 {
+					writeErr(w, lerr)
+					return
+				}
+				writeJSON(w, http.StatusConflict, map[string]any{"error": "conflict", "message": err.Error(), "current": cur[0]})
+				return
+			}
 			writeErr(w, err)
 			return
 		}

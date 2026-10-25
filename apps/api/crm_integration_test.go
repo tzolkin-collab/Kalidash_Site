@@ -32,6 +32,7 @@ func crmDB(t *testing.T) {
 	}
 	ensureCRMSchema()
 	ensureCRMSchema() // idempotente: a segunda rodada não pode falhar nem duplicar
+	seedBasePipeline(t) // o funil "q4" de pano de fundo (WP4-1: etapa inexistente é recusada)
 }
 
 type crmReply struct {

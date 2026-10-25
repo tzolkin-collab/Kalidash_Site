@@ -18,6 +18,7 @@ func goodPipeline() *PipelineDTO {
 			{ID: "p:novos", Name: "Novos", Kind: "LEAD"},
 			{ID: "p:assinatura", Name: "Assinatura", Kind: "OPEN", Probability: intp(90)},
 			{ID: "p:ganho", Name: "Ganho", Kind: "WON"},
+		{ID: "p:perdido", Name: "Perdido", Kind: "LOST"},
 		},
 		Requirements: []PRequirement{{ID: "p:r-cnpj", StageID: "p:assinatura", Label: "Informar CNPJ", Kind: "FIELD", Gate: "ENTER"}},
 	}

@@ -211,6 +211,27 @@ func createOpportunity(w http.ResponseWriter, r *http.Request) {
 	cols, vals := []string{"id", "title", "value", "stage", "priority", "tags", "createdAt", "updatedAt"},
 		[]any{newOpp.ID, newOpp.Title, newOpp.Value, newOpp.Stage, newOpp.Priority, tagsJSON, newOpp.CreatedAt, newOpp.CreatedAt}
 	add := func(col string, val any) { cols, vals = append(cols, col), append(vals, val) }
+	if workflowEnabled() {
+		// WP4-1: nasce só em etapa que existe (422) e que o gate deixa entrar (409 com o que falta; é consulta,
+		// nenhuma tarefa nasce para uma oportunidade que não foi criada). Grava o funil.
+		gateStage, pid, err := destStage(newOpp.Stage, "")
+		if err != nil {
+			writeLinkErr(w, err)
+			return
+		}
+		blockers, err := checkGate(gateInput{EntityKind: "opportunity", EntityID: newOpp.ID, EntityName: newOpp.Title, ToStageID: gateStage}, false)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if len(blockers) > 0 {
+			writeGate409(w, blockers)
+			return
+		}
+		if pid != "" {
+			add("pipelineId", pid)
+		}
+	}
 	for _, l := range []struct{ key, col, table string }{{"contactId", "contactId", "Contact"}, {"companyId", "companyId", "Company"}} {
 		if id := pr.linkValue(l.key); pr.has(l.key) && id != "" {
 			if err := checkContactLink(l.table, id); err != nil {

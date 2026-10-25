@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -156,31 +157,71 @@ func handleMoveOpportunity(w http.ResponseWriter, r *http.Request) {
 	if !canTouchOpportunity(w, r, payload.ID, true) { // opportunities:own (WP3b, D4)
 		return
 	}
+	updateQuery := `UPDATE Opportunity SET stage = ?, wonAt = CASE WHEN ? IS NULL THEN NULL ELSE COALESCE(wonAt, ?) END WHERE id = ?`
+	won := wonAtFor(payload.Stage, payload.Won, time.Now())
+	args := []any{payload.Stage, won, won, payload.ID}
 	if workflowEnabled() {
-		blockers, err := gateForMove(payload.ID, payload.Stage)
+		// WP4-1: a etapa de destino precisa existir (422), o gate vale nas duas pontas (inclusive entre funis)
+		// e a oportunidade passa a guardar o funil (Opportunity.pipelineId).
+		var title, from string
+		var curPipeline sql.NullString
+		err := db.QueryRow(`SELECT title, stage, pipelineId FROM Opportunity WHERE id = ?`, payload.ID).Scan(&title, &from, &curPipeline)
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "Oportunidade não encontrada", http.StatusNotFound)
+			return
+		} else if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		curPid, err := oppPipeline(curPipeline, from)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		gateStage, destPid, err := destStage(payload.Stage, curPid)
+		if err != nil {
+			writeLinkErr(w, err)
+			return
+		}
+		fromStage, err := effectiveStage(from, curPid)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		blockers, err := gateForMove(payload.ID, title, fromStage, gateStage)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		if len(blockers) > 0 {
-			writeJSON(w, http.StatusConflict, map[string]any{"error": "gate", "blockers": blockers})
+			writeGate409(w, blockers)
 			return
+		}
+		if destPid != "" {
+			updateQuery = `UPDATE Opportunity SET stage = ?, pipelineId = ?, wonAt = CASE WHEN ? IS NULL THEN NULL ELSE COALESCE(wonAt, ?) END WHERE id = ?`
+			args = []any{payload.Stage, destPid, won, won, payload.ID}
 		}
 	}
 
 	// wonAt: data do ganho (nula ao sair de Ganho); mantém a original se já estava ganha.
-	updateQuery := `UPDATE Opportunity SET stage = ?, wonAt = CASE WHEN ? IS NULL THEN NULL ELSE COALESCE(wonAt, ?) END WHERE id = ?`
-	won := wonAtFor(payload.Stage, payload.Won, time.Now())
-	res, err := db.Exec(updateQuery, payload.Stage, won, won, payload.ID)
+	res, err := db.Exec(updateQuery, args...)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	affected, _ := res.RowsAffected()
-	if affected == 0 {
-		http.Error(w, "Oportunidade não encontrada", http.StatusNotFound)
-		return
+	// 0 linhas afetadas também é "nada mudou" (mover para a etapa em que já está: o MySQL sem clientFoundRows
+	// não conta linha igual). Só é 404 se a oportunidade de fato não existe.
+	if affected, _ := res.RowsAffected(); affected == 0 {
+		var n int
+		if err := db.QueryRow(`SELECT COUNT(*) FROM Opportunity WHERE id = ?`, payload.ID).Scan(&n); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if n == 0 {
+			http.Error(w, "Oportunidade não encontrada", http.StatusNotFound)
+			return
+		}
 	}
 
 	w.WriteHeader(http.StatusOK)

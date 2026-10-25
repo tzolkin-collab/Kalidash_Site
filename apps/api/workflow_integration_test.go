@@ -89,6 +89,7 @@ func TestIntegrationPipelineTaskGate(t *testing.T) {
 			{"id": "q4:neg", "name": "Negociação", "kind": "OPEN", "color": "#3b82f6", "probability": 60, "alertDays": 10},
 			{"id": "q4:ass", "name": "Assinatura", "kind": "OPEN", "color": "#0ea5e9", "probability": 90},
 			{"id": "q4:ganho", "name": "Ganho", "kind": "WON", "color": "#10b981"},
+		{"id": "q4:perdido", "name": "Perdido", "kind": "LOST", "color": "#ef4444"},
 		},
 		"requirements": []map[string]any{
 			{"id": "q4:r-cnpj", "stageId": "q4:ass", "label": "Informar CNPJ", "tag": "Dados", "kind": "FIELD", "gate": "ENTER", "assignee": "Carol", "dueDays": 2},
@@ -104,7 +105,7 @@ func TestIntegrationPipelineTaskGate(t *testing.T) {
 	}
 	var got PipelineDTO
 	r.into(t, &got)
-	if len(got.Stages) != 4 || got.Stages[1].Probability == nil || *got.Stages[1].Probability != 60 || len(got.Requirements) != 3 {
+	if len(got.Stages) != 5 || got.Stages[1].Probability == nil || *got.Stages[1].Probability != 60 || len(got.Requirements) != 3 {
 		t.Fatalf("funil devolvido errado: %+v", got)
 	}
 	if string(got.TaskTags) != `["Dados","Comercial"]` {
@@ -142,11 +143,11 @@ func TestIntegrationPipelineTaskGate(t *testing.T) {
 	if !blocked || len(bl) != 2 {
 		t.Fatalf("esperava 2 travas, veio %v %+v", blocked, bl)
 	}
-	gate("q4:neg", "q4:ass") // idempotente: não duplica tarefa
+	// WP4-1: gate/check é consulta pura (quem só tem tasks:read pode chamar): nenhuma tarefa nasce
 	var n int
 	db.QueryRow(`SELECT COUNT(*) FROM Task WHERE entityId = 'opp1'`).Scan(&n)
-	if n != 2 {
-		t.Errorf("tarefas duplicadas: %d", n)
+	if n != 0 || bl[0].TaskID != "" {
+		t.Errorf("gate/check não pode gravar tarefa: %d tarefas, blockers %+v", n, bl)
 	}
 	if b, _ := gate("q4:neg", "q4:ganho"); b {
 		t.Error("neg→ganho não tem trava")
@@ -162,6 +163,12 @@ func TestIntegrationPipelineTaskGate(t *testing.T) {
 	db.QueryRow(`SELECT stage FROM Opportunity WHERE id = 'opp1'`).Scan(&stage)
 	if stage != "q4:neg" {
 		t.Errorf("a oportunidade não podia ter saído: %s", stage)
+	}
+	// a tentativa de mover (não a consulta) é que cria as tarefas; repetir não duplica
+	mv("q4:ass", false)
+	db.QueryRow(`SELECT COUNT(*) FROM Task WHERE entityId = 'opp1'`).Scan(&n)
+	if n != 2 {
+		t.Errorf("a tentativa de mover deveria criar 2 tarefas (sem duplicar): %d", n)
 	}
 
 	// blocked/overdue aparecem no funil
@@ -252,6 +259,7 @@ func TestIntegrationPipelineTaskGate(t *testing.T) {
 		{"id": "q4:novos", "name": "Novos", "kind": "LEAD"},
 		{"id": "q4:ass", "name": "Assinatura", "kind": "OPEN"},
 		{"id": "q4:ganho", "name": "Ganho", "kind": "WON"},
+		{"id": "q4:perdido", "name": "Perdido", "kind": "LOST"},
 	}
 	p["requirements"] = []map[string]any{}
 	if r := call(handlePipelineByID, "PUT", "/api/pipelines/q4", "q4", p); r.code != 409 {
@@ -263,7 +271,7 @@ func TestIntegrationPipelineTaskGate(t *testing.T) {
 	}
 	var after PipelineDTO
 	call(handlePipelineByID, "GET", "/api/pipelines/q4", "q4", nil).into(t, &after)
-	if len(after.Stages) != 3 || len(after.Requirements) != 0 {
+	if len(after.Stages) != 4 || len(after.Requirements) != 0 {
 		t.Errorf("funil depois do PUT: %d etapas, %d requisitos", len(after.Stages), len(after.Requirements))
 	}
 

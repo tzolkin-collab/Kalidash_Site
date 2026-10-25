@@ -300,30 +300,31 @@ type gateInput struct {
 	ToStageID   string `json:"toStageId"`
 }
 
-// checkGate devolve o que ainda trava o movimento (vazio = pode mover). Cria, se faltar, a tarefa
-// de cada requisito aplicável (INSERT IGNORE na chave única: seguro com chamadas simultâneas).
-func checkGate(in gateInput) ([]Blocker, error) {
-	var pipelineID string
-	err := db.QueryRow(`SELECT pipelineId FROM PipelineStage WHERE id = ?`, in.ToStageID).Scan(&pipelineID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil // etapa fora de qualquer funil (valor legado): sem gate
-	} else if err != nil {
-		return nil, err
+// checkGate devolve o que ainda trava o movimento from→to (vazio = pode mover). ENTER vale para a etapa de
+// destino e EXIT para a de origem, mesmo que sejam de funis diferentes. Mover para a mesma etapa não passa por gate.
+//
+// attempt=true é a tentativa de mover: cria, se faltar, a tarefa de cada requisito que trava (INSERT IGNORE na
+// chave única: seguro com chamadas simultâneas). attempt=false é consulta pura (sem nenhuma escrita): o requisito
+// que ainda não tem tarefa volta como bloqueio com taskId vazio.
+func checkGate(in gateInput, attempt bool) ([]Blocker, error) {
+	if in.FromStageID == in.ToStageID {
+		return nil, nil
 	}
-	rows, err := db.Query(`SELECT id, stageId, gate, label, tag, assignee, dueDays FROM StageRequirement WHERE pipelineId = ? AND gate <> 'NONE' ORDER BY position`, pipelineID)
+	rows, err := db.Query(`SELECT id, pipelineId, stageId, gate, label, tag, assignee, dueDays FROM StageRequirement WHERE gate <> 'NONE' AND (stageId = ? OR stageId = ?) ORDER BY pipelineId, position`, in.ToStageID, in.FromStageID)
 	if err != nil {
 		return nil, err
 	}
 	type full struct {
 		gateReq
-		assignee sql.NullString
-		dueDays  sql.NullInt64
+		pipelineID string
+		assignee   sql.NullString
+		dueDays    sql.NullInt64
 	}
 	var all []full
 	var reqs []gateReq
 	for rows.Next() {
 		var f full
-		if err := rows.Scan(&f.ID, &f.StageID, &f.Gate, &f.Label, &f.Tag, &f.assignee, &f.dueDays); err != nil {
+		if err := rows.Scan(&f.ID, &f.pipelineID, &f.StageID, &f.Gate, &f.Label, &f.Tag, &f.assignee, &f.dueDays); err != nil {
 			rows.Close()
 			return nil, err
 		}
@@ -341,17 +342,23 @@ func checkGate(in gateInput) ([]Blocker, error) {
 		if !applies[f.ID] {
 			continue
 		}
-		var due any
-		if f.dueDays.Valid {
-			due = time.Now().Add(time.Duration(f.dueDays.Int64) * 24 * time.Hour)
-		}
-		if _, err := db.Exec(`INSERT IGNORE INTO Task (id, title, tag, source, entityKind, entityId, entityName, pipelineId, requirementId, assignee, dueAt, done, createdAt) VALUES (?, ?, ?, 'requisito', ?, ?, ?, ?, ?, ?, ?, 0, ?)`,
-			wfID("task"), f.Label, f.Tag, in.EntityKind, in.EntityID, in.EntityName, pipelineID, f.ID, f.assignee, due, time.Now()); err != nil {
-			return nil, err
+		if attempt {
+			var due any
+			if f.dueDays.Valid {
+				due = time.Now().Add(time.Duration(f.dueDays.Int64) * 24 * time.Hour)
+			}
+			if _, err := db.Exec(`INSERT IGNORE INTO Task (id, title, tag, source, entityKind, entityId, entityName, pipelineId, requirementId, assignee, dueAt, done, createdAt) VALUES (?, ?, ?, 'requisito', ?, ?, ?, ?, ?, ?, ?, 0, ?)`,
+				wfID("task"), f.Label, f.Tag, in.EntityKind, in.EntityID, in.EntityName, f.pipelineID, f.ID, f.assignee, due, time.Now()); err != nil {
+				return nil, err
+			}
 		}
 		var taskID string
 		var done bool
-		if err := db.QueryRow(`SELECT id, done FROM Task WHERE requirementId = ? AND entityKind = ? AND entityId = ?`, f.ID, in.EntityKind, in.EntityID).Scan(&taskID, &done); err != nil {
+		err := db.QueryRow(`SELECT id, done FROM Task WHERE requirementId = ? AND entityKind = ? AND entityId = ?`, f.ID, in.EntityKind, in.EntityID).Scan(&taskID, &done)
+		if errors.Is(err, sql.ErrNoRows) {
+			blockers = append(blockers, Blocker{RequirementID: f.ID, Label: f.Label}) // consulta: a tarefa ainda não existe
+			continue
+		} else if err != nil {
 			return nil, err
 		}
 		if !done {
@@ -361,20 +368,18 @@ func checkGate(in gateInput) ([]Blocker, error) {
 	return blockers, nil
 }
 
-// gateForMove é o gate aplicado a /api/leads/move: descobre a etapa de origem da oportunidade e
-// checa. Vazio = pode mover (inclusive quando a etapa não pertence a nenhum funil).
-func gateForMove(oppID, toStage string) ([]Blocker, error) {
-	var from, title string
-	if err := db.QueryRow(`SELECT stage, title FROM Opportunity WHERE id = ?`, oppID).Scan(&from, &title); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil // o move devolve o 404 dele
-		}
-		return nil, err
+// gateForMove é o gate aplicado a /api/leads/move (tentativa: grava as tarefas que travam). toStage já vem
+// resolvido por destStage. Vazio = pode mover (inclusive quando a etapa não pertence a nenhum funil).
+func gateForMove(oppID, oppTitle, fromStage, toStage string) ([]Blocker, error) {
+	if toStage == "" {
+		return nil, nil
 	}
-	return checkGate(gateInput{EntityKind: "opportunity", EntityID: oppID, EntityName: title, FromStageID: from, ToStageID: toStage})
+	return checkGate(gateInput{EntityKind: "opportunity", EntityID: oppID, EntityName: oppTitle, FromStageID: fromStage, ToStageID: toStage}, true)
 }
 
-// POST /api/gate/check: o admin pergunta antes de mover; 200 com a lista (vazia = pode).
+// POST /api/gate/check: o admin pergunta antes de mover; 200 com a lista (vazia = pode). É CONSULTA PURA: não
+// cria tarefa (quem tem só tasks:read pode chamar). As tarefas nascem na tentativa de mover (/api/leads/move,
+// PUT /api/crm/leads/{id}).
 func handleGateCheck(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "método não permitido"})
@@ -386,7 +391,11 @@ func handleGateCheck(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "corpo inválido"})
 		return
 	}
-	blockers, err := checkGate(in)
+	if !taskEntityAllowed(r, in.EntityKind, in.EntityID) {
+		writeErr(w, errNotFound)
+		return
+	}
+	blockers, err := checkGate(in, false)
 	if err != nil {
 		writeErr(w, err)
 		return

@@ -17,6 +17,8 @@ func TestIntegrationCapturaV2(t *testing.T) {
 	connectDB = sqlConnectStore{}
 	t.Cleanup(func() { connectDB = oldC })
 
+	db.Exec(`DELETE FROM PipelineStage`) // o funil de pano de fundo (q4) sai: aqui o cenário é "nenhum funil"
+	db.Exec(`DELETE FROM Pipeline`)
 	// sem funil com etapa Lead: erro claro, nada gravado
 	if err := leadSaver(leadInput{Name: "Ana Souza", Email: "ana@x.com", Phone: "11999999999", Source: "home"}, "1.1.1.1"); err == nil {
 		t.Fatal("sem funil de leads deveria falhar")

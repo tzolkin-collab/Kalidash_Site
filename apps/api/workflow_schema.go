@@ -92,7 +92,62 @@ func ensureWorkflowSchema() {
 			log.Fatalf("❌ Erro ao criar tabelas de funil/tarefas: %v", err)
 		}
 	}
+	ensureWorkflowColumns()
 	log.Println("✅ Tabelas de funil, requisitos e tarefas prontas (WORKFLOW_API=1)")
+}
+
+// Colunas acrescentadas depois (WP4-1), só ADD COLUMN nulo: nada é alterado nem apagado; idempotente.
+//   - Task.assigneeMemberId: responsável como pessoa da equipe (TeamMember.id); o texto `assignee` segue valendo.
+//   - Opportunity.pipelineId: o funil da oportunidade (antes deduzido do id da etapa). Preenchido na criação e no
+//     move; as antigas recebem o funil pelo id da etapa (backfillOpportunityPipelines).
+var workflowColumns = []colSpec{
+	{"Task", "assigneeMemberId", "VARCHAR(64) NULL"},
+	{"Opportunity", "pipelineId", "VARCHAR(64) NULL"},
+}
+
+func ensureWorkflowColumns() {
+	for _, c := range workflowColumns {
+		ok, err := columnExists(c.table, c.col)
+		if err != nil {
+			log.Fatalf("❌ Funis: não consegui ler %s.%s: %v", c.table, c.col, err)
+		}
+		if ok {
+			continue
+		}
+		if _, err := db.Exec(fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s", c.table, c.col, c.ddl)); err != nil {
+			log.Fatalf("❌ Funis: não consegui adicionar %s.%s: %v", c.table, c.col, err)
+		}
+	}
+	if err := backfillOpportunityPipelines(); err != nil {
+		log.Println("⚠️ Funis: backfill de Opportunity.pipelineId falhou (as contagens usam a etapa):", err)
+	}
+}
+
+// backfillOpportunityPipelines grava o funil nas oportunidades que ainda não têm, a partir do id da etapa.
+// Idempotente. Valores antigos (INBOUND, WON…) não dizem de que funil são: ficam nulos e as contagens os
+// atribuem ao primeiro funil ativo, como o admin faz (stages.ts).
+func backfillOpportunityPipelines() error {
+	rows, err := db.Query(`SELECT DISTINCT o.stage, s.pipelineId FROM Opportunity o JOIN PipelineStage s ON s.id = o.stage WHERE o.pipelineId IS NULL`)
+	if err != nil {
+		return err
+	}
+	type pair struct{ stage, pipeline string }
+	var todo []pair
+	for rows.Next() {
+		var p pair
+		if err := rows.Scan(&p.stage, &p.pipeline); err != nil {
+			rows.Close()
+			return err
+		}
+		todo = append(todo, p)
+	}
+	rows.Close()
+	for _, p := range todo {
+		if _, err := db.Exec(`UPDATE Opportunity SET pipelineId = ? WHERE pipelineId IS NULL AND stage = ?`, p.pipeline, p.stage); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // splitStatements separa o script em instruções (cada CREATE termina em ";" no fim da linha).

@@ -32,6 +32,10 @@ func oppEnv(t *testing.T) Member {
 	for _, col := range []string{"companyId", "contactId", "ownerId"} {
 		db.Exec("ALTER TABLE Opportunity ADD COLUMN " + col + " VARCHAR(64) NULL")
 	}
+	db.Exec(`DROP TABLE IF EXISTS Note`)
+	if _, err := db.Exec(`CREATE TABLE Note (id VARCHAR(64) PRIMARY KEY, content TEXT, type VARCHAR(16), opportunityId VARCHAR(64), authorId VARCHAR(64) NULL, createdAt DATETIME)`); err != nil {
+		t.Fatal(err)
+	}
 	ensureCRMSchema() // acrescenta Opportunity.ownerMemberId (idempotente)
 	ensureAuthSchema()
 	m, err := authDB.MemberByEmail("adm@kalidash.test")

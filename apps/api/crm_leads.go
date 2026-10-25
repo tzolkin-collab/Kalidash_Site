@@ -236,6 +236,17 @@ func handleCRMLeads(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+		if workflowEnabled() { // WP4-1: nasce em etapa que existe no funil e que o gate deixa entrar (consulta: nada é gravado)
+			blockers, err := leadStageGuard(&l, "", false)
+			if err != nil {
+				writeLinkErr(w, err)
+				return
+			}
+			if len(blockers) > 0 {
+				writeGate409(w, blockers)
+				return
+			}
+		}
 		if err := saveLeadRecord(&l, false); err != nil {
 			if isDup(err) {
 				writeJSON(w, http.StatusConflict, map[string]string{"error": "já existe um lead com este id"})
@@ -317,6 +328,19 @@ func handleCRMLeadByID(w http.ResponseWriter, r *http.Request) {
 		}
 		if !canChangeOrigin(w, r, &l) {
 			return
+		}
+		// WP4-1: mudar de etapa (ou de funil) exige etapa que existe no funil do lead e respeita o gate (ENTER no
+		// destino, EXIT na origem). Barrado: 409 e a tarefa do requisito nasce, como no move da oportunidade.
+		if workflowEnabled() && (l.StageID != cur.StageID || l.PipelineID != cur.PipelineID) {
+			blockers, err := leadStageGuard(&l, cur.StageID, true)
+			if err != nil {
+				writeLinkErr(w, err)
+				return
+			}
+			if len(blockers) > 0 {
+				writeGate409(w, blockers)
+				return
+			}
 		}
 		if err := saveLeadRecord(&l, true); err != nil {
 			writeErr(w, err)
