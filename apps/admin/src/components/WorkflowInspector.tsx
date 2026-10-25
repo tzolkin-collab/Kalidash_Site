@@ -90,8 +90,8 @@ export default function WorkflowInspector(p: InspectorProps) {
                 <span className="insp-meta">{SOURCE_TYPE[s.type]}{s.project ? ` · ${s.project}` : ''}</span>
               </span>
             </button>
-            <Switch checked={s.active} onChange={(v) => p.onToggleSource(s, v)} label={`Fonte ${s.name} ativa`} />
-            <TrashButton label={s.name} warning="A automação criada por esta fonte também é removida." onConfirm={() => p.onRemoveSource(s)} />
+            {!s.derived && <Switch checked={s.active} onChange={(v) => p.onToggleSource(s, v)} label={`Fonte ${s.name} ativa`} />}
+            {!s.derived && <TrashButton label={s.name} warning="A automação de exemplo criada por esta fonte também é removida." onConfirm={() => p.onRemoveSource(s)} />}
           </div>
         ))}
       </Section>

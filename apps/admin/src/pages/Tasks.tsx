@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { AlertTriangle, ChevronRight, Plus } from 'lucide-react';
 import { pipelineStats } from '../lib/pipelineStats';
+import { sourcesKnown, useProjectsLoad } from '../lib/projectSources';
 import { useShell } from '../lib/shell';
 import { useStore } from '../lib/store';
 import { useSyncMode } from '../lib/workflowSync';
@@ -12,6 +13,7 @@ export default function Tasks() {
   const { navigate } = useShell();
   const [pipelines] = useStore(pipelinesStore);
   const syncMode = useSyncMode();
+  const known = sourcesKnown(syncMode === 'api', useProjectsLoad().status);
   const [search, setSearch] = useState('');
   const [tag, setTag] = useState('');
 
@@ -64,7 +66,7 @@ export default function Tasks() {
                         <span className="funnel-card-title">{p.name}</span>
                         <span className="text-sm text-muted">{p.offer}</span>
                       </div>
-                      {p.sources.length === 0 && <Badge tone="warning" title="Nenhuma fonte alimenta este funil"><AlertTriangle size={11} /> Sem fonte</Badge>}
+                      {p.sources.length === 0 && known && <Badge tone="warning" title="Nenhuma fonte alimenta este funil"><AlertTriangle size={11} /> Sem fonte</Badge>}
                     </div>
                     <div className="funnel-card-stats">
                       <div><strong>{st.records}</strong><span>registros</span></div>

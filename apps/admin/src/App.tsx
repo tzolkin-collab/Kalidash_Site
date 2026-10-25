@@ -23,6 +23,7 @@ import ToastHost from './components/Toasts';
 import NotificationBell from './components/NotificationBell';
 import { initWorkflowSync } from './lib/workflowSync';
 import { initCrmSync } from './lib/crmSync';
+import { startProjectSources } from './lib/projectSources';
 import { startTaskNotifications } from './lib/taskNotify';
 import { initAuth, logout, useAuth } from './lib/auth';
 import { loadTeam } from './lib/teamSync';
@@ -67,7 +68,7 @@ export default function App() {
   useEffect(() => {
     if (!authSettled) return;
     if (auth.status === 'in') void loadTeam();
-    void initWorkflowSync().then(initCrmSync).then(startTaskNotifications);
+    void initWorkflowSync().then(initCrmSync).then(startProjectSources).then(startTaskNotifications);
   }, [authSettled]); // eslint-disable-line react-hooks/exhaustive-deps
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

@@ -1,4 +1,5 @@
 import type { Pipeline, TaskItem } from '../domain';
+import { writableSources } from './sourceLink.ts';
 
 // Partes puras da sincronização de funis e tarefas com a API (sem rede nem stores), testadas em
 // tests/workflowDiff.test.ts. A orquestração fica em workflowSync.ts.
@@ -7,7 +8,8 @@ import type { Pipeline, TaskItem } from '../domain';
 export function pipelineProjection(p: Pipeline): string {
   const { counts: _c, values: _v, ...rest } = p;
   void _c; void _v;
-  return JSON.stringify({ ...rest, requirements: p.requirements.map(({ blocked: _b, overdue: _o, ...r }) => (void _b, void _o, r)) });
+  // Fontes de formulário vêm dos projetos (sourceLink.ts): não contam como edição do funil.
+  return JSON.stringify({ ...rest, sources: writableSources(p.sources), requirements: p.requirements.map(({ blocked: _b, overdue: _o, ...r }) => (void _b, void _o, r)) });
 }
 
 /** O servidor omite o que está vazio; as telas esperam sempre arrays e mapas. */

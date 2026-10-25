@@ -6,6 +6,7 @@ import { crmModeStore } from './crmMode.ts';
 import { markTasksSeen } from './taskNotify.ts';
 import { diffPipelines, diffTasks, isSyncableTask, normalizePipeline, pipelineProjection, planInitialPipelines, taskProjection } from './workflowDiff.ts';
 import { pushAviso, pushErro, pushNotificacao } from './notify.ts';
+import { writableSources } from './sourceLink.ts';
 import { SEED_DEMO } from './seedDemo.ts';
 import { createStore, useStore } from './store.ts';
 
@@ -43,7 +44,9 @@ const serverError = async (res: Response) => {
   try { return ((await res.json()) as { error?: string }).error ?? `erro ${res.status}`; } catch { return `erro ${res.status}`; }
 };
 
-function adoptPipelines(list: Pipeline[]) {
+function adoptPipelines(raw: Pipeline[]) {
+  // As fontes de formulário legadas do `config` saem: a verdade é o projeto conectado (sourceLink.ts, B-05).
+  const list = raw.map((p) => ({ ...p, sources: writableSources(p.sources) }));
   pipeSnap.clear();
   list.forEach((p) => pipeSnap.set(p.id, pipelineProjection(p)));
   withSilence(() => pipelinesStore.set(list));
@@ -104,7 +107,7 @@ function mergeComputed(local: Pipeline, saved: Pipeline): Pipeline {
 async function flushPipelines() {
   for (const { kind, pipeline } of diffPipelines(pipeSnap, pipelinesStore.get())) {
     // A ordem da lista na tela é a ordem dos funis: vai junto como `position`.
-    const body = JSON.stringify({ ...pipeline, position: Math.max(0, pipelinesStore.get().findIndex((x) => x.id === pipeline.id)) });
+    const body = JSON.stringify({ ...pipeline, sources: writableSources(pipeline.sources), position: Math.max(0, pipelinesStore.get().findIndex((x) => x.id === pipeline.id)) });
     const res = kind === 'create'
       ? await api('/api/pipelines', { method: 'POST', body })
       : await api(`/api/pipelines/${encodeURIComponent(pipeline.id)}`, { method: 'PUT', body });

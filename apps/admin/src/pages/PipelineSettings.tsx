@@ -8,6 +8,7 @@ import { useShell } from '../lib/shell';
 import { applyDiff, diffWithTemplate } from '../lib/pipelineTemplate';
 import type { StepDiff } from '../lib/pipelineTemplate';
 import { automationsStore } from '../mocks/automations';
+import { sourcesKnown, useLiveSources, useProjectsLoad } from '../lib/projectSources';
 import { contactTagsStore } from '../mocks/people';
 import { pipelinesStore } from '../mocks/pipelines';
 import { templatesStore } from '../mocks/templates';
@@ -218,6 +219,8 @@ function StagesTab({ pipeline, patch }: { pipeline: Pipeline; patch: Patch }) {
 function SourcesTab({ pipeline, patch }: { pipeline: Pipeline; patch: Patch }) {
   const [, setAutomations] = useStore(automationsStore);
   const [connecting, setConnecting] = useState(false);
+  const live = useLiveSources();
+  const known = sourcesKnown(live, useProjectsLoad().status);
 
   const managedBy = (s: Source) => `Conectar fonte: ${s.name}`;
   const remove = (s: Source) => {
@@ -233,7 +236,9 @@ function SourcesTab({ pipeline, patch }: { pipeline: Pipeline; patch: Patch }) {
         <button type="button" className="btn btn-solid" onClick={() => setConnecting(true)}><Link2 size={14} /> Conectar fonte</button>
       </div>
 
-      {pipeline.sources.length === 0 ? (
+      {pipeline.sources.length === 0 && !known ? (
+        <EmptyState title="Fontes indisponíveis">Não consegui ler os projetos conectados (só Admin e Gerente enxergam). Peça a um deles para conferir.</EmptyState>
+      ) : pipeline.sources.length === 0 ? (
         <EmptyState title="Este funil está sem fonte">Sem fonte nenhum lead chega sozinho. Conecte um formulário ou cadastre leads à mão.</EmptyState>
       ) : (
         <ul className="row-list">
@@ -243,9 +248,15 @@ function SourcesTab({ pipeline, patch }: { pipeline: Pipeline; patch: Patch }) {
                 <span className="cell-primary">{s.name}</span>
                 <span className="text-xs text-muted">{SOURCE_TYPE_LABEL[s.type]}{s.project ? ` · ${s.project}` : ''}</span>
               </div>
-              {s.type !== 'MANUAL' && <Badge tone="accent" title="Cria uma automação gerenciada em Automações"><Link2 size={10} /> Automação</Badge>}
-              <Switch checked={s.active} onChange={(v) => setActive(s, v)} label={`Fonte ${s.name} ativa`} />
-              <button type="button" className="icon-btn bare" onClick={() => remove(s)} aria-label={`Remover ${s.name}`}><Trash2 size={14} /></button>
+              {s.derived ? (
+                <a className="link-inline" href="#/projetos" title="O vínculo é do projeto: troque o funil ou desconecte em Projetos conectados"><Link2 size={12} /> Projeto conectado</a>
+              ) : (
+                <>
+                  {s.type !== 'MANUAL' && !live && <Badge tone="warning" title="Exemplo: a automação só existe neste navegador"><Link2 size={10} /> Exemplo</Badge>}
+                  <Switch checked={s.active} onChange={(v) => setActive(s, v)} label={`Fonte ${s.name} ativa`} />
+                  <button type="button" className="icon-btn bare" onClick={() => remove(s)} aria-label={`Remover ${s.name}`}><Trash2 size={14} /></button>
+                </>
+              )}
             </li>
           ))}
         </ul>

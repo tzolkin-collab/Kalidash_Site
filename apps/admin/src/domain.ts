@@ -23,6 +23,8 @@ export type Source = {
   project?: string;
   /** Formulário rastreado que alimenta esta fonte (um formulário alimenta uma só pipeline). */
   formId?: string;
+  /** Fonte derivada de um projeto conectado na API (B-05): é lida de lá, não gravada no funil. */
+  derived?: boolean;
   active: boolean;
 };
 

@@ -1,6 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Bell, ExternalLink, Link2, Sparkles, Trash2 } from 'lucide-react';
 import type { Pipeline, Requirement, RequirementGate, RequirementKind, Source, SourceType } from '../domain';
+import { loadProjects, updateProject, useApiProjects } from '../lib/connectSync';
+import { useLiveSources } from '../lib/projectSources';
+import { connectBody, currentPipelineOf, firstLeadStage } from '../lib/sourceLink';
 import { newId, useStore } from '../lib/store';
 import { EVENTS, automationsStore } from '../mocks/automations';
 import type { AutomationRow } from '../mocks/automations';
@@ -18,27 +21,57 @@ export const SOURCE_TYPE_LABEL: Record<SourceType, string> = { FORM: 'Formulári
 
 /* ------------------------------ Fonte ------------------------------ */
 
-/** Conectar uma fonte: formulário real dos projetos (um formulário alimenta uma só pipeline) e a automação gerenciada que cria o lead. */
+/**
+ * Conectar uma fonte. Com a API ligada (B-05), a lista é a dos PROJETOS reais (GET /api/projects) e conectar grava
+ * `pipelineId`, `stageId` (1ª etapa Lead do funil) e `sourceName` no projeto: essa é a única fonte de verdade, e as
+ * fontes do funil são derivadas dela. No modo exemplo, lista os formulários de exemplo e cria a automação gerenciada
+ * (que só existe nesta aba do navegador).
+ */
 export function ConnectSourcePanel({ pipeline, onClose, onConnect }: { pipeline: Pipeline; onClose: () => void; onConnect: (s: Source) => void }) {
+  const live = useLiveSources();
+  const apiProjects = useApiProjects();
   const [projects] = useStore(projectsStore);
   const [pipelines] = useStore(pipelinesStore);
   const [, setAutomations] = useStore(automationsStore);
   const [type, setType] = useState<SourceType>('FORM');
   const [formId, setFormId] = useState('');
   const [name, setName] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => { if (live) void loadProjects(); }, [live]);
+
+  // Exemplo
   const forms = useMemo(() => projects.flatMap((pr) => pr.forms.map((f) => ({ form: f, project: pr }))), [projects]);
   const usedBy = (id: string) => pipelines.find((p) => p.sources.some((s) => s.formId === id));
   const picked = forms.find((f) => f.form.id === formId);
   const formModule = picked?.project.modules.find((m) => m.name === 'Formulário');
+  // Real
+  const realProjects = apiProjects.data ?? [];
+  const realPicked = realProjects.find((p) => p.id === formId);
+  const movedFrom = realPicked && realPicked.pipelineId !== pipeline.id ? currentPipelineOf(realPicked, pipelines) : undefined;
 
-  const valid = type === 'FORM' ? formId !== '' && !usedBy(formId) : name.trim() !== '';
+  const hasLeadStage = Boolean(firstLeadStage(pipeline));
+  const valid = type !== 'FORM'
+    ? name.trim() !== ''
+    : live ? Boolean(realPicked) && realPicked!.pipelineId !== pipeline.id && hasLeadStage : formId !== '' && !usedBy(formId);
 
-  const connect = () => {
+  const connect = async () => {
+    if (type === 'FORM' && live && realPicked) {
+      const body = connectBody(realPicked, pipeline, name);
+      if ('error' in body) { setError(body.error); return; }
+      setBusy(true);
+      setError(null);
+      const res = await updateProject(realPicked.id, body);
+      setBusy(false);
+      if ('error' in res) setError(res.error);
+      else onClose(); // as fontes do funil se refazem a partir do projeto (lib/projectSources.ts)
+      return;
+    }
     const source: Source = type === 'FORM' && picked
       ? { id: newId('src'), name: name.trim() || picked.form.name, type, project: picked.project.name, formId: picked.form.id, active: true }
       : { id: newId('src'), name: name.trim(), type, active: true };
-    if (type !== 'MANUAL') {
+    if (type !== 'MANUAL' && !live) {
       setAutomations((prev) => [{
         id: newId('au'), name: `Criar lead a partir de "${source.name}"`, category: 'Fontes', trigger: 'Formulário enviado', action: 'Criar lead',
         triggerId: 'formulario.enviado', actionId: 'lead.criar', detail: `Pipeline ${pipeline.name}, etapa Novos`, pipeline: pipeline.name,
@@ -51,19 +84,41 @@ export function ConnectSourcePanel({ pipeline, onClose, onConnect }: { pipeline:
   return (
     <SidePanel
       title="Conectar fonte"
-      subtitle={`Alimenta a pipeline ${pipeline.name}. Uma automação simples de criação de leads nasce por trás dos panos.`}
+      subtitle={live
+        ? `Os envios do formulário passam a criar leads na primeira etapa de Lead de ${pipeline.name}.`
+        : `Alimenta a pipeline ${pipeline.name}. Exemplo: a automação criada aqui só existe neste navegador e some ao recarregar.`}
       onClose={onClose}
-      footer={<><button type="button" className="btn" onClick={onClose}>Cancelar</button><button type="button" className="btn btn-solid" disabled={!valid} onClick={connect}>Conectar</button></>}
+      footer={<><button type="button" className="btn" onClick={onClose}>Cancelar</button><button type="button" className="btn btn-solid" disabled={!valid || busy} onClick={() => void connect()}>{busy ? 'Conectando…' : 'Conectar'}</button></>}
     >
       <div className="form-stack">
         <Field label="Tipo de fonte">
-          <CustomSelect className="select" value={type} onChange={(e) => { setType(e.target.value as SourceType); setFormId(''); }}>
+          <CustomSelect className="select" value={type} onChange={(e) => { setType(e.target.value as SourceType); setFormId(''); setError(null); }}>
             {(Object.keys(SOURCE_TYPE_LABEL) as SourceType[]).map((t) => <option key={t} value={t}>{SOURCE_TYPE_LABEL[t]}</option>)}
           </CustomSelect>
         </Field>
-        {type === 'FORM' ? (
+        {type === 'FORM' && live ? (
           <>
-            <Field label="Formulário rastreado" hint="Vem dos projetos conectados. O formulário passa a criar leads nesta pipeline.">
+            <Field label="Projeto e formulário" hint="Vem dos projetos conectados de verdade. Um projeto alimenta um só funil: ao conectar aqui, ele deixa de alimentar o anterior.">
+              <CustomSelect className="select" value={formId} onChange={(e) => setFormId(e.target.value)}>
+                <option value="">{apiProjects.status === 'loading' && !apiProjects.data ? 'Carregando…' : 'Escolha um projeto…'}</option>
+                {realProjects.map((pr) => (
+                  <option key={pr.id} value={pr.id} disabled={pr.pipelineId === pipeline.id}>
+                    {pr.name}{pr.forms.length ? ` › ${pr.forms.map((f) => f.name).join(', ')}` : ' (sem formulário cadastrado)'}{pr.pipelineId === pipeline.id ? ' (já alimenta este funil)' : ''}
+                  </option>
+                ))}
+              </CustomSelect>
+            </Field>
+            {apiProjects.status === 'error' && <div className="task-callout" role="alert"><span>Não consegui carregar os projetos: {apiProjects.error}</span></div>}
+            {apiProjects.status === 'ready' && realProjects.length === 0 && <div className="task-callout" role="status"><span>Nenhum projeto conectado ainda. Conecte o primeiro em Projetos conectados.</span></div>}
+            {!hasLeadStage && <div className="task-callout" role="alert"><span>Este funil não tem uma etapa do tipo Lead. Crie uma antes de conectar um formulário.</span></div>}
+            {movedFrom && <div className="task-callout" role="status"><span>Hoje este projeto alimenta "{movedFrom.name}". Ao conectar, ele passa a alimentar só este funil.</span></div>}
+            <Field label="Nome da fonte" hint="Opcional. É o nome que aparece na origem dos leads. Sem nome, mantém o do projeto."><input className="input" value={name} onChange={(e) => setName(e.target.value)} /></Field>
+            {error && <div className="task-callout" role="alert"><span>{error}</span></div>}
+            <a className="link-inline" href="#/projetos"><ExternalLink size={12} /> Ainda não conectou o site? Vá em Projetos conectados</a>
+          </>
+        ) : type === 'FORM' ? (
+          <>
+            <Field label="Formulário rastreado" hint="Exemplo: vem dos projetos de exemplo. Com a API ligada, aqui entram os projetos reais.">
               <CustomSelect className="select" value={formId} onChange={(e) => setFormId(e.target.value)}>
                 <option value="">Escolha um formulário…</option>
                 {forms.map(({ form, project }) => {
@@ -281,6 +336,7 @@ export function SourceDetailPanel({ pipeline, source, onClose, onChange, onRemov
   onRemove: (s: Source) => void;
 }) {
   const [, setAutomations] = useStore(automationsStore);
+  const live = useLiveSources();
   const [name, setName] = useState(source.name);
   const [active, setActive] = useState(source.active);
   const save = () => {
@@ -299,20 +355,21 @@ export function SourceDetailPanel({ pipeline, source, onClose, onChange, onRemov
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn btn-danger" style={{ marginRight: 'auto' }} onClick={() => onRemove(source)}><Trash2 size={14} /> Remover fonte</button>
-          <button type="button" className="btn" onClick={onClose}>Cancelar</button>
-          <button type="button" className="btn btn-solid" disabled={!name.trim()} onClick={save}>Salvar</button>
+          {!source.derived && <button type="button" className="btn btn-danger" style={{ marginRight: 'auto' }} onClick={() => onRemove(source)}><Trash2 size={14} /> Remover fonte</button>}
+          <button type="button" className="btn" onClick={onClose}>{source.derived ? 'Fechar' : 'Cancelar'}</button>
+          {!source.derived && <button type="button" className="btn btn-solid" disabled={!name.trim()} onClick={save}>Salvar</button>}
         </>
       }
     >
       <div className="form-stack">
-        <Field label="Nome da fonte"><input className="input" value={name} onChange={(e) => setName(e.target.value)} /></Field>
+        <Field label="Nome da fonte"><input className="input" value={name} onChange={(e) => setName(e.target.value)} disabled={source.derived} /></Field>
         {source.project && <Field label="Projeto de origem"><div className="text-sm">{source.project}</div></Field>}
-        <label className="check-row">
+        {source.derived && <div className="task-callout" role="status"><Link2 size={16} /><div><strong>Vem do projeto conectado</strong><div className="text-xs">O vínculo com este funil é do projeto. Para trocar de funil ou desconectar, use <a className="link-inline" href="#/projetos">Projetos conectados</a>.</div></div></div>}
+        {!source.derived && <label className="check-row">
           <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
           <span><strong>Fonte ativa</strong><span className="text-xs text-muted" style={{ display: 'block' }}>Novos registros entram nesta pipeline.</span></span>
-        </label>
-        {source.type !== 'MANUAL' && <div className="task-callout" role="status"><Link2 size={16} /><div><strong>Automação gerenciada</strong><div className="text-xs">"Criar lead a partir de {source.name}" vive em Automações e some se a fonte for removida.</div></div></div>}
+        </label>}
+        {source.type !== 'MANUAL' && !source.derived && !live && <div className="task-callout" role="status"><Link2 size={16} /><div><strong>Exemplo de automação</strong><div className="text-xs">"Criar lead a partir de {source.name}" só existe neste navegador (Automações) e some ao recarregar.</div></div></div>}
       </div>
     </SidePanel>
   );
