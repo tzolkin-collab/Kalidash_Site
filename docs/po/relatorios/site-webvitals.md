@@ -69,6 +69,55 @@ Era `lazy`, mesmo sendo o elemento LCP. Efeito dentro do ruído (móvel `/blog` 
 - CLS ≤ 0,1 ✅ (0). TBT ≤ 300 ms ✅ (37–45 ms). **LCP ≤ 2,5 s ❌ (3,4–4,5 s)**, melhorou ~2 s mas não chegou.
 - Por que não chegou (hipótese, não confirmada): FCP ~1,1–1,2 s e LCP 2–3 s depois dele no perfil 4G lento simulado; ainda há ~135 KB de fontes e ~190 KB de JS na carga; no blog o PixelTransition cobre a página 1,4 s (o Lighthouse mede o LCP sob a cobertura) e a capa é grande (457 KB no `/blog`). Próximos candidatos: ver decisões abaixo e investigar o que atrasa o FCP/LCP do `<h1>` na home (CSS bloqueante, hidratação de `HomePage` inteira como client component).
 
+## Rodada 2
+
+### R2.1 Conferência visual (build de produção, navegador, 1440 e 390 px)
+`/` (1440), `/treinamento-corporativo-ia`, `/blog` e `/blog/artigo-1` (390): layout igual ao esperado, sem overflow horizontal, sem fallback para Georgia/serifa. Famílias computadas: home = Inter, Source Sans 3, Archivo; `/blog` = Archivo + Manrope. Remover Fraunces/Newsreader não mudou nada visível. Observação (já existia, não mexi): em `/blog/<slug>` as variáveis `--font-inter` e `--font-source-sans` não existem (a página não importa as fontes), então o artigo renderiza em Archivo, não em Inter/Source Sans como o CSS sugere.
+
+### R2.2 D22 — PixelTransition: experimento sem a cortina (não commitado)
+Móvel, mediana de 3, cortina escondida por CSS: `/blog` LCP 4145 → 4193 ms; `/blog/artigo-1` 4516 → 4589 ms (ruído). **A cortina não pesa no LCP medido** (o elemento LCP é a capa embaixo dela), portanto, pelo critério do PO ("se o ganho de LCP for relevante"), **não implementei** a regra "só na 1ª visita". O efeito dela é de percepção (1,4 s de tela escura), não de métrica. Se o PO quiser mesmo assim por UX, é pequeno: sessionStorage + duração 0,8 s; fica como decisão.
+
+### R2.3 D23 — Manrope só no blog (`740a68b`)
+Manrope saiu do layout raiz para `blog/manrope.ts` (aplicada na `<main>` da galeria, `preload: false`); era pré-carregada (24 KB) em todas as páginas e só a galeria usa. Inter e Source Sans 3 já são fontes variáveis (1 arquivo cada); Archivo (4 pesos) é um único arquivo; **não há pesos não usados para cortar**.
+
+| Móvel | Fontes KB | LCP antes → depois | Perf |
+|---|---|---|---|
+| `/` | 135 → 110 | 3575 → 3372 | 91 → 92 |
+| `/treinamento-corporativo-ia` | 135 → 110 | 3446 → 3221 | 91 → 93 |
+| `/advisory` | 135 → 110 | 3374 → 3133 | 92 → 93 |
+| `/blog` | 135 → 135 | 4145 → 4150 | 87 → 86 |
+| `/blog/artigo-1` | 135 → 110 | 4516 → 4305 | 84 → 85 |
+
+Desktop: LCP 0,67–0,86 s, perf 99–100.
+
+### R2.4 Atraso FCP → LCP (home e institucionais, móvel)
+Achados:
+- Hero das institucionais já é `next/image` com `priority`, `width/height` e `sizes` (60 KB em `/treinamento`, 28 KB em `/advisory`): imagem não é o problema. Na home o LCP é o `<h1>` (texto).
+- Sem simulação (rede local), o LCP é só TTFB (9 ms) + 155 ms de render: o 3,2–3,4 s é **do modelo de rede simulado** (RTT 150 ms, 1,6 Mbps, CPU 4x). Lighthouse aponta 2 CSS bloqueantes (19 KB, ~600 ms desperdiçados) e 4 fontes pré-carregadas (~110 KB).
+- Teste: `experimental.inlineCss: true` — FCP 1,2 → 1,0 s, **LCP sem ganho** (3317/3280/3198 ms); TBT subiu e o HTML cresce ~20 KB. **Revertido, não commitado** (é flag experimental).
+- JS de ~190 KB por página no móvel, home hidrata inteira (`"use client"`); testado `dynamic` em FlickeringGrid/ProblemHologram na rodada 1: sem ganho medido.
+
+Propostas (não implementadas, ganho estimado, a validar):
+1. Home como Server Component, isolando só os cards interativos (hover) em client components: menos JS/hidratação; estimativa −100 a −300 ms de TBT/LCP móvel; mudança média, precisa de teste visual.
+2. Trocar `display: swap` de Inter por fonte com métricas ajustadas já existe (`adjustFontFallback`); testar `display: "optional"` no corpo só se o PO aceitar texto em fallback em conexão lenta (estimativa: tirar o salto de fonte do LCP, até −0,5 s no simulado; muda visual em rede lenta).
+3. Validar na Vercel (CDN/HTTP2, imagens AVIF): o LCP real tende a ser bem menor que o simulado; recomendo medir no PageSpeed antes de mexer mais.
+
+## Tabela DEPOIS 2 (mediana de 3, após R2.3)
+| Perfil / página | Perf | LCP ms | CLS | TBT ms | FCP ms | JS KB | Img KB | Fontes KB |
+|---|---|---|---|---|---|---|---|---|
+| Móvel `/` | 92 | 3372 | 0 | 41 | 1210 | 189 | 162 | 110 |
+| Móvel `/treinamento-corporativo-ia` | 93 | 3221 | 0 | 41 | 1209 | 189 | 60 | 110 |
+| Móvel `/advisory` | 93 | 3133 | 0 | 35 | 1208 | 189 | 28 | 110 |
+| Móvel `/blog` | 86 | 4150 | 0 | 34 | 1362 | 185 | 457 | 135 |
+| Móvel `/blog/artigo-1` | 85 | 4305 | 0 | 40 | 1209 | 189 | 272 | 110 |
+| Desktop `/` | 100 | 719 | 0 | 38 | 328 | 397 | 285 | 110 |
+| Desktop `/treinamento-corporativo-ia` | 100 | 686 | 0 | 0 | 327 | 189 | 122 | 110 |
+| Desktop `/advisory` | 100 | 668 | 0 | 0 | 327 | 189 | 22 | 110 |
+| Desktop `/blog` | 100 | 807 | 0 | 0 | 372 | 185 | 457 | 135 |
+| Desktop `/blog/artigo-1` | 99 | 856 | 0 | 0 | 329 | 189 | 363 | 110 |
+
+Meta móvel: CLS ✅, TBT ✅, **LCP ❌ (3,1–4,3 s; de 5,6–7,2 s no início)**. No `/blog`, o LCP é a capa de 457 KB do meu servidor falso (2000 px): em produção depende das capas reais; reduzir/otimizar capas (via `next/image` com host do CDN permitido) é a alavanca, mas exige conhecer o CDN real.
+
 ## Decisões propostas ao PO (NÃO implementadas)
 1. PixelTransition só na 1ª visita da sessão (ou removido): ataca o LCP de `/blog` e `/blog/<slug>`. **Ganho não medido** — não houve tempo; medir tirando a cortina é o 1º passo.
 2. Reduzir mais as fontes (Archivo + Manrope só onde usadas; pesos de Inter/Source Sans 3): ganho a medir (restam 135 KB).

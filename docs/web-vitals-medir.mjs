@@ -3,10 +3,10 @@ import * as cl from 'chrome-launcher';
 import fs from 'fs';
 const [,, label, runs='3'] = process.argv;
 const base='http://localhost:3199';
-const pages=['/','/treinamento-corporativo-ia','/advisory','/blog','/blog/artigo-1'];
+const pages=(process.env.PAGES||'/,/treinamento-corporativo-ia,/advisory,/blog,/blog/artigo-1').split(',');
 const med=a=>{const s=[...a].sort((x,y)=>x-y);return s[Math.floor(s.length/2)]};
 const out={};
-for(const preset of ['mobile','desktop']){
+for(const preset of (process.env.PRESETS||'mobile,desktop').split(',')){
   for(const p of pages){
     const res=[];
     for(let i=0;i<+runs;i++){
