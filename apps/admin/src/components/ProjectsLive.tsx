@@ -73,8 +73,8 @@ function ProjectsPane({ goKeys }: { goKeys: () => void }) {
   }
   if (!list) return <div className="acc-skeleton" aria-busy="true" aria-label="Carregando">{[92, 81, 70].map((w) => <span key={w} style={{ width: `${w}%` }} />)}</div>;
 
-  const pipeName = (p: ApiProject) => pipelines.find((x) => x.id === p.pipelineId)?.name ?? p.pipelineId;
-  const stageName = (p: ApiProject) => pipelines.find((x) => x.id === p.pipelineId)?.stages.find((s) => s.id === p.stageId)?.name ?? p.stageId;
+  const pipeName = (p: ApiProject) => pipelines.find((x) => x.id === p.pipelineId)?.name ?? p.pipelineId ?? 'Sem funil';
+  const stageName = (p: ApiProject) => pipelines.find((x) => x.id === p.pipelineId)?.stages.find((s) => s.id === p.stageId)?.name ?? p.stageId ?? '—';
   const keysOf = (p: ApiProject) => tokens.data?.filter((t) => t.projectId === p.id && t.status === 'ACTIVE') ?? [];
 
   const confirmUnplug = async () => {

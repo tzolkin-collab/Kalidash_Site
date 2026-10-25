@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { connectBody, currentPipelineOf, firstLeadStage, projectSourcesOf, withProjectSources, writableSources } from '../src/lib/sourceLink.ts';
+import { connectBody, currentPipelineOf, disconnectBody, disconnectWarning, firstLeadStage, projectSourcesOf, withProjectSources, writableSources } from '../src/lib/sourceLink.ts';
 import { normalizePipeline, pipelineProjection } from '../src/lib/workflowDiff.ts';
 
 const pipe = (id: string, over: object = {}) => normalizePipeline({
@@ -48,3 +48,18 @@ test('currentPipelineOf acha o funil de onde o projeto será movido', () => {
   assert.equal(currentPipelineOf(prj('a', 'p2'), [pipe('p1'), pipe('p2')])?.id, 'p2');
   assert.equal(currentPipelineOf(prj('a', 'zz'), [pipe('p1')]), undefined);
 });
+
+test('D40: desconectar zera funil e coluna, mantém o resto do projeto e some das fontes do funil', () => {
+  const a = prj('a', 'p1', { stack: 'Next.js', description: 'LP', origins: ['https://www.lp.test'] });
+  const body = disconnectBody(a);
+  assert.equal(body.pipelineId, null);
+  assert.equal(body.stageId, null);
+  assert.deepEqual([body.name, body.url, body.stack, body.description, body.sourceName, body.origins], [a.name, a.url, 'Next.js', 'LP', 'Fonte a', ['https://www.lp.test']]);
+  // o projeto desconectado deixa de ser fonte de qualquer funil ("Sem fonte") e não quebra a derivação
+  const off = { ...a, pipelineId: null, stageId: null };
+  assert.deepEqual(projectSourcesOf('p1', [off]), []);
+  assert.deepEqual(withProjectSources([pipe('p1', { sources: projectSourcesOf('p1', [a]) })], [off])[0].sources, []);
+  assert.equal(currentPipelineOf(off, [pipe('p1')]), undefined);
+  assert.match(disconnectWarning(a), /Novos envios do formulário serão recusados até reconectar/);
+});
+

@@ -1,9 +1,9 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Bell, ExternalLink, Link2, Sparkles, Trash2 } from 'lucide-react';
+import { Bell, ExternalLink, Link2, Sparkles, Trash2, Unlink } from 'lucide-react';
 import type { Pipeline, Requirement, RequirementGate, RequirementKind, Source, SourceType } from '../domain';
-import { loadProjects, updateProject, useApiProjects } from '../lib/connectSync';
+import { loadProjects, projectsApiStore, updateProject, useApiProjects } from '../lib/connectSync';
 import { useLiveSources } from '../lib/projectSources';
-import { connectBody, currentPipelineOf, firstLeadStage } from '../lib/sourceLink';
+import { connectBody, currentPipelineOf, disconnectBody, disconnectWarning, firstLeadStage } from '../lib/sourceLink';
 import { newId, useStore } from '../lib/store';
 import { EVENTS, automationsStore } from '../mocks/automations';
 import type { AutomationRow } from '../mocks/automations';
@@ -20,6 +20,40 @@ import { CustomSelect } from './ui';
 export const SOURCE_TYPE_LABEL: Record<SourceType, string> = { FORM: 'Formulário conectado', MANUAL: 'Cadastro manual', IMPORT: 'Importação de planilha', API: 'API' };
 
 /* ------------------------------ Fonte ------------------------------ */
+
+/**
+ * Desconectar a fonte (D40): limpa funil e coluna do projeto (`pipelineId`/`stageId` nulos). O projeto continua
+ * existindo e ativo; o servidor recusa novos envios ("projeto sem funil") até reconectar; nenhum lead é alterado.
+ * Pede confirmação com o aviso. Devolve o erro, ou null quando deu certo (as fontes do funil se refazem sozinhas).
+ */
+export async function disconnectSource(projectId: string, ask: (msg: string) => boolean = (m) => window.confirm(m)): Promise<string | null | 'cancelled'> {
+  const project = (projectsApiStore.get().data ?? []).find((p) => p.id === projectId);
+  if (!project) return 'Não encontrei o projeto desta fonte. Recarregue a página.';
+  if (!ask(disconnectWarning(project))) return 'cancelled';
+  const res = await updateProject(project.id, disconnectBody(project));
+  return 'error' in res ? res.error : null;
+}
+
+/** Botão "Desconectar fonte" de uma fonte derivada de projeto (id da fonte = id do projeto). */
+export function DisconnectSourceButton({ source, onDone, style }: { source: Source; onDone?: () => void; style?: React.CSSProperties }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const run = async () => {
+    setBusy(true);
+    setError(null);
+    const res = await disconnectSource(source.id);
+    setBusy(false);
+    if (res === 'cancelled') return;
+    if (res) setError(res);
+    else onDone?.();
+  };
+  return (
+    <>
+      <button type="button" className="btn btn-danger" style={style} disabled={busy} onClick={() => void run()}><Unlink size={14} /> {busy ? 'Desconectando…' : 'Desconectar fonte'}</button>
+      {error && <span className="text-xs" role="alert" style={{ color: 'var(--danger, #b42318)' }}>{error}</span>}
+    </>
+  );
+}
 
 /**
  * Conectar uma fonte. Com a API ligada (B-05), a lista é a dos PROJETOS reais (GET /api/projects) e conectar grava
@@ -355,6 +389,7 @@ export function SourceDetailPanel({ pipeline, source, onClose, onChange, onRemov
       onClose={onClose}
       footer={
         <>
+          {source.derived && live && <DisconnectSourceButton source={source} onDone={onClose} style={{ marginRight: 'auto' }} />}
           {!source.derived && <button type="button" className="btn btn-danger" style={{ marginRight: 'auto' }} onClick={() => onRemove(source)}><Trash2 size={14} /> Remover fonte</button>}
           <button type="button" className="btn" onClick={onClose}>{source.derived ? 'Fechar' : 'Cancelar'}</button>
           {!source.derived && <button type="button" className="btn btn-solid" disabled={!name.trim()} onClick={save}>Salvar</button>}
@@ -364,7 +399,7 @@ export function SourceDetailPanel({ pipeline, source, onClose, onChange, onRemov
       <div className="form-stack">
         <Field label="Nome da fonte"><input className="input" value={name} onChange={(e) => setName(e.target.value)} disabled={source.derived} /></Field>
         {source.project && <Field label="Projeto de origem"><div className="text-sm">{source.project}</div></Field>}
-        {source.derived && <div className="task-callout" role="status"><Link2 size={16} /><div><strong>Vem do projeto conectado</strong><div className="text-xs">O vínculo com este funil é do projeto. Para trocar de funil ou desconectar, use <a className="link-inline" href="#/projetos">Projetos conectados</a>.</div></div></div>}
+        {source.derived && <div className="task-callout" role="status"><Link2 size={16} /><div><strong>Vem do projeto conectado</strong><div className="text-xs">O vínculo com este funil é do projeto. Para trocar de funil, use <a className="link-inline" href="#/projetos">Projetos conectados</a>. "Desconectar fonte" solta o projeto deste funil: novos envios são recusados até reconectar.</div></div></div>}
         {!source.derived && <label className="check-row">
           <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
           <span><strong>Fonte ativa</strong><span className="text-xs text-muted" style={{ display: 'block' }}>Novos registros entram nesta pipeline.</span></span>

@@ -13,7 +13,7 @@ import { contactTagsStore } from '../mocks/people';
 import { pipelinesStore } from '../mocks/pipelines';
 import { templatesStore } from '../mocks/templates';
 import StepsEditor from '../components/StepsEditor';
-import { ConnectSourcePanel, GATE_LABEL, RequirementPanel, SOURCE_TYPE_LABEL } from '../components/PipelineEditors';
+import { ConnectSourcePanel, DisconnectSourceButton, GATE_LABEL, RequirementPanel, SOURCE_TYPE_LABEL } from '../components/PipelineEditors';
 import { Badge, EmptyState, Field, Page, PageHeader, SampleBanner, Switch, Tabs } from '../components/ui';
 import { CustomSelect } from '../components/ui';
 
@@ -249,7 +249,10 @@ function SourcesTab({ pipeline, patch }: { pipeline: Pipeline; patch: Patch }) {
                 <span className="text-xs text-muted">{SOURCE_TYPE_LABEL[s.type]}{s.project ? ` · ${s.project}` : ''}</span>
               </div>
               {s.derived ? (
-                <a className="link-inline" href="#/projetos" title="O vínculo é do projeto: troque o funil ou desconecte em Projetos conectados"><Link2 size={12} /> Projeto conectado</a>
+                <>
+                  <a className="link-inline" href="#/projetos" title="O vínculo é do projeto: para trocar de funil, use Projetos conectados"><Link2 size={12} /> Projeto conectado</a>
+                  <DisconnectSourceButton source={s} />
+                </>
               ) : (
                 <>
                   {s.type !== 'MANUAL' && !live && <Badge tone="warning" title="Exemplo: a automação só existe neste navegador"><Link2 size={10} /> Exemplo</Badge>}

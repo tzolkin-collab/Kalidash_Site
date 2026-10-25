@@ -27,8 +27,8 @@ export type ApiProject = {
   origins: string[];
   stack?: string;
   description?: string;
-  pipelineId: string;
-  stageId: string;
+  pipelineId: string | null; // null = fonte desconectada (D40): o projeto existe mas não recebe envios
+  stageId: string | null;
   sourceName: string;
   submissions: number;
   lastSubmissionAt?: string;
