@@ -218,7 +218,8 @@ func loadPipelines(id string, includeArchived bool) ([]PipelineDTO, error) {
 			_ = json.Unmarshal(cfg, &p.pipelineConfig)
 		}
 		if archived.Valid {
-			if t, err := time.Parse("2006-01-02 15:04:05", archived.String); err == nil {
+			// com parseTime=true o driver entrega RFC3339; sem ele, "AAAA-MM-DD hh:mm:ss" (parseDT aceita os dois)
+			if t := parseDT(archived.String); !t.IsZero() {
 				p.ArchivedAt = &t
 			}
 		}

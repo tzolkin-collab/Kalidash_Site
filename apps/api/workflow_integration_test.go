@@ -279,6 +279,13 @@ func TestIntegrationPipelineTaskGate(t *testing.T) {
 	if len(list) != 1 || list[0].ArchivedAt == nil {
 		t.Errorf("com archived=1 deveria vir 1 arquivado: %+v", list)
 	}
+	// o mesmo com parseTime=true no DSN (produção): o driver entrega RFC3339 em vez de "AAAA-MM-DD hh:mm:ss"
+	reopenWithParseTime(t)
+	list = nil
+	call(handlePipelines, "GET", "/api/pipelines?archived=1", "", nil).into(t, &list)
+	if len(list) != 1 || list[0].ArchivedAt == nil || list[0].ArchivedAt.IsZero() {
+		t.Errorf("com parseTime=true o archivedAt do funil se perdeu: %+v", list)
+	}
 
 	var arch PipelineDTO
 	call(handlePipelineByID, "GET", "/api/pipelines/q4", "q4", nil).into(t, &arch)
