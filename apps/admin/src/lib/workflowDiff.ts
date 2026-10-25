@@ -40,6 +40,16 @@ export function diffPipelines(snapshot: Map<string, string>, current: Pipeline[]
   return out;
 }
 
+/**
+ * O que fazer na abertura com o servidor respondendo: 'adopt' (já tem funis), 'seed' (vazio e VITE_SEED_DEMO=1:
+ * sobe os exemplos) ou 'empty' (vazio em produção: a tela fica vazia e nada é criado no servidor, D37).
+ */
+export const planInitialPipelines = (serverCount: number, seedDemo: boolean): 'adopt' | 'seed' | 'empty' =>
+  serverCount > 0 ? 'adopt' : seedDemo ? 'seed' : 'empty';
+
+/** Semear pessoas, empresas e leads: só com as três coleções vazias no servidor e VITE_SEED_DEMO=1 (D37). */
+export const shouldSeedCrm = (serverCounts: number[], seedDemo: boolean): boolean => seedDemo && serverCounts.every((n) => n === 0);
+
 /** Id de oportunidade real: a API o cria como número (nanossegundos). Exemplos do protótipo não são. */
 export const isRealOpportunityId = (id: string) => /^\d+$/.test(id);
 /** Com o CRM na API (`crm`), tarefas de leads, pessoas e empresas também vão ao servidor: esses registros existem lá. */

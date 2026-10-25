@@ -7,7 +7,8 @@ import { formatCnpj } from './documents.ts';
 import { startHistorySync } from './historySync.ts';
 import { pushAviso, pushErro, pushNotificacao } from './notify.ts';
 import type { Store } from './store.ts';
-import { diffById } from './workflowDiff.ts';
+import { SEED_DEMO } from './seedDemo.ts';
+import { diffById, shouldSeedCrm } from './workflowDiff.ts';
 import { reloadTasks } from './workflowSync.ts';
 
 // Liga pessoas, empresas e leads à API (docs/api-crm.md), no mesmo molde de workflowSync.ts: as telas
@@ -173,9 +174,9 @@ export async function initCrmSync(): Promise<void> {
   try {
     const probe = await api('/api/crm/people?limit=1');
     if (!probe.ok) { crmModeStore.set('local'); return; } // 404: CRM_API desligado
-    // Servidor vazio (contando arquivados) nas três coleções: semeia com os exemplos, uma única vez.
+    // Servidor vazio (contando arquivados) nas três coleções: só semeia com VITE_SEED_DEMO=1 (D37); em produção fica vazio.
     const counts = await Promise.all(specs.map((s) => api(`${s.path}?archived=1&limit=1`).then((r) => Number(r.headers.get('X-Total-Count') ?? '1'))));
-    if (counts.every((n) => n === 0)) {
+    if (shouldSeedCrm(counts, SEED_DEMO)) {
       const { failed, withoutKey } = await seed();
       if (!failed) pushNotificacao('Pessoas, empresas e leads de exemplo criados no servidor', 'A partir de agora são salvos na API.');
       if (withoutKey) pushAviso('CPFs de exemplo não foram salvos', 'O servidor não tem DATA_KEY configurada. Defina-a na API para guardar CPFs.');

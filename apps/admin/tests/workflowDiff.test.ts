@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { diffById, diffPipelines, diffTasks, isRealOpportunityId, isSyncableTask, normalizePipeline, pipelineProjection, taskProjection } from '../src/lib/workflowDiff.ts';
+import { diffById, diffPipelines, diffTasks, isRealOpportunityId, isSyncableTask, normalizePipeline, pipelineProjection, planInitialPipelines, shouldSeedCrm, taskProjection } from '../src/lib/workflowDiff.ts';
 
 const pipe = (over: object = {}) => normalizePipeline({
   id: 'p1', name: 'Q4', offer: 'x',
@@ -78,4 +78,14 @@ test('diffById: novos, alterados e iguais', () => {
   assert.deepEqual(diffById(snap, [a, b], proj), { create: [], update: [] });
   const r = diffById(snap, [{ id: 'a', v: 2 }, b, { id: 'c', v: 1 }], proj);
   assert.deepEqual([r.create.map((x) => x.id), r.update.map((x) => x.id)], [['c'], ['a']]);
+});
+
+test('B-02/D37: servidor vazio sem VITE_SEED_DEMO não semeia nada; com ela, só em desenvolvimento', () => {
+  assert.equal(planInitialPipelines(0, false), 'empty');
+  assert.equal(planInitialPipelines(0, true), 'seed');
+  assert.equal(planInitialPipelines(3, false), 'adopt');
+  assert.equal(planInitialPipelines(3, true), 'adopt'); // servidor com dados nunca recebe exemplo
+  assert.equal(shouldSeedCrm([0, 0, 0], false), false);
+  assert.equal(shouldSeedCrm([0, 0, 0], true), true);
+  assert.equal(shouldSeedCrm([0, 2, 0], true), false);
 });

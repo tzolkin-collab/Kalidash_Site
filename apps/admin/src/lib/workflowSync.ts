@@ -4,8 +4,9 @@ import { tasksStore } from '../mocks/tasks.ts';
 import { API_URL } from './api.ts';
 import { crmModeStore } from './crmMode.ts';
 import { markTasksSeen } from './taskNotify.ts';
-import { diffPipelines, diffTasks, isSyncableTask, normalizePipeline, pipelineProjection, taskProjection } from './workflowDiff.ts';
+import { diffPipelines, diffTasks, isSyncableTask, normalizePipeline, pipelineProjection, planInitialPipelines, taskProjection } from './workflowDiff.ts';
 import { pushAviso, pushErro, pushNotificacao } from './notify.ts';
+import { SEED_DEMO } from './seedDemo.ts';
 import { createStore, useStore } from './store.ts';
 
 // Liga as telas de funis e tarefas à API (docs/api-workflow.md).
@@ -165,8 +166,9 @@ export async function initWorkflowSync(): Promise<SyncMode> {
     if (!res.ok) { syncModeStore.set('local'); return 'local'; } // 404: WORKFLOW_API desligado
     const list = ((await res.json()) as Pipeline[]).map(normalizePipeline);
     syncModeStore.set('api');
-    if (list.length === 0) {
-      // Servidor vazio: sobe os funis de exemplo que a tela já mostra, uma única vez.
+    const plan = planInitialPipelines(list.length, SEED_DEMO);
+    if (plan === 'seed') {
+      // Só em desenvolvimento (VITE_SEED_DEMO=1): sobe os funis de exemplo que a tela já mostra, uma única vez.
       const seed = pipelinesStore.get();
       for (const [position, p] of seed.entries()) {
         const r = await api('/api/pipelines', { method: 'POST', body: JSON.stringify({ ...p, position }) });
@@ -175,6 +177,7 @@ export async function initWorkflowSync(): Promise<SyncMode> {
       await reloadPipelines();
       pushNotificacao('Funis de exemplo criados no servidor', 'A partir de agora os funis e as tarefas de oportunidades são salvos na API.');
     } else {
+      // Servidor vazio em produção: nada é criado e o exemplo local sai da tela (a lista fica realmente vazia).
       adoptPipelines(list);
     }
     await applyServerTasks();
