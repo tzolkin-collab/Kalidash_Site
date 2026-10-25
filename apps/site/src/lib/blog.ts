@@ -22,7 +22,15 @@ export type Article = {
   createdAt: string;
   updatedAt: string;
   publishedAt?: string | null;
+  // Campos do BC-1 (ainda não existem na API; o site já os respeita se vierem): ficam opcionais.
+  noindex?: boolean | null;
+  ogImageUrl?: string | null;
+  canonicalUrl?: string | null;
 };
+
+// Slug reservado da Galeria Principal (hero e SEO de /blog). Nunca é um artigo público.
+export const GALLERY_SLUG = "blog-global";
+export const isReservedArticleSlug = (slug: string) => slug === GALLERY_SLUG;
 
 // Falha de rede ou erro 5xx NÃO pode virar "artigo não existe": com ISR, um 404 trocaria a última
 // página boa por "não encontrado" só porque a API caiu por um instante. Em runtime a gente lança
