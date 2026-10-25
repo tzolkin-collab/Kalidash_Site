@@ -54,7 +54,8 @@ const companies: Spec<Company> = {
 const leads: Spec<Lead> = {
   key: 'leads', label: 'o lead', path: '/api/crm/leads', store: leadsStore, name: (l) => l.name,
   fromServer: (l) => l,
-  merge: (current) => current,
+  // quem só enxerga os próprios leads cria sempre em nome próprio: o servidor devolve o responsável que valeu
+  merge: (current, sent, saved) => (current.ownerId === sent.ownerId && saved.ownerId !== current.ownerId ? { ...current, ownerId: saved.ownerId } : current),
 };
 const specs = [people, companies, leads] as unknown as Spec<{ id: string }>[];
 

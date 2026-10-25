@@ -6,6 +6,7 @@ import { formatCurrency, formatDate, parseMoney } from '../lib/format';
 import { createLead } from '../lib/leadFlow';
 import { useStore } from '../lib/store';
 import { useCrmMode } from '../lib/crmMode';
+import { useAuth } from '../lib/auth';
 import { useLeadActions } from '../lib/useLeadActions';
 import { usePaged } from '../lib/usePaged';
 import { leadsStore } from '../mocks/leads';
@@ -30,6 +31,7 @@ export default function Leads() {
   const crmMode = useCrmMode();
   const [leads] = useStore(leadsStore);
   const [pipelines] = useStore(pipelinesStore);
+  const [team] = useStore(teamStore);
 
   const [status, setStatus] = useState<Status>('ACTIVE');
   const [search, setSearch] = useState('');
@@ -43,6 +45,8 @@ export default function Leads() {
   const [notice, setNotice] = useState<string | null>(null);
   const actions = useLeadActions(setNotice);
 
+  // O responsável é pessoa da equipe (ownerId); o texto `owner` é o de antes (e o de quem trouxe, no outbound).
+  const ownerLabel = (l: Lead) => team.find((m) => m.id === l.ownerId)?.name ?? l.owner;
   const pipelineName = (id: string) => pipelines.find((p) => p.id === id)?.name ?? id;
   const stageName = (l: Lead) => pipelines.find((p) => p.id === l.pipelineId)?.stages.find((s) => s.id === l.stageId)?.name ?? '—';
   const visible = useMemo(() => leads.filter((l) => showArchived || !l.archivedAt), [leads, showArchived]);
@@ -61,9 +65,9 @@ export default function Leads() {
       if (pipelineFilter && l.pipelineId !== pipelineFilter) return false;
       if (originFilter && l.origin !== originFilter) return false;
       if (tagFilter && !l.tags.includes(tagFilter)) return false;
-      return !q || [l.name, l.email, l.sourceName, l.owner ?? ''].some((v) => v.toLowerCase().includes(q));
+      return !q || [l.name, l.email, l.sourceName, ownerLabel(l) ?? ''].some((v) => v.toLowerCase().includes(q));
     });
-  }, [visible, status, search, pipelineFilter, originFilter, tagFilter]);
+  }, [visible, status, search, pipelineFilter, originFilter, tagFilter, team]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const paged = usePaged(filtered, 10);
 
@@ -128,7 +132,7 @@ export default function Leads() {
                       <span className="text-xs text-muted" style={{ marginTop: '2px' }}>{l.origin === 'INBOUND' ? l.sourceName : `Trouxe: ${l.sourceName}`}</span>
                     </div>
                   </td>
-                  <td>{l.owner ?? <span className="text-muted">Sem dono</span>}</td>
+                  <td>{ownerLabel(l) ?? <span className="text-muted">Sem dono</span>}</td>
                   <td>{l.estimatedValue ? formatCurrency(l.estimatedValue) : <span className="text-muted">—</span>}</td>
                   <td><div className="tag-row">{l.tags.map((t) => <span key={t} className="tag">{t}</span>)}</div></td>
                   <td className="text-muted">{formatDate(l.createdAt)}</td>
@@ -181,6 +185,9 @@ function AddLeadPanel({ onClose, onCreated }: { onClose: () => void; onCreated: 
   const [origin, setOrigin] = useState<LeadOrigin>('OUTBOUND');
   const [sourceName, setSourceName] = useState('');
   const [owner, setOwner] = useState('');
+  const crmMode = useCrmMode();
+  const auth = useAuth();
+  const ownerLive = crmMode === 'api' && auth.status === 'in'; // responsável = pessoa da equipe (id)
   const [value, setValue] = useState('');
   const [tags, setTags] = useState('');
   const [message, setMessage] = useState('');
@@ -201,7 +208,7 @@ function AddLeadPanel({ onClose, onCreated }: { onClose: () => void; onCreated: 
     if (!valid) return;
     const { lead, notes } = createLead({
       name: name.trim(), email: email.trim(), phone: phone.trim() || undefined, pipelineId, origin, sourceName: effectiveSource,
-      owner: owner || undefined, estimatedValue: parsedValue ?? undefined, tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
+      owner: ownerLive ? undefined : owner || undefined, ownerId: ownerLive ? owner || undefined : undefined, estimatedValue: parsedValue ?? undefined, tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
       message: message.trim() || undefined, docKind, document: document || undefined, companyName: companyName.trim() || undefined,
     });
     onCreated(lead, notes);
@@ -258,7 +265,7 @@ function AddLeadPanel({ onClose, onCreated }: { onClose: () => void; onCreated: 
           </CustomSelect>
         </Field>
         <div className="form-grid">
-          <Field label="Dono"><CustomSelect className="select" value={owner} onChange={(e) => setOwner(e.target.value)}><option value="">Sem dono</option>{team.map((m) => <option key={m.id}>{m.name}</option>)}</CustomSelect></Field>
+          <Field label={ownerLive ? 'Responsável' : 'Dono'}><CustomSelect className="select" value={owner} onChange={(e) => setOwner(e.target.value)}><option value="">{ownerLive ? 'Sem responsável' : 'Sem dono'}</option>{team.map((m) => <option key={m.id} value={ownerLive ? m.id : m.name}>{m.name}</option>)}</CustomSelect></Field>
           <Field label="Valor estimado" hint={valueError ?? undefined}><input className="input" inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value)} placeholder="Opcional" /></Field>
         </div>
         <Field label="Tags" hint="Separe por vírgula."><input className="input" value={tags} onChange={(e) => setTags(e.target.value)} /></Field>

@@ -36,6 +36,8 @@ export type NewLeadInput = {
   origin: LeadOrigin;
   sourceName: string;
   owner?: string;
+  /** Responsável na equipe (id), com o login e o CRM ligados. */
+  ownerId?: string;
   estimatedValue?: number;
   expectedCloseAt?: string;
   tags: string[];
@@ -95,7 +97,7 @@ export function createLead(input: NewLeadInput): { lead: Lead; notes: string[] }
   const lead: Lead = {
     id: newId('l'), name: input.name, email: input.email, phone: input.phone, personId: person.id, companyId: company?.id,
     pipelineId: input.pipelineId, stageId: stage?.id ?? `${input.pipelineId}:novos`, origin: input.origin, sourceName: input.sourceName,
-    owner: input.owner, estimatedValue: input.estimatedValue, expectedCloseAt: input.expectedCloseAt, tags: input.tags, message: input.message,
+    owner: input.owner, ownerId: input.ownerId, estimatedValue: input.estimatedValue, expectedCloseAt: input.expectedCloseAt, tags: input.tags, message: input.message,
     status: 'ACTIVE', wasSeen: false, returningClient: returning || undefined, createdAt: new Date().toISOString(),
   };
   leadsStore.set((prev) => [lead, ...prev]);
