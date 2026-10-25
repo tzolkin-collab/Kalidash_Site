@@ -215,6 +215,10 @@ func handleConnectLead(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	if p.PipelineID == "" || p.StageID == "" {
+		connectErr(w, http.StatusUnprocessableEntity, errProjectNoPipeline.Error())
+		return
+	}
 	if !allowRateLimit("connect-tok:"+tok.ID, connectRateToken, time.Now()) {
 		connectErr(w, http.StatusTooManyRequests, "limite de envios desta chave atingido, tente em instantes")
 		return

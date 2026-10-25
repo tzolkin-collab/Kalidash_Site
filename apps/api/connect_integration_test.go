@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -178,6 +179,43 @@ func TestIntegrationConnect(t *testing.T) {
 	if rec := do(nil, "POST", "/api/connect/leads", map[string]string{"Authorization": "Bearer " + created.Token, "Origin": "https://malvado.example"}, body); rec.Code != 403 {
 		t.Errorf("origem fora: %d", rec.Code)
 	}
+	// ---- D40: desconectar a fonte (funil e coluna nulos) ----
+	if rec := do(cookie, "PUT", "/api/projects/"+proj.ID, adminHdr, `{"name":"LP Consultoria","url":"https://lp.exemplo.com.br/oferta","pipelineId":"pl-1"}`); rec.Code != 422 {
+		t.Errorf("funil sem coluna: %d", rec.Code)
+	}
+	rec = do(cookie, "PUT", "/api/projects/"+proj.ID, adminHdr, `{"name":"LP Consultoria","url":"https://lp.exemplo.com.br/oferta","stack":"Next.js","pipelineId":null,"stageId":null}`)
+	if rec.Code != 200 || !strings.Contains(rec.Body.String(), `"pipelineId":null`) || !strings.Contains(rec.Body.String(), `"stageId":null`) {
+		t.Fatalf("desconectar fonte: %d %s", rec.Code, rec.Body)
+	}
+	rec = do(cookie, "GET", "/api/projects", adminHdr, "")
+	if !strings.Contains(rec.Body.String(), proj.ID) {
+		t.Errorf("projeto sem funil segue na lista: %s", rec.Body)
+	}
+	var leadsBefore, subBefore int
+	db.QueryRow(`SELECT COUNT(*) FROM ` + leadTbl).Scan(&leadsBefore)
+	db.QueryRow(`SELECT submissions FROM ConnectedProject WHERE id = ?`, proj.ID).Scan(&subBefore)
+	rec = send(body)
+	if rec.Code != 422 || !strings.Contains(rec.Body.String(), "projeto sem funil") {
+		t.Errorf("envio a projeto sem funil: %d %s", rec.Code, rec.Body)
+	}
+	var leadsAfter, subAfter int
+	db.QueryRow(`SELECT COUNT(*) FROM ` + leadTbl).Scan(&leadsAfter)
+	db.QueryRow(`SELECT submissions FROM ConnectedProject WHERE id = ?`, proj.ID).Scan(&subAfter)
+	if leadsAfter != leadsBefore || subAfter != subBefore {
+		t.Errorf("a recusa não pode gravar nada: leads %d->%d envios %d->%d", leadsBefore, leadsAfter, subBefore, subAfter)
+	}
+	if _, err := connectDB.IngestLead(inboundLead{Project: Project{ID: proj.ID, Name: "x"}, Name: "Z", Email: "z@x.co"}); err == nil {
+		t.Error("IngestLead direto deveria recusar projeto sem funil")
+	}
+	rec = do(cookie, "PUT", "/api/projects/"+proj.ID, adminHdr, `{"name":"LP Consultoria","url":"https://lp.exemplo.com.br/oferta","stack":"Next.js","pipelineId":"pl-1","stageId":"pl-1:novos"}`)
+	if rec.Code != 200 || !strings.Contains(rec.Body.String(), `"pipelineId":"pl-1"`) {
+		t.Fatalf("reconectar: %d %s", rec.Code, rec.Body)
+	}
+	if rec := send(body); rec.Code != 201 {
+		t.Errorf("envio depois de reconectar: %d %s", rec.Code, rec.Body)
+	}
+	db.Exec(`DELETE FROM ` + leadTbl + ` WHERE id IN (SELECT id FROM (SELECT id FROM ` + leadTbl + ` ORDER BY createdAt DESC LIMIT 1) x)`)
+
 	rec = do(cookie, "POST", "/api/tokens", adminHdr, `{"name":"Leitor","scopes":["leads:read"]}`)
 	var reader struct{ Token string }
 	json.Unmarshal(rec.Body.Bytes(), &reader)
@@ -200,5 +238,31 @@ func TestIntegrationConnect(t *testing.T) {
 	}
 	if rec := do(cookie, "GET", "/api/projects", adminHdr, ""); strings.Contains(rec.Body.String(), proj.ID) {
 		t.Errorf("projeto arquivado não lista: %s", rec.Body)
+	}
+}
+
+// D40: um banco criado antes (pipelineId/stageId NOT NULL) é afrouxado para NULL na subida, sem perder linhas.
+func TestIntegrationConnectLegacyNotNull(t *testing.T) {
+	integrationDB(t)
+	db.Exec("DROP TABLE IF EXISTS ConnectedProject")
+	if _, err := db.Exec(`CREATE TABLE ConnectedProject (id VARCHAR(64) PRIMARY KEY, name VARCHAR(160) NOT NULL, url VARCHAR(500) NOT NULL, origins TEXT NULL, stack VARCHAR(120) NULL,
+		description VARCHAR(500) NULL, pipelineId VARCHAR(64) NOT NULL, stageId VARCHAR(128) NOT NULL, sourceName VARCHAR(255) NOT NULL, submissions INT NOT NULL DEFAULT 0,
+		lastSubmissionAt DATETIME NULL, archivedAt DATETIME NULL, createdAt DATETIME NOT NULL, updatedAt DATETIME NOT NULL) ENGINE=InnoDB`); err != nil {
+		t.Fatal(err)
+	}
+	db.Exec(`INSERT INTO ConnectedProject (id, name, url, pipelineId, stageId, sourceName, createdAt, updatedAt) VALUES ('prj-velho', 'Velho', 'https://v.exemplo.com', 'pl-1', 'pl-1:novos', 'Velho', NOW(), NOW())`)
+	ensureConnectSchema()
+	ensureConnectSchema() // idempotente
+	var pl, st sql.NullString
+	if err := db.QueryRow(`SELECT pipelineId, stageId FROM ConnectedProject WHERE id = 'prj-velho'`).Scan(&pl, &st); err != nil || pl.String != "pl-1" || st.String != "pl-1:novos" {
+		t.Fatalf("linha antiga preservada: %v %v %v", pl, st, err)
+	}
+	p := Project{ID: "prj-velho", Name: "Velho", URL: "https://v.exemplo.com", SourceName: "Velho"}
+	if err := (sqlConnectStore{}).SaveProject(&p, true); err != nil {
+		t.Fatalf("salvar sem funil depois da migração: %v", err)
+	}
+	got, err := (sqlConnectStore{}).ProjectByID("prj-velho")
+	if err != nil || got.PipelineID != "" || got.StageID != "" {
+		t.Errorf("projeto sem funil: %+v %v", got, err)
 	}
 }

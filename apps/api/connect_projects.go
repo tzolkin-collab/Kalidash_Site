@@ -37,14 +37,27 @@ type Project struct {
 	Origins          []string  `json:"origins"` // origens extras aceitas (além da do URL), ex.: https://www.exemplo.com.br
 	Stack            string    `json:"stack,omitempty"`
 	Description      string    `json:"description,omitempty"`
-	PipelineID       string    `json:"pipelineId"`
-	StageID          string    `json:"stageId"`
+	PipelineID       nullableID `json:"pipelineId"` // null = projeto sem funil (fonte desconectada, D40)
+	StageID          nullableID `json:"stageId"`
 	SourceName       string    `json:"sourceName"` // fonte do lead (inbound)
 	Submissions      int       `json:"submissions"`
 	LastSubmissionAt *FlexTime `json:"lastSubmissionAt,omitempty"`
 	ArchivedAt       *FlexTime `json:"archivedAt,omitempty"`
 	CreatedAt        *FlexTime `json:"createdAt,omitempty"`
 }
+
+// nullableID vira null no JSON quando vazio (projeto sem funil) e lê null como vazio.
+type nullableID string
+
+func (n nullableID) MarshalJSON() ([]byte, error) {
+	if n == "" {
+		return []byte("null"), nil
+	}
+	return json.Marshal(string(n))
+}
+
+// errNoPipeline é a recusa de envio de um projeto cuja fonte foi desconectada do funil (D40).
+var errProjectNoPipeline = errors.New("projeto sem funil: reconecte a fonte a um funil no admin para voltar a receber envios")
 
 type TrackedForm struct {
 	ID               string            `json:"id"`
@@ -99,8 +112,8 @@ CREATE TABLE IF NOT EXISTS ConnectedProject (
 	origins TEXT NULL,
 	stack VARCHAR(120) NULL,
 	description VARCHAR(500) NULL,
-	pipelineId VARCHAR(64) NOT NULL,
-	stageId VARCHAR(128) NOT NULL,
+	pipelineId VARCHAR(64) NULL,
+	stageId VARCHAR(128) NULL,
 	sourceName VARCHAR(255) NOT NULL,
 	submissions INT NOT NULL DEFAULT 0,
 	lastSubmissionAt DATETIME NULL,
@@ -130,6 +143,18 @@ func ensureConnectSchema() {
 	for _, stmt := range splitStatements(connectSchema) {
 		if _, err := db.Exec(stmt); err != nil {
 			log.Fatalf("❌ CONNECT: erro ao criar tabelas de projetos conectados: %v", err)
+		}
+	}
+	// D40: tabelas antigas têm funil e etapa NOT NULL; afrouxa para NULL (só quando ainda for NOT NULL, idempotente).
+	for _, c := range []struct{ col, ddl string }{{"pipelineId", "VARCHAR(64) NULL"}, {"stageId", "VARCHAR(128) NULL"}} {
+		var nullable string
+		if err := db.QueryRow(`SELECT IS_NULLABLE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ConnectedProject' AND COLUMN_NAME = ?`, c.col).Scan(&nullable); err != nil {
+			log.Fatalf("❌ CONNECT: não consegui ler ConnectedProject.%s: %v", c.col, err)
+		}
+		if strings.EqualFold(nullable, "NO") {
+			if _, err := db.Exec("ALTER TABLE ConnectedProject MODIFY " + c.col + " " + c.ddl); err != nil {
+				log.Fatalf("❌ CONNECT: não consegui permitir NULL em ConnectedProject.%s: %v", c.col, err)
+			}
 		}
 	}
 	log.Println("✅ Projetos conectados e connect.js prontos (CRM_API=1 + AUTH_API=1)")
@@ -199,11 +224,15 @@ func validateProject(p *Project) error {
 		return errors.New("origens demais (máx. 10)")
 	}
 	p.Origins = extras
-	if !idRe.MatchString(p.PipelineID) || !idRe.MatchString(p.StageID) {
-		return errors.New("escolha o funil e a coluna de leads em que os envios entram")
-	}
 	if p.SourceName == "" {
 		p.SourceName = p.Name
+	}
+	p.PipelineID, p.StageID = nullableID(strings.TrimSpace(string(p.PipelineID))), nullableID(strings.TrimSpace(string(p.StageID)))
+	if p.PipelineID == "" && p.StageID == "" {
+		return nil // fonte desconectada (D40): o projeto existe, mas não recebe envios até ser reconectado
+	}
+	if !idRe.MatchString(string(p.PipelineID)) || !idRe.MatchString(string(p.StageID)) {
+		return errors.New("escolha o funil e a coluna de leads em que os envios entram")
 	}
 	if workflowEnabled() {
 		var kind string
@@ -251,10 +280,11 @@ const projectCols = `id, name, url, origins, stack, description, pipelineId, sta
 
 func scanProject(sc interface{ Scan(...any) error }) (Project, error) {
 	var p Project
-	var origins, stack, desc, last, archived, created sql.NullString
-	if err := sc.Scan(&p.ID, &p.Name, &p.URL, &origins, &stack, &desc, &p.PipelineID, &p.StageID, &p.SourceName, &p.Submissions, &last, &archived, &created); err != nil {
+	var origins, stack, desc, last, archived, created, pipeline, stage sql.NullString
+	if err := sc.Scan(&p.ID, &p.Name, &p.URL, &origins, &stack, &desc, &pipeline, &stage, &p.SourceName, &p.Submissions, &last, &archived, &created); err != nil {
 		return p, err
 	}
+	p.PipelineID, p.StageID = nullableID(pipeline.String), nullableID(stage.String)
 	p.Origins = decodeJSON([]byte(origins.String), []string{})
 	if p.Origins == nil {
 		p.Origins = []string{}
@@ -294,11 +324,11 @@ func (sqlConnectStore) SaveProject(p *Project, replace bool) error {
 	now := time.Now()
 	if !replace {
 		_, err := db.Exec(`INSERT INTO ConnectedProject (id, name, url, origins, stack, description, pipelineId, stageId, sourceName, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-			p.ID, p.Name, p.URL, string(origins), nullStr(p.Stack), nullStr(p.Description), p.PipelineID, p.StageID, p.SourceName, now, now)
+			p.ID, p.Name, p.URL, string(origins), nullStr(p.Stack), nullStr(p.Description), nullStr(string(p.PipelineID)), nullStr(string(p.StageID)), p.SourceName, now, now)
 		return err
 	}
 	res, err := db.Exec(`UPDATE ConnectedProject SET name = ?, url = ?, origins = ?, stack = ?, description = ?, pipelineId = ?, stageId = ?, sourceName = ?, updatedAt = ? WHERE id = ? AND archivedAt IS NULL`,
-		p.Name, p.URL, string(origins), nullStr(p.Stack), nullStr(p.Description), p.PipelineID, p.StageID, p.SourceName, now, p.ID)
+		p.Name, p.URL, string(origins), nullStr(p.Stack), nullStr(p.Description), nullStr(string(p.PipelineID)), nullStr(string(p.StageID)), p.SourceName, now, p.ID)
 	if err != nil {
 		return err
 	}
@@ -397,6 +427,9 @@ func (sqlConnectStore) DeleteForm(projectID, id string) error {
 // IngestLead cria (ou reaproveita, por e-mail) a pessoa e o Lead v2 na pipeline do projeto, e conta o envio
 // no projeto e no formulário. Tudo numa transação: ou entra completo, ou não entra.
 func (sqlConnectStore) IngestLead(in inboundLead) (LeadDTO, error) {
+	if in.Project.ID != "" && in.Project.PipelineID == "" {
+		return LeadDTO{}, errProjectNoPipeline
+	}
 	tx, err := db.Begin()
 	if err != nil {
 		return LeadDTO{}, err
@@ -428,7 +461,7 @@ func (sqlConnectStore) IngestLead(in inboundLead) (LeadDTO, error) {
 	}
 	id := wfID("l")
 	if _, err := tx.Exec(`INSERT INTO `+leadTbl+` (id, name, email, phone, personId, pipelineId, stageId, origin, sourceName, tags, message, status, wasSeen, returningClient, customData, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, 'INBOUND', ?, ?, ?, 'ACTIVE', 0, ?, ?, ?, ?)`,
-		id, in.Name, in.Email, nullStr(in.Phone), personID, in.Project.PipelineID, in.Project.StageID, in.Project.SourceName, string(tags), nullStr(in.Message),
+		id, in.Name, in.Email, nullStr(in.Phone), personID, string(in.Project.PipelineID), string(in.Project.StageID), in.Project.SourceName, string(tags), nullStr(in.Message),
 		lifecycle == "CLIENT", custom, now, now); err != nil {
 		return LeadDTO{}, err
 	}

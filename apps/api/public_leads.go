@@ -277,7 +277,7 @@ func saveLeadV2(in leadInput, ip string) error {
 		message += "\n\nDesafio informado:\n" + in.Challenge
 	}
 	_, err = connectDB.IngestLead(inboundLead{
-		Project: Project{PipelineID: pipelineID, StageID: stageID, SourceName: sourceName},
+		Project: Project{PipelineID: nullableID(pipelineID), StageID: nullableID(stageID), SourceName: sourceName},
 		Name:    in.Name, Email: in.Email, Phone: in.Phone, Message: message,
 		Tags:   []string{"Inbound", "Site"},
 		Custom: map[string]any{"via": "formulário do site", "formSource": in.Source},
