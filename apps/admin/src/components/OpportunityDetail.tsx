@@ -9,6 +9,15 @@ import { lostStageId, resolveStage, wonStageId } from '../lib/stages';
 import { useStore } from '../lib/store';
 import { pipelinesStore } from '../mocks/pipelines';
 import { TasksTab } from './RecordTabs';
+import { SelectField, TagsField } from './fields';
+import { PRIORITY_OPTIONS, changeNote, mergeSaved, updateBody } from '../lib/opportunityApi';
+import type { OpportunityChanges } from '../lib/opportunityApi';
+import { useCrmMode } from '../lib/crmMode';
+import { useAuth } from '../lib/auth';
+import { useCan } from '../lib/permissions';
+import { companiesStore, peopleStore } from '../mocks/people';
+import { teamStore } from '../mocks/team';
+import { pushErro } from '../lib/notify';
 
 type Tab = 'overview' | 'notes' | 'tasks' | 'emails';
 type Field = 'title' | 'value';
@@ -29,6 +38,10 @@ type Props = {
   onAddColumn: (id: string) => void;
   onToggleEditColumns: () => void;
 };
+
+/** Mantém o valor atual na lista mesmo que a pessoa/empresa tenha sido arquivada depois. */
+const withCurrent = (options: { value: string; label: string }[], id?: string, name?: string) =>
+  id && !options.some((o) => o.value === id) ? [{ value: id, label: name ?? id }, ...options] : options;
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
@@ -51,6 +64,12 @@ export default function OpportunityDetail({
 }: Props) {
   const [tab, setTab] = useState<Tab>('overview');
   const [pipelines] = useStore(pipelinesStore);
+  const [people] = useStore(peopleStore);
+  const [companies] = useStore(companiesStore);
+  const [team] = useStore(teamStore);
+  const crmMode = useCrmMode();
+  const auth = useAuth();
+  const can = useCan();
   // Ganho e perdido são etapas do funil da oportunidade (o valor antigo 'WON' só vale sem funil).
   const { pipeline: oppPipeline } = resolveStage(opp, pipelines);
   const wonId = wonStageId(oppPipeline) ?? 'WON';
@@ -100,17 +119,23 @@ export default function OpportunityDetail({
       .catch(console.error);
   };
 
-  /** Envia a oportunidade atual com SOMENTE o campo que mudou. */
-  const save = async (changes: Partial<Pick<Opportunity, 'title' | 'value'>>) => {
-    const updated: Opportunity = { ...opp, ...changes };
+  /** Envia id, título e valor com SOMENTE o que mudou; a API devolve a oportunidade com os nomes dos vínculos. */
+  const save = async (changes: OpportunityChanges, names: { contact?: string; company?: string; owner?: string } = {}) => {
     try {
-      const res = await fetch(`${API_URL}/api/leads`, { method: 'PUT', headers: JSON_HEADERS, body: JSON.stringify(updated) });
-      if (!res.ok) throw new Error(String(res.status));
-      onChange(updated);
+      const res = await fetch(`${API_URL}/api/leads`, { method: 'PUT', headers: JSON_HEADERS, body: JSON.stringify(updateBody(opp, changes)) });
+      if (!res.ok) {
+        const msg = res.status === 422 || res.status === 403 ? ((await res.json().catch(() => ({}))) as { error?: string }).error : undefined;
+        throw new Error(msg ?? String(res.status));
+      }
+      const saved = (await res.json().catch(() => null)) as Partial<Opportunity> | null;
+      onChange({ ...mergeSaved({ ...opp, ...(changes.title !== undefined ? { title: changes.title } : {}), ...(changes.value !== undefined ? { value: changes.value } : {}) }, saved) });
       if (changes.title !== undefined) addSystemNote(`O título foi alterado para: "${changes.title}"`);
       if (changes.value !== undefined) addSystemNote(`O valor foi alterado para: ${formatCurrency(changes.value)}`);
-    } catch {
-      setError('Não foi possível salvar. Nada foi alterado.');
+      changeNote(changes, names).forEach(addSystemNote);
+    } catch (err) {
+      const detail = err instanceof Error && !/^\d+$/.test(err.message) ? err.message : 'Nada foi alterado.';
+      setError(`Não foi possível salvar. ${detail}`);
+      pushErro('Não consegui salvar a oportunidade', detail);
     }
   };
 
@@ -148,6 +173,8 @@ export default function OpportunityDetail({
       .catch(console.error);
   };
 
+  const linksLive = crmMode === 'api' && !opp.isSample;
+  const ownerLive = linksLive && auth.status === 'in';
   const createdAt = formatDate(opp.created_at);
   const humanNotes = notes.filter((n) => n.type === 'NOTE' || n.type === 'CALL' || n.type === 'MEETING');
   const emailNotes = notes.filter((n) => n.type === 'EMAIL');
@@ -228,9 +255,49 @@ export default function OpportunityDetail({
           <p className="text-xs text-muted" style={{ margin: '8px 0 0' }}>
             {opp.isSample
               ? 'Oportunidade de exemplo: nada daqui é gravado.'
-              : 'Nesta ficha só o título e o valor são editados e gravados. A etapa muda pelo Kanban ou pelos botões abaixo. Prioridade, tags, contato, empresa, responsável e funil são só leitura: ainda não há como alterá-los por aqui.'}
+              : 'Título, valor, prioridade e tags são gravados ao editar. A etapa muda pelo Kanban ou pelos botões abaixo.'}
           </p>
         </section>
+
+        {!opp.isSample && (
+          <section className="peek-props peek-links" aria-label="Classificação e vínculos">
+            <SelectField label="Prioridade" value={opp.priority || 'MEDIUM'} options={PRIORITY_OPTIONS} onCommit={(v) => { if (v !== opp.priority) void save({ priority: v }); }} />
+            <TagsField label="Tags" value={opp.tags ?? []} options={[]} allowCreate onCommit={(v) => void save({ tags: v })} />
+            {linksLive ? (
+              <>
+                <SelectField
+                  label="Contato"
+                  value={opp.contactId ?? ''}
+                  empty="Nenhum"
+                  options={withCurrent(people.filter((p) => !p.archivedAt).map((p) => ({ value: p.id, label: p.name })), opp.contactId, opp.contactName)}
+                  onCommit={(v) => { if (v !== (opp.contactId ?? '')) void save({ contactId: v || null }, { contact: people.find((p) => p.id === v)?.name }); }}
+                  hint="Pessoa do cadastro de Pessoas e Empresas."
+                />
+                <SelectField
+                  label="Empresa"
+                  value={opp.companyId ?? ''}
+                  empty="Nenhuma"
+                  options={withCurrent(companies.filter((c) => !c.archivedAt).map((c) => ({ value: c.id, label: c.name })), opp.companyId, opp.companyName)}
+                  onCommit={(v) => { if (v !== (opp.companyId ?? '')) void save({ companyId: v || null }, { company: companies.find((c) => c.id === v)?.name }); }}
+                  hint="Empresa do cadastro de Pessoas e Empresas."
+                />
+              </>
+            ) : (
+              <p className="text-xs text-muted" style={{ margin: '4px 0 0' }}>Contato e empresa são editados quando o CRM da API está ligado.</p>
+            )}
+            {ownerLive && (
+              <SelectField
+                label="Responsável"
+                value={opp.ownerMemberId ?? ''}
+                empty="Sem responsável"
+                readOnly={!can.has('leads:write')}
+                hint={can.has('leads:write') ? 'Pessoa da equipe.' : 'Só quem tem a permissão leads:write troca o responsável.'}
+                options={withCurrent(team.filter((m) => m.status !== 'DISABLED').map((m) => ({ value: m.id, label: m.name })), opp.ownerMemberId, opp.ownerName)}
+                onCommit={(v) => { if (v !== (opp.ownerMemberId ?? '')) void save({ ownerMemberId: v || null }, { owner: team.find((m) => m.id === v)?.name }); }}
+              />
+            )}
+          </section>
+        )}
 
         <nav className="peek-tabs" role="tablist">
           {TABS.map(({ id, label, Icon }) => (

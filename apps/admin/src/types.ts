@@ -39,5 +39,7 @@ export type Opportunity = {
   contactAvatar?: string;
 
   ownerId?: string;
+  /** Responsável na equipe (id do membro, com o login e o CRM ligados). ownerId é o vínculo antigo. */
+  ownerMemberId?: string;
   ownerAvatar?: string;
 };
