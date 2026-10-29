@@ -1214,11 +1214,12 @@
   .heroActions { display: flex; flex-direction: column; align-items: center; }
   .heroActions[data-badge-hovered="true"] .primaryButton { transform: none !important; }
   .buttonClaudeIcon {
-    opacity: 1 !important;
-    transform: none !important;
+    display: none !important;
   }
   .buttonArrowIcon {
-    display: none !important;
+    display: inline-flex !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
 
@@ -1248,11 +1249,12 @@
   .primaryButton, .secondaryButton { width: 100%; }
   .heroActions[data-badge-hovered="true"] .primaryButton { transform: none !important; }
   .buttonClaudeIcon {
-    opacity: 1 !important;
-    transform: none !important;
+    display: none !important;
   }
   .buttonArrowIcon {
-    display: none !important;
+    display: inline-flex !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
   .stats { grid-template-columns: 1fr; }
   .stats > div, .stats > div:nth-child(2), .stats > div:last-child { padding: 24px 0; border-right: 0; border-bottom: 1px solid var(--line); }
