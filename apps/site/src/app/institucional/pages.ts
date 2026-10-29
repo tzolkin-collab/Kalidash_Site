@@ -474,12 +474,6 @@ export const advisory: PageContent = {
       noteLink: { label: "Conheça o AI Culture", href: "/treinamento-corporativo-ia" },
     },
     {
-      type: "cta",
-      title: "Advisory não cria dependência. Cria autonomia.",
-      text: "Não acreditamos em transformação que depende para sempre de quem a implementou. Conte o que a sua empresa está tentando transformar, vamos entender o cenário e onde a Kalidash pode ajudar.",
-      cta: { label: "Solicitar diagnóstico", href: diagnostico },
-    },
-    {
       type: "faq",
       title: "Perguntas frequentes",
       items: [
@@ -576,12 +570,6 @@ export const execucao: PageContent = {
         { title: "Spectra AI", text: "Visão computacional aplicada à operação.", href: "/spectra" },
       ],
     },
-    {
-      type: "cta",
-      title: "Tem um processo que precisa mudar?",
-      text: "Conte o que acontece hoje na sua operação. Entendemos o problema antes de propor a solução, e você recebe escopo, prazo e investimento em poucas horas.",
-      cta: { label: "Falar sobre o meu projeto", href: diagnostico },
-    },
   ],
 };
 
@@ -631,13 +619,6 @@ export const solucoes: PageContent = {
           cta: { label: "Conhecer Spectra AI", href: "/spectra" },
         },
       ],
-    },
-    {
-      type: "cta",
-      eyebrow: "Onde o problema vira tecnologia",
-      title: "Tem um processo na sua operação que nenhuma ferramenta de mercado resolve?",
-      text: "É assim que os nossos produtos começaram.",
-      cta: { label: "Falar sobre o meu caso", href: diagnostico },
     },
   ],
 };
@@ -787,14 +768,6 @@ export const kognis: PageContent = {
         },
       ],
     },
-    {
-      type: "cta",
-      eyebrow: "Pronto para escalar seu escritório?",
-      title: "Agende uma demonstração gratuita e veja o Kognis na prática.",
-      text: "Veja como seu escritório pode atender mais, controlar o financeiro e crescer. Sem aumentar a equipe.",
-      cta: { label: "Agendar demonstração", href: diagnostico },
-      microcopy: "Implementação em 2 a 3 semanas · Conexão com seu ERP atual · Suporte dedicado",
-    },
   ],
 };
 
@@ -838,13 +811,6 @@ export const spectra: PageContent = {
           text: "Identificação objetiva de gargalos e pontos de melhoria na operação.",
         },
       ],
-    },
-    {
-      type: "cta",
-      eyebrow: "Onde o problema vira tecnologia",
-      title: "Tem um processo na sua operação que nenhuma ferramenta de mercado resolve?",
-      text: "É assim que os nossos produtos começaram. Conte o que acontece hoje na sua operação.",
-      cta: { label: "Falar sobre o meu caso", href: diagnostico },
     },
   ],
 };

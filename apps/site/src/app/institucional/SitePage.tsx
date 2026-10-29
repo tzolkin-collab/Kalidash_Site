@@ -568,19 +568,7 @@ function BlockView({ block }: { block: Block }) {
       );
 
     case "cta":
-      return (
-        <section className={styles.cta}>
-          <div>
-            {block.eyebrow && <p className={`${home.eyebrow} ${styles.ctaEyebrow}`}>{block.eyebrow}</p>}
-            <h2>{block.title}</h2>
-            <p>{block.text}</p>
-            {block.microcopy && <strong>{block.microcopy}</strong>}
-          </div>
-          <Link className={home.primaryButton} href={block.cta.href}>
-            {block.cta.label} <ArrowRight />
-          </Link>
-        </section>
-      );
+      return null;
   }
 }
 
