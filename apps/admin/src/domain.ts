@@ -330,6 +330,21 @@ export type Article = {
   publishedAt?: string;
 };
 
+/** Categoria do blog gerenciada no admin (apps/api/blog.go -> BlogCategory).
+ *  Alimenta os filtros de /blog, o seletor de categoria do artigo e as páginas /blog/categoria/[slug]. */
+export type BlogCategory = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  sortOrder: number;
+  hidden: boolean;
+  seoTitle?: string;
+  seoDescription?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type Role = 'ADMIN' | 'MANAGER' | 'SELLER';
 
 export type TeamMember = {

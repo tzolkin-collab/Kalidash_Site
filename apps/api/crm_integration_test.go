@@ -30,6 +30,18 @@ func crmDB(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+	// Opportunity e Note como o Prisma os criou: vínculos com pessoa/empresa/responsável e as anotações (WP4-2)
+	for _, c := range []string{"contactId", "companyId", "ownerId"} {
+		if ok, _ := columnExists("Opportunity", c); !ok {
+			if _, err := db.Exec("ALTER TABLE Opportunity ADD COLUMN " + c + " VARCHAR(64) NULL"); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	db.Exec("DROP TABLE IF EXISTS Note")
+	if _, err := db.Exec(`CREATE TABLE Note (id VARCHAR(64) PRIMARY KEY, content TEXT NOT NULL, type VARCHAR(16) NOT NULL DEFAULT 'NOTE', opportunityId VARCHAR(64) NOT NULL, authorId VARCHAR(64) NULL, createdAt DATETIME NOT NULL)`); err != nil {
+		t.Fatal(err)
+	}
 	ensureCRMSchema()
 	ensureCRMSchema() // idempotente: a segunda rodada não pode falhar nem duplicar
 	seedBasePipeline(t) // o funil "q4" de pano de fundo (WP4-1: etapa inexistente é recusada)
@@ -251,12 +263,22 @@ func TestIntegrationCRM(t *testing.T) {
 	if r := crmCall(handleCRMLeadByID, "PUT", "/x", "l1", l); r.code != 200 {
 		t.Fatalf("mover lead: %d %s", r.code, r.body)
 	}
+	// WP4-2: o PUT não qualifica mais (era o B-01: o lead virava QUALIFIED apontando para uma oportunidade inexistente)
 	l.Status, l.ConvertedOpportunityID = "QUALIFIED", "1790000000000000009"
-	crmCall(handleCRMLeadByID, "PUT", "/x", "l1", l)
+	if r := crmCall(handleCRMLeadByID, "PUT", "/x", "l1", l); r.code != 422 {
+		t.Errorf("PUT com status QUALIFIED deveria ser 422: %d %s", r.code, r.body)
+	}
+	l.Status, l.ConvertedOpportunityID = "ACTIVE", ""
+	if r := crmCall(handleQualifyLead, "POST", "/api/crm/leads/l1/qualify", "l1", nil); r.code != 201 {
+		t.Fatalf("qualificar: %d %s", r.code, r.body)
+	}
 	var back LeadDTO
 	crmCall(handleCRMLeadByID, "GET", "/x", "l1", nil).into(t, &back)
-	if back.StageID != "q4:contato" || !back.WasSeen || back.Status != "QUALIFIED" || back.ConvertedOpportunityID != "1790000000000000009" {
+	if back.StageID != "q4:contato" || !back.WasSeen || back.Status != "QUALIFIED" || back.ConvertedOpportunityID == "" {
 		t.Errorf("lead depois de mover e qualificar: %+v", back)
+	}
+	if countWhere(t, "Opportunity", "id = ?", back.ConvertedOpportunityID) != 1 {
+		t.Errorf("a oportunidade do lead qualificado precisa existir: %q", back.ConvertedOpportunityID)
 	}
 	crmCall(handleCRMLeads, "GET", "/api/crm/leads?status=ACTIVE", "", nil).into(t, &ll)
 	if len(ll) != 1 || ll[0].ID != "l2" {

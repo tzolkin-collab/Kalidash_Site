@@ -98,11 +98,13 @@ func ensureWorkflowSchema() {
 
 // Colunas acrescentadas depois (WP4-1), só ADD COLUMN nulo: nada é alterado nem apagado; idempotente.
 //   - Task.assigneeMemberId: responsável como pessoa da equipe (TeamMember.id); o texto `assignee` segue valendo.
+//   - StageRequirement.fieldKey (WP4-1b, D41): chave do dado exigido pela tarefa de campo; nulo = reconhece pelo título.
 //   - Opportunity.pipelineId: o funil da oportunidade (antes deduzido do id da etapa). Preenchido na criação e no
 //     move; as antigas recebem o funil pelo id da etapa (backfillOpportunityPipelines).
 var workflowColumns = []colSpec{
 	{"Task", "assigneeMemberId", "VARCHAR(64) NULL"},
 	{"Opportunity", "pipelineId", "VARCHAR(64) NULL"},
+	{"StageRequirement", "fieldKey", "VARCHAR(40) NULL"}, // D41: qual dado a tarefa de campo exige (cnpj, cpf, email, phone)
 }
 
 func ensureWorkflowColumns() {

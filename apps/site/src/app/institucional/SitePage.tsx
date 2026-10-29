@@ -2,7 +2,6 @@ import fs from "node:fs";
 import path from "node:path";
 import Image from "next/image";
 import Link from "next/link";
-import { Inter, Source_Sans_3 } from "next/font/google";
 import home from "../home/home.module.css";
 import HomeHeader from "../home/HomeHeader";
 import SiteFooter from "../home/SiteFooter";
@@ -12,9 +11,6 @@ import styles from "./institucional.module.css";
 import { mediaKind } from "./media";
 import { Reveal, TestimonialCard } from "./Motion";
 import type { Block, PageContent } from "./pages";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const sourceSans = Source_Sans_3({ subsets: ["latin"], variable: "--font-source-sans", display: "swap" });
 
 /* **trecho** vira negrito. */
 function Rich({ text }: { text: string }) {
@@ -83,7 +79,7 @@ function BlockView({ block }: { block: Block }) {
 
     case "heroMedia":
       return (
-        <section className={styles.heroMedia}>
+        <section className={styles.heroMedia} data-aspect={block.aspect} data-frame={block.frame}>
           <div className={styles.heroCopy}>
             <Eyebrow>{block.eyebrow}</Eyebrow>
             <h1><Lines lines={block.title} /></h1>
@@ -91,20 +87,134 @@ function BlockView({ block }: { block: Block }) {
               {block.lead.map((paragraph) => <p key={paragraph}><Rich text={paragraph} /></p>)}
             </div>
             {block.support && <p className={styles.meta}>{block.support}</p>}
-            <Link className={home.primaryButton} href={block.cta.href}>
-              {block.cta.label} <ArrowRight />
-            </Link>
+            {block.cta && (
+              <Link className={home.primaryButton} href={block.cta.href}>
+                {block.cta.label} <ArrowRight />
+              </Link>
+            )}
           </div>
-          <div className={styles.heroImage}>
+          <div className={styles.heroImage} data-aspect={block.aspect} data-frame={block.frame}>
             <Image
               src={block.image.src}
               alt={block.image.alt}
               width={block.image.width}
               height={block.image.height}
-              sizes="(max-width: 900px) 100vw, 40vw"
+              sizes={block.frame === "none" ? "(max-width: 900px) 280px, 580px" : block.aspect === "landscape" ? "(max-width: 900px) 100vw, 50vw" : "(max-width: 900px) 100vw, 40vw"}
               priority
+              fetchPriority="high"
             />
           </div>
+        </section>
+      );
+
+    case "timeline":
+      return (
+        <section className={styles.section} data-timeline>
+          <header className={styles.head}>
+            <Eyebrow>{block.eyebrow}</Eyebrow>
+            {block.photos && (
+              <div className={styles.timelinePhotos}>
+                {block.photos.map((photo, index) => (
+                  <figure key={photo.src} className={styles.timelinePhoto} data-index={index}>
+                    <div className={styles.timelinePhotoFrame}>
+                      <Image
+                        src={photo.src}
+                        alt={photo.alt}
+                        width={photo.width}
+                        height={photo.height}
+                        sizes="(max-width: 900px) 48vw, 240px"
+                        loading="lazy"
+                      />
+                    </div>
+                    <figcaption>{photo.caption}</figcaption>
+                  </figure>
+                ))}
+              </div>
+            )}
+          </header>
+          <Reveal as="ol" className={styles.timeline}>
+            {block.items.map((item, index) => (
+              <li key={item.marker} className={styles.timelineItem} style={{ "--i": index } as React.CSSProperties}>
+                <p className={styles.timelineMarker}>
+                  <span>{item.marker}</span> · {item.title}
+                </p>
+                <h3 className={styles.timelineLead}>{item.lead}</h3>
+                <div className={styles.timelineBody}>
+                  {item.paragraphs.map((paragraph) => (
+                    <p key={paragraph}><Rich text={paragraph} /></p>
+                  ))}
+                </div>
+                {item.quote && (
+                  <blockquote className={styles.timelineQuote}>
+                    {item.quote}
+                  </blockquote>
+                )}
+                {item.highlight && (
+                  <p className={styles.highlight}>{item.highlight}</p>
+                )}
+              </li>
+            ))}
+          </Reveal>
+        </section>
+      );
+
+    case "beliefs":
+      return (
+        <section className={styles.section}>
+          <header className={styles.head}>
+            <Eyebrow>{block.eyebrow}</Eyebrow>
+            <h2><Lines lines={block.title} /></h2>
+            {block.intro.map((paragraph) => <p key={paragraph}><Rich text={paragraph} /></p>)}
+          </header>
+          <Reveal as="ul" className={styles.beliefs}>
+            {block.items.map((item, index) => (
+              <li key={item.belief} className={styles.beliefItem} style={{ "--i": index } as React.CSSProperties}>
+                <span className={styles.beliefIndex}>{String(index + 1).padStart(2, "0")}</span>
+                <div className={styles.beliefContent}>
+                  <h3>{item.belief}</h3>
+                  <p>{item.text}</p>
+                </div>
+              </li>
+            ))}
+          </Reveal>
+        </section>
+      );
+
+    case "team":
+      return (
+        <section className={styles.teamSection}>
+          <div className={styles.teamHeader}>
+            <header className={styles.head}>
+              <Eyebrow>{block.eyebrow}</Eyebrow>
+              <h2><Lines lines={block.title} /></h2>
+            </header>
+            <p className={styles.teamIntro}>{block.text}</p>
+          </div>
+          <figure className={styles.teamFigure}>
+            <div className={styles.teamPhoto}>
+              <Image
+                src={block.image.src}
+                alt={block.image.alt}
+                width={block.image.width}
+                height={block.image.height}
+                sizes="(max-width: 900px) 100vw, 1340px"
+                loading="lazy"
+              />
+            </div>
+            <figcaption className={styles.teamCaption}>
+              Fundada por{" "}
+              {block.founders.map((founder, index) => (
+                <span key={founder.name}>
+                  {index > 0 && " e "}
+                  <a href={founder.linkedin} target="_blank" rel="noopener noreferrer">
+                    {founder.name}
+                  </a>{" "}
+                  ({founder.role})
+                </span>
+              ))}
+              .
+            </figcaption>
+          </figure>
         </section>
       );
 
@@ -175,10 +285,10 @@ function BlockView({ block }: { block: Block }) {
       );
 
     case "testimonials": {
-      // Produção: só item aprovado, com mídia válida, cargo e empresa. Em `next dev`, os pendentes aparecem como espaço reservado.
+      // Só renderiza depoimento quando há mídia válida, cargo e empresa preenchidos.
       const ready = (item: (typeof block.items)[number]) =>
         item.status === "approved" && mediaKind(item.embedUrl) !== null && item.cargo.trim() !== "" && item.empresa.trim() !== "";
-      const items = block.items.filter((item) => ready(item) || process.env.NODE_ENV !== "production");
+      const items = block.items.filter(ready);
       if (items.length === 0) return null;
       return (
         <section className={styles.section} data-wide>
@@ -242,14 +352,29 @@ function BlockView({ block }: { block: Block }) {
           </ul>
           <Reveal className={styles.showcase}>
             <article className={styles.featuredCase}>
-              <p className={styles.caseEyebrow}>{featured.eyebrow}</p>
-              <p>{featured.text}{featured.stats?.confirmed ? ` ${featured.stats.text}` : ""}</p>
-              <p className={styles.caseBadge}>{featured.badge}</p>
-              {featured.pageReady && <TextLink href={featured.cta.href}>{featured.cta.label}</TextLink>}
+              <div className={styles.featuredCaseContent}>
+                <p className={styles.caseEyebrow}>{featured.eyebrow}</p>
+                <h3 className={styles.caseTitle}>{featured.title}</h3>
+                <p>{featured.text}{featured.stats?.confirmed ? ` ${featured.stats.text}` : ""}</p>
+                <p className={styles.caseBadge}>{featured.badge}</p>
+                {featured.pageReady && <TextLink href={featured.cta.href}>{featured.cta.label}</TextLink>}
+              </div>
+              {featured.image && (
+                <div className={styles.featuredCaseMedia}>
+                  <Image
+                    src={featured.image.src}
+                    alt={featured.image.alt}
+                    width={featured.image.width}
+                    height={featured.image.height}
+                    loading="lazy"
+                  />
+                </div>
+              )}
             </article>
             <ul className={styles.smallCases}>
-              {block.items.map((item) => (
+              {block.items.map((item, index) => (
                 <li key={item.title} className={styles.card}>
+                  <span className={styles.cardIndex}>{String(index + 1).padStart(2, "0")}</span>
                   <h3>{item.title}</h3>
                   <p>{item.text}</p>
                   {item.href && <TextLink href={item.href}>Saiba mais</TextLink>}
@@ -273,7 +398,10 @@ function BlockView({ block }: { block: Block }) {
             {block.chips && (
               <Reveal as="ul" className={styles.chips}>
                 {block.chips.map((chip, index) => (
-                  <li key={chip} style={{ "--i": index } as React.CSSProperties}>{chip}</li>
+                  <li key={chip} style={{ "--i": index } as React.CSSProperties}>
+                    <span>{String(index + 1).padStart(2, "0")}</span>
+                    {chip}
+                  </li>
                 ))}
               </Reveal>
             )}
@@ -286,7 +414,7 @@ function BlockView({ block }: { block: Block }) {
 
     case "cards":
       return (
-        <section className={styles.section}>
+        <section className={styles.section} data-wide={block.columns === 3 || block.items.length >= 3 ? "" : undefined}>
           <header className={styles.head}>
             {block.eyebrow && <Eyebrow>{block.eyebrow}</Eyebrow>}
             <h2><Lines lines={block.title} /></h2>
@@ -296,6 +424,7 @@ function BlockView({ block }: { block: Block }) {
             <Reveal as="ul" className={block.animated ? `${styles.cards} ${styles.cardsMotion}` : styles.cards} data-columns={block.columns ?? 3}>
               {block.items.map((item, index) => (
                 <li key={item.title} className={styles.card} style={{ "--i": index } as React.CSSProperties}>
+                  <span className={styles.cardIndex}>{String(index + 1).padStart(2, "0")}</span>
                   <h3>{item.title}</h3>
                   <p><Rich text={item.text} /></p>
                   {item.example && <p className={styles.example}>{item.example}</p>}
@@ -370,10 +499,12 @@ function BlockView({ block }: { block: Block }) {
     case "offers":
       return (
         <div className={styles.offers}>
-          {block.items.map((offer) => (
+          {block.items.map((offer, index) => (
             <section key={offer.title} id={offer.id} className={styles.offer}>
               <header className={styles.head}>
-                <Eyebrow>{offer.eyebrow}</Eyebrow>
+                <p className={styles.offerMarker}>
+                  <span>{String(index + 1).padStart(2, "0")}</span> · {offer.eyebrow}
+                </p>
                 <h2>{offer.title}</h2>
               </header>
               <div className={styles.body}>
@@ -400,7 +531,17 @@ function BlockView({ block }: { block: Block }) {
 
     case "proof":
       return (
-        <section className={styles.proof}>
+        <section className={styles.proof} aria-label="Números e atuação da Kalidash">
+          {block.credentials && (
+            <ul className={styles.proofCredentials}>
+              {block.credentials.map((cred) => (
+                <li key={cred.text}>
+                  {cred.strong && <strong>{cred.strong} </strong>}
+                  <span>{cred.text}</span>
+                </li>
+              ))}
+            </ul>
+          )}
           <div className={styles.proofCols}>
             {block.items.map((item) => (
               <div key={item.label}>
@@ -409,6 +550,19 @@ function BlockView({ block }: { block: Block }) {
               </div>
             ))}
           </div>
+          {block.links && (
+            <nav className={styles.proofLinks} aria-label="Frentes de atuação">
+              <ul>
+                {block.links.map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href}>
+                      {link.label} <ArrowRight />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )}
           {block.closing && <p className={styles.proofClosing}><Lines lines={block.closing} /></p>}
         </section>
       );
@@ -432,10 +586,10 @@ function BlockView({ block }: { block: Block }) {
 
 export default function SitePage({ page }: { page: PageContent }) {
   return (
-    <div className={`${inter.variable} ${sourceSans.variable} ${home.home} ${styles.page}`} data-page={page.slug}>
+    <div className={`${home.home} ${styles.page}`} data-page={page.slug}>
       <HomeHeader />
       <main>
-        {page.blocks.map((block, index) => <BlockView key={index} block={block} />)}
+        {page.blocks.map((block, index) => <BlockView key={`${block.type}-${index}`} block={block} />)}
       </main>
       <SiteFooter />
       {config.whatsappUrl && (

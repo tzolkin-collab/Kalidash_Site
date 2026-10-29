@@ -60,3 +60,12 @@ Abordagem **C (híbrida)** do relatório: `bodyJson` com blocos customizados e p
 |---|---|---|---|
 | Auditoria | blog-auditoria | **9,2** | Aceita. Verifiquei por conta própria o bug do `flatMap` em `blog/page.tsx:54` e que `CNH-e.pdf.pdf` e o contrato estão em `apps/site/public/` (ignorados pelo git, mas **presentes no disco**: risco se um deploy for feito pelo CLI da Vercel) |
 | BC-0a | Antigravity | **—** | Concluído. Testes em Go (`blog_test.go`) passando, `go vet` limpo, testes do admin (57/57) passando, `tsc -b` e Vite build limpos. |
+
+## 6. Registro de entregas (continuação, 24/10/2026)
+
+| Pacote | Sessão | Nota | Situação |
+|---|---|---|---|
+| BC-0a | bc-0a-hotfix-de-slugs-e | **9,0** | Aceito. Commits `5f6393d`, `3d82a3d`, `611fe2f`, `57af445`. PO conferiu: `go vet` e `go test` verdes numa cópia limpa do HEAD (sem a árvore em edição do WP3b); `slugify` revisado (transliteração ampliada, slug nunca vazio, fallback `artigo-<hash>`); relatório honesto: avisou que parte do pacote já estava no commit `877309b` do Antigravity e que auditou e corrigiu defeitos nesse código (Q14 errada, 409 só pelo texto do erro, teste que reimplementava a lógica). Descontos: acentos combinados fora do mapa viram hífen; MySQL real não exercitado; upload não testado. **Achado extra:** `TestIntegrationPipelineTaskGate` falha com `parseTime=true`, repassado ao WP3b |
+| BC-0b (site) | — | — | **Aberto, dono Antigravity (ou worker de site, a decidir).** O que o site precisa ler está em `docs/pagesClient/blog.md`: ordem da lista pública como ordem final da grade (sem `flatMap`), `blog-global` fora da grade e 404 em `/blog/blog-global`, hidratação do `ShareButtons`, título duplicado |
+
+| BC-0b (site) | site-blog-seo | **9,0** | Aceito (24/10). Commits `d90a8cb`, `b7b2161`, `1ca526b`, `154919b`, `d7d1c4f`, `99f52a0`. PO conferiu: `tsc` limpo, `npm run build` com saída 0, código de `generateMetadata` (canonical, og:image, título com `absolute`, `notFound` para `blog-global`, JSON-LD) e relatório coerente com o diff. O worker checou antes se o Antigravity tinha mudança pendente no blog (não tinha). Descontos: não olhou a 1440 px (usou 1024 e 390); `noindex`, `ogImageUrl` e `canonicalUrl` ainda não existem na API (BC-1), então esse ramo não foi exercitado; não mediu Web Vitals. **Só vale em produção depois do push e do deploy** |

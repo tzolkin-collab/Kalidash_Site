@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import PixelTransition from "../../components/PixelTransition";
 import { ArticleView } from "../views";
 import type { GalleryItem } from "../views";
 import { fetchArticleBySlug, fetchPublishedArticles, isReservedArticleSlug } from "@/lib/blog";
 import { SITE_URL } from "@/lib/siteUrl";
 import { DEFAULT_OG_IMAGE, absoluteUrl, articleJsonLd, jsonLd } from "@/lib/blogSeo";
+import { sanitizeArticleHtml } from "@/lib/sanitizeHtml";
 
 export const revalidate = 60;
 
@@ -16,11 +16,23 @@ export async function generateStaticParams() {
 
 type PageProps = { params: Promise<{ slug: string }> };
 
+async function resolveArticle(slug: string) {
+  if (isReservedArticleSlug(slug)) return null;
+  try {
+    return await fetchArticleBySlug(slug);
+  } catch (err) {
+    const all = await fetchPublishedArticles().catch(() => null);
+    const match = all?.find((a) => a.slug === slug);
+    if (match) return match;
+    throw err;
+  }
+}
+
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const article = isReservedArticleSlug(slug) ? null : await fetchArticleBySlug(slug);
+  const article = await resolveArticle(slug);
 
   if (!article) {
     return { title: "Artigo não encontrado", robots: { index: false, follow: false } };
@@ -55,14 +67,27 @@ export async function generateMetadata({
 
 export default async function ArticlePage({ params }: PageProps) {
   const { slug } = await params;
-  const article = isReservedArticleSlug(slug) ? null : await fetchArticleBySlug(slug);
+  const article = await resolveArticle(slug);
 
   if (isReservedArticleSlug(slug) || !article) notFound();
 
-  // Busca outros artigos publicados para recomendação
+  // Busca outros artigos publicados para recomendação (priorizando a mesma categoria)
   const all = await fetchPublishedArticles();
+  const primaryCat = article.categories?.[0];
   const relatedArticles: GalleryItem[] = all
-    .filter((a) => a.slug !== slug && !isReservedArticleSlug(a.slug))
+    .filter(
+      (a) =>
+        a.slug !== slug &&
+        !isReservedArticleSlug(a.slug) &&
+        a.slug !== "artigo-teste-template",
+    )
+    .sort((a, b) => {
+      const aMatch = primaryCat && a.categories?.includes(primaryCat) ? 2 : 0;
+      const bMatch = primaryCat && b.categories?.includes(primaryCat) ? 2 : 0;
+      const aCover = a.coverImageUrl ? 1 : 0;
+      const bCover = b.coverImageUrl ? 1 : 0;
+      return bMatch + bCover - (aMatch + aCover);
+    })
     .slice(0, 2)
     .map((a) => ({
       id: a.id,
@@ -78,14 +103,16 @@ export default async function ArticlePage({ params }: PageProps) {
     }));
 
   return (
-    <PixelTransition color="#1e1329" duration={1400} pixelDuration={450}>
-      <>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: jsonLd(articleJsonLd(article)) }}
-        />
-        <ArticleView article={article} relatedArticles={relatedArticles} shareUrl={`${SITE_URL}/blog/${article.slug}`} />
-      </>
-    </PixelTransition>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(articleJsonLd(article)) }}
+      />
+      <ArticleView
+        article={{ ...article, body: sanitizeArticleHtml(article.body) }}
+        relatedArticles={relatedArticles}
+        shareUrl={`${SITE_URL}/blog/${article.slug}`}
+      />
+    </>
   );
 }

@@ -2,6 +2,29 @@ import type { NextConfig } from "next";
 import { ADMIN_ORIGINS } from "./src/lib/adminOrigins";
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**.r2.dev",
+      },
+      {
+        protocol: "https",
+        hostname: "**.kalidash.com.br",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+    ],
+  },
+  // "Cases" agora é uma categoria do Blog (/blog?categoria=cases). Links antigos continuam funcionando.
+  async redirects() {
+    return [
+      { source: "/cases", destination: "/blog/categoria/cases", permanent: false },
+      { source: "/cases/:slug", destination: "/blog/:slug", permanent: false },
+    ];
+  },
   async headers() {
     return [
       {

@@ -1,4 +1,4 @@
-import type { Article } from '../domain';
+import type { Article, BlogCategory } from '../domain';
 import { API_URL } from './api';
 import { pushErro } from './notify';
 import { checkUploadFile } from './uploadCheck';
@@ -111,4 +111,63 @@ export async function updateBlogSettings(settings: BlogSettings): Promise<BlogSe
   });
   if (!res.ok) throw new Error(await res.text() || `Não foi possível salvar as configurações do blog (${res.status}).`);
   return res.json();
+}
+
+const CATEGORIES_BASE = `${API_URL}/api/blog/categories`;
+
+export type BlogCategoryInput = {
+  id?: string;
+  name: string;
+  slug?: string;
+  description?: string;
+  sortOrder?: number;
+  hidden?: boolean;
+  seoTitle?: string;
+  seoDescription?: string;
+};
+
+export async function listBlogCategories(): Promise<BlogCategory[]> {
+  const res = await fetch(CATEGORIES_BASE, { credentials: 'include' });
+  if (!res.ok) throw new Error(`Não foi possível carregar as categorias (${res.status}).`);
+  return res.json();
+}
+
+export async function createBlogCategory(input: BlogCategoryInput): Promise<BlogCategory> {
+  const res = await fetch(CATEGORIES_BASE, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error((await res.text()) || `Não foi possível criar a categoria (${res.status}).`);
+  return res.json();
+}
+
+export async function updateBlogCategory(id: string, input: BlogCategoryInput): Promise<BlogCategory> {
+  const res = await fetch(CATEGORIES_BASE, {
+    method: 'PUT',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...input, id }),
+  });
+  if (!res.ok) throw new Error((await res.text()) || `Não foi possível salvar a categoria (${res.status}).`);
+  return res.json();
+}
+
+export async function reorderBlogCategories(order: string[]): Promise<void> {
+  const res = await fetch(CATEGORIES_BASE, {
+    method: 'PUT',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ order }),
+  });
+  if (!res.ok) throw new Error((await res.text()) || `Não foi possível reordenar as categorias (${res.status}).`);
+}
+
+export async function deleteBlogCategory(id: string): Promise<void> {
+  const res = await fetch(`${CATEGORIES_BASE}?id=${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  if (!res.ok) throw new Error((await res.text()) || `Não foi possível excluir a categoria (${res.status}).`);
 }

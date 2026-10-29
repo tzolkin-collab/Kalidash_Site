@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -40,6 +41,10 @@ type Opportunity struct {
 	OwnerAvatar   *string   `json:"ownerAvatar,omitempty"`
 	// Responsável na equipe (TeamMember), só com CRM_API=1; ownerId é o vínculo antigo com User.
 	OwnerMemberID *string   `json:"ownerMemberId,omitempty"`
+
+	// Motivo de perda (WP4-2, D28): preenchido só enquanto a oportunidade está numa etapa Perdida.
+	LostReason     *string `json:"lostReason,omitempty"`
+	LostReasonNote *string `json:"lostReasonNote,omitempty"`
 	
 	WonAt         *time.Time `json:"wonAt"`
 	CreatedAt     time.Time `json:"created_at"`
@@ -148,6 +153,9 @@ func handleMoveOpportunity(w http.ResponseWriter, r *http.Request) {
 		ID    string `json:"lead_id"` // mantido lead_id no payload pra compatibilidade rápida
 		Stage string `json:"column_id"`
 		Won   bool   `json:"won"` // o admin sabe que a etapa é do tipo Ganho; a API só vê o id
+		// WP4-2 (D28): obrigatório ao entrar numa etapa Perdida; "Outro" exige a nota.
+		LostReason     string `json:"lostReason"`
+		LostReasonNote string `json:"lostReasonNote"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -160,6 +168,8 @@ func handleMoveOpportunity(w http.ResponseWriter, r *http.Request) {
 	updateQuery := `UPDATE Opportunity SET stage = ?, wonAt = CASE WHEN ? IS NULL THEN NULL ELSE COALESCE(wonAt, ?) END WHERE id = ?`
 	won := wonAtFor(payload.Stage, payload.Won, time.Now())
 	args := []any{payload.Stage, won, won, payload.ID}
+	var extraSet string
+	var extraArgs []any
 	if workflowEnabled() {
 		// WP4-1: a etapa de destino precisa existir (422), o gate vale nas duas pontas (inclusive entre funis)
 		// e a oportunidade passa a guardar o funil (Opportunity.pipelineId).
@@ -188,6 +198,14 @@ func handleMoveOpportunity(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		if lostReasonActive() { // antes do gate: um movimento recusado por falta de motivo não cria tarefa
+			lostSet, lostArgs, err := lostReasonForMove(gateStage, fromStage, firstNonEmpty(destPid, curPid), payload.LostReason, payload.LostReasonNote)
+			if err != nil {
+				writeLinkErr(w, err)
+				return
+			}
+			extraSet, extraArgs = lostSet, lostArgs
+		}
 		blockers, err := gateForMove(payload.ID, title, fromStage, gateStage)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -200,6 +218,10 @@ func handleMoveOpportunity(w http.ResponseWriter, r *http.Request) {
 		if destPid != "" {
 			updateQuery = `UPDATE Opportunity SET stage = ?, pipelineId = ?, wonAt = CASE WHEN ? IS NULL THEN NULL ELSE COALESCE(wonAt, ?) END WHERE id = ?`
 			args = []any{payload.Stage, destPid, won, won, payload.ID}
+		}
+		if extraSet != "" { // lostReason/lostReasonNote entram no mesmo UPDATE: etapa e motivo mudam juntos
+			updateQuery = strings.Replace(updateQuery, " WHERE id = ?", extraSet+" WHERE id = ?", 1)
+			args = append(append(args[:len(args)-1:len(args)-1], extraArgs...), payload.ID)
 		}
 	}
 
@@ -410,6 +432,7 @@ func main() {
 	mux.HandleFunc("/api/blog/slug-available", enableCORS(handleBlogSlugAvailable))
 	mux.HandleFunc("/api/blog/upload", enableCORS(handleBlogUpload))
 	mux.HandleFunc("/api/blog/settings", enableCORS(handleBlogSettings))
+	mux.HandleFunc("/api/blog/categories", enableCORS(handleBlogCategories))
 	mux.HandleFunc("/api/public/leads", handlePublicLead) // pública: CORS e limites próprios (public_leads.go)
 
 	if workflowEnabled() {

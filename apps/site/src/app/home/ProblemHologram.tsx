@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { Material, MeshStandardMaterial } from "three";
 import styles from "./ProblemHologram.module.css";
 
 export interface HologramTag {
@@ -169,11 +170,12 @@ export default function ProblemHologram({
 
       // Harmonize materials into warm glowing copper/terracotta hologram
       model.traverse((child) => {
-        if ("isMesh" in child && (child as any).material) {
-          const mats = Array.isArray((child as any).material)
-            ? (child as any).material
-            : [(child as any).material];
-          mats.forEach((mat: any) => {
+        if (child instanceof THREE.Mesh && child.material) {
+          const mats: Material[] = Array.isArray(child.material)
+            ? child.material
+            : [child.material];
+          mats.forEach((raw) => {
+            const mat = raw as MeshStandardMaterial;
             if (mat.color) {
               mat.color.lerp(warmTint, 0.2);
             }
@@ -256,12 +258,13 @@ export default function ProblemHologram({
         restartRef.current = null;
         resizeObserver?.disconnect();
         model.traverse((child) => {
-          if ("isMesh" in child) {
-            const mesh = child as any;
-            mesh.geometry?.dispose();
-            if (mesh.material) {
-              const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-              mats.forEach((m: any) => m.dispose());
+          if (child instanceof THREE.Mesh) {
+            child.geometry?.dispose();
+            if (child.material) {
+              const mats: Material[] = Array.isArray(child.material)
+                ? child.material
+                : [child.material];
+              mats.forEach((m) => m.dispose());
             }
           }
         });

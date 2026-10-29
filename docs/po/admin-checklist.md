@@ -154,3 +154,82 @@ Corrige os bugs que o WP0 achou e que bloqueiam ou enganam o uso. Toca em `apps/
 - [ ] **B-F4 / B-C2:** corrigir os textos e docs desatualizados que o WP0 listou (banner que diz "login por último", linhas duplicadas e status velho em `ARCHITECTURE.md`, `pagesAdmin/projects.md`).
 - [ ] Testes novos para o que for lógica; build e `go vet` limpos; verificado no navegador.
 - Fora do escopo: `apps/api/scripts/test.go` (arquivo local com credencial; é do Gustavo), captura pública (WP3), qualquer coisa de auth (WP1 pronto).
+
+| WP3c | wp3c-runbook-para-ligar | **8,8** | Aceito (24/10). Commits `9ee0921` e `bf7d30a`; `docs/runbooks/ligar-em-producao.md` com 12 seções, sem nenhum segredo (varredura limpa). PO leu §7 e o relatório: ordem `AUTH_API` → `WORKFLOW_API` → `CRM_API`, regra do cookie, smoke por curl e por tela, bloqueio da captura pública até o WP3b, rollback. Descontos: comandos não executados; o §9 diz que não viu suporte a vídeo no R2 (o `ALLOWED_MEDIA_HOSTS` do site já existe: acrescentar); retenção do IP sem job no código; `RESEND_API_KEY` ausente do `.env.example` |
+| WP3b | wp3b-n-cleo-crm-v2-de-po | — | Em andamento. Já commitados: D6 (`5f51baa`, captura pública cria Lead v2 com `CRM_API=1`) e D10 (`cc60fd4`, oportunidade ligada a pessoa, empresa e equipe). Falta D9, D4 e o Dashboard |
+
+| WP3b | wp3b-n-cleo-crm-v2-de-po | **9,0** | Aceito (25/10). Commits `5f51baa`, `cc60fd4`, `435712b`, `46c4bf2`, `ddee133`, `85be696`, `54f74d3`, `85d8285`, `9aff6e1` e docs. PO conferiu: numa cópia limpa do HEAD `go vet` e `go test` verdes; admin 65/65 e `tsc -b` limpos; `own_scope.go` revisado (o "own" amplia `leads:read/write` só para os registros da pessoa; sem `AUTH_API` nada age; reatribuir é 403; fora do escopo é 404). Pontos fortes: o worker explicou cada desvio (coluna nova `ownerMemberId` porque `ownerId` aponta para a tabela `User` do Prisma), listou os 4 testes de matriz que ajustou de propósito e achou e corrigiu bug real de anotação que nunca gravava e o `archivedAt` com `parseTime=true`. Descontos: MySQL real não exercitado; tarefas e histórico não filtrados por responsável; `qualifyLead` ainda cria oportunidade de exemplo |
+
+## 10. Decisões do PO após o WP3b (25/10/2026)
+
+| # | Pergunta | Decisão |
+|---|---|---|
+| D17 | Leads antigos que entraram como Oportunidade INBOUND | **Conviver.** Nada é migrado; os novos vão para o funil de leads. Só reavaliar se a Kalidash pedir |
+| D18 | Lead sem responsável: o Vendedor vê? | **Não.** Gerente/Admin distribuem. O **rodízio automático (round-robin)** é item da Entrega 3 do contrato e vira pacote próprio |
+| D19 | Filtrar tarefas por responsável | **Sim, na Entrega 3**, junto do rodízio: o Vendedor vê as tarefas dos seus registros |
+| D20 | "Qualificar lead" cria oportunidade real | **Sim, pacote próprio (WP4)**: qualificar lead → oportunidade real na API, com SLA de primeiro contato, dedup por e-mail e projeto, motivo de perda; é o miolo da Entrega 3 |
+| D21 | `NEXT_PUBLIC_LEAD_ENDPOINT` | Pode ser ligado **só depois** de `CRM_API=1` e `AUTH_API=1` em produção (runbook WP3c); o destino já é decidido pela flag, sem risco de duplicar |
+
+| Admin PWA | admin-pwa | **9,0** | Aceito (25/10). Commits `9dd3a13`, `c910e32`, `0786069` e relatório. PO conferiu: `npm test` 67/67 e `tsc -b` limpos; `vite.config.ts` com `NetworkOnly` para `/api/*`, `/auth/*` e outras origens e `navigateFallbackDenylist`; relatório com prova em Chrome real contra o build servido (manifesto, SW ativo, 24 entradas de precache sem resposta de API, rota profunda offline, aviso de nova versão). Descontos: instalação e janela standalone não testadas; clique de logout com login real e a faixa "Sem conexão" só no código; risco de offline com sessão (ver D26) |
+| Web Vitals do site | site-webvitals | **8,5** | Aceito parcialmente (25/10). Linha de base honesta (Lighthouse 12 no Edge, mediana de 3, 5 páginas, móvel e desktop) e 3 correções com medição antes/depois; uma tentativa (`dynamic`) foi testada e descartada com evidência. PO conferiu: `tsc` limpo, as classes das fontes removidas (`.text-display-*`, `Header`/`DesktopNav`) não são usadas em nenhuma página viva. Resultado: LCP móvel 5,6–7,2 s → 3,4–4,5 s, fontes 520 → 135 KB, desktop 99–100; **meta de LCP ≤ 2,5 s no móvel NÃO atingida**. Descontos: conferência visual a 1440/390 px não feita; ganho do `PixelTransition` não medido |
+
+## 11. Decisões do PO (25/10/2026), Web Vitals e PWA
+
+| # | Pergunta | Decisão |
+|---|---|---|
+| D22 | `PixelTransition` cobrindo `/blog` e `/blog/[slug]` por ~1,4 s em toda carga | **Medir sem a cortina primeiro** e, se o ganho for relevante, passar a rodar só na **primeira visita da sessão** (sessionStorage) e com duração menor. Mantém a assinatura visual e tira o custo das visitas seguintes |
+| D23 | Fontes restantes (135 KB) | Carregar **Manrope só nas rotas do blog** e reduzir pesos não usados de Inter e Source Sans 3; medir |
+| D24 | Home como Server Component | **Não agora** (mudança grande). Reavaliar depois de medir na URL real da Vercel |
+| D25 | Meta de LCP móvel | A meta fica em ≤ 2,5 s. Se o ciclo D22+D23 não chegar, o PO decide entre aceitar um número documentado e abrir o item D24 |
+| D26 | Offline com `AUTH_API` ligada: hoje `initAuth` trata "API fora do ar" como "sem login" e o app abre só com o shell | **Não entrar em modo de exemplo.** Com `AUTH_API=1` e API inalcançável, mostrar tela clara "Sem conexão com o servidor" com botão de tentar de novo; o modo de exemplo só vale quando a API nunca foi configurada |
+
+## 12. Fechamento Web Vitals e PWA (25/10/2026)
+
+| Pacote | Nota final | Observação |
+|---|---|---|
+| Web Vitals do site (rodada 2) | **9,0** | Commits `740a68b`, `fdc1100`. O worker conferiu o visual a 1440 e 390 px (sem mudança), **mediu o D22 e não implementou** porque a cortina não pesa no LCP medido (o critério era "se o ganho for relevante"), e testou `inlineCss` sem ganho, revertendo. LCP móvel simulado 3,1–4,3 s (início: 5,6–7,2 s); o LCP sem simulação é só TTFB + 155 ms de render. Meta de 2,5 s não atingida **no modelo simulado de 4G lento**. **D25 resolvido:** aceitar o número documentado e validar na URL real (PageSpeed) antes de abrir D24 (Home como Server Component). Pendência de design, não de performance: `/blog/<slug>` renderiza em Archivo porque `--font-inter` e `--font-source-sans` não existem na página (BC-5, junto da decisão Q2) |
+| Admin PWA, follow-up D26 | **9,0** (mantida) | Commit `e79f569`: com o login ligado, a primeira resposta do servidor grava um indicador local; se depois a chamada falhar por rede ou 5xx, o app mostra "Sem conexão com o servidor" com "Tentar de novo". Admin 72/72 e `tsc -b` limpos. Risco residual: na primeiríssima visita com a API fora do ar (sem indicador) ainda cai em modo de exemplo; só mostra dado de exemplo, nunca dado real |
+
+## 13. Auditoria de funis, tarefas e automações (25/10/2026)
+
+| Pacote | Sessão | Nota | Situação |
+|---|---|---|---|
+| Auditoria workflow | audit-workflow | **9,5** | Aceita. Commits `1afd90e`, `9f9b074`, `8ba855b`, `1855dee`; relatório de 547 linhas em `relatorios/audit-pipelines-tarefas-automacoes.md`. PO conferiu no código os dois achados mais graves: **B-01** (`qualifyLead` em `leadFlow.ts` só escreve em `sampleOppsStore`, memória, e marca o lead `QUALIFIED` apontando para uma oportunidade que não existe) e **B-02** (`initWorkflowSync` cria funis de exemplo no servidor quando a lista vem vazia, e `crmSync.seed` faz o mesmo com leads, pessoas e empresas). Pontos fortes: prova em banco descartável com chamadas HTTP diretas, que mostrou que a integridade vive só na tela (gate furado por 4 caminhos, etapa com leads apagável, tarefa órfã); resposta direta ao ponto central ("automações não existem no servidor, rodam só no navegador aberto, 9 de 20 eventos nunca são emitidos"); comparação de duas abordagens para executar jobs com recomendação defendida; lista do que NÃO construir. Descontos: toque no celular, carga e MySQL real não testados; contraste não medido |
+
+### Decisões do PO sobre as perguntas da §8.4 (25/10/2026)
+
+| # | Pergunta | Decisão |
+|---|---|---|
+| D27 | Catálogo de fluxos | **Lista de fluxos prontos que se liga e desliga** (WP4-7), não construtor livre |
+| D28 | Motivo de perda | **Lista fechada configurável por funil**, com "Outro" + texto; obrigatório ao entrar numa etapa Perdida; o lead descartado usa a mesma lista |
+| D29 | Deduplicação | Lead **ativo** com o mesmo e-mail no mesmo projeto (`ConnectedProject`): **não cria outro**; registra o novo envio no lead existente, preenche só campos vazios e marca "retornando". Se o anterior foi qualificado, perdido ou descartado: cria lead novo marcado "retornando", ligado à mesma pessoa. Dois formulários do mesmo projeto contam como um |
+| D30 | Rodízio | Só **Vendedores ativos** (Gerente fora), **por funil** (`config.assignment`). Sem ninguém elegível: lead fica sem dono e notifica Gerente e Admin. **D18 continua** (o Vendedor só vê o que é dele) |
+| D31 | SLA de primeiro contato | Padrão **60 min corridos por funil** (configurável; sem horário comercial na v1), avisa o responsável e o Gerente. Conta como contato: 1ª anotação de contato, e-mail enviado ou tarefa de contato concluída. **Valor a confirmar com a Carol** |
+| D32 | Webhook de saída (Ganho) | Payload: valor, contato (nome, e-mail, telefone), empresa, funil e etapa, origem e UTM, ids. **Vários destinatários por funil**; reenvio manual: sim. **Falta saber qual é o sistema receptor** (Gustavo/Carol) |
+| D33 | Ciclo de vida do lead | Usar as **etapas do funil** (Novos → Contatado → Negociação → Ganho/Perdido), ajustando os nomes do template; não criar um campo `leadStage` à parte |
+| D34 | Automações de exemplo na tela | **Remover as contagens inventadas** ("Execuções 47…") e marcar como exemplo tudo o que ainda não roda no servidor |
+| D35 | Quem liga ou desliga fluxo do sistema | Admin e Gerente (`automations:manage`), com registro na auditoria; Vendedor não |
+| D36 | Responsável da tarefa | Sempre uma **pessoa da equipe**. "Função" resolve para o responsável do registro; sem dono, vai para a fila do Gerente |
+| D37 | Semente de exemplo | **Só com `SEED_DEMO=1`** (desenvolvimento). Nunca em produção |
+| D38 | E-mail de boas-vindas automático ao lead | **Fora da Entrega 3**: depende do domínio verificado no Resend. Entra como fluxo desligado, pronto para ligar depois |
+| D39 | Corte da §8.3 (webhook de entrada por pipeline, construtor livre, WebSocket/Push, Redis/BullMQ, rodízio com pesos) | **Aprovado.** Execução de jobs: **outbox + tabela de jobs no MySQL com workers em goroutine** (sem Redis) |
+
+Ordem a executar: **WP4-0 (higiene de produção) e WP4-1 (integridade do servidor)** primeiro, porque B-01 e B-02 impedem ligar as flags em produção; depois WP4-2, WP4-3 e em paralelo WP4-4; por fim WP4-5, WP4-6 e WP4-7.
+
+## 14. Fechamento WP4-0 e WP4-1 (25/10/2026)
+
+| Pacote | Sessão | Nota | Situação |
+|---|---|---|---|
+| WP4-0 Higiene de produção | wp4-0-higiene | **9,0** | Aceito. 7 commits (`833ffb3`…`4a91664`). PO conferiu: admin 85/85, `tsc -b` limpo, `npm run build` com saída 0; `VITE_SEED_DEMO` realmente controla `crmSync` e `workflowSync` (`seedDemo.ts`). Entregou semeadura só com a flag, "Conectar fonte" com projetos reais, oportunidades de exemplo escondidas em modo API, `null` ao limpar prazo e responsável, Automações sem números inventados. Descontos: "desconectar fonte" ficou de fora (a API recusa, 422); só viu 1440 px e nada de celular; bancos que já foram semeados antes não são limpos |
+| WP4-1 Integridade do servidor | wp4-1-integridade | **9,3** | Aceito. 6 commits (`850b469`…`ce467da`). PO conferiu: `go vet` e `go test` verdes numa cópia limpa do HEAD (sem banco); o relatório afirma 117 testes de integração nos dois modos de DSN. Gate no servidor em oportunidade, lead e mudança de funil, com `gate/check` sem efeito colateral; etapa inexistente 422; mover para a mesma etapa 200; etapa com lead 409; funil sem Ganha/Perdida 422; tarefas órfãs; `null` limpa campo; tarefa de campo exige o dado; tarefas por dono; `Opportunity.pipelineId` e contagens; `If-Match` com compare-and-swap. Nenhum teste de matriz precisou ser ajustado. Descontos: MySQL real não exercitado; tarefa de campo reconhece o campo pelo **título** (o requisito não guarda `fieldKey`); D36 completo (Função resolve para o responsável do registro) não feito; o admin ainda não envia o `If-Match` |
+
+### Decisões do PO após o WP4-0 e o WP4-1
+
+| # | Pergunta | Decisão |
+|---|---|---|
+| D40 | O que é "desconectar a fonte" de um funil | A API passa a aceitar `pipelineId`/`stageId` nulos em `ConnectedProject`. O projeto continua existindo; **novos envios do formulário são recusados com erro claro (422 "projeto sem funil")** até ser reconectado; nenhum lead existente é apagado. O admin avisa antes de desconectar |
+| D41 | Campo exigido por requisito | **Adicionar `StageRequirement.fieldKey`** (aditivo, nullable). O servidor valida pela chave e não mais pelo título; o título continua só como retrocompatibilidade para requisitos antigos |
+| D42 | `If-Match` no front | O admin passa a enviar o `updatedAt` esperado em `PUT /api/pipelines/{id}`; em 409 mostra "Este funil foi alterado por outra pessoa" com opção de recarregar |
+| D43 | D36 completo (Função → responsável do registro; sem dono → fila do Gerente) | Entra com o **rodízio (WP4-4)**, não antes |
+
+Próximos: **WP4-1b** (D40, D41, D42; pequeno) em paralelo com **WP4-2** (qualificar lead real + motivo de perda; resolve o B-01, que também impede ligar as flags). Depois WP4-3 (eventos e jobs) e WP4-4.

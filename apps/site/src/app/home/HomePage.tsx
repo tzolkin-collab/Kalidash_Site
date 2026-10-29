@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Inter, Source_Sans_3 } from "next/font/google";
 import styles from "./home.module.css";
 import HomeHeader from "./HomeHeader";
 import SiteFooter from "./SiteFooter";
@@ -20,6 +19,7 @@ import {
   WhatsApp,
 } from "./icons";
 import FlickeringGrid from "../components/FlickeringGrid";
+import AnthropicPartnerBadge, { ClaudeLogoIcon } from "./AnthropicPartnerBadge";
 import {
   clients,
   config,
@@ -33,9 +33,6 @@ import {
 } from "./content";
 import { SITE_URL } from "@/lib/siteUrl";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-// Texto corrido: Source Sans 3, alternativa aberta (da Adobe) no mesmo estilo da Myriad e da Acumin do brand guide.
-const sourceSans = Source_Sans_3({ subsets: ["latin"], variable: "--font-source-sans", display: "swap" });
 
 function Eyebrow({ children, inverse = false }: { children: React.ReactNode; inverse?: boolean }) {
   return <p className={styles.eyebrow} data-inverse={inverse}>{children}</p>;
@@ -58,10 +55,11 @@ function TextLink({ href, children, onClick }: { href: string; children: React.R
 
 export default function HomePage() {
   const [activeQuoteIndex, setActiveQuoteIndex] = useState<number | null>(null);
+  const [isBadgeHovered, setIsBadgeHovered] = useState(false);
   const logoLoop = [...clients, ...clients];
 
   return (
-    <div className={`${inter.variable} ${sourceSans.variable} ${styles.home}`}>
+    <div className={styles.home}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -85,16 +83,28 @@ export default function HomePage() {
           <div className={styles.heroCopy}>
             {hero.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
           </div>
-          <div className={styles.heroActions}>
+          <div
+            className={styles.heroActions}
+            data-badge-hovered={isBadgeHovered}
+            onMouseEnter={() => setIsBadgeHovered(true)}
+            onMouseLeave={() => setIsBadgeHovered(false)}
+          >
             <Link
               className={styles.primaryButton}
               href={hero.primaryCta.href}
+              onFocus={() => setIsBadgeHovered(true)}
+              onBlur={() => setIsBadgeHovered(false)}
             >
-              {hero.primaryCta.label} <ArrowRight />
+              <span>{hero.primaryCta.label}</span>
+              <span className={styles.buttonIconWrap} aria-hidden="true">
+                <ClaudeLogoIcon className={styles.buttonClaudeIcon} />
+                <ArrowRight className={styles.buttonArrowIcon} />
+              </span>
             </Link>
-            <a className={styles.secondaryButton} href={hero.secondaryCta.href}>
-              {hero.secondaryCta.label} <ArrowRight />
-            </a>
+            <AnthropicPartnerBadge
+              isHovered={isBadgeHovered}
+              onHoverChange={setIsBadgeHovered}
+            />
           </div>
 
           <div className={styles.heroProof} aria-label="Experiência da Kalidash">
@@ -383,17 +393,31 @@ export default function HomePage() {
         </section>
 
         <section className={styles.caseFeature} data-block="home-case">
-          <div>
-            <Eyebrow>{caseCba.eyebrow}</Eyebrow>
-            <h2>{caseCba.title}</h2>
+          <div className={styles.caseContent}>
+            <div>
+              <Eyebrow>{caseCba.eyebrow}</Eyebrow>
+              <h2>{caseCba.title}</h2>
+            </div>
+            <div className={styles.caseBody}>
+              <p>{caseCba.text}</p>
+              <p className={styles.caseBadge}>{caseCba.badge}</p>
+              {caseCba.pageReady && (
+                <TextLink href={caseCba.cta.href}>{caseCba.cta.label}</TextLink>
+              )}
+            </div>
           </div>
-          <div className={styles.caseBody}>
-            <p>{caseCba.text}</p>
-            <p className={styles.caseBadge}>{caseCba.badge}</p>
-            {caseCba.pageReady && (
-              <TextLink href={caseCba.cta.href}>{caseCba.cta.label}</TextLink>
-            )}
-          </div>
+          {caseCba.image && (
+            <div className={styles.caseMedia}>
+              <Image
+                src={caseCba.image.src}
+                alt={caseCba.image.alt}
+                width={caseCba.image.width}
+                height={caseCba.image.height}
+                sizes="(max-width: 900px) 100vw, 45vw"
+                loading="lazy"
+              />
+            </div>
+          )}
         </section>
 
         <section className={styles.results} data-block="home-testimonial">

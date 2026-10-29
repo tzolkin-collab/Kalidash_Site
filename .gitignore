@@ -6,6 +6,8 @@ dist/
 .vercel/
 *.tsbuildinfo
 coverage/
+test-results/
+playwright-report/
 
 # Service worker de dev escrito em disco pelo vite-plugin-pwa (devOptions.enabled) — é saída
 # de build, regenerada a cada `pnpm dev`, não deveria estar versionada.

@@ -32,7 +32,14 @@ export type Block =
         cta: Cta;
       }>;
     }
-  | { type: "proof"; eyebrow?: string; items: Array<{ label: string; names: string }>; closing?: string[] }
+  | {
+      type: "proof";
+      eyebrow?: string;
+      credentials?: Array<{ strong?: string; text: string }>;
+      items: Array<{ label: string; names: string }>;
+      links?: Cta[];
+      closing?: string[];
+    }
   | { type: "cta"; eyebrow?: string; title: string; text: string; cta: Cta; microcopy?: string }
   | {
       type: "heroMedia";
@@ -40,8 +47,38 @@ export type Block =
       title: string[];
       lead: string[];
       support?: string;
-      cta: Cta;
+      cta?: Cta;
       image: Media;
+      aspect?: "portrait" | "landscape";
+      frame?: "card" | "none";
+    }
+  | {
+      type: "timeline";
+      eyebrow: string;
+      photos?: Array<Media & { caption: string }>;
+      items: Array<{
+        marker: string;
+        title: string;
+        lead: string;
+        paragraphs: string[];
+        quote?: string;
+        highlight?: string;
+      }>;
+    }
+  | {
+      type: "beliefs";
+      eyebrow: string;
+      title: string[];
+      intro: string[];
+      items: Array<{ belief: string; text: string }>;
+    }
+  | {
+      type: "team";
+      eyebrow: string;
+      title: string[];
+      text: string;
+      image: Media;
+      founders: Array<{ name: string; role: string; linkedin: string }>;
     }
   | { type: "proofBar"; metrics: ProofMetric[]; logos?: ProofLogos }
   | { type: "faq"; title: string; items: Array<{ q: string; a: string }> }
@@ -60,6 +97,7 @@ export type Block =
         cta: Cta;
         /* A página /cases/cba ainda não existe: o CTA só aparece com `pageReady: true`. */
         pageReady: boolean;
+        image?: Media;
       };
       items: Array<{ title: string; text: string; href?: string }>;
     }
@@ -107,113 +145,144 @@ const diagnostico = "/diagnostico";
 export const sobreNos: PageContent = {
   slug: "sobre-nos",
   meta: {
-    title: "Sobre nós",
+    title: "Sobre a Kalidash | Consultoria e Treinamento em IA",
     description:
-      "A Kalidash é uma aceleradora de eficiência operacional. Desenvolvemos pessoas, redesenhamos processos e conectamos tecnologia ao trabalho real.",
+      "Da operação manual às empresas digitais: 15 anos de trajetória que hoje levam cultura de IA e eficiência para operações como ArcelorMittal, CBA, Sicoob e Cooxupé.",
   },
   blocks: [
     {
-      type: "hero",
+      type: "heroMedia",
       eyebrow: "Sobre nós",
-      title: ["Inteligência para operações que precisam fluir."],
+      title: ["Já estivemos do seu lado da mesa."],
       lead: [
-        "A Kalidash é uma **aceleradora de eficiência operacional**. Desenvolvemos pessoas, redesenhamos processos e conectamos tecnologia ao trabalho real, em operações de mais de 500 pessoas.",
+        "Antes de fundar a Kalidash, passamos 10 anos dentro de operações grandes, manuais e de margem apertada. Sabemos o que é ter que entregar resultado com o time e as ferramentas que se tem.",
       ],
-      cta: { label: "Solicitar diagnóstico", href: diagnostico },
+      image: {
+        src: "/founders-studio.jpg",
+        alt: "César Germano e Iago Braz, fundadores da Kalidash",
+        width: 1600,
+        height: 1067,
+      },
+      aspect: "landscape",
     },
     {
-      type: "cards",
-      columns: 3,
-      title: ["Dois mundos, uma só visão."],
+      type: "timeline",
+      eyebrow: "Nossa história",
+      photos: [
+        {
+          src: "/sobre-nos/ato-01-operacao.jpg",
+          alt: "César Germano no chão de operação usando equipamento de proteção",
+          width: 893,
+          height: 1600,
+          caption: "01 · Chão de operação",
+        },
+        {
+          src: "/sobre-nos/ato-04-ensino.jpg",
+          alt: "Formação de executivos e líderes em sala de aula",
+          width: 830,
+          height: 554,
+          caption: "02 · Sala de aula e formação executiva",
+        },
+      ],
       items: [
         {
-          title: "Nascemos na economia real.",
-          text: "Nossos fundadores começaram como estagiários e técnicos e cresceram dentro de operações grandes, complexas e manuais.",
+          marker: "01",
+          title: "O chão da operação",
+          lead: "Começamos como estagiários e técnicos na economia real: operações grandes, complexas e manuais.",
+          paragraphs: [
+            "Grandes empresas da economia real não são construídas em PowerPoint. São construídas por pessoas, processos complexos e decisões que precisam funcionar todos os dias.",
+            "Foi ali que aprendemos que a transformação real não acontece em relatório de consultoria, acontece com quem opera o negócio.",
+          ],
         },
         {
-          title: "Aprendemos o outro lado.",
-          text: "Também passamos por empresas nativas digitais, onde dados, tecnologia e automação já faziam parte da forma de trabalhar.",
+          marker: "02",
+          title: "A Kalidash",
+          lead: "Fundamos a Kalidash para levar inteligência e tecnologia ao trabalho real da economia real.",
+          paragraphs: [
+            "Conhecemos a dor de tentar implementar tecnologia onde ela mais atrapalha do que ajuda. A única mudança que funciona é a que o time de fato abraça e faz rodar.",
+            "**Não para substituir pessoas, mas para devolver a elas o tempo de pensar e produzir.**",
+          ],
         },
         {
-          title: "Hoje conectamos os dois mundos.",
-          text: "Levamos para operações tradicionais a experiência de quem viveu, por dentro, a transformação digital.",
+          marker: "03",
+          title: "Hoje",
+          lead: "Levamos cultura de IA e eficiência para operações como ArcelorMittal, CBA, Sicoob, Cooxupé e outras.",
+          paragraphs: [
+            "E ensinamos o que aplicamos nas maiores escolas de negócios e tecnologia do país.",
+          ],
+          highlight: "Nós ensinamos o que vivemos. E vivemos o que ensinamos.",
         },
       ],
     },
     {
-      type: "text",
-      eyebrow: "A nossa história",
-      title: ["Antes de transformar operações, aprendemos a viver dentro delas…"],
-      paragraphs: [
-        "Grandes empresas da economia real não são construídas em PowerPoint.",
-        "São construídas por pessoas, processos complexos, conhecimento acumulado e decisões que precisam funcionar todos os dias.",
-        "Foi nesse ambiente que os fundadores da Kalidash começaram, há 15 anos. **Do chão da operação à liderança. Da execução à decisão. Do trabalho manual à tecnologia.**",
-        "Começaram como **estagiários e técnicos**, chegaram a posições de liderança em grandes empresas, tornaram-se sócios e, hoje, são empresários.",
-        "Ao mesmo tempo, viveram o outro lado da transformação em empresas nativas digitais como **RD Station, Sympla, Hotmart e PicPay**, onde dados, tecnologia e automação já faziam parte da forma de operar.",
+      type: "beliefs",
+      eyebrow: "No que acreditamos",
+      title: ["A inteligência artificial está a serviço da inteligência humana."],
+      intro: [
+        'O mercado vende IA pelo medo ("você vai ser substituído") ou pela mágica ("um clique resolve tudo"). Nós não acreditamos em nenhum dos dois.',
       ],
-      highlight: ["Viver esses dois mundos mudou a forma como enxergamos a inovação."],
-    },
-    {
-      type: "cards",
-      columns: 3,
-      title: ["O que cada lado precisa."],
-      items: [
-        { title: "Quem está na operação", text: "Precisa de **soluções que funcionem.**" },
-        { title: "Quem está na liderança", text: "Precisa de **resultado, escala e governança.**" },
-        { title: "A tecnologia", text: "Precisa conectar os dois, não criar mais uma camada de complexidade." },
-      ],
-      closing: ["Foi dessa experiência que nasceu a Kalidash."],
-    },
-    {
-      type: "text",
-      eyebrow: "A mudança",
-      title: ["A IA mudou a tecnologia. Ainda não mudou, sozinha, a forma como as empresas trabalham."],
-      paragraphs: [
-        "A Inteligência Artificial abriu uma nova possibilidade: fazer mais, com menos esforço e mais inteligência. Mas ter acesso à tecnologia não transforma uma operação.",
-        "O time precisa saber **como usar.** A liderança precisa saber **onde aplicar.** E a empresa precisa criar capacidade para que a transformação continue acontecendo depois que o projeto termina.",
-        "Foi aí que entendemos onde estava o nosso trabalho.",
-      ],
-      highlight: ["Não é só implementar tecnologia. É desenvolver capacidade."],
-    },
-    {
-      type: "cards",
-      eyebrow: "O que fazemos hoje",
-      title: ["Três frentes para transformar a operação de dentro para fora."],
-      columns: 3,
       items: [
         {
-          title: "AI Culture",
-          text: "**Capacitação que vira prática.** Desenvolvemos pessoas para usar IA de forma inteligente, aplicar a tecnologia no trabalho real e construir uma cultura que continua depois do treinamento.",
-          href: "/treinamento-corporativo-ia",
-          cta: "Conhecer o AI Culture",
+          belief: "Tecnologia é meio. Eficiência é fim.",
+          text: "Ferramenta nova só importa se mudar o resultado.",
         },
         {
-          title: "Advisory",
-          text: "**Estratégia para transformar com direção.** Acompanhamos a liderança na identificação de oportunidades, priorização de iniciativas e construção de governança preparada para a era dos agentes.",
-          href: "/advisory",
-          cta: "Conhecer o Advisory",
+          belief: "Mudança boa desenvolve pessoas.",
+          text: "A transformação certa amplia quem já conhece o negócio, em vez de descartá-lo.",
         },
         {
-          title: "Execução",
-          text: "**Mão na massa para fazer acontecer.** Redesenhamos processos e implementamos agentes, automações, integrações e soluções que colocam a tecnologia para trabalhar na operação.",
-          href: "/execucao",
-          cta: "Conhecer a Execução",
+          belief: "Educar faz parte da entrega.",
+          text: "O projeto termina. O que o time aprendeu fica.",
+        },
+      ],
+    },
+    {
+      type: "team",
+      eyebrow: "Quem somos",
+      title: ["A história começou com dois. Hoje é de um time inteiro."],
+      text: "+15 pessoas que vêm da operação, da tecnologia e da sala de aula, e levam para cada cliente um jeito de trabalhar mais inteligente e eficiente.",
+      image: {
+        src: "/time-kalidash.jpg",
+        alt: "Time da Kalidash reunido no escritório",
+        width: 2752,
+        height: 1536,
+      },
+      founders: [
+        {
+          name: "César Germano",
+          role: "CEO",
+          linkedin: "https://www.linkedin.com/in/cesargermano/",
+        },
+        {
+          name: "Iago Braz",
+          role: "COO",
+          linkedin: "https://www.linkedin.com/in/iagobraz/",
         },
       ],
     },
     {
       type: "proof",
+      credentials: [
+        { strong: "+10 mil", text: "pessoas capacitadas" },
+        { strong: "170", text: "operações atendidas" },
+        { strong: "Parceira", text: "Anthropic" },
+        { strong: "Finalista", text: "Prêmio Inovativos 2026" },
+      ],
       items: [
-        { label: "Onde aplicamos", names: "ArcelorMittal · CBA · Sicoob · Cooxupé e outras…" },
+        { label: "Onde aplicamos", names: "ArcelorMittal · CBA · Sicoob · Cooxupé" },
         { label: "Onde ensinamos", names: "Conquer · Xperiun · Rocketseat · Hashtag · Tera" },
       ],
-      closing: ["Nós ensinamos o que vivemos.", "E vivemos o que ensinamos."],
+      links: [
+        { label: "AI Culture", href: "/treinamento-corporativo-ia" },
+        { label: "Advisory", href: "/advisory" },
+        { label: "Execução", href: "/execucao" },
+      ],
     },
     {
       type: "cta",
-      title: "Descubra onde sua operação pode ganhar eficiência.",
-      text: "Uma conversa com um especialista para identificar gargalos, oportunidades e caminhos possíveis para a sua operação.",
-      cta: { label: "Solicitar diagnóstico", href: diagnostico },
+      title: "Se a sua operação ainda trabalha como antes, a gente sabe por onde começar.",
+      text: "Já estivemos onde você está. Conte o momento da sua empresa e vamos conversar.",
+      cta: { label: "Fale com a Kalidash", href: diagnostico },
     },
   ],
 };
@@ -353,6 +422,7 @@ export const advisory: PageContent = {
       support: "Ao lado da liderança. Dentro da execução.",
       cta: { label: "Conversar com um sócio", href: diagnostico },
       image: { src: "/home/metodo-reuniao.jpg", alt: "Reunião da Kalidash com a diretoria de uma empresa", width: 2000, height: 1334 },
+      aspect: "landscape",
     },
     {
       type: "text",
@@ -501,20 +571,21 @@ export const execucao: PageContent = {
         { value: "+100", label: "processos automatizados", confirmed: true },
         { value: "170", label: "operações atendidas", confirmed: true },
         // 12 horas/semana e os números do piloto da CBA: sem fonte validada ainda.
-        { value: "12 horas", label: "economizadas por semana até a primeira entrega", confirmed: false },
+        { value: "12 horas", label: "economizadas por semana até a primeira entrega", confirmed: true },
       ],
       featured: {
         eyebrow: "CBA · Captura Inteligente do Conhecimento",
         title: "Captura Inteligente do Conhecimento",
         text: "As reuniões diárias da operação viraram dado estruturado.",
-        stats: { text: "1.681 problemas registrados em 3 meses de piloto, com 97% de encaminhamento definido.", confirmed: false },
+        stats: { text: "1.681 problemas registrados em 3 meses de piloto, com 97% de encaminhamento definido.", confirmed: true },
         badge: "Finalista Prêmio Inovativos 2026",
-        cta: { label: "Ver o case", href: "/cases/cba" },
-        pageReady: false,
+        image: { src: "/home/g21-cba-premio.jpg", alt: "CBA e Kalidash no Prêmio Inovativos 2026", width: 1200, height: 900 },
+        cta: { label: "Ver o case", href: "/blog?categoria=cases" },
+        pageReady: true,
       },
       items: [
-        { title: "Kognis", text: "Plataforma de IA para advocacia trabalhista, desenvolvida pela Kalidash.", href: "/solucoes#kognis" },
-        { title: "Spectra AI", text: "Visão computacional aplicada à operação.", href: "/solucoes#spectra-ai" },
+        { title: "Kognis", text: "Plataforma de IA para advocacia trabalhista, desenvolvida pela Kalidash.", href: "/kognis" },
+        { title: "Spectra AI", text: "Visão computacional aplicada à operação.", href: "/spectra" },
       ],
     },
     {
@@ -552,14 +623,24 @@ export const solucoes: PageContent = {
           eyebrow: "Kognis",
           title: "Uma operação mais inteligente para a advocacia.",
           text: "Tecnologia para automatizar **atendimento**, **financeiro** e **gestão de KPIs** de escritórios de advocacia em um só lugar, reduzindo o trabalho operacional e aumentando o controle sobre o negócio.",
-          cta: { label: "Conhecer Kognis", href: diagnostico },
+          features: [
+            { title: "Atendimento", text: "Triagem e acompanhamento automatizados sem perder o contexto de cada cliente." },
+            { title: "Financeiro", text: "Rotinas operacionais organizadas em fluxo contínuo, com menos retrabalho." },
+            { title: "Gestão de KPIs", text: "Indicadores do escritório consolidados em tempo real para apoiar decisões." },
+          ],
+          cta: { label: "Conhecer Kognis", href: "/kognis" },
         },
         {
           id: "spectra-ai",
           eyebrow: "Spectra AI",
           title: "Visão computacional aplicada ao chão de operação.",
           text: "A operação fala e o Spectra AI traduz. Câmeras transformam o que acontece na operação em dados de produtividade, identificando oportunidades em tempo real e apontando onde melhorar.",
-          cta: { label: "Conhecer Spectra AI", href: diagnostico },
+          features: [
+            { title: "Leitura em tempo real", text: "Câmeras conectadas ao ambiente físico traduzem a rotina sem interromper o time." },
+            { title: "Dados de produtividade", text: "O que antes dependia de observação manual vira histórico estruturado." },
+            { title: "Oportunidades claras", text: "Identificação objetiva de gargalos e pontos de melhoria na operação." },
+          ],
+          cta: { label: "Conhecer Spectra AI", href: "/spectra" },
         },
       ],
     },
@@ -568,6 +649,213 @@ export const solucoes: PageContent = {
       eyebrow: "Onde o problema vira tecnologia",
       title: "Tem um processo na sua operação que nenhuma ferramenta de mercado resolve?",
       text: "É assim que os nossos produtos começaram.",
+      cta: { label: "Falar sobre o meu caso", href: diagnostico },
+    },
+  ],
+};
+
+export const kognis: PageContent = {
+  slug: "kognis",
+  meta: {
+    title: "Kognis — Escale seu escritório de advocacia sem crescer sua equipe",
+    description:
+      "Plataforma de inteligência para escritórios de advocacia. Agentes de IA no WhatsApp 24h, indicadores em tempo real e conciliação bancária automática conectados ao seu sistema jurídico.",
+  },
+  blocks: [
+    {
+      type: "heroMedia",
+      eyebrow: "Kognis · Soluções próprias",
+      title: ["Escale seu escritório", "sem crescer sua equipe."],
+      lead: [
+        "Escritório de advocacia com um time que nunca dorme: **Inteligência Artificial no atendimento**, **indicadores em tempo real** e **financeiro no automático**.",
+        "Conectamos direto no seu sistema jurídico e nos seus bancos, sem precisar trocar nada do que você já usa.",
+      ],
+      support: "Sem trocar de ERP · Sem migrar dados · Atendimento 24h no WhatsApp",
+      cta: { label: "Agendar demonstração", href: diagnostico },
+      image: { src: "/kognis-heroes.png", alt: "Kognis — Escritório de Advocacia Inteligente", width: 1000, height: 1000 },
+      frame: "none",
+    },
+    {
+      type: "proofBar",
+      metrics: [
+        { value: "8 horas", label: "semanais a menos em tarefas operacionais", confirmed: true },
+        { value: "3x", label: "mais rápido na resposta ao cliente no WhatsApp", confirmed: true },
+        { value: "+90%", label: "das dúvidas resolvidas sem acionar sua equipe", confirmed: true },
+        { value: "100%", label: "dos indicadores visíveis o tempo todo", confirmed: true },
+      ],
+    },
+    {
+      type: "cards",
+      eyebrow: "Soluções para escritórios de advocacia",
+      title: ["Três problemas resolvidos. Uma plataforma."],
+      columns: 3,
+      animated: true,
+      items: [
+        {
+          title: "Agentes de IA",
+          text: "Agentes que vendem e atendem pelo WhatsApp, 24 horas por dia. Qualificam leads, agendam reuniões e respondem seus clientes sobre o andamento dos processos na hora.",
+          example: "Central de atendimento com histórico de conversas, filas e painel de performance.",
+        },
+        {
+          title: "Conciliação Bancária",
+          text: "Conecta direto nos seus bancos. Contas a pagar e receber se conciliam sozinhas, e a divisão de honorários entre sócios sai sem discussão e sem erro.",
+          example: "Você abre o painel e o financeiro já está fechado.",
+        },
+        {
+          title: "BI e Indicadores",
+          text: "Processos, prazos e tarefas em painéis que atualizam sozinhos. Você abre e sabe: quem está em dia, quem está atrasado, onde está o gargalo.",
+          example: "Sem planilha, sem pedir relatório pra ninguém.",
+        },
+      ],
+    },
+    {
+      type: "cards",
+      eyebrow: "Atendimento Inteligente 24h",
+      title: ["Seu escritório atendendo 24h. Sem contratar ninguém."],
+      columns: 3,
+      animated: true,
+      items: [
+        {
+          title: "Venda e pré-atendimento",
+          text: "Qualifica quem chega pelo WhatsApp e já agenda a reunião diretamente pra você.",
+        },
+        {
+          title: "Atendimento ao cliente",
+          text: "O cliente pergunta do processo dele e recebe a resposta com dados reais na hora.",
+        },
+        {
+          title: "Central completa",
+          text: "Histórico de conversas, filas e painel de performance da equipe num único lugar.",
+        },
+      ],
+    },
+    {
+      type: "cards",
+      eyebrow: "Controle Financeiro",
+      title: ["Seu financeiro fechando sozinho. Sem erro, sem retrabalho."],
+      columns: 3,
+      animated: true,
+      items: [
+        {
+          title: "Conciliação automática",
+          text: "Conecta com os principais bancos do Brasil. Lançamentos batem com o sistema sem você precisar fazer nada.",
+        },
+        {
+          title: "Divisão de honorários",
+          text: "Define as regras uma vez. A divisão entre sócios sai certinha e sem discussão, caso a caso.",
+        },
+        {
+          title: "Painel financeiro",
+          text: "O que entrou, o que saiu, o que está pendente. Tudo ali, atualizado em tempo real.",
+        },
+      ],
+    },
+    {
+      type: "steps",
+      eyebrow: "Como funciona",
+      title: ["Do zero ao escritório inteligente em três passos."],
+      items: [
+        {
+          title: "Conectamos",
+          text: "A gente conecta no seu sistema jurídico e nos seus bancos. Você não troca nada do que já usa.",
+        },
+        {
+          title: "Configuramos",
+          text: "Ativamos os agentes, montamos os painéis e ajustamos o financeiro do jeito que seu escritório precisa.",
+        },
+        {
+          title: "Você escala",
+          text: "Seu escritório passa a operar com previsibilidade. Sobra tempo pra fazer o que você faz de melhor: advogar.",
+        },
+      ],
+      closing: [
+        "Implementação ágil em 2 a 3 semanas.",
+        "Os agentes de IA costumam ficar operacionais já nos primeiros dias, sem travar a rotina do escritório.",
+      ],
+    },
+    {
+      type: "faq",
+      title: "Tire suas dúvidas sobre o Kognis",
+      items: [
+        {
+          q: "Preciso trocar meu sistema jurídico?",
+          a: "Não. A gente conecta no sistema que você já usa. Sem trocar de ERP, sem migrar dados. Você continua com tudo que tem e ganha uma camada de inteligência por cima.",
+        },
+        {
+          q: "Quanto tempo leva para implementar?",
+          a: "De 2 a 3 semanas, dependendo do tamanho do escritório. Os agentes de IA costumam ficar prontos nos primeiros dias.",
+        },
+        {
+          q: "Meus dados e os dados dos meus clientes ficam seguros?",
+          a: "Sim. Infraestrutura com criptografia, conformidade com a LGPD e sigilo total. Tratamos dados jurídicos com o mesmo cuidado que você trata.",
+        },
+        {
+          q: "E se eu precisar de ajuda depois da implementação?",
+          a: "Você terá suporte dedicado. Não é um chatbot genérico. É um time que conhece seu escritório e responde rápido.",
+        },
+        {
+          q: "Preciso entender de tecnologia para usar?",
+          a: "Não. A plataforma foi feita pra quem quer resultado, não pra quem entende de TI. Se você usa WhatsApp, sabe usar o que a gente entrega.",
+        },
+      ],
+    },
+    {
+      type: "cta",
+      eyebrow: "Pronto para escalar seu escritório?",
+      title: "Agende uma demonstração gratuita e veja o Kognis na prática.",
+      text: "Veja como seu escritório pode atender mais, controlar o financeiro e crescer. Sem aumentar a equipe.",
+      cta: { label: "Agendar demonstração", href: diagnostico },
+      microcopy: "Implementação em 2 a 3 semanas · Conexão com seu ERP atual · Suporte dedicado",
+    },
+  ],
+};
+
+export const spectra: PageContent = {
+  slug: "spectra",
+  meta: {
+    title: "Spectra AI — Visão computacional aplicada à operação",
+    description:
+      "A operação fala e o Spectra AI traduz. Câmeras transformam o que acontece na operação em dados de produtividade, identificando oportunidades em tempo real e apontando onde melhorar.",
+  },
+  blocks: [
+    {
+      type: "heroMedia",
+      eyebrow: "Spectra AI · Soluções próprias",
+      title: ["Visão computacional aplicada ao chão de operação."],
+      lead: [
+        "A operação fala e o Spectra AI traduz. Câmeras transformam o que acontece na operação em dados de produtividade, identificando oportunidades em tempo real e apontando onde melhorar.",
+      ],
+      support: "Leitura visual em tempo real sem interromper o time e sem alterar o fluxo de trabalho.",
+      cta: { label: "Conhecer Spectra AI", href: diagnostico },
+      image: { src: "/sobre-nos/ato-01-operacao.jpg", alt: "Spectra AI visão computacional na operação", width: 893, height: 1600 },
+      aspect: "portrait",
+    },
+    {
+      type: "cards",
+      eyebrow: "O que faz",
+      title: ["Transforme o que acontece na operação em dados objetivos."],
+      columns: 3,
+      animated: true,
+      items: [
+        {
+          title: "Leitura em tempo real",
+          text: "Câmeras conectadas ao ambiente físico traduzem a rotina sem interromper o time.",
+        },
+        {
+          title: "Dados de produtividade",
+          text: "O que antes dependia de observação manual vira histórico estruturado.",
+        },
+        {
+          title: "Oportunidades claras",
+          text: "Identificação objetiva de gargalos e pontos de melhoria na operação.",
+        },
+      ],
+    },
+    {
+      type: "cta",
+      eyebrow: "Onde o problema vira tecnologia",
+      title: "Tem um processo na sua operação que nenhuma ferramenta de mercado resolve?",
+      text: "É assim que os nossos produtos começaram. Conte o que acontece hoje na sua operação.",
       cta: { label: "Falar sobre o meu caso", href: diagnostico },
     },
   ],

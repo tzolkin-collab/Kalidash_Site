@@ -7,12 +7,12 @@ import { ArticleCardsContext, blogSchema, CARD_TYPE, SPLIT_MEDIA_TYPE, TWO_COLUM
 import { pt as blockNoteLocalePt } from '@blocknote/core/locales';
 import '@blocknote/mantine/style.css';
 import '@blocknote/core/fonts/inter.css';
-import { AlertTriangle, Plus, RefreshCw, Star, Trash2, ImagePlus, Divide, Globe, Tag, Link2, Clock, Columns, Crop, Layout } from 'lucide-react';
+import { AlertTriangle, Plus, RefreshCw, Star, Trash2, ImagePlus, Divide, Globe, Tag, Link2, Clock, Columns, Crop, Layout, ArrowUp, ArrowDown, Eye, EyeOff, Edit2 } from 'lucide-react';
 import { PhotoCropModal } from '../components/PhotoCropModal';
-import type { Article } from '../domain';
+import type { Article, BlogCategory } from '../domain';
 import { formatDate } from '../lib/format';
-import { createArticle, deleteArticle, listArticles, updateArticle, uploadImage, uploadImageNotifying, getBlogSettings, updateBlogSettings, checkSlugAvailable } from '../lib/blog';
-import type { ArticleInput, BlogSettings } from '../lib/blog';
+import { createArticle, deleteArticle, listArticles, updateArticle, uploadImage, uploadImageNotifying, getBlogSettings, updateBlogSettings, checkSlugAvailable, listBlogCategories, createBlogCategory, updateBlogCategory, deleteBlogCategory, reorderBlogCategories } from '../lib/blog';
+import type { ArticleInput, BlogSettings, BlogCategoryInput } from '../lib/blog';
 import { teamStore } from '../mocks/team';
 import { Badge, EmptyState, Field, Page, PageHeader, Pagination, PopupDialog, SearchBox, Tabs } from '../components/ui';
 import { useStore } from '../lib/store';
@@ -21,8 +21,9 @@ import { useShell } from '../lib/shell';
 import { resolveAssetUrl } from '../lib/site';
 import { PreviewFrame } from '../components/PreviewFrame';
 import type { PreviewFocus } from '../components/PreviewFrame';
+import GalleryEditor from './GalleryEditor';
 
-type Filter = 'SETTINGS' | 'ALL' | 'PUBLISHED' | 'DRAFT';
+type Filter = 'SETTINGS' | 'CATEGORIES' | 'ALL' | 'PUBLISHED' | 'DRAFT';
 
 const blank = (authorName: string): Article => ({
   id: 'novo', title: '', slug: '', excerpt: '', body: '', coverImagePos: 50, featured: false, published: false,
@@ -32,6 +33,8 @@ const blank = (authorName: string): Article => ({
 export default function Blog({ postId }: { postId?: string }) {
   const [team] = useStore(teamStore);
   const [articles, setArticles] = useState<Article[] | null>(null);
+  const [blogCategories, setBlogCategories] = useState<BlogCategory[]>([]);
+  const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
   const [loadError, setLoadError] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>('ALL');
   const [search, setSearch] = useState('');
@@ -41,6 +44,9 @@ export default function Blog({ postId }: { postId?: string }) {
     listArticles()
       .then((list) => { setArticles(list); setLoadError(null); })
       .catch((e) => setLoadError(e instanceof Error ? e.message : 'Não foi possível falar com a API.'));
+    listBlogCategories()
+      .then(setBlogCategories)
+      .catch(() => undefined);
   };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { reload(); }, []);
@@ -56,9 +62,15 @@ export default function Blog({ postId }: { postId?: string }) {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return (contentArticles ?? [])
-      .filter((a) => (filter === 'ALL' || (filter === 'PUBLISHED') === a.published) && (!q || `${a.title} ${a.slug} ${a.categories.join(' ')}`.toLowerCase().includes(q)))
+      .filter((a) => {
+        if (filter === 'PUBLISHED' && !a.published) return false;
+        if (filter === 'DRAFT' && a.published) return false;
+        if (categoryFilter !== 'ALL' && !a.categories.some((c) => c.toLowerCase() === categoryFilter.toLowerCase())) return false;
+        if (q && !`${a.title} ${a.slug} ${a.categories.join(' ')}`.toLowerCase().includes(q)) return false;
+        return true;
+      })
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-  }, [contentArticles, filter, search]);
+  }, [contentArticles, filter, categoryFilter, search]);
 
   const paged = usePaged(filtered, 10);
 
@@ -82,12 +94,30 @@ export default function Blog({ postId }: { postId?: string }) {
   }
 
   if (editing) {
+    if (editing.slug === 'blog-global') {
+      return (
+        <GalleryEditor
+          key={editing.id}
+          article={editing}
+          articles={articles ?? []}
+          blogCategories={blogCategories}
+          onCategoriesChange={setBlogCategories}
+          onBack={() => shell.navigate('/blog')}
+          onSaved={(saved) => {
+            setArticles((prev) => (prev ?? []).map((a) => (a.id === saved.id ? saved : a)));
+          }}
+        />
+      );
+    }
+
     return (
       <ArticleEditor
         key={editing.id}
         article={editing}
         isNew={editing.id === 'novo'}
         otherArticles={(articles ?? []).filter((a) => a.id !== editing.id)}
+        blogCategories={blogCategories}
+        onCategoriesChange={setBlogCategories}
         onBack={() => shell.navigate('/blog')}
         onSaved={(saved, isNew) => {
           setArticles((prev) => {
@@ -130,6 +160,7 @@ export default function Blog({ postId }: { postId?: string }) {
           <Tabs
             tabs={[
               { id: 'SETTINGS' as Filter, label: 'Galeria principal' },
+              { id: 'CATEGORIES' as Filter, label: 'Categorias', count: blogCategories.length },
               { id: 'ALL' as Filter, label: 'Todos', count: counts.ALL },
               { id: 'PUBLISHED' as Filter, label: 'Publicados', count: counts.PUBLISHED },
               { id: 'DRAFT' as Filter, label: 'Rascunhos', count: counts.DRAFT }
@@ -137,9 +168,40 @@ export default function Blog({ postId }: { postId?: string }) {
             value={filter}
             onChange={setFilter}
           />
-          <div className="toolbar"><SearchBox value={search} onChange={setSearch} placeholder="Buscar por título, endereço ou categoria…" /></div>
+          {filter !== 'SETTINGS' && filter !== 'CATEGORIES' && (
+            <div className="toolbar" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <SearchBox value={search} onChange={setSearch} placeholder="Buscar por título, endereço ou categoria…" />
+              {blogCategories.length > 0 && (
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <button
+                    type="button"
+                    className={`btn btn-xs ${categoryFilter === 'ALL' ? 'btn-solid' : ''}`}
+                    onClick={() => setCategoryFilter('ALL')}
+                  >
+                    Todas as categorias
+                  </button>
+                  {blogCategories.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      className={`btn btn-xs ${categoryFilter.toLowerCase() === c.name.toLowerCase() ? 'btn-solid' : ''}`}
+                      onClick={() => setCategoryFilter(c.name)}
+                    >
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
-          {filter === 'SETTINGS' ? (
+          {filter === 'CATEGORIES' ? (
+            <BlogCategoriesManager
+              categories={blogCategories}
+              articles={contentArticles ?? []}
+              onChange={(next) => { setBlogCategories(next); reload(); }}
+            />
+          ) : filter === 'SETTINGS' ? (
             <div className="table-card" style={{ padding: '64px 24px', textAlign: 'center' }}>
               <div style={{ maxWidth: '400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px', alignItems: 'center' }}>
                 <h3 className="text-display-md">Página Inicial do Blog</h3>
@@ -238,6 +300,370 @@ export function BlogSettingsForm() {
   );
 }
 
+
+function BlogCategoriesManager({
+  categories,
+  articles,
+  onChange,
+}: {
+  categories: BlogCategory[];
+  articles: Article[];
+  onChange: (next: BlogCategory[]) => void;
+}) {
+  const [editing, setEditing] = useState<BlogCategory | null>(null);
+  const [isNewModal, setIsNewModal] = useState(false);
+  const [name, setName] = useState('');
+  const [slug, setSlug] = useState('');
+  const [description, setDescription] = useState('');
+  const [seoTitle, setSeoTitle] = useState('');
+  const [seoDescription, setSeoDescription] = useState('');
+  const [hidden, setHidden] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<BlogCategory | null>(null);
+
+  const openNew = () => {
+    setEditing(null);
+    setName('');
+    setSlug('');
+    setDescription('');
+    setSeoTitle('');
+    setSeoDescription('');
+    setHidden(false);
+    setError(null);
+    setIsNewModal(true);
+  };
+
+  const openEdit = (cat: BlogCategory) => {
+    setEditing(cat);
+    setName(cat.name);
+    setSlug(cat.slug);
+    setDescription(cat.description || '');
+    setSeoTitle(cat.seoTitle || '');
+    setSeoDescription(cat.seoDescription || '');
+    setHidden(cat.hidden);
+    setError(null);
+    setIsNewModal(false);
+  };
+
+  const closeModal = () => {
+    setEditing(null);
+    setIsNewModal(false);
+    setError(null);
+  };
+
+  const countFor = (catName: string) =>
+    articles.filter((a) => a.categories.some((c) => c.toLowerCase() === catName.toLowerCase())).length;
+
+  const saveModal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || saving) return;
+    setSaving(true);
+    setError(null);
+    const input: BlogCategoryInput = {
+      name: name.trim(),
+      slug: slug.trim() || clientSlugify(name.trim()),
+      description: description.trim(),
+      hidden,
+      sortOrder: editing ? editing.sortOrder : categories.length,
+      seoTitle: seoTitle.trim() || undefined,
+      seoDescription: seoDescription.trim() || undefined,
+    };
+    try {
+      if (editing) {
+        const updated = await updateBlogCategory(editing.id, input);
+        onChange(categories.map((c) => (c.id === updated.id ? updated : c)));
+      } else {
+        const created = await createBlogCategory(input);
+        onChange([...categories, created]);
+      }
+      closeModal();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível salvar a categoria.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const move = async (index: number, dir: -1 | 1) => {
+    const target = index + dir;
+    if (target < 0 || target >= categories.length) return;
+    const next = [...categories];
+    const [item] = next.splice(index, 1);
+    next.splice(target, 0, item);
+    const withOrder = next.map((c, idx) => ({ ...c, sortOrder: idx }));
+    onChange(withOrder);
+    try {
+      await reorderBlogCategories(withOrder.map((c) => c.id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível salvar a ordem.');
+    }
+  };
+
+  const toggleHidden = async (cat: BlogCategory) => {
+    try {
+      const updated = await updateBlogCategory(cat.id, { ...cat, hidden: !cat.hidden });
+      onChange(categories.map((c) => (c.id === updated.id ? updated : c)));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível alterar visibilidade.');
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteBlogCategory(deleteTarget.id);
+      onChange(categories.filter((c) => c.id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível excluir.');
+    }
+  };
+
+  // Categorias usadas nos artigos mas ainda não cadastradas oficialmente
+  const unmanagedTags = useMemo(() => {
+    const known = new Set(categories.map((c) => c.name.toLowerCase()));
+    const extra = new Map<string, number>();
+    for (const a of articles) {
+      for (const t of a.categories) {
+        const clean = t.trim();
+        if (!clean || known.has(clean.toLowerCase())) continue;
+        extra.set(clean, (extra.get(clean) ?? 0) + 1);
+      }
+    }
+    return [...extra.entries()];
+  }, [categories, articles]);
+
+  const promoteTag = async (tagName: string) => {
+    try {
+      const created = await createBlogCategory({
+        name: tagName,
+        slug: clientSlugify(tagName),
+        description: `Conteúdos e publicações sobre ${tagName} na Kalidash.`,
+        sortOrder: categories.length,
+        hidden: false,
+      });
+      onChange([...categories, created]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível cadastrar a categoria.');
+    }
+  };
+
+  return (
+    <div className="stack" style={{ gap: '16px' }}>
+      <div className="table-card" style={{ padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+        <div>
+          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600 }}>Categorias de postagem (/blog)</h3>
+          <p className="text-xs text-muted" style={{ margin: '4px 0 0' }}>
+            Defina as categorias (ex.: <strong>Cases</strong>, <strong>Posts</strong>), a ordem dos botões no topo do <code className="mono">/blog</code> e as páginas com SEO próprio (<code className="mono">/blog/categoria/cases</code>).
+          </p>
+        </div>
+        <button type="button" className="btn btn-solid" onClick={openNew}>
+          <Plus size={14} /> Nova categoria
+        </button>
+      </div>
+
+      {error && (
+        <div className="task-callout" role="alert" style={{ borderColor: '#ef4444' }}>
+          <AlertTriangle size={16} />
+          <span>{error}</span>
+        </div>
+      )}
+
+      <div className="table-card">
+        <div className="table-scroll">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th style={{ width: '80px' }}>Ordem</th>
+                <th>Categoria</th>
+                <th>Página SEO</th>
+                <th>Descrição</th>
+                <th>Artigos</th>
+                <th>Filtro no /blog</th>
+                <th style={{ textAlign: 'right' }}>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {categories.map((cat, idx) => (
+                <tr key={cat.id}>
+                  <td data-label="Ordem">
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      <button
+                        type="button"
+                        className="btn btn-xs"
+                        disabled={idx === 0}
+                        onClick={() => move(idx, -1)}
+                        title="Subir posição no filtro"
+                      >
+                        <ArrowUp size={12} />
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-xs"
+                        disabled={idx === categories.length - 1}
+                        onClick={() => move(idx, 1)}
+                        title="Descer posição no filtro"
+                      >
+                        <ArrowDown size={12} />
+                      </button>
+                    </div>
+                  </td>
+                  <td data-label="Categoria">
+                    <strong>{cat.name}</strong>
+                  </td>
+                  <td data-label="Página SEO">
+                    <span className="text-xs mono text-muted">/blog/categoria/{cat.slug}</span>
+                  </td>
+                  <td data-label="Descrição" style={{ maxWidth: '320px' }}>
+                    <span className="text-xs text-muted">{cat.description || '—'}</span>
+                  </td>
+                  <td data-label="Artigos">
+                    <Badge tone="neutral">{countFor(cat.name)}</Badge>
+                  </td>
+                  <td data-label="Filtro no /blog">
+                    <button
+                      type="button"
+                      className="btn btn-xs"
+                      onClick={() => toggleHidden(cat)}
+                      title={cat.hidden ? 'Clique para mostrar na barra do /blog' : 'Clique para ocultar da barra do /blog'}
+                    >
+                      {cat.hidden ? <><EyeOff size={12} /> Oculta</> : <><Eye size={12} /> Visível</>}
+                    </button>
+                  </td>
+                  <td data-label="Ações" style={{ textAlign: 'right' }}>
+                    <div style={{ display: 'inline-flex', gap: '6px' }}>
+                      <button type="button" className="btn btn-xs" onClick={() => openEdit(cat)}>
+                        <Edit2 size={12} /> Editar
+                      </button>
+                      <button type="button" className="btn btn-xs btn-danger" onClick={() => setDeleteTarget(cat)}>
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {categories.length === 0 && (
+                <tr>
+                  <td colSpan={7}>
+                    <EmptyState title="Nenhuma categoria cadastrada">
+                      Crie categorias como Cases e Posts para organizar o blog.
+                    </EmptyState>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {unmanagedTags.length > 0 && (
+        <div className="table-card" style={{ padding: '16px 24px' }}>
+          <div className="text-xs text-muted" style={{ marginBottom: '10px' }}>
+            <strong>Tags usadas em artigos que ainda não estão no cadastro oficial:</strong> clique para transformar em categoria gerenciada (ou ocultá-la depois).
+          </div>
+          <div className="tag-row" style={{ gap: '8px', flexWrap: 'wrap' }}>
+            {unmanagedTags.map(([tag, count]) => (
+              <button
+                key={tag}
+                type="button"
+                className="btn btn-xs"
+                onClick={() => promoteTag(tag)}
+                title="Adicionar ao cadastro de categorias"
+              >
+                <Plus size={11} /> {tag} ({count})
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {(isNewModal || editing) && (
+        <PopupDialog
+          eyebrow="CATEGORIA DO BLOG"
+          title={editing ? `Editar "${editing.name}"` : 'Nova categoria'}
+          description="Ao renomear uma categoria existente, os artigos que usavam o nome antigo são atualizados automaticamente."
+          onClose={closeModal}
+          footer={
+            <>
+              <button type="button" className="btn" onClick={closeModal}>Cancelar</button>
+              <button type="button" className="btn btn-solid" disabled={!name.trim() || saving} onClick={saveModal}>
+                {saving ? 'Salvando…' : 'Salvar categoria'}
+              </button>
+            </>
+          }
+        >
+          <form onSubmit={saveModal} className="form-stack">
+            <Field label="Nome da categoria" hint="Ex.: Cases, Posts, Guias">
+              <input
+                className="input"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (!editing && !slug) setSlug(clientSlugify(e.target.value));
+                }}
+                placeholder="Ex.: Cases"
+                required
+              />
+            </Field>
+            <Field label="Endereço (slug)" hint={`Página própria: /blog/categoria/${slug || clientSlugify(name) || '…'}`}>
+              <input
+                className="input mono"
+                value={slug}
+                onChange={(e) => setSlug(clientSlugify(e.target.value))}
+                placeholder={clientSlugify(name) || 'cases'}
+              />
+            </Field>
+            <Field label="Descrição da categoria" hint="Aparece no topo da página /blog/categoria/[slug] e como resumo no Google">
+              <textarea
+                className="textarea"
+                rows={3}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Estudos de caso e resultados reais de implementação de IA..."
+              />
+            </Field>
+            <Field label="Título SEO (opcional)" hint="Se vazio, usa '<Nome> — Blog Kalidash'">
+              <input
+                className="input"
+                value={seoTitle}
+                onChange={(e) => setSeoTitle(e.target.value)}
+                placeholder={`${name || 'Categoria'} — Blog Kalidash`}
+              />
+            </Field>
+            <Field label="Visibilidade na barra do /blog">
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={!hidden}
+                  onChange={(e) => setHidden(!e.target.checked)}
+                />
+                <span>Mostrar botão desta categoria na barra de filtros do /blog</span>
+              </label>
+            </Field>
+          </form>
+        </PopupDialog>
+      )}
+
+      {deleteTarget && (
+        <PopupDialog
+          eyebrow="EXCLUIR CATEGORIA"
+          tone="danger"
+          title={`Excluir "${deleteTarget.name}"?`}
+          description="A categoria sai do cadastro oficial. Os artigos não são apagados."
+          onClose={() => setDeleteTarget(null)}
+          footer={
+            <>
+              <button type="button" className="btn" onClick={() => setDeleteTarget(null)}>Cancelar</button>
+              <button type="button" className="btn btn-danger" onClick={confirmDelete}>Excluir</button>
+            </>
+          }
+        />
+      )}
+    </div>
+  );
+}
+
 function clientSlugify(s: string): string {
   return s
     .toLowerCase()
@@ -249,7 +675,7 @@ function clientSlugify(s: string): string {
 
 /* ------------------------------ Editor ------------------------------ */
 
-function ArticleEditor({ article, isNew, otherArticles, onBack, onSaved, onDeleted }: { article: Article; isNew: boolean; otherArticles: Article[]; onBack: () => void; onSaved: (a: Article, isNew: boolean) => void; onDeleted: (id: string) => void }) {
+function ArticleEditor({ article, isNew, otherArticles, blogCategories, onCategoriesChange, onBack, onSaved, onDeleted }: { article: Article; isNew: boolean; otherArticles: Article[]; blogCategories: BlogCategory[]; onCategoriesChange: (next: BlogCategory[]) => void; onBack: () => void; onSaved: (a: Article, isNew: boolean) => void; onDeleted: (id: string) => void }) {
   const [team] = useStore(teamStore);
   const [title, setTitle] = useState(article.title);
   const [slug, setSlug] = useState(article.slug);
@@ -277,6 +703,9 @@ function ArticleEditor({ article, isNew, otherArticles, onBack, onSaved, onDelet
   const [view, setView] = useState<'edit' | 'split' | 'preview'>('split');
   const [seoModalOpen, setSeoModalOpen] = useState(false);
   const [flashId, setFlashId] = useState<string | null>(null);
+  const [previewCategorySlug, setPreviewCategorySlug] = useState<string | null>(null);
+  const [quickCatName, setQuickCatName] = useState('');
+  const [addingQuickCat, setAddingQuickCat] = useState(false);
   const shell = useShell();
   const touch = () => { setSaved(false); setDirty(true); setTick((t) => t + 1); };
 
@@ -367,13 +796,19 @@ function ArticleEditor({ article, isNew, otherArticles, onBack, onSaved, onDelet
   const saveCardEdits = async () => {
     const cards = editor.document.filter((b) => b.type === CARD_TYPE);
     for (const card of cards) {
-      const p = card.props as { articleId: string; title: string; excerpt: string; coverImageUrl: string; coverImagePos: number };
+      const p = card.props as { articleId: string; title: string; excerpt: string; coverImageUrl: string; coverImagePos: number; category?: string };
       const source = otherArticles.find((a) => a.id === p.articleId);
       if (!source) continue;
+      const nextPrimary = (p.category ?? '').trim();
+      const curPrimary = source.categories?.[0] ?? '';
+      const nextCategories = nextPrimary
+        ? [nextPrimary, ...(source.categories ?? []).slice(1).filter((c) => c.toLowerCase() !== nextPrimary.toLowerCase())]
+        : source.categories;
       const changed = p.title !== source.title || p.excerpt !== source.excerpt
-        || p.coverImageUrl !== (source.coverImageUrl ?? '') || p.coverImagePos !== source.coverImagePos;
+        || p.coverImageUrl !== (source.coverImageUrl ?? '') || p.coverImagePos !== source.coverImagePos
+        || (nextPrimary !== curPrimary);
       if (!changed) continue;
-      await updateArticle(source.id, { ...source, title: p.title, excerpt: p.excerpt, coverImageUrl: p.coverImageUrl || undefined, coverImagePos: p.coverImagePos });
+      await updateArticle(source.id, { ...source, title: p.title, excerpt: p.excerpt, coverImageUrl: p.coverImageUrl || undefined, coverImagePos: p.coverImagePos, categories: nextCategories });
     }
   };
 
@@ -425,10 +860,19 @@ function ArticleEditor({ article, isNew, otherArticles, onBack, onSaved, onDelet
       const items = editor.document
         .filter((b) => b.type === CARD_TYPE && (b.props as { articleId?: string }).articleId)
         .map((b) => {
-          const p = b.props as { articleId: string; title: string; excerpt: string; coverImageUrl: string; coverImagePos: number; meta: string; authorName: string };
-          return { id: p.articleId, blockId: b.id, title: p.title, excerpt: p.excerpt, coverImageUrl: p.coverImageUrl || null, coverImagePos: p.coverImagePos, meta: p.meta, authorName: p.authorName, href: '#' };
+          const p = b.props as { articleId: string; title: string; excerpt: string; coverImageUrl: string; coverImagePos: number; category?: string; meta: string; authorName: string };
+          const source = otherArticles.find((a) => a.id === p.articleId);
+          const itemCats = p.category
+            ? [p.category, ...(source?.categories ?? []).filter((c) => c.toLowerCase() !== p.category!.toLowerCase())]
+            : (source?.categories ?? []);
+          return { id: p.articleId, blockId: b.id, title: p.title, excerpt: p.excerpt, coverImageUrl: p.coverImageUrl || null, coverImagePos: p.coverImagePos, categories: itemCats, meta: p.meta, authorName: p.authorName, href: '#' };
         });
-      return { heroHtml: heroHtml(), items };
+      return {
+        heroHtml: heroHtml(),
+        items,
+        categoriesCatalog: blogCategories.map((c) => ({ name: c.name, slug: c.slug, description: c.description, hidden: c.hidden })),
+        activeCategorySlug: previewCategorySlug,
+      };
     }
     return {
       title, excerpt, categories: categories.split(',').map((t) => t.trim()).filter(Boolean), authorName,
@@ -696,11 +1140,77 @@ function ArticleEditor({ article, isNew, otherArticles, onBack, onSaved, onDelet
             <div className="editor-pane">
               <div className="editor-box">
                 {isGlobal ? (
-                  <ArticleCardsContext.Provider value={{ articles: otherArticles, flashId }}>
-                    <div className="global-gallery-header">
-                      <p className="editor-hint">
-                        Você está editando a <strong>Galeria Principal</strong> (/blog): o texto de abertura e a ordem dos cartões. O primeiro cartão é o destaque. Arraste pelo <strong>⋮⋮</strong> para reordenar; digite <strong>/</strong> para inserir novos blocos.
+                  <ArticleCardsContext.Provider value={{ articles: otherArticles, categories: blogCategories, flashId }}>
+                    <div className="global-gallery-header" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <p className="editor-hint" style={{ margin: 0 }}>
+                        Você está editando a <strong>Galeria Principal</strong> (/blog): o texto de abertura, as categorias de postagem e a ordem dos cartões. O primeiro cartão visível é o destaque. Arraste pelo <strong>⋮⋮</strong> para reordenar ou troque a categoria direto no cartão.
                       </p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', paddingTop: '4px' }}>
+                        <span className="text-xs text-muted" style={{ marginRight: '4px' }}>Simular filtro no preview:</span>
+                        <button
+                          type="button"
+                          className={`btn btn-xs ${previewCategorySlug === null ? 'btn-solid' : ''}`}
+                          onClick={() => { setPreviewCategorySlug(null); setTick((t) => t + 1); }}
+                        >
+                          Todos
+                        </button>
+                        {blogCategories.map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            className={`btn btn-xs ${previewCategorySlug === c.slug ? 'btn-solid' : ''}`}
+                            onClick={() => { setPreviewCategorySlug(c.slug); setTick((t) => t + 1); }}
+                          >
+                            {c.name}{c.hidden ? ' (oculta)' : ''}
+                          </button>
+                        ))}
+                        {addingQuickCat ? (
+                          <span style={{ display: 'inline-flex', gap: '4px', alignItems: 'center' }}>
+                            <input
+                              className="input"
+                              style={{ height: '24px', width: '130px', fontSize: '12px', padding: '0 8px' }}
+                              placeholder="Nova categoria…"
+                              value={quickCatName}
+                              onChange={(e) => setQuickCatName(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && quickCatName.trim()) {
+                                  e.preventDefault();
+                                  createBlogCategory({ name: quickCatName.trim(), slug: clientSlugify(quickCatName.trim()), sortOrder: blogCategories.length })
+                                    .then((created) => {
+                                      onCategoriesChange([...blogCategories, created]);
+                                      setQuickCatName('');
+                                      setAddingQuickCat(false);
+                                      setTick((t) => t + 1);
+                                    })
+                                    .catch(() => undefined);
+                                }
+                              }}
+                            />
+                            <button
+                              type="button"
+                              className="btn btn-xs btn-solid"
+                              onClick={() => {
+                                if (!quickCatName.trim()) return;
+                                createBlogCategory({ name: quickCatName.trim(), slug: clientSlugify(quickCatName.trim()), sortOrder: blogCategories.length })
+                                  .then((created) => {
+                                    onCategoriesChange([...blogCategories, created]);
+                                    setQuickCatName('');
+                                    setAddingQuickCat(false);
+                                    setTick((t) => t + 1);
+                                  })
+                                  .catch(() => undefined);
+                              }}
+                            >
+                              Criar
+                            </button>
+                            <button type="button" className="btn btn-xs" onClick={() => { setAddingQuickCat(false); setQuickCatName(''); }}>×</button>
+                          </span>
+                        ) : (
+                          <button type="button" className="btn btn-xs" onClick={() => setAddingQuickCat(true)}>
+                            <Plus size={11} /> + Categoria
+                          </button>
+                        )}
+                      </div>
                     </div>
                     {editorView}
                   </ArticleCardsContext.Provider>
@@ -709,14 +1219,36 @@ function ArticleEditor({ article, isNew, otherArticles, onBack, onSaved, onDelet
                     <article className="article-canvas">
                       {/* 1. Header Meta: Categoria, Data, Tempo de Leitura (Idêntico ao Preview do Site) */}
                       <div className="canvas-header-meta">
-                        <div className="canvas-category-badge" title="Categorias do artigo separadas por vírgula">
+                        <div className="canvas-category-badge" title="Escolha a categoria principal ou adicione tags separadas por vírgula" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                           <Tag size={11} />
+                          {blogCategories.length > 0 && (
+                            <select
+                              aria-label="Categoria principal"
+                              style={{ background: 'transparent', border: 'none', color: 'inherit', fontWeight: 700, fontSize: 'inherit', fontFamily: 'inherit', cursor: 'pointer', paddingRight: '4px' }}
+                              value={
+                                blogCategories.find((c) => c.name.toLowerCase() === (categories.split(',')[0]?.trim().toLowerCase() ?? ''))?.name ?? ''
+                              }
+                              onChange={(e) => {
+                                const chosen = e.target.value;
+                                if (!chosen) return;
+                                const currentList = categories.split(',').map((t) => t.trim()).filter(Boolean);
+                                const rest = currentList.filter((t) => t.toLowerCase() !== chosen.toLowerCase());
+                                setCategories([chosen, ...rest].join(', '));
+                                touch();
+                              }}
+                            >
+                              <option value="">Escolher categoria…</option>
+                              {blogCategories.map((c) => (
+                                <option key={c.id} value={c.name}>{c.name}</option>
+                              ))}
+                            </select>
+                          )}
                           <input
                             id="field-categories"
                             className="canvas-category-input"
                             value={categories}
                             onChange={(e) => { setCategories(e.target.value); touch(); }}
-                            placeholder="AI Culture (digite para alterar categoria)"
+                            placeholder="Cases, Posts… (a 1ª aparece no cartão)"
                           />
                         </div>
                         <span className="canvas-meta-dot">·</span>

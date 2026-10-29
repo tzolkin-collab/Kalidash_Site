@@ -99,3 +99,65 @@ export async function fetchBlogSettings(): Promise<BlogSettings | null> {
     return null;
   }
 }
+
+/** "Estudos de Caso" -> "estudos-de-caso": identifica a categoria na URL (/blog/categoria/[slug] ou ?categoria=). */
+export const categorySlug = (label: string) =>
+  label
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+export type BlogCategory = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  sortOrder: number;
+  hidden: boolean;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export const DEFAULT_BLOG_CATEGORIES: BlogCategory[] = [
+  {
+    id: "cat-cases",
+    name: "Cases",
+    slug: "cases",
+    description:
+      "Estudos de caso e resultados reais de implementação de IA e agentes em operações complexas.",
+    sortOrder: 0,
+    hidden: false,
+  },
+  {
+    id: "cat-posts",
+    name: "Posts",
+    slug: "posts",
+    description:
+      "Artigos, análises práticas e guias sobre cultura, governança e execução com agentes de IA.",
+    sortOrder: 1,
+    hidden: false,
+  },
+];
+
+export async function fetchBlogCategories(onlyVisible = false): Promise<BlogCategory[]> {
+  try {
+    const qs = onlyVisible ? "?visible=true" : "";
+    const res = await fetch(`${API_URL}/api/blog/categories${qs}`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) throw new Error(`API respondeu ${res.status}`);
+    const list: BlogCategory[] = await res.json();
+    if (Array.isArray(list) && list.length > 0) return list;
+    return DEFAULT_BLOG_CATEGORIES;
+  } catch (error) {
+    if (building()) {
+      console.error("Falha ao buscar categorias do blog durante o build", error);
+    }
+    return DEFAULT_BLOG_CATEGORIES;
+  }
+}

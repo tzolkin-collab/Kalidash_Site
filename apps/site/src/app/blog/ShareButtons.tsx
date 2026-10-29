@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import styles from "./[slug]/article.module.css";
 
 type ShareButtonsProps = {
   title: string;
@@ -18,55 +19,26 @@ export default function ShareButtons({ title, url, className }: ShareButtonsProp
       setCopied(true);
       setTimeout(() => setCopied(false), 2200);
     } catch {
-      // Fallback simples caso clipboard falhe
       setCopied(true);
       setTimeout(() => setCopied(false), 2200);
     }
   };
 
-  const getShareUrl = () => encodeURIComponent(url);
-  const getEncodedTitle = () => encodeURIComponent(title);
+  const encodedUrl = encodeURIComponent(url);
+  const encodedTitle = encodeURIComponent(title);
 
   return (
     <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        flexWrap: "wrap",
-        gap: "10px",
-      }}
-      className={className}
+      className={className ? `${styles.shareGroup} ${className}` : styles.shareGroup}
       aria-label="Compartilhar este artigo"
     >
-      <span
-        style={{
-          fontSize: "0.82rem",
-          fontWeight: 600,
-          color: "#797282",
-          textTransform: "uppercase",
-          letterSpacing: "0.06em",
-        }}
-      >
-        Compartilhar:
-      </span>
+      <span className={styles.shareLabel}>Compartilhar</span>
 
       <button
         type="button"
         onClick={handleCopy}
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "6px",
-          padding: "6px 12px",
-          borderRadius: "999px",
-          border: "1px solid #dfdbe3",
-          background: copied ? "rgba(182, 100, 77, 0.12)" : "#ffffff",
-          color: copied ? "#b6644d" : "#3c3544",
-          fontSize: "0.8rem",
-          fontWeight: 500,
-          cursor: "pointer",
-          transition: "all 0.18s ease",
-        }}
+        className={styles.shareCopyBtn}
+        data-copied={copied}
         title="Copiar link do artigo"
         aria-label="Copiar link do artigo"
       >
@@ -84,7 +56,7 @@ export default function ShareButtons({ title, url, className }: ShareButtonsProp
             >
               <polyline points="20 6 9 17 4 12" />
             </svg>
-            <span>Copiado!</span>
+            <span>Copiado</span>
           </>
         ) : (
           <>
@@ -108,21 +80,10 @@ export default function ShareButtons({ title, url, className }: ShareButtonsProp
 
       {/* WhatsApp */}
       <a
-        href={`https://api.whatsapp.com/send?text=${getEncodedTitle()}%20${getShareUrl()}`}
+        href={`https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`}
         target="_blank"
         rel="noopener noreferrer"
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          width: "32px",
-          height: "32px",
-          borderRadius: "50%",
-          border: "1px solid #dfdbe3",
-          background: "#ffffff",
-          color: "#3c3544",
-          transition: "all 0.18s ease",
-        }}
+        className={styles.shareIconBtn}
         title="Compartilhar no WhatsApp"
         aria-label="Compartilhar no WhatsApp"
       >
@@ -133,21 +94,10 @@ export default function ShareButtons({ title, url, className }: ShareButtonsProp
 
       {/* LinkedIn */}
       <a
-        href={`https://www.linkedin.com/sharing/share-offsite/?url=${getShareUrl()}`}
+        href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`}
         target="_blank"
         rel="noopener noreferrer"
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          width: "32px",
-          height: "32px",
-          borderRadius: "50%",
-          border: "1px solid #dfdbe3",
-          background: "#ffffff",
-          color: "#3c3544",
-          transition: "all 0.18s ease",
-        }}
+        className={styles.shareIconBtn}
         title="Compartilhar no LinkedIn"
         aria-label="Compartilhar no LinkedIn"
       >
@@ -158,21 +108,10 @@ export default function ShareButtons({ title, url, className }: ShareButtonsProp
 
       {/* X / Twitter */}
       <a
-        href={`https://twitter.com/intent/tweet?url=${getShareUrl()}&text=${getEncodedTitle()}`}
+        href={`https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`}
         target="_blank"
         rel="noopener noreferrer"
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          width: "32px",
-          height: "32px",
-          borderRadius: "50%",
-          border: "1px solid #dfdbe3",
-          background: "#ffffff",
-          color: "#3c3544",
-          transition: "all 0.18s ease",
-        }}
+        className={styles.shareIconBtn}
         title="Compartilhar no X (Twitter)"
         aria-label="Compartilhar no X"
       >

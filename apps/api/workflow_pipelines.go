@@ -38,6 +38,9 @@ type PRequirement struct {
 	Overdue            int     `json:"overdue"` // calculado: tarefas abertas com prazo vencido
 	NotifyAssignee     bool    `json:"notifyAssignee,omitempty"`
 	LinkedAutomationID *string `json:"linkedAutomationId,omitempty"`
+	// FieldKey (D41) diz qual dado a tarefa de campo exige: cnpj, cpf, email ou phone. Outra chave conclui livre.
+	// Vazio em requisito antigo: o servidor cai no reconhecimento pelo título (retrocompatível).
+	FieldKey *string `json:"fieldKey,omitempty"`
 }
 
 // pipelineConfig guarda o que ainda não tem tabela própria. Os campos são opacos para a API
@@ -91,6 +94,27 @@ const (
 )
 
 // validatePipeline confere o funil inteiro e completa o que faltar (gate vazio vira NONE).
+var fieldKeyRe = regexp.MustCompile(`^[a-z][a-z0-9_]{0,39}$`)
+
+// normalizeFieldKey limpa e confere `fieldKey` (D41): só faz sentido em requisito FIELD (em ACTION é descartada);
+// vazio vira nulo (reconhecimento por título). As chaves que o servidor confere são cnpj, cpf, email e phone;
+// qualquer outra chave de formato válido é aceita e conclui livre.
+func normalizeFieldKey(r *PRequirement) error {
+	if r.FieldKey == nil {
+		return nil
+	}
+	k := strings.ToLower(strings.TrimSpace(*r.FieldKey))
+	switch {
+	case k == "" || r.Kind != "FIELD":
+		r.FieldKey = nil
+	case !fieldKeyRe.MatchString(k):
+		return fmt.Errorf("chave de campo inválida: %q (use letras minúsculas, números e _)", *r.FieldKey)
+	default:
+		r.FieldKey = &k
+	}
+	return nil
+}
+
 func validatePipeline(p *PipelineDTO) error {
 	p.Name = strings.TrimSpace(p.Name)
 	p.Offer = strings.TrimSpace(p.Offer)
@@ -158,6 +182,9 @@ func validatePipeline(p *PipelineDTO) error {
 		}
 		if !reqKinds[r.Kind] {
 			return fmt.Errorf("tipo de requisito inválido: %q", r.Kind)
+		}
+		if err := normalizeFieldKey(r); err != nil {
+			return err
 		}
 		if r.Gate == "" {
 			r.Gate = "NONE"
@@ -281,7 +308,7 @@ func loadPipelines(id string, includeArchived bool) ([]PipelineDTO, error) {
 		}
 	}
 
-	reqRows, err := db.Query(`SELECT id, pipelineId, stageId, label, tag, kind, gate, assignee, dueDays, notifyAssignee, linkedAutomationId FROM StageRequirement ORDER BY pipelineId, stageId, position`)
+	reqRows, err := db.Query(`SELECT id, pipelineId, stageId, label, tag, kind, gate, assignee, dueDays, notifyAssignee, linkedAutomationId, fieldKey FROM StageRequirement ORDER BY pipelineId, stageId, position`)
 	if err != nil {
 		return nil, err
 	}
@@ -290,10 +317,10 @@ func loadPipelines(id string, includeArchived bool) ([]PipelineDTO, error) {
 	for reqRows.Next() {
 		var r PRequirement
 		var pid string
-		var assignee, linked sql.NullString
+		var assignee, linked, fkey sql.NullString
 		var due sql.NullInt64
 		var notify bool
-		if err := reqRows.Scan(&r.ID, &pid, &r.StageID, &r.Label, &r.Tag, &r.Kind, &r.Gate, &assignee, &due, &notify, &linked); err != nil {
+		if err := reqRows.Scan(&r.ID, &pid, &r.StageID, &r.Label, &r.Tag, &r.Kind, &r.Gate, &assignee, &due, &notify, &linked, &fkey); err != nil {
 			return nil, err
 		}
 		i, ok := index[pid]
@@ -305,6 +332,9 @@ func loadPipelines(id string, includeArchived bool) ([]PipelineDTO, error) {
 		}
 		if linked.Valid {
 			r.LinkedAutomationID = &linked.String
+		}
+		if fkey.Valid && fkey.String != "" {
+			r.FieldKey = &fkey.String
 		}
 		if due.Valid {
 			v := int(due.Int64)
@@ -481,8 +511,8 @@ func writePipeline(p *PipelineDTO, replace bool, expected *time.Time) error {
 		}
 	}
 	for i, r := range p.Requirements {
-		if _, err := tx.Exec(`INSERT INTO StageRequirement (id, pipelineId, stageId, label, tag, kind, gate, assignee, dueDays, notifyAssignee, linkedAutomationId, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-			r.ID, p.ID, r.StageID, r.Label, r.Tag, r.Kind, r.Gate, r.Assignee, r.DueDays, r.NotifyAssignee, r.LinkedAutomationID, i); err != nil {
+		if _, err := tx.Exec(`INSERT INTO StageRequirement (id, pipelineId, stageId, label, tag, kind, gate, assignee, dueDays, notifyAssignee, linkedAutomationId, fieldKey, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			r.ID, p.ID, r.StageID, r.Label, r.Tag, r.Kind, r.Gate, r.Assignee, r.DueDays, r.NotifyAssignee, r.LinkedAutomationID, r.FieldKey, i); err != nil {
 			return err
 		}
 	}

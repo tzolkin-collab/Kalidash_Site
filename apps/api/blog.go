@@ -49,6 +49,21 @@ type BlogSettings struct {
 	Description string `json:"description"`
 }
 
+// BlogCategory: cadastro gerenciado no admin (nome, slug, descrição, ordem e visibilidade),
+// alimenta a barra de filtros de /blog e as páginas SEO /blog/categoria/[slug].
+type BlogCategory struct {
+	ID             string    `json:"id"`
+	Name           string    `json:"name"`
+	Slug           string    `json:"slug"`
+	Description    string    `json:"description"`
+	SortOrder      int       `json:"sortOrder"`
+	Hidden         bool      `json:"hidden"`
+	SeoTitle       *string   `json:"seoTitle,omitempty"`
+	SeoDescription *string   `json:"seoDescription,omitempty"`
+	CreatedAt      time.Time `json:"createdAt"`
+	UpdatedAt      time.Time `json:"updatedAt"`
+}
+
 func ensureBlogSchema() {
 	_, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS Article (
@@ -97,6 +112,26 @@ func ensureBlogSchema() {
 
 	// Insert default settings if empty
 	db.Exec(`INSERT IGNORE INTO BlogSettings (id, preTitle, titlePrefix, titleSpan, description) VALUES ('global', '[ inteligência aplicada ao trabalho ]', 'Ideias para a próxima', 'operação.', 'Conteúdo sobre cultura, processos, tecnologia e organizações que trabalham com agentes.')`)
+
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS BlogCategory (
+			id VARCHAR(64) PRIMARY KEY,
+			name VARCHAR(120) NOT NULL,
+			slug VARCHAR(120) NOT NULL UNIQUE,
+			description TEXT,
+			sortOrder INT NOT NULL DEFAULT 0,
+			hidden TINYINT(1) NOT NULL DEFAULT 0,
+			seoTitle VARCHAR(255) NULL,
+			seoDescription VARCHAR(500) NULL,
+			createdAt DATETIME NOT NULL,
+			updatedAt DATETIME NOT NULL
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+	`)
+	if err != nil {
+		log.Fatal("❌ Erro ao criar tabela BlogCategory:", err)
+	}
+
+	seedDefaultBlogCategories()
 }
 
 var slugInvalidChars = regexp.MustCompile(`[^a-z0-9]+`)
@@ -606,3 +641,280 @@ func handleBlogSettings(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
 	}
 }
+
+const categoryColumns = `id, name, slug, description, sortOrder, hidden, seoTitle, seoDescription, createdAt, updatedAt`
+
+func seedDefaultBlogCategories() {
+	var count int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM BlogCategory`).Scan(&count); err != nil || count > 0 {
+		return
+	}
+	now := time.Now()
+	defaults := []struct {
+		id, name, slug, desc string
+		order                int
+	}{
+		{"cat-cases", "Cases", "cases", "Estudos de caso e resultados reais de implementação de IA e agentes em operações complexas.", 0},
+		{"cat-posts", "Posts", "posts", "Artigos, análises práticas e guias sobre cultura, governança e execução com agentes de IA.", 1},
+	}
+	for _, d := range defaults {
+		_, _ = db.Exec(
+			`INSERT IGNORE INTO BlogCategory (id, name, slug, description, sortOrder, hidden, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, 0, ?, ?)`,
+			d.id, d.name, d.slug, d.desc, d.order, now, now,
+		)
+	}
+}
+
+func scanCategory(rows *sql.Rows) (BlogCategory, error) {
+	var c BlogCategory
+	var desc sql.NullString
+	err := rows.Scan(
+		&c.ID, &c.Name, &c.Slug, &desc, &c.SortOrder, &c.Hidden,
+		&c.SeoTitle, &c.SeoDescription, &c.CreatedAt, &c.UpdatedAt,
+	)
+	if desc.Valid {
+		c.Description = desc.String
+	}
+	return c, err
+}
+
+func categoryPaths(slugs ...string) []string {
+	paths := []string{"/blog"}
+	seen := map[string]bool{}
+	for _, s := range slugs {
+		s = strings.TrimSpace(s)
+		if s == "" || seen[s] {
+			continue
+		}
+		seen[s] = true
+		paths = append(paths, "/blog/categoria/"+s)
+	}
+	return paths
+}
+
+// handleBlogCategories: GET lista ordenada por sortOrder ASC, name ASC (?visible=true oculta hidden=1),
+// POST cria, PUT atualiza (ou reordena em lote quando recebe {"order":["id1","id2"]}), DELETE remove (?id=).
+func handleBlogCategories(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		query := `SELECT ` + categoryColumns + ` FROM BlogCategory`
+		if r.URL.Query().Get("visible") == "true" {
+			query += ` WHERE hidden = 0`
+		}
+		query += ` ORDER BY sortOrder ASC, name ASC`
+		rows, err := db.Query(query)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+
+		cats := []BlogCategory{}
+		for rows.Next() {
+			c, err := scanCategory(rows)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			cats = append(cats, c)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(cats)
+
+	case http.MethodPost:
+		var c BlogCategory
+		if err := json.NewDecoder(r.Body).Decode(&c); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		c.Name = strings.TrimSpace(c.Name)
+		if c.Name == "" {
+			http.Error(w, "Nome da categoria é obrigatório", http.StatusBadRequest)
+			return
+		}
+		if strings.TrimSpace(c.Slug) == "" {
+			c.Slug = slugify(c.Name)
+		} else {
+			c.Slug = slugify(c.Slug)
+		}
+		c.ID = fmt.Sprintf("cat-%d", time.Now().UnixNano())
+		now := time.Now()
+		c.CreatedAt = now
+		c.UpdatedAt = now
+
+		if c.SortOrder == 0 {
+			var maxOrder sql.NullInt64
+			_ = db.QueryRow(`SELECT MAX(sortOrder) FROM BlogCategory`).Scan(&maxOrder)
+			if maxOrder.Valid {
+				c.SortOrder = int(maxOrder.Int64) + 1
+			}
+		}
+
+		_, err := db.Exec(
+			`INSERT INTO BlogCategory (`+categoryColumns+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			c.ID, c.Name, c.Slug, c.Description, c.SortOrder, c.Hidden, c.SeoTitle, c.SeoDescription, c.CreatedAt, c.UpdatedAt,
+		)
+		if err != nil {
+			if isDuplicateKey(err) {
+				http.Error(w, "Já existe uma categoria com este endereço (slug).", http.StatusConflict)
+				return
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		notifySite(categoryPaths(c.Slug))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(c)
+
+	case http.MethodPut:
+		var payload struct {
+			BlogCategory
+			Order []string `json:"order,omitempty"`
+			RenameArticles *bool `json:"renameArticles,omitempty"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		// Reordenação rápida em lote: {"order": ["cat-cases", "cat-posts", ...]}
+		if len(payload.Order) > 0 && payload.ID == "" {
+			now := time.Now()
+			for idx, id := range payload.Order {
+				_, _ = db.Exec(`UPDATE BlogCategory SET sortOrder = ?, updatedAt = ? WHERE id = ?`, idx, now, id)
+			}
+			notifySite([]string{"/blog"})
+			w.Header().Set("Content-Type", "application/json")
+			fmt.Fprint(w, `{"status":"success"}`)
+			return
+		}
+
+		c := payload.BlogCategory
+		if c.ID == "" {
+			http.Error(w, "id é obrigatório", http.StatusBadRequest)
+			return
+		}
+		var prevName, prevSlug string
+		err := db.QueryRow(`SELECT name, slug FROM BlogCategory WHERE id = ?`, c.ID).Scan(&prevName, &prevSlug)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				http.Error(w, "Categoria não encontrada", http.StatusNotFound)
+				return
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		c.Name = strings.TrimSpace(c.Name)
+		if c.Name == "" {
+			c.Name = prevName
+		}
+		if strings.TrimSpace(c.Slug) == "" {
+			c.Slug = slugify(c.Name)
+		} else {
+			c.Slug = slugify(c.Slug)
+		}
+		c.UpdatedAt = time.Now()
+
+		_, err = db.Exec(
+			`UPDATE BlogCategory SET name=?, slug=?, description=?, sortOrder=?, hidden=?, seoTitle=?, seoDescription=?, updatedAt=? WHERE id=?`,
+			c.Name, c.Slug, c.Description, c.SortOrder, c.Hidden, c.SeoTitle, c.SeoDescription, c.UpdatedAt, c.ID,
+		)
+		if err != nil {
+			if isDuplicateKey(err) {
+				http.Error(w, "Já existe uma categoria com este endereço (slug).", http.StatusConflict)
+				return
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Se renomeou a categoria, atualiza os artigos que usavam o nome antigo para manter consistência.
+		if prevName != c.Name && (payload.RenameArticles == nil || *payload.RenameArticles) {
+			renameCategoryInArticles(prevName, c.Name)
+		}
+
+		rows, err := db.Query(`SELECT `+categoryColumns+` FROM BlogCategory WHERE id = ?`, c.ID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer rows.Close()
+		if !rows.Next() {
+			http.Error(w, "Categoria não encontrada", http.StatusNotFound)
+			return
+		}
+		updated, err := scanCategory(rows)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		notifySite(categoryPaths(prevSlug, updated.Slug))
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(updated)
+
+	case http.MethodDelete:
+		id := r.URL.Query().Get("id")
+		if id == "" {
+			http.Error(w, "id é obrigatório", http.StatusBadRequest)
+			return
+		}
+		var deletedSlug string
+		_ = db.QueryRow(`SELECT slug FROM BlogCategory WHERE id = ?`, id).Scan(&deletedSlug)
+		res, err := db.Exec(`DELETE FROM BlogCategory WHERE id = ?`, id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		affected, _ := res.RowsAffected()
+		if affected == 0 {
+			http.Error(w, "Categoria não encontrada", http.StatusNotFound)
+			return
+		}
+		notifySite(categoryPaths(deletedSlug))
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{"status":"success"}`)
+
+	default:
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+	}
+}
+
+func renameCategoryInArticles(oldName, newName string) {
+	rows, err := db.Query(`SELECT id, categories FROM Article WHERE categories IS NOT NULL`)
+	if err != nil {
+		return
+	}
+	type patch struct {
+		id   string
+		cats []string
+	}
+	var patches []patch
+	for rows.Next() {
+		var id string
+		var raw []byte
+		if err := rows.Scan(&id, &raw); err != nil || len(raw) == 0 {
+			continue
+		}
+		var cats []string
+		if err := json.Unmarshal(raw, &cats); err != nil {
+			continue
+		}
+		changed := false
+		for i, c := range cats {
+			if strings.EqualFold(strings.TrimSpace(c), oldName) {
+				cats[i] = newName
+				changed = true
+			}
+		}
+		if changed {
+			patches = append(patches, patch{id: id, cats: cats})
+		}
+	}
+	rows.Close()
+	for _, p := range patches {
+		b, _ := json.Marshal(p.cats)
+		_, _ = db.Exec(`UPDATE Article SET categories = ? WHERE id = ?`, b, p.id)
+	}
+}
+

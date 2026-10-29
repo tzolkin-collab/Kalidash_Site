@@ -31,10 +31,6 @@
   width: 44%;
   min-height: 100vh;
   background: var(--ink-deep);
-  background-image: 
-    radial-gradient(circle at 15% 15%, rgba(182, 100, 77, 0.22) 0%, transparent 45%),
-    radial-gradient(circle at 85% 85%, rgba(70, 47, 79, 0.5) 0%, transparent 50%),
-    linear-gradient(175deg, #160d21 0%, #201330 100%);
   color: #ffffff;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
@@ -104,34 +100,37 @@
 }
 
 .quoteCard {
-  background: rgba(255, 255, 255, 0.045);
-  border: 1px solid rgba(255, 255, 255, 0.09);
   border-left: 3px solid var(--accent);
-  border-radius: 12px;
-  padding: 20px 22px;
-  backdrop-filter: blur(8px);
+  padding: 4px 0 4px 20px;
 }
 
 .quoteText {
   display: block;
   font-family: var(--font-title);
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 600;
-  line-height: 1.4;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
   color: #ffffff;
   margin-bottom: 6px;
 }
 
 .quoteSub {
-  font-size: 13.5px;
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.64);
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.68);
   margin: 0;
 }
 
 .editorialFooter {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
   padding-top: 24px;
+}
+
+.proofColumns {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
 .proofLabel {
@@ -139,45 +138,38 @@
   font-family: var(--font-title);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
-  margin-bottom: 12px;
+  color: #f0b39f;
+  margin-bottom: 4px;
 }
 
-.proofPills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin-bottom: 22px;
-}
-
-.proofPill {
-  display: inline-flex;
-  align-items: center;
-  font-size: 12px;
+.proofNames {
+  margin: 0;
+  font-family: var(--font-title);
+  font-size: 15px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.85);
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 4px 10px;
-  border-radius: 6px;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .whatsappDirect {
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  color: #5fd568;
-  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13.5px;
   font-weight: 600;
   text-decoration: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.28);
+  padding-bottom: 3px;
+  transition: color 0.2s ease, border-color 0.2s ease;
 }
 
 .whatsappDirect:hover {
-  opacity: 0.85;
-  transform: translateX(2px);
+  color: #f0b39f;
+  border-color: #f0b39f;
 }
 
 .whatsappDirect svg {
@@ -222,12 +214,11 @@
   display: inline-flex;
   align-items: center;
   font-family: var(--font-title);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--accent);
-  background: rgba(182, 100, 77, 0.09);
-  padding: 4px 12px;
-  border-radius: 999px;
 }
 
 .exitButton {
@@ -236,8 +227,8 @@
   gap: 7px;
   height: 36px;
   padding: 0 14px;
-  border-radius: 999px;
-  background: #fbf9f7;
+  border-radius: 6px;
+  background: #ffffff;
   border: 1px solid var(--surface-border);
   color: #4b4553;
   font-family: var(--font-title);
@@ -351,8 +342,8 @@
   gap: 8px;
   height: 42px;
   padding: 0 16px;
-  border-radius: 999px;
-  background: #fbf9f7;
+  border-radius: 6px;
+  background: #ffffff;
   border: 1px solid var(--surface-border);
   color: #2b2535;
   font-family: var(--font-title);
@@ -363,14 +354,14 @@
 }
 
 .pillItem:hover {
-  background: #f4f0ec;
-  border-color: #d2cbc0;
+  background: #f8f6f4;
+  border-color: #c7bfb3;
 }
 
 .pillCheck {
   font-size: 13px;
   font-weight: 700;
-  color: #8c8297;
+  color: var(--accent);
   transition: color 0.2s ease;
 }
 
@@ -378,11 +369,10 @@
   background: var(--ink) !important;
   border-color: var(--ink) !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 14px rgba(40, 24, 59, 0.16);
 }
 
 .pillSelected .pillCheck {
-  color: #5fd568;
+  color: #f0b39f;
 }
 
 /* Campos de Texto e Stack */
@@ -421,7 +411,7 @@
   padding: 0 16px;
   background: var(--input-bg);
   border: 1px solid var(--surface-border);
-  border-radius: 10px;
+  border-radius: 6px;
   font-family: var(--font-source-sans), inherit;
   font-size: 15px;
   color: #1a1622;
@@ -449,7 +439,7 @@
   padding: 14px 16px;
   background: var(--input-bg);
   border: 1px solid var(--surface-border);
-  border-radius: 10px;
+  border-radius: 6px;
   font-family: var(--font-source-sans), inherit;
   font-size: 14.5px;
   color: #1a1622;
@@ -497,14 +487,14 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  height: 44px;
-  padding: 0 18px;
-  border-radius: 999px;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: 6px;
   background: transparent;
   border: 1px solid var(--surface-border);
   color: #524b5d;
   font-family: var(--font-title);
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -530,26 +520,24 @@
 .submitButton {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   height: 48px;
   padding: 0 28px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #b6644d 0%, #c86d54 100%);
+  border-radius: 6px;
+  background: var(--accent);
   border: none;
   color: #ffffff;
   font-family: var(--font-title);
-  font-size: 14.5px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(182, 100, 77, 0.28);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background 0.16s ease, transform 0.16s ease;
 }
 
 .nextButton:hover,
 .submitButton:hover:not(:disabled) {
-  background: linear-gradient(135deg, #a4543f 0%, #ba5f47 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(182, 100, 77, 0.38);
+  background: var(--accent-hover);
+  transform: translateY(-1px);
 }
 
 .submitButton:disabled {
@@ -578,10 +566,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 68px;
-  height: 68px;
-  border-radius: 50%;
-  background: rgba(95, 213, 104, 0.15);
+  width: 56px;
+  height: 56px;
+  border-radius: 6px;
+  background: rgba(37, 138, 45, 0.12);
   color: #258a2d;
   margin-bottom: 20px;
 }
@@ -615,7 +603,7 @@
   align-items: center;
   justify-content: center;
   height: 48px;
-  border-radius: 999px;
+  border-radius: 6px;
   background: var(--ink);
   color: #ffffff;
   font-family: var(--font-title);
@@ -627,7 +615,7 @@
 
 .successHomeButton:hover {
   background: #190f25;
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .successWhatsAppButton {
@@ -636,7 +624,7 @@
   justify-content: center;
   gap: 8px;
   height: 48px;
-  border-radius: 999px;
+  border-radius: 6px;
   background: #edf8ee;
   border: 1px solid #c7ebc9;
   color: #1b7a24;

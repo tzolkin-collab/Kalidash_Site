@@ -68,21 +68,25 @@ func taskEntityAllowed(r *http.Request, kind, id string) bool {
 // fieldGap diz o que falta para concluir a tarefa de um requisito FIELD: "" quando pode (campo preenchido, requisito
 // ACTION, ou campo que o servidor não sabe conferir) e a mensagem para a pessoa quando o campo está vazio.
 //
-// O requisito não guarda a chave do campo (só o título), então o servidor reconhece o campo pelo título:
-// "CNPJ" → CNPJ da empresa do registro; "CPF" → CPF da pessoa; "e-mail" → e-mail; "telefone"/"celular"/"WhatsApp" →
-// telefone. Qualquer outro título FIELD continua livre (⚠️: ver o relatório do WP4-1). Só vale com CRM_API=1 (os
+// O dado exigido vem de `StageRequirement.fieldKey` (D41): cnpj → CNPJ da empresa do registro; cpf → CPF da pessoa;
+// email → e-mail; phone → telefone. Outra chave conclui livre. Só os requisitos ANTIGOS, sem `fieldKey`, caem no
+// reconhecimento pelo título ("CNPJ", "CPF", "e-mail", "telefone"/"celular"/"WhatsApp"). Só vale com CRM_API=1 (os
 // campos moram nas tabelas do CRM).
 func fieldGap(requirementID, entityKind, entityID string) (string, error) {
 	var kind, label string
-	err := db.QueryRow(`SELECT kind, label FROM StageRequirement WHERE id = ?`, requirementID).Scan(&kind, &label)
+	var fkey sql.NullString
+	err := db.QueryRow(`SELECT kind, label, fieldKey FROM StageRequirement WHERE id = ?`, requirementID).Scan(&kind, &label, &fkey)
 	if errors.Is(err, sql.ErrNoRows) || kind != "FIELD" || !crmEnabled() {
 		return "", nil
 	} else if err != nil {
 		return "", err
 	}
-	l := strings.ToLower(label)
-	switch {
-	case strings.Contains(l, "cnpj"):
+	key := strings.ToLower(strings.TrimSpace(fkey.String))
+	if key == "" {
+		key = fieldKeyFromTitle(label)
+	}
+	switch key {
+	case "cnpj":
 		company, err := companyOf(entityKind, entityID)
 		if err != nil {
 			return "", err
@@ -97,7 +101,7 @@ func fieldGap(requirementID, entityKind, entityID string) (string, error) {
 		if strings.TrimSpace(doc.String) == "" {
 			return "Informe o CNPJ da empresa antes de concluir esta tarefa.", nil
 		}
-	case strings.Contains(l, "cpf"):
+	case "cpf":
 		person, err := personOf(entityKind, entityID)
 		if err != nil {
 			return "", err
@@ -111,12 +115,28 @@ func fieldGap(requirementID, entityKind, entityID string) (string, error) {
 		if strings.TrimSpace(doc.String) == "" {
 			return "Informe o CPF da pessoa antes de concluir esta tarefa.", nil
 		}
-	case strings.Contains(l, "e-mail") || strings.Contains(l, "email"):
+	case "email":
 		return contactFieldGap(entityKind, entityID, "email", "Informe o e-mail antes de concluir esta tarefa.")
-	case strings.Contains(l, "telefone") || strings.Contains(l, "celular") || strings.Contains(l, "whatsapp"):
+	case "phone":
 		return contactFieldGap(entityKind, entityID, "phone", "Informe o telefone antes de concluir esta tarefa.")
 	}
 	return "", nil
+}
+
+// fieldKeyFromTitle é o reconhecimento antigo, só para requisito sem `fieldKey`. "" = campo que o servidor não confere.
+func fieldKeyFromTitle(label string) string {
+	l := strings.ToLower(label)
+	switch {
+	case strings.Contains(l, "cnpj"):
+		return "cnpj"
+	case strings.Contains(l, "cpf"):
+		return "cpf"
+	case strings.Contains(l, "e-mail") || strings.Contains(l, "email"):
+		return "email"
+	case strings.Contains(l, "telefone") || strings.Contains(l, "celular") || strings.Contains(l, "whatsapp"):
+		return "phone"
+	}
+	return ""
 }
 
 // companyOf: a empresa ligada ao registro ("" se não houver ou o tipo não tem empresa).

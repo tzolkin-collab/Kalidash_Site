@@ -59,6 +59,10 @@ var crmColumns = []colSpec{
 var crmOwnerColumns = []colSpec{
 	{"Opportunity", "ownerMemberId", "VARCHAR(64) NULL"},
 	{leadTbl, "ownerMemberId", "VARCHAR(64) NULL"},
+	// WP4-2 (D28): motivo de perda da oportunidade (lista do funil + "Outro" com nota) e a nota do descarte do lead.
+	{"Opportunity", "lostReason", "VARCHAR(120) NULL"},
+	{"Opportunity", "lostReasonNote", "VARCHAR(500) NULL"},
+	{leadTbl, "discardNote", "VARCHAR(500) NULL"},
 }
 
 var crmIndexes = []struct{ name, table, col string }{
@@ -198,5 +202,6 @@ func registerCRMRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/crm/companies/{id}", enableCORS(handleCompanyByID))
 	mux.HandleFunc("/api/crm/leads", enableCORS(handleCRMLeads))
 	mux.HandleFunc("/api/crm/leads/{id}", enableCORS(handleCRMLeadByID))
+	mux.HandleFunc("/api/crm/leads/{id}/qualify", enableCORS(handleQualifyLead))
 	mux.HandleFunc("/api/crm/history", enableCORS(handleHistory))
 }

@@ -1,206 +1,633 @@
-/* Página /blog (Galeria Principal) — DESIGN do blog. Aqui é onde se mexe no visual.
+/* Página /blog (Galeria Principal) — DESIGN Editorial Kalidash (Padrão Impresso Suíço / Stripe Press).
  *
  * O HTML vem de views.tsx e do admin; este arquivo só reage às tags e a estes atributos
  * (contrato completo em docs/blog-design-contrato.md):
- *   [data-block="hero"]          texto de abertura (HTML escrito no editor do admin)
- *   [data-block="gallery"]       grade de artigos
- *   [data-block="article-card"]  cada cartão; [data-variant="featured"|"default"]
- *   [data-role="cover"]          imagem de capa do cartão
- *   [data-role="read-more"]      link "Ler artigo"
- * Pode mudar cores, tamanhos, grade e variantes à vontade. Não renomeie os atributos: o
- * admin e o preview dependem deles. */
+ *   [data-block="hero"]            texto de abertura (HTML escrito no editor do admin)
+ *   [data-block="category-filter"] barra de navegação/filtro por categoria
+ *   [data-block="gallery"]         grade de artigos
+ *   [data-block="article-card"]    cada cartão; [data-variant="featured"|"default"]
+ *   [data-role="cover"]            imagem de capa do cartão
+ *   [data-role="read-more"]        link "Ler artigo"
+ */
 
 .page {
-  --gutter: max(28px, calc((100vw - 1280px) / 2));
+  --ink: #28183b;
+  --ink-dark: #1e122c;
+  --purple: #462f4f;
+  --accent: #b6644d;
+  --accent-hover: #9c503b;
+  --accent-soft: rgba(182, 100, 77, 0.08);
+  --bg: #ffffff;
+  --bg-subtle: #fcfbfa;
+  --line: #eae7e4;
+  --line-strong: #d5d1cc;
+  --text: #191421;
+  --muted: #575060;
+  --muted-light: #857e8e;
+  --font-title: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-body: var(--font-source-sans), system-ui, sans-serif;
+  --gutter: max(24px, calc((100vw - 1280px) / 2));
+
   min-height: 100vh;
-  background: #08070a;
-  color: #f6f3fb;
-  font-family: var(--font-manrope), sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  display: flex;
+  flex-direction: column;
 }
 
-/* ---- Cabeçalho e rodapé ---- */
-.page header {
-  position: sticky;
-  top: 0;
-  z-index: 4;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 28px var(--gutter);
-  background: rgba(8, 7, 10, 0.88);
-  border-bottom: 1px solid #29242e;
-  backdrop-filter: blur(16px);
+.main {
+  flex: 1;
+  width: 100%;
+  background: var(--bg);
 }
-.page header img { height: auto; }
-.page nav { display: flex; gap: 26px; }
-.page nav a { color: #aaa2b2; text-decoration: none; font-size: 0.78rem; }
-.page footer {
-  display: flex;
-  justify-content: space-between;
-  padding: 48px var(--gutter);
-  font-size: 0.75rem;
-}
-.page footer a { color: #c7acd9; }
 
-/* ---- Hero (HTML vindo do editor: p, h1, div…) ---- */
+/* ---- Hero Editorial (HTML vindo do editor: p, h1, div…) ---- */
 .hero {
-  padding: 9vh var(--gutter) 7vh;
-  border-bottom: 1px solid #29242e;
+  width: 100%;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+  padding: clamp(56px, 7vw, 84px) 0 clamp(48px, 6vw, 68px);
 }
-/* primeiro elemento = etiqueta pequena; último = texto de apoio */
+
 .hero > :first-child,
-.posts article > p {
-  color: #a889ca;
-  font-size: 0.66rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-}
-.hero h1 {
-  max-width: 680px;
-  margin: 18px 0 24px;
-  font-size: clamp(2.1rem, 3.6vw, 3rem);
-  font-weight: 600;
-  line-height: 1.12;
-  letter-spacing: -0.02em;
-}
-.hero h1 span,
-.hero h1 strong {
-  display: block;
-  color: #b695d9;
-  font-weight: 700;
-}
+.hero h1,
 .hero > :last-child {
-  max-width: 570px;
-  color: #aaa2b2;
-  font-size: 1.05rem;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+/* Etiqueta superior com traço gráfico */
+.hero > :first-child {
+  color: var(--accent) !important;
+  font-family: var(--font-title);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-top: 0;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hero > :first-child::before {
+  display: none;
+}
+
+.hero h1 {
+  margin-top: 0;
+  margin-bottom: 24px;
+  font-family: var(--font-title);
+  font-size: clamp(2.4rem, 4.4vw, 3.8rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.hero h1 span,
+.hero h1 strong,
+.hero h1 [style] {
+  color: var(--accent) !important;
+  font-weight: 600;
+}
+
+.hero > :last-child {
+  color: var(--muted) !important;
+  font-size: clamp(1.06rem, 1.3vw, 1.22rem);
   font-weight: 400;
   line-height: 1.7;
   letter-spacing: normal;
   text-transform: none;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
-/* ---- Grade de artigos ---- */
-.posts {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1px;
-  background: #29242e;
-  border-bottom: 1px solid #29242e;
-}
-.posts article {
-  min-height: 440px;
-  padding: 64px;
-  background: #0e0c11;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-.posts article > p { margin: 0; }
-.posts h2 {
-  max-width: 520px;
-  margin: 28px 0 16px;
-  font-size: clamp(1.4rem, 2vw, 1.9rem);
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-  font-weight: 600;
-}
-.posts article > div { max-width: 600px; color: #968e9d; line-height: 1.7; }
-.posts article > span {
-  margin-top: auto;
-  padding-top: 48px;
-  color: #837989;
-  font-size: 0.75rem;
-}
-.posts button {
-  margin-top: 18px;
-  padding: 12px 0;
-  border: 0;
-  border-bottom: 1px solid currentColor;
-  background: transparent;
-  color: inherit;
-  font-weight: 700;
-  cursor: pointer;
+@media (min-width: 960px) {
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.85fr);
+    column-gap: clamp(48px, 6vw, 80px);
+    align-items: end;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding-left: 24px;
+    padding-right: 24px;
+    border-bottom: none;
+  }
+
+  .main > .hero {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .hero > :first-child,
+  .hero h1 {
+    grid-column: 1;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .hero > :last-child {
+    grid-column: 2;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+    border-left: none;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
 }
 
-/* Capa do cartão */
-.posts [data-role="cover"] {
-  display: block;
+/* ---- Filtro de Categorias da Página (Posição natural no Hero, sai no scroll) ---- */
+.filters {
+  position: relative;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
   width: 100%;
-  max-width: 640px;
-  height: auto;
-  margin-bottom: 34px;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-  border-radius: 10px;
-  background: #16121d;
 }
 
-/* "Ler artigo" */
-.posts [data-role="read-more"] {
+.filtersSentinel {
+  width: 100%;
+  height: 1px;
+  pointer-events: none;
+  visibility: hidden;
+  margin-top: -1px;
+}
+
+.filtersInner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.filtersInner::-webkit-scrollbar,
+.headerFiltersInner::-webkit-scrollbar {
+  display: none;
+}
+
+.filters button {
+  position: relative;
+  font-family: var(--font-title);
+  font-size: 0.84rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  padding: 18px 14px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-top: 22px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid currentColor;
-  color: #c7acd9;
-  text-decoration: none;
-  font-size: 0.8rem;
-  font-weight: 700;
+  transition: color 0.15s ease;
 }
 
-/* Cada bloco usa a calha da página só na borda externa de cada coluna; a interna fica em
-   64px. O destaque é o 1º cartão e ocupa a linha toda, por isso a coluna esquerda cai nos
-   pares e a direita nos ímpares a partir do 3º. */
-.posts article:nth-child(2n) { padding-left: var(--gutter); }
-.posts article:nth-child(2n + 3) { padding-right: var(--gutter); }
+.filters button::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  background: transparent;
+  transition: background-color 0.2s ease;
+}
 
-/* ---- Variante: destaque (claro, largura total) ---- */
+.filters button:hover {
+  color: var(--ink);
+}
+
+.filters button[aria-pressed="true"] {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.filters button[aria-pressed="true"]::after {
+  background: var(--accent);
+}
+
+/* ---- Filtros Integrados AO HEADER no Scroll ---- */
+.headerFiltersInner {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 3.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.headerFiltersInner button {
+  position: relative;
+  font-family: var(--font-title);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  height: 3.5rem;
+  padding: 0 12px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.15s ease;
+}
+
+.headerFiltersInner button::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 10px;
+  right: 10px;
+  height: 2px;
+  background: transparent;
+  transition: background-color 0.2s ease;
+}
+
+.headerFiltersInner button:hover {
+  color: var(--ink);
+}
+
+.headerFiltersInner button[aria-pressed="true"] {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.headerFiltersInner button[aria-pressed="true"]::after {
+  background: var(--accent);
+}
+
+.filterBadge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-feature-settings: "tnum";
+  color: var(--muted-light);
+  background: rgba(0, 0, 0, 0.04);
+  padding: 2px 7px;
+  border-radius: 999px;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.filters button[aria-pressed="true"] .filterBadge,
+.headerFiltersInner button[aria-pressed="true"] .filterBadge {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* ---- Grade de Artigos (Layout Editorial Limpo e Arejado, sem excesso de linhas) ---- */
+.posts {
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 28px;
+  background: transparent;
+  border: none;
+  padding: clamp(32px, 4vw, 56px) 24px;
+}
+
+.posts article {
+  grid-column: span 2;
+  padding: clamp(28px, 3vw, 36px);
+  background: #ffffff;
+  border: 1px solid #ede9e5;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .posts article:hover {
+    transform: translateY(-3px);
+    border-color: rgba(182, 100, 77, 0.35);
+    box-shadow: 0 12px 28px rgba(40, 24, 59, 0.07);
+  }
+}
+
+/* Imagem de Capa */
+.posts [data-role="cover"] {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 8px;
+  border: none;
+  margin-bottom: 20px;
+  background: #f7f5f3;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Metadados (Categoria · Tempo · Data) */
+.posts article > p {
+  color: var(--accent) !important;
+  font-family: var(--font-title);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0 0 10px;
+}
+
+/* Título */
+.posts h2 {
+  width: 100%;
+  margin: 0 0 12px;
+  font-family: var(--font-title);
+  font-size: 1.28rem;
+  line-height: 1.28;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.posts h2 a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.posts h2 a:hover {
+  color: var(--accent);
+}
+
+/* Resumo (Excerpt) limitado a 3 linhas na grade secundária */
+.posts article > div {
+  width: 100%;
+  color: var(--muted);
+  font-size: 0.98rem;
+  line-height: 1.62;
+  margin-bottom: 26px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Autor */
+.posts article > span {
+  margin-top: auto;
+  padding-top: 8px;
+  width: 100%;
+  border-top: none;
+  color: var(--muted-light);
+  font-family: var(--font-title);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+/* Link de Leitura */
+.posts [data-role="read-more"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding-bottom: 0;
+  border-bottom: none;
+  color: var(--accent);
+  text-decoration: none;
+  font-family: var(--font-title);
+  font-size: 0.84rem;
+  font-weight: 600;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.posts [data-role="read-more"] span {
+  display: inline-block;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.posts [data-role="read-more"]:hover {
+  color: var(--accent-hover);
+}
+
+.posts [data-role="read-more"]:hover span {
+  transform: translateX(4px);
+}
+
+/* ---- Variante: Destaque (1º artigo - Capa / Lead Story) ---- */
 .posts [data-variant="featured"] {
   grid-column: 1 / -1;
-  min-height: 540px;
-  padding-left: var(--gutter);
-  padding-right: var(--gutter);
-  background: #f0ecf5;
-  color: #120e17;
+  background: #ffffff;
+  border: 1px solid #ede9e5;
+  border-radius: 14px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.03);
+  padding: clamp(36px, 4.5vw, 56px);
+  margin-bottom: 8px;
 }
-.posts [data-variant="featured"] > div { color: #665d6c !important; }
-.posts [data-variant="featured"] [data-role="cover"] {
-  max-width: 840px;
-  margin-bottom: 40px;
-  aspect-ratio: 2 / 1;
-  background: #e2dbea;
-}
-.posts [data-variant="featured"] [data-role="read-more"] { color: #5b3b86; }
 
-/* Foco visível (teclado) */
+.posts [data-variant="featured"] > p {
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  margin-bottom: 14px;
+}
+
+.posts [data-variant="featured"] h2 {
+  font-size: clamp(1.9rem, 2.7vw, 2.5rem);
+  line-height: 1.14;
+  letter-spacing: -0.035em;
+  margin-bottom: 18px;
+}
+
+.posts [data-variant="featured"] > div {
+  font-size: 1.08rem;
+  line-height: 1.7;
+  color: var(--muted);
+  -webkit-line-clamp: 5;
+  margin-bottom: 30px;
+}
+
+.posts [data-variant="featured"] > span {
+  font-size: 0.82rem;
+  padding-top: 18px;
+}
+
+.posts [data-variant="featured"] [data-role="read-more"] {
+  font-size: 0.88rem;
+  padding-bottom: 3px;
+  margin-top: 14px;
+}
+
+@media (min-width: 960px) {
+  .posts [data-variant="featured"]:has([data-role="cover"]) {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.95fr);
+    grid-template-rows: auto auto auto 1fr auto;
+    column-gap: clamp(40px, 5vw, 68px);
+    align-items: start;
+  }
+
+  .posts [data-variant="featured"]:has([data-role="cover"]) [data-role="cover"] {
+    grid-column: 1;
+    grid-row: 1 / 6;
+    margin-bottom: 0;
+    height: 100%;
+    min-height: 380px;
+    aspect-ratio: 16 / 10;
+  }
+
+  .posts [data-variant="featured"]:has([data-role="cover"]) > :not([data-role="cover"]) {
+    grid-column: 2;
+  }
+
+  .posts [data-variant="featured"]:has([data-role="cover"]) > span {
+    align-self: end;
+    margin-top: 0;
+  }
+
+  .posts [data-variant="featured"]:has([data-role="cover"]) [data-role="read-more"] {
+    justify-self: start;
+  }
+}
+
+/* ---- Caso Especial: Apenas 1 Artigo na Categoria/Página (Refinado, Max ~920px) ---- */
+.posts[data-count="1"] {
+  max-width: 920px;
+  grid-template-columns: 1fr;
+  margin: 0 auto;
+}
+
+.posts[data-count="1"] article {
+  grid-column: 1 / -1;
+  padding: clamp(36px, 4.5vw, 56px);
+}
+
+.posts[data-count="1"] h2 {
+  font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+  line-height: 1.18;
+  margin-bottom: 16px;
+}
+
+.posts[data-count="1"] article > div {
+  font-size: 1.05rem;
+  line-height: 1.68;
+  -webkit-line-clamp: 4;
+  margin-bottom: 24px;
+}
+
+@media (min-width: 768px) {
+  .posts[data-count="1"] article:has([data-role="cover"]) {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+    column-gap: clamp(32px, 4vw, 52px);
+    align-items: center;
+  }
+
+  .posts[data-count="1"] article:has([data-role="cover"]) [data-role="cover"] {
+    grid-column: 1;
+    margin-bottom: 0;
+    height: 100%;
+    min-height: 280px;
+    aspect-ratio: 16 / 10;
+  }
+
+  .posts[data-count="1"] article:has([data-role="cover"]) > :not([data-role="cover"]) {
+    grid-column: 2;
+  }
+
+  .posts[data-count="1"] article:has([data-role="cover"]) > span {
+    align-self: end;
+  }
+}
+
+/* ---- Caso Especial: Exatamente 2 Artigos (Dupla de Destaque Lado a Lado 50% / 50%) ---- */
+.posts[data-count="2"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.posts[data-count="2"] article {
+  grid-column: span 1;
+  padding: clamp(36px, 4vw, 52px);
+}
+
+.posts[data-count="2"] h2 {
+  font-size: clamp(1.4rem, 2vw, 1.8rem);
+}
+
+/* ---- Distribuição em Duplas (50% / 50%) para Fechamento Harmônico sem Sobras ---- */
+.posts [data-layout="duo"] {
+  grid-column: span 3;
+}
+
+.posts [data-layout="duo"] h2 {
+  font-size: clamp(1.35rem, 1.8vw, 1.65rem);
+}
+
+/* Foco visível (acessibilidade) */
 .page :is(a, button):focus-visible {
-  outline: 2px solid #c9b6f0;
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
   border-radius: 4px;
 }
-.posts [data-variant="featured"] :is(a):focus-visible { outline-color: #5b3b86; }
 
-/* ---- Celular ---- */
-@media (max-width: 700px) {
-  .page header { padding: 22px 18px; }
-  .page nav { gap: 16px; }
-  .page nav a { font-size: 0.72rem; }
-  .hero { padding: 7vh 18px 5vh; }
-  .posts { grid-template-columns: 1fr; }
-  .posts [data-variant="featured"] { grid-column: auto; }
-  .posts article,
+/* ---- Responsividade: Tablet (768px a 1179px) ---- */
+@media (min-width: 768px) and (max-width: 1179px) {
+  .posts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .posts article {
+    grid-column: span 1;
+  }
+
+  .posts [data-variant="featured"] {
+    grid-column: 1 / -1;
+  }
+
+  .posts [data-layout="duo"] {
+    grid-column: span 1;
+  }
+
+  .posts[data-count="1"] {
+    grid-template-columns: 1fr;
+  }
+
+  .posts[data-count="1"] article {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ---- Responsividade: Mobile (< 768px) ---- */
+@media (max-width: 767px) {
+  .posts {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 24px 16px;
+    border: none;
+  }
+
+  .posts article {
+    grid-column: 1 / -1;
+  }
+
   .posts [data-variant="featured"],
-  .posts article:nth-child(2n),
-  .posts article:nth-child(2n + 3) {
-    padding: 48px 18px;
-    min-height: 420px;
+  .posts article {
+    padding: 28px 20px;
   }
-  .posts [data-role="cover"],
-  .posts [data-variant="featured"] [data-role="cover"] {
-    max-width: 100%;
-    aspect-ratio: 16 / 9;
+
+  .filtersInner {
+    padding: 0 16px;
   }
-  .page footer { padding: 40px 18px; gap: 20px; flex-direction: column; }
 }

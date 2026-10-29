@@ -4,14 +4,10 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Inter, Source_Sans_3 } from "next/font/google";
 import styles from "./diagnostico.module.css";
 import BrandLogo from "../components/BrandLogo";
 import { config, diagnostico } from "../home/content";
 import { ArrowLeft, ArrowRight, WhatsApp } from "../home/icons";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const sourceSans = Source_Sans_3({ subsets: ["latin"], variable: "--font-source-sans", display: "swap" });
 
 type Status = "idle" | "sending" | "sent" | "error" | "unconfigured";
 
@@ -178,7 +174,7 @@ export default function DiagnosticoClient() {
   const progressPercent = Math.round((step / TOTAL_STEPS) * 100);
 
   return (
-    <div className={`${inter.variable} ${sourceSans.variable} ${styles.splitLayout}`}>
+    <div className={styles.splitLayout}>
       {/* ========================================================
           LADO ESQUERDO: Painel Editorial Institucional (Oculto no Mobile)
           ======================================================== */}
@@ -210,13 +206,15 @@ export default function DiagnosticoClient() {
           </div>
 
           <div className={styles.editorialFooter}>
-            <span className={styles.proofLabel}>Empresas com quem aplicamos e ensinamos</span>
-            <div className={styles.proofPills}>
-              {["ArcelorMittal", "Sicoob", "CBA", "Neon", "Fermec", "Bázico", "Cooxupé"].map((c) => (
-                <span key={c} className={styles.proofPill}>
-                  {c}
-                </span>
-              ))}
+            <div className={styles.proofColumns}>
+              <div>
+                <span className={styles.proofLabel}>Onde aplicamos</span>
+                <p className={styles.proofNames}>ArcelorMittal · CBA · Sicoob · Cooxupé</p>
+              </div>
+              <div>
+                <span className={styles.proofLabel}>Onde ensinamos</span>
+                <p className={styles.proofNames}>Conquer · Xperiun · Rocketseat · Hashtag · Tera</p>
+              </div>
             </div>
 
             {config.whatsappUrl && (
@@ -346,9 +344,11 @@ export default function DiagnosticoClient() {
                           onChange={handleInputChange}
                           placeholder="Seu nome completo"
                           autoComplete="name"
+                          aria-invalid={Boolean(errors.name)}
+                          aria-describedby={errors.name ? "name-error" : undefined}
                           className={`${styles.textInput} ${errors.name ? styles.inputError : ""}`}
                         />
-                        {errors.name && <p className={styles.fieldError}>{errors.name}</p>}
+                        {errors.name && <p id="name-error" className={styles.fieldError}>{errors.name}</p>}
                       </div>
 
                       <div className={styles.fieldWrap}>
@@ -363,9 +363,11 @@ export default function DiagnosticoClient() {
                           onChange={handleInputChange}
                           placeholder="voce@suaempresa.com.br"
                           autoComplete="email"
+                          aria-invalid={Boolean(errors.email)}
+                          aria-describedby={errors.email ? "email-error" : undefined}
                           className={`${styles.textInput} ${errors.email ? styles.inputError : ""}`}
                         />
-                        {errors.email && <p className={styles.fieldError}>{errors.email}</p>}
+                        {errors.email && <p id="email-error" className={styles.fieldError}>{errors.email}</p>}
                       </div>
 
                       <div className={styles.fieldWrap}>
@@ -380,9 +382,11 @@ export default function DiagnosticoClient() {
                           onChange={handleInputChange}
                           placeholder="(11) 99999-9999"
                           autoComplete="tel"
+                          aria-invalid={Boolean(errors.phone)}
+                          aria-describedby={errors.phone ? "phone-error" : undefined}
                           className={`${styles.textInput} ${errors.phone ? styles.inputError : ""}`}
                         />
-                        {errors.phone && <p className={styles.fieldError}>{errors.phone}</p>}
+                        {errors.phone && <p id="phone-error" className={styles.fieldError}>{errors.phone}</p>}
                       </div>
                     </div>
                   </div>
@@ -412,9 +416,11 @@ export default function DiagnosticoClient() {
                           onChange={handleInputChange}
                           placeholder="Ex: Kalidash Tecnologia"
                           autoComplete="organization"
+                          aria-invalid={Boolean(errors.company)}
+                          aria-describedby={errors.company ? "company-error" : undefined}
                           className={`${styles.textInput} ${errors.company ? styles.inputError : ""}`}
                         />
-                        {errors.company && <p className={styles.fieldError}>{errors.company}</p>}
+                        {errors.company && <p id="company-error" className={styles.fieldError}>{errors.company}</p>}
                       </div>
 
                       <div className={styles.fieldWrap}>
@@ -429,9 +435,11 @@ export default function DiagnosticoClient() {
                           onChange={handleInputChange}
                           placeholder="Ex: Diretor de Operações / Head de TI"
                           autoComplete="organization-title"
+                          aria-invalid={Boolean(errors.role)}
+                          aria-describedby={errors.role ? "role-error" : undefined}
                           className={`${styles.textInput} ${errors.role ? styles.inputError : ""}`}
                         />
-                        {errors.role && <p className={styles.fieldError}>{errors.role}</p>}
+                        {errors.role && <p id="role-error" className={styles.fieldError}>{errors.role}</p>}
                       </div>
 
                       <div className={styles.fieldWrap}>
@@ -445,9 +453,11 @@ export default function DiagnosticoClient() {
                           value={formData.teamSize}
                           onChange={handleInputChange}
                           placeholder="Ex: 15 pessoas (ou 50 a 100)"
+                          aria-invalid={Boolean(errors.teamSize)}
+                          aria-describedby={errors.teamSize ? "teamSize-error" : undefined}
                           className={`${styles.textInput} ${errors.teamSize ? styles.inputError : ""}`}
                         />
-                        {errors.teamSize && <p className={styles.fieldError}>{errors.teamSize}</p>}
+                        {errors.teamSize && <p id="teamSize-error" className={styles.fieldError}>{errors.teamSize}</p>}
                       </div>
                     </div>
                   </div>

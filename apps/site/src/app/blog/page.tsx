@@ -1,16 +1,18 @@
 import type { Metadata } from "next";
-import PixelTransition from "../components/PixelTransition";
 import {
 	fetchPublishedArticles,
 	fetchArticleBySlug,
+	fetchBlogCategories,
 	GALLERY_SLUG,
 	isReservedArticleSlug,
+	categorySlug,
 } from "@/lib/blog";
 import type { Article } from "@/lib/blog";
 import { SITE_URL } from "@/lib/siteUrl";
 import { DEFAULT_OG_IMAGE, absoluteUrl } from "@/lib/blogSeo";
+import { sanitizeArticleHtml } from "@/lib/sanitizeHtml";
 import { BlogGalleryView } from "./views";
-import type { GalleryItem } from "./views";
+import type { GalleryCategory, GalleryItem } from "./views";
 
 export const revalidate = 60;
 
@@ -43,31 +45,50 @@ export async function generateMetadata(): Promise<Metadata> {
 	};
 }
 
-const toItem = (a: Article): GalleryItem => ({
-	id: a.id,
-	title: a.title,
-	excerpt: a.excerpt,
-	coverImageUrl: a.coverImageUrl,
-	coverImagePos: a.coverImagePos,
-	meta: `${a.categories?.[0] || "Kalidash"} · ${
-		a.publishedAt ? new Date(a.publishedAt).toLocaleDateString("pt-BR") : "Em breve"
-	}`,
-	authorName: a.authorName || "Equipe Kalidash",
-	href: `/blog/${a.slug}`,
-});
+const toItem = (a: Article): GalleryItem => {
+	const words = (a.body || a.excerpt || "").replace(/<[^>]+>/g, " ").trim().split(/\s+/).filter(Boolean).length;
+	const readMins = Math.max(1, Math.ceil(words / 200));
+	const category = a.categories?.[0] || "Kalidash";
+	const dateStr = a.publishedAt
+		? new Date(a.publishedAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })
+		: "Em breve";
+
+	return {
+		id: a.id,
+		title: a.title,
+		excerpt: a.excerpt,
+		coverImageUrl: a.coverImageUrl,
+		coverImagePos: a.coverImagePos,
+		categories: a.categories ?? [],
+		meta: `${category} · ${readMins} min · ${dateStr}`,
+		authorName: a.authorName || "Equipe Kalidash",
+		href: `/blog/${a.slug}`,
+	};
+};
 
 export default async function BlogPage() {
 	// A API já devolve a lista na ordem final (Q14): cartões curados primeiro, depois todo artigo
 	// publicado fora da curadoria, por data; o blog-global vem por último e não entra na grade.
-	const [list, globalArticle] = await Promise.all([
+	const [list, globalArticle, catalog] = await Promise.all([
 		fetchPublishedArticles(),
 		fetchArticleBySlug(GALLERY_SLUG),
+		fetchBlogCategories(false),
 	]);
-	const items = list.filter((a) => !isReservedArticleSlug(a.slug));
+	const items = list.filter(
+		(a) => !isReservedArticleSlug(a.slug) && a.slug !== "artigo-teste-template",
+	);
+	const categoriesCatalog: GalleryCategory[] = catalog.map((c) => ({
+		name: c.name,
+		slug: categorySlug(c.slug || c.name),
+		description: c.description,
+		hidden: c.hidden,
+	}));
 
 	return (
-		<PixelTransition color="#050507" duration={1400} pixelDuration={450}>
-			<BlogGalleryView heroHtml={globalArticle?.body} items={items.map(toItem)} />
-		</PixelTransition>
+		<BlogGalleryView
+			heroHtml={globalArticle?.body ? sanitizeArticleHtml(globalArticle.body) : null}
+			items={items.map(toItem)}
+			categoriesCatalog={categoriesCatalog}
+		/>
 	);
 }

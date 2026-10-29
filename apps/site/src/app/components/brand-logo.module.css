@@ -1,30 +1,42 @@
 /* Logo animado da Kalidash:
  * 1. Entrada (data-animated) e hover (data-logo-hover)
- * 2. 3 Princípios de scroll: Esconder (maskRect), Movimentar (translateX cascata), Posicionar (width container)
+ * 2. 3 Princípios de scroll:
+ *    - Movimentar (translateX cascata das letras)
+ *    - Esconder (clipPath SVG cortando na fronteira do Mark em x=28)
+ *    - Posicionar (width do container reduzindo suavemente para 28px)
  */
 
 .logoWrapper {
   --logo-gold: #a88a58;
   --logo-body: #28183b;
-  --logo-mask-color: #ffffff;
   display: inline-flex;
   align-items: center;
   width: 174px;
   height: 27px;
   overflow: hidden;
+  contain: paint;
   vertical-align: middle;
-  transition: width 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
   will-change: width;
+}
+
+.logoWrapper[data-ready="true"] {
+  transition: width 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.logoWrapper[data-ready="false"],
+.logoWrapper[data-ready="false"] .letterItem,
+.logoWrapper[data-ready="false"] .letterItem .letter {
+  transition: none !important;
 }
 
 .logoWrapper[data-tone="light"] {
   --logo-gold: #ffffff;
   --logo-body: #ffffff;
-  --logo-mask-color: #28183b;
 }
 
 /* Princípio 3: Posicionar - o container recolhe suavemente para 28px, ancorando apenas o Mark */
-.logoWrapper[data-collapsed="true"] {
+.logoWrapper[data-collapsed="true"],
+:global(html[data-header-collapsed="true"]) .logoWrapper[data-header-logo="true"] {
   width: 28px;
 }
 
@@ -48,13 +60,6 @@
 .logoOnlyMark[data-tone="light"] {
   --logo-gold: #ffffff;
   --logo-body: #ffffff;
-}
-
-/* Princípio 1: Esconder - divisória mascaradora atrás de cada elemento */
-.maskRect {
-  fill: var(--logo-mask-color, #ffffff);
-  stroke: var(--logo-mask-color, #ffffff);
-  stroke-width: 0.5px;
 }
 
 .goldTop,
@@ -88,32 +93,23 @@
   transition: opacity 0.2s ease calc(var(--delay-in) + 0.06s);
 }
 
-.letterItem .maskRect {
-  opacity: 1;
-  transition: opacity 0.15s ease var(--delay-in);
-}
-
-.logoWrapper[data-collapsed="true"] .letterItem {
+.logoWrapper[data-collapsed="true"] .letterItem,
+:global(html[data-header-collapsed="true"]) .logoWrapper[data-header-logo="true"] .letterItem {
   transform: translateX(var(--shift-x));
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) var(--delay-out);
 }
 
-/* As letras esvanecem conforme entram atrás das máscaras */
-.logoWrapper[data-collapsed="true"] .letterItem .letter {
+/* As letras esvanecem conforme entram atrás da borda x=28 cortadas pelo clipPath */
+.logoWrapper[data-collapsed="true"] .letterItem .letter,
+:global(html[data-header-collapsed="true"]) .logoWrapper[data-header-logo="true"] .letterItem .letter {
   opacity: 0;
   transition: opacity 0.18s ease calc(var(--delay-out) + 0.05s);
 }
 
-/* O K escrito some BEM MAIS RÁPIDO para a máscara não sumir antes */
-.logoWrapper[data-collapsed="true"] .letterItem[data-letter="K"] .letter {
+.logoWrapper[data-collapsed="true"] .letterItem[data-letter="K"] .letter,
+:global(html[data-header-collapsed="true"]) .logoWrapper[data-header-logo="true"] .letterItem[data-letter="K"] .letter {
   opacity: 0;
-  transition: opacity 0.08s ease var(--delay-out);
-}
-
-/* As máscaras (maskRect) permanecem opacas durante todo o deslizamento, sumindo só no final */
-.logoWrapper[data-collapsed="true"] .letterItem .maskRect {
-  opacity: 0;
-  transition: opacity 0.12s ease 0.42s;
+  transition: opacity 0.1s ease var(--delay-out);
 }
 
 /* ---- Entrada Inicial ---- */

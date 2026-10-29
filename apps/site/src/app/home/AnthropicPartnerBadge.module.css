@@ -1,0 +1,330 @@
+/* ============================================================
+   Selo Oficial Anthropic Partner Network (Com Logo do Claude)
+   - Desktop Repouso: Logo do Claude está DENTRO do botão CTA.
+     O badge fica em width: 0.
+   - Desktop Hover: O logo do Claude sai do botão e vai para a
+     posição do selo expandido, revelando a credencial completa.
+   - Mobile: Design minimalista em formato de pill leve e refinado.
+   ============================================================ */
+
+.badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  width: 0;
+  min-width: 0;
+  padding: 0;
+  margin-left: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  box-shadow: none;
+  text-decoration: none;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  box-sizing: border-box;
+  vertical-align: middle;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    width 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+    height 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.28s ease,
+    margin 0.35s ease,
+    background 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.35s ease,
+    padding 0.35s ease;
+  z-index: 2;
+}
+
+/* Hover e estado ativo no Desktop */
+.badge:hover,
+.badge[data-hovered="true"] {
+  width: 272px;
+  height: 64px;
+  padding: 5px;
+  margin-left: 12px;
+  opacity: 1;
+  pointer-events: auto;
+  background: #ffffff;
+  border-color: rgba(219, 108, 66, 0.38);
+  box-shadow:
+    0 10px 24px rgba(219, 108, 66, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.04);
+  transform: translateX(0);
+}
+
+.badge:focus-visible {
+  outline: 2px solid #DB6C42;
+  outline-offset: 2px;
+}
+
+.desktopView {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+}
+
+.mobileView {
+  display: none;
+}
+
+.badgeInner {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+/* Linha Superior: Logo + Divisor + Texto */
+.topRow {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 32px;
+  justify-content: flex-start;
+}
+
+/* Caixa com a logo do Claude no selo:
+   Recebe a logo que sai do botão CTA */
+.logoBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  background: #DB6C42;
+  border-radius: 6px;
+  color: #ffffff;
+  flex-shrink: 0;
+  opacity: 0;
+  transform: translateX(-24px);
+  transition:
+    transform 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.3s ease;
+}
+
+.badge:hover .logoBox,
+.badge[data-hovered="true"] .logoBox {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.claudeIcon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Divisor vertical sutil */
+.divider {
+  width: 1px;
+  height: 26px;
+  background: rgba(25, 23, 27, 0.15);
+  margin: 0 10px;
+  flex-shrink: 0;
+  opacity: 0;
+  transform: scaleY(0.6);
+  transition:
+    opacity 0.28s ease,
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.badge:hover .divider,
+.badge[data-hovered="true"] .divider {
+  opacity: 1;
+  transform: scaleY(1);
+  transition-delay: 0.08s;
+}
+
+/* Coluna de texto: ANTHROPIC e Partner Network */
+.textCol {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateX(12px);
+  clip-path: inset(0 100% 0 0);
+  transition:
+    opacity 0.35s ease,
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    clip-path 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.badge:hover .textCol,
+.badge[data-hovered="true"] .textCol {
+  opacity: 1;
+  transform: translateX(0);
+  clip-path: inset(0 0 0 0);
+  transition-delay: 0.09s;
+}
+
+.anthropicBrand {
+  display: flex;
+  align-items: center;
+  height: 13px;
+}
+
+.anthropicWordmark {
+  height: 12px;
+  width: auto;
+  color: #111827;
+  display: block;
+}
+
+.networkLabel {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #1f2937;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+}
+
+/* Faixa inferior: Pill Terracota Horizontal */
+.bottomPill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 18px;
+  background: #DB6C42;
+  border-radius: 9999px;
+  opacity: 0;
+  transform: translateY(4px);
+  clip-path: inset(0 100% 0 0);
+  transition:
+    opacity 0.35s ease,
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    clip-path 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.badge:hover .bottomPill,
+.badge[data-hovered="true"] .bottomPill {
+  opacity: 1;
+  transform: translateY(0);
+  clip-path: inset(0 0 0 0);
+  transition-delay: 0.14s;
+}
+
+.bottomPill span {
+  font-size: 8px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+/* ============================================================
+   Versão Mobile (< 640px)
+   Design ultra-minimalista: monocromático na cor do verified partner,
+   sem fundo laranja, com a logo do Claude brilhando com glow radiante
+   ============================================================ */
+@media (max-width: 640px) {
+  .badge {
+    width: auto !important;
+    min-width: 0 !important;
+    height: auto !important;
+    margin: 12px auto 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  .badge:hover,
+  .badge[data-hovered="true"] {
+    width: auto !important;
+    height: auto !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+
+  .desktopView {
+    display: none !important;
+  }
+
+  .mobileView {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .mobilePill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 4px 6px;
+    background: transparent;
+    border: none;
+    border-radius: 9999px;
+    transition: opacity 0.2s ease;
+  }
+
+  .mobilePill:active {
+    background: rgba(25, 23, 27, 0.04);
+  }
+
+  .mobileClaudeIcon {
+    width: 14px;
+    height: 14px;
+    color: #DB6C42;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 4px rgba(219, 108, 66, 0.8)) drop-shadow(0 0 8px rgba(219, 108, 66, 0.4));
+    animation: claude-glow 2.5s ease-in-out infinite alternate;
+  }
+
+  @keyframes claude-glow {
+    0% {
+      filter: drop-shadow(0 0 3px rgba(219, 108, 66, 0.6)) drop-shadow(0 0 6px rgba(219, 108, 66, 0.3));
+      transform: scale(1);
+    }
+    100% {
+      filter: drop-shadow(0 0 6px rgba(219, 108, 66, 0.95)) drop-shadow(0 0 12px rgba(219, 108, 66, 0.55));
+      transform: scale(1.05);
+    }
+  }
+
+  .mobileBrand {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(25, 23, 27, 0.72);
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+
+  .mobileDot {
+    font-size: 11px;
+    color: rgba(25, 23, 27, 0.35);
+    line-height: 1;
+  }
+
+  .mobilePartner {
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(25, 23, 27, 0.72);
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+}

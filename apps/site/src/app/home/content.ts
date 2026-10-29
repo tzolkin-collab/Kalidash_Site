@@ -32,14 +32,13 @@ export const nav: NavItem[] = [
     ],
   },
   { label: "Sobre nós", href: "/sobre-nos" },
-  { label: "Cases", href: "/#experiencia" },
   { label: "Blog", href: "/blog" },
   {
     label: "Produtos",
     href: "/solucoes",
     children: [
-      { label: "Kognis", href: "/solucoes#kognis", hint: "IA para advocacia trabalhista" },
-      { label: "Spectra AI", href: "/solucoes#spectra-ai", hint: "Visão computacional na operação" },
+      { label: "Kognis", href: "/kognis", hint: "IA para advocacia trabalhista" },
+      { label: "Spectra AI", href: "/spectra", hint: "Visão computacional na operação" },
     ],
   },
 ];
@@ -106,14 +105,14 @@ export const problem = {
   /* Depoimentos pareados aos cards 02 e 03 (exibidos no empilhamento mobile). Substituir por depoimentos reais. */
   pairedQuotes: [
     {
-      text: "Já tínhamos várias ferramentas de IA, mas nenhuma mudava o resultado. A Kalidash conectou tudo à nossa rotina.",
-      author: "Camila Duarte",
-      role: "head de produto",
+      text: "Saí do treinamento sabendo exatamente o que aplicar na minha rotina. Menos teoria, mais operação.",
+      author: "Daniel",
+      role: "participante de treinamento Kalidash",
     },
     {
-      text: "Hoje comercial, operação e tecnologia falam a mesma língua. As decisões deixaram de travar no meio do caminho.",
-      author: "Eduardo Lima",
-      role: "CEO",
+      text: "A IA deixou de ser promessa e virou parte do trabalho. Hoje a equipe sabe onde usar e por quê.",
+      author: "Larissa",
+      role: "participante de treinamento Kalidash",
     },
   ] as Array<{ text: string; author: string; role: string }>,
   hologramTags: [
@@ -198,15 +197,21 @@ export const caseCba = {
   title: "Captura Inteligente do Conhecimento",
   text: "O que se decidia nas reuniões diárias de rotina ficava só na memória de quem estava na sala. Criamos uma solução de IA que transcreve essas conversas, mesmo com ruído industrial, e as transforma em dado estruturado: problema, solução, criticidade e prazo, validados por quem conhece o processo.",
   badge: "Finalista Prêmio Inovativos 2026 — categoria Dados, Insights e Decisão",
-  cta: { label: "Ver o case completo", href: "/cases/cba" },
+  cta: { label: "Ver o case completo", href: "/blog?categoria=cases" },
   pageReady: false,
+  image: {
+    src: "/home/g21-cba-premio.jpg",
+    alt: "CBA e Kalidash no Prêmio Inovativos 2026",
+    width: 1000,
+    height: 563,
+  },
 };
 
 export const testimonial = {
   eyebrow: "Quem viveu a transformação",
   title: "O que muda quando a tecnologia chega ao trabalho real.",
   /* Alt. 8 da Carol (20/10/2026): três cards com foto, métrica e frase. Só o André é depoimento real;
-   * Camila e Eduardo são os mesmos textos provisórios já usados em "O problema" e precisam ser trocados por
+   * PROVISÓRIO (28/10/2026): Daniel e Larissa entraram no lugar de Camila/Eduardo com FRASE E CARGO PROVISÓRIOS (copy nossa, não é fala deles). Pedir à Carol o depoimento real, cargo/empresa e o ok de uso. Textos provisórios de antes, usados também em "O problema", precisam ser trocados por
    * depoimentos reais, com foto e, se houver, `metric` (ex.: { value: "R$ 100 mil", label: "em 45 dias" }). */
   cards: [
     {
@@ -217,17 +222,17 @@ export const testimonial = {
       metric: undefined as { value: string; label: string } | undefined,
     },
     {
-      quote: "Já tínhamos várias ferramentas de IA, mas nenhuma mudava o resultado. A Kalidash conectou tudo à nossa rotina.",
-      author: "Camila Duarte",
-      role: "head de produto",
-      photo: undefined,
+      quote: "Saí do treinamento sabendo exatamente o que aplicar na minha rotina. Menos teoria, mais operação.",
+      author: "Daniel",
+      role: "participante de treinamento Kalidash",
+      photo: "/depoimentos/daniel.jpg",
       metric: undefined,
     },
     {
-      quote: "Hoje comercial, operação e tecnologia falam a mesma língua. As decisões deixaram de travar no meio do caminho.",
-      author: "Eduardo Lima",
-      role: "CEO",
-      photo: undefined,
+      quote: "A IA deixou de ser promessa e virou parte do trabalho. Hoje a equipe sabe onde usar e por quê.",
+      author: "Larissa",
+      role: "participante de treinamento Kalidash",
+      photo: "/depoimentos/larissa.jpg",
       metric: undefined,
     },
   ],
@@ -290,8 +295,8 @@ export const footer = {
     {
       title: "Produtos",
       links: [
-        { label: "Kognis", href: "/solucoes#kognis" },
-        { label: "Spectra AI", href: "/solucoes#spectra-ai" },
+        { label: "Kognis", href: "/kognis" },
+        { label: "Spectra AI", href: "/spectra" },
       ],
     },
     {

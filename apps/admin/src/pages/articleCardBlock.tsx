@@ -3,7 +3,7 @@ import { BlockNoteSchema, defaultBlockSpecs } from '@blocknote/core';
 import type { PartialBlock } from '@blocknote/core';
 import { createReactBlockSpec } from '@blocknote/react';
 import { Columns, Crop, ImagePlus, Layout, Trash2 } from 'lucide-react';
-import type { Article } from '../domain';
+import type { Article, BlogCategory } from '../domain';
 import { formatDate } from '../lib/format';
 import { uploadImageNotifying } from '../lib/blog';
 import { resolveAssetUrl } from '../lib/site';
@@ -21,7 +21,7 @@ export const CARD_TYPE = 'articleCard';
 
 /** articles: artigos de verdade; flashId: cartão a destacar (clique no preview). Vai por contexto
  *  porque o BlockNote recria o DOM do bloco ao atualizar props, o que apagaria uma classe posta à mão. */
-export const ArticleCardsContext = createContext<{ articles: Article[]; flashId: string | null }>({ articles: [], flashId: null });
+export const ArticleCardsContext = createContext<{ articles: Article[]; categories?: BlogCategory[]; flashId: string | null }>({ articles: [], categories: [], flashId: null });
 
 /** Índice deste cartão entre os cartões do documento; recalcula quando o documento muda
  *  (arrastar um bloco não re-renderiza os vizinhos, então escutamos o editor). */
@@ -42,6 +42,7 @@ export const cardPropsFrom = (a: Article) => ({
   excerpt: a.excerpt,
   coverImageUrl: a.coverImageUrl ?? '',
   coverImagePos: a.coverImagePos ?? 50,
+  category: a.categories?.[0] ?? '',
   meta: cardMeta(a),
   authorName: a.authorName || 'Equipe Kalidash',
 });
@@ -56,13 +57,14 @@ const createArticleCard = createReactBlockSpec(
       excerpt: { default: '' },
       coverImageUrl: { default: '' },
       coverImagePos: { default: 50 },
+      category: { default: '' },
       meta: { default: '' },
       authorName: { default: '' },
     },
   },
   {
     render: ({ block, editor }) => {
-      const { articles, flashId } = useContext(ArticleCardsContext);
+      const { articles, categories = [], flashId } = useContext(ArticleCardsContext);
       const index = useCardIndex(editor as never, block.id);
       const p = block.props;
       const patch = (props: Partial<typeof p>) => editor.updateBlock(block, { props });
@@ -88,9 +90,34 @@ const createArticleCard = createReactBlockSpec(
             ? <img className="gcard-cover" src={resolveAssetUrl(p.coverImageUrl)} alt="" style={{ objectPosition: `50% ${p.coverImagePos}%` }} />
             : <div className="gcard-cover gcard-cover-empty">sem capa</div>}
           <div className="gcard-main">
-            <div className="gcard-meta">
+            <div className="gcard-meta" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               {index === 0 && <em>Destaque</em>}
-              <span>{p.meta}</span>
+              {categories.length > 0 ? (
+                <select
+                  className="input"
+                  style={{ height: '24px', padding: '0 8px', fontSize: '11px', width: 'auto', fontWeight: 600 }}
+                  value={p.category || ''}
+                  onChange={(e) => {
+                    const nextCat = e.target.value;
+                    const datePart = p.meta.includes('·') ? p.meta.split('·').slice(1).join('·').trim() : 'Em breve';
+                    patch({ category: nextCat, meta: `${nextCat || 'Kalidash'} · ${datePart}` });
+                  }}
+                  title="Categoria principal exibida no cartão"
+                >
+                  <option value="">Sem categoria</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.name}>{c.name}</option>
+                  ))}
+                  {p.category && !categories.some((c) => c.name.toLowerCase() === p.category.toLowerCase()) && (
+                    <option value={p.category}>{p.category}</option>
+                  )}
+                </select>
+              ) : (
+                <span>{p.meta}</span>
+              )}
+              {categories.length > 0 && p.meta.includes('·') && (
+                <span>· {p.meta.split('·').slice(1).join('·').trim()}</span>
+              )}
             </div>
             <input className="gcard-title" value={p.title} placeholder="Título" onChange={(e) => patch({ title: e.target.value })} />
             <textarea className="gcard-excerpt" value={p.excerpt} rows={2} placeholder="Resumo" onChange={(e) => patch({ excerpt: e.target.value })} />

@@ -20,6 +20,10 @@ const ROW_1: PhotoItem[] = [
   { src: "/home/g07-cooxupe.jpg", alt: "Cooxupé ∙ N8N para T.I", tag: "Cooxupé ∙ N8N para T.I" },
   { src: "/home/g08-clealco.jpg", alt: "Clealco ∙ IA para alta liderança", tag: "Clealco ∙ IA para alta liderança" },
   { src: "/home/g09-nexa.jpg", alt: "Nexa Resources ∙ IA para jurídico", tag: "Nexa Resources ∙ IA para jurídico" },
+  // Fotos novas enviadas pela Carol em 21/10/2026 (Drive "fotos dos treinamentos").
+  { src: "/home/g17-fdc-tech-week-1.jpg", alt: "Fundação Dom Cabral ∙ Tech Week", tag: "Fundação Dom Cabral ∙ Tech Week" },
+  { src: "/home/g19-sifra-1.jpg", alt: "Grupo Sifra ∙ Treinamento de Claude e Lovable", tag: "Grupo Sifra ∙ Treinamento de Claude e Lovable" },
+  { src: "/home/g21-cba-premio.jpg", alt: "CBA ∙ Finalista Prêmio Inovativos 2026", tag: "CBA ∙ Finalista Prêmio Inovativos 2026" },
 ];
 
 const ROW_2: PhotoItem[] = [
@@ -31,6 +35,8 @@ const ROW_2: PhotoItem[] = [
   { src: "/home/g15-sky.jpg", alt: "SKY ∙ IA para produtos", tag: "SKY ∙ IA para produtos" },
   { src: "/home/g16-votorantim.jpg", alt: "Votorantim ∙ Análise de Dados suportada por IA", tag: "Votorantim ∙ Análise de Dados suportada por IA" },
   { src: "/home/evento-sala.jpg", alt: "Treinamento Corporativo", tag: "Treinamento Corporativo" },
+  { src: "/home/g18-fdc-tech-week-2.jpg", alt: "Fundação Dom Cabral ∙ Tech Week", tag: "Fundação Dom Cabral ∙ Tech Week" },
+  { src: "/home/g20-sifra-2.jpg", alt: "Grupo Sifra ∙ Treinamento de Claude e Lovable", tag: "Grupo Sifra ∙ Treinamento de Claude e Lovable" },
 ];
 
 // Duplicamos as listas para permitir loop contínuo infinito e sem emendas
@@ -150,6 +156,8 @@ export default function ExperienceSyncGallery() {
             <img
               src={item.src}
               alt={item.alt}
+              width={280}
+              height={184}
               loading="lazy"
               decoding="async"
               className={styles.syncImg}
@@ -174,6 +182,8 @@ export default function ExperienceSyncGallery() {
             <img
               src={item.src}
               alt={item.alt}
+              width={280}
+              height={184}
               loading="lazy"
               decoding="async"
               className={styles.syncImg}

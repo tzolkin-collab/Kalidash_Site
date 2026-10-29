@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import styles from "./SidebarMenu.module.css";
@@ -13,16 +13,19 @@ interface SidebarMenuProps {
   onClose: () => void;
 }
 
+const subscribeNoop = () => () => {};
+
 export default function SidebarMenu({
   isOpen,
   onClose,
 }: SidebarMenuProps) {
-  const [mounted, setMounted] = useState(false);
+  // true apenas no cliente (false durante SSR/hidratação), sem setState dentro de effect.
+  const mounted = useSyncExternalStore(
+    subscribeNoop,
+    () => true,
+    () => false,
+  );
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Bloqueio de scroll do body e listener para ESC
   useEffect(() => {

@@ -32,7 +32,8 @@ type LeadDTO struct {
 	Tags                   []string       `json:"tags"`
 	Message                string         `json:"message,omitempty"`
 	Status                 string         `json:"status"` // ACTIVE | QUALIFIED | DISCARDED
-	DiscardReason          string         `json:"discardReason,omitempty"`
+	DiscardReason          string         `json:"discardReason,omitempty"` // da lista do funil (Pipeline.config.lostReasons), WP4-2
+	DiscardNote            string         `json:"discardNote,omitempty"`   // texto livre; obrigatório quando o motivo é "Outro"
 	WasSeen                bool           `json:"wasSeen"`
 	FirstContactAt         *FlexTime      `json:"firstContactAt,omitempty"`
 	ConvertedOpportunityID string         `json:"convertedOpportunityId,omitempty"`
@@ -55,6 +56,7 @@ func validateLeadRecord(l *LeadDTO) error {
 	l.Owner = clean(l.Owner, 120)
 	l.Message = clean(l.Message, 4000)
 	l.DiscardReason = clean(l.DiscardReason, 255)
+	l.DiscardNote = clean(l.DiscardNote, 500)
 	l.Tags = cleanStrings(l.Tags, 60)
 	if l.Name == "" {
 		return errors.New("o lead precisa de um nome")
@@ -103,18 +105,18 @@ func validateLeadRecord(l *LeadDTO) error {
 // LEAD é palavra reservada no MySQL 8: sempre citada.
 const leadTbl = "`Lead`"
 
-const leadCols = `id, name, email, phone, personId, companyId, pipelineId, stageId, origin, sourceName, owner, estimatedValue, expectedCloseAt, tags, message, status, discardReason, wasSeen, firstContactAt, convertedOpportunityId, returningClient, customData, archivedAt, createdAt, ownerMemberId`
+const leadCols = `id, name, email, phone, personId, companyId, pipelineId, stageId, origin, sourceName, owner, estimatedValue, expectedCloseAt, tags, message, status, discardReason, wasSeen, firstContactAt, convertedOpportunityId, returningClient, customData, archivedAt, createdAt, ownerMemberId, discardNote`
 
 func scanLead(sc interface{ Scan(...any) error }) (LeadDTO, error) {
 	var l LeadDTO
-	var ownerMember, phone, person, company, owner, expected, message, discard, firstContact, converted, archived, created sql.NullString
+	var discardNote, ownerMember, phone, person, company, owner, expected, message, discard, firstContact, converted, archived, created sql.NullString
 	var value sql.NullFloat64
 	var tags, custom []byte
 	if err := sc.Scan(&l.ID, &l.Name, &l.Email, &phone, &person, &company, &l.PipelineID, &l.StageID, &l.Origin, &l.SourceName, &owner, &value, &expected, &tags, &message, &l.Status, &discard,
-		&l.WasSeen, &firstContact, &converted, &l.ReturningClient, &custom, &archived, &created, &ownerMember); err != nil {
+		&l.WasSeen, &firstContact, &converted, &l.ReturningClient, &custom, &archived, &created, &ownerMember, &discardNote); err != nil {
 		return l, err
 	}
-	l.OwnerID = ownerMember.String
+	l.OwnerID, l.DiscardNote = ownerMember.String, discardNote.String
 	l.Phone, l.PersonID, l.CompanyID, l.Owner, l.Message, l.DiscardReason, l.ConvertedOpportunityID = phone.String, person.String, company.String, owner.String, message.String, discard.String, converted.String
 	if value.Valid {
 		l.EstimatedValue = &value.Float64
@@ -128,16 +130,16 @@ func scanLead(sc interface{ Scan(...any) error }) (LeadDTO, error) {
 func saveLeadRecord(l *LeadDTO, replace bool) error {
 	now := time.Now()
 	if !replace {
-		_, err := db.Exec(`INSERT INTO `+leadTbl+` (id, name, email, phone, personId, companyId, pipelineId, stageId, origin, sourceName, owner, estimatedValue, expectedCloseAt, tags, message, status, discardReason, wasSeen, firstContactAt, convertedOpportunityId, returningClient, customData, archivedAt, createdAt, updatedAt, ownerMemberId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		_, err := db.Exec(`INSERT INTO `+leadTbl+` (id, name, email, phone, personId, companyId, pipelineId, stageId, origin, sourceName, owner, estimatedValue, expectedCloseAt, tags, message, status, discardReason, wasSeen, firstContactAt, convertedOpportunityId, returningClient, customData, archivedAt, createdAt, updatedAt, ownerMemberId, discardNote) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			l.ID, l.Name, l.Email, nullStr(l.Phone), nullStr(l.PersonID), nullStr(l.CompanyID), l.PipelineID, l.StageID, l.Origin, l.SourceName, nullStr(l.Owner), l.EstimatedValue, ptrTime(l.ExpectedCloseAt),
 			jsonOrNull(l.Tags), nullStr(l.Message), l.Status, nullStr(l.DiscardReason), l.WasSeen, ptrTime(l.FirstContactAt), nullStr(l.ConvertedOpportunityID), l.ReturningClient, jsonOrNull(l.CustomData),
-			ptrTime(l.ArchivedAt), now, now, nullStr(l.OwnerID))
+			ptrTime(l.ArchivedAt), now, now, nullStr(l.OwnerID), nullStr(l.DiscardNote))
 		return err
 	}
-	res, err := db.Exec(`UPDATE `+leadTbl+` SET name = ?, email = ?, phone = ?, personId = ?, companyId = ?, pipelineId = ?, stageId = ?, origin = ?, sourceName = ?, owner = ?, estimatedValue = ?, expectedCloseAt = ?, tags = ?, message = ?, status = ?, discardReason = ?, wasSeen = ?, firstContactAt = ?, convertedOpportunityId = ?, returningClient = ?, customData = ?, archivedAt = ?, updatedAt = ?, ownerMemberId = ? WHERE id = ?`,
+	res, err := db.Exec(`UPDATE `+leadTbl+` SET name = ?, email = ?, phone = ?, personId = ?, companyId = ?, pipelineId = ?, stageId = ?, origin = ?, sourceName = ?, owner = ?, estimatedValue = ?, expectedCloseAt = ?, tags = ?, message = ?, status = ?, discardReason = ?, wasSeen = ?, firstContactAt = ?, convertedOpportunityId = ?, returningClient = ?, customData = ?, archivedAt = ?, updatedAt = ?, ownerMemberId = ?, discardNote = ? WHERE id = ?`,
 		l.Name, l.Email, nullStr(l.Phone), nullStr(l.PersonID), nullStr(l.CompanyID), l.PipelineID, l.StageID, l.Origin, l.SourceName, nullStr(l.Owner), l.EstimatedValue, ptrTime(l.ExpectedCloseAt),
 		jsonOrNull(l.Tags), nullStr(l.Message), l.Status, nullStr(l.DiscardReason), l.WasSeen, ptrTime(l.FirstContactAt), nullStr(l.ConvertedOpportunityID), l.ReturningClient, jsonOrNull(l.CustomData),
-		ptrTime(l.ArchivedAt), now, nullStr(l.OwnerID), l.ID)
+		ptrTime(l.ArchivedAt), now, nullStr(l.OwnerID), nullStr(l.DiscardNote), l.ID)
 	if err != nil {
 		return err
 	}
@@ -236,6 +238,10 @@ func handleCRMLeads(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+		if err := leadLifecycleRules(&l, nil); err != nil { // WP4-2: QUALIFIED só por .../qualify; descarte com motivo da lista
+			writeLinkErr(w, err)
+			return
+		}
 		if workflowEnabled() { // WP4-1: nasce em etapa que existe no funil e que o gate deixa entrar (consulta: nada é gravado)
 			blockers, err := leadStageGuard(&l, "", false)
 			if err != nil {
@@ -329,6 +335,11 @@ func handleCRMLeadByID(w http.ResponseWriter, r *http.Request) {
 		if !canChangeOrigin(w, r, &l) {
 			return
 		}
+		// WP4-2: não qualifica pelo PUT (só por .../qualify); o descarte pede motivo da lista; restaurar limpa o motivo.
+		if err := leadLifecycleRules(&l, &cur); err != nil {
+			writeLinkErr(w, err)
+			return
+		}
 		// WP4-1: mudar de etapa (ou de funil) exige etapa que existe no funil do lead e respeita o gate (ENTER no
 		// destino, EXIT na origem). Barrado: 409 e a tarefa do requisito nasce, como no move da oportunidade.
 		if workflowEnabled() && (l.StageID != cur.StageID || l.PipelineID != cur.PipelineID) {
@@ -351,6 +362,7 @@ func handleCRMLeadByID(w http.ResponseWriter, r *http.Request) {
 			writeErr(w, err)
 			return
 		}
+		logLeadStatusChange(r, cur, got)
 		writeJSON(w, http.StatusOK, got)
 	case http.MethodDelete:
 		if _, ok := ownedOnly(true); !ok {

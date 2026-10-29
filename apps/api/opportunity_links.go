@@ -25,8 +25,10 @@ import (
 // oppQuery monta o SELECT das oportunidades. where começa com " WHERE …" ou é vazio.
 func oppQuery(where string) string {
 	ownerMember, ownerName, ownerAvatar, join := "NULL", "u.name", "u.avatarUrl", ""
+	lostReason, lostNote := "NULL", "NULL"
 	if crmEnabled() {
 		ownerMember = "o.ownerMemberId"
+		lostReason, lostNote = "o.lostReason", "o.lostReasonNote" // colunas do CRM (crm_schema.go)
 		if authEnabled() {
 			ownerName, ownerAvatar = "COALESCE(NULLIF(tm.name, ''), tm.email, u.name)", "COALESCE(NULLIF(tm.avatarUrl, ''), u.avatarUrl)"
 			join = " LEFT JOIN TeamMember tm ON tm.id = o.ownerMemberId"
@@ -35,7 +37,7 @@ func oppQuery(where string) string {
 	return `SELECT o.id, o.title, o.value, o.stage, o.priority, o.tags, o.createdAt, o.wonAt,
 			o.companyId, c.name, c.logoUrl,
 			o.contactId, p.name, p.avatarUrl,
-			o.ownerId, ` + ownerName + `, ` + ownerAvatar + `, ` + ownerMember + `
+			o.ownerId, ` + ownerName + `, ` + ownerAvatar + `, ` + ownerMember + `, ` + lostReason + `, ` + lostNote + `
 		FROM Opportunity o
 		LEFT JOIN Company c ON o.companyId = c.id
 		LEFT JOIN Contact p ON o.contactId = p.id
@@ -51,7 +53,7 @@ func scanOpportunity(sc interface{ Scan(...any) error }) (Opportunity, error) {
 		&o.ID, &o.Title, &o.Value, &o.Stage, &o.Priority, &tagsJSON, &createdAt, &wonAt,
 		&o.CompanyID, &o.CompanyName, &o.CompanyLogo,
 		&o.ContactID, &o.ContactName, &o.ContactAvatar,
-		&o.OwnerID, &o.OwnerName, &o.OwnerAvatar, &o.OwnerMemberID,
+		&o.OwnerID, &o.OwnerName, &o.OwnerAvatar, &o.OwnerMemberID, &o.LostReason, &o.LostReasonNote,
 	); err != nil {
 		return o, err
 	}
@@ -231,6 +233,20 @@ func createOpportunity(w http.ResponseWriter, r *http.Request) {
 		if pid != "" {
 			add("pipelineId", pid)
 		}
+		if lostReasonActive() && gateStage != "" { // WP4-2: nascer já Perdida também pede o motivo
+			if kind, err := stageKindOf(gateStage); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			} else if kind == "LOST" {
+				reason, note, err := checkLostReason(pid, pr.linkValue("lostReason"), pr.linkValue("lostReasonNote"))
+				if err != nil {
+					writeLinkErr(w, err)
+					return
+				}
+				add("lostReason", reason)
+				add("lostReasonNote", nullStr(note))
+			}
+		}
 	}
 	for _, l := range []struct{ key, col, table string }{{"contactId", "contactId", "Contact"}, {"companyId", "companyId", "Company"}} {
 		if id := pr.linkValue(l.key); pr.has(l.key) && id != "" {
@@ -341,6 +357,25 @@ func updateOpportunity(w http.ResponseWriter, r *http.Request) {
 			sets, args = append(sets, "ownerMemberId = ?"), append(args, id)
 		} else if crmEnabled() {
 			sets = append(sets, "ownerMemberId = NULL")
+		}
+	}
+	if lostReasonActive() && pr.has("lostReason") { // WP4-2: corrigir o motivo de uma oportunidade que já está Perdida
+		var stage string
+		var pipeCol sql.NullString
+		if err := db.QueryRow(`SELECT stage, pipelineId FROM Opportunity WHERE id = ?`, opp.ID).Scan(&stage, &pipeCol); err == nil {
+			pid, perr := oppPipeline(pipeCol, stage)
+			gateStage := ""
+			if perr == nil {
+				gateStage, perr = effectiveStage(stage, pid)
+			}
+			if kind, kerr := stageKindOf(gateStage); perr == nil && kerr == nil && kind == "LOST" {
+				reason, note, cerr := checkLostReason(pid, pr.linkValue("lostReason"), pr.linkValue("lostReasonNote"))
+				if cerr != nil {
+					writeLinkErr(w, cerr)
+					return
+				}
+				sets, args = append(sets, "lostReason = ?", "lostReasonNote = ?"), append(args, reason, nullStr(note))
+			}
 		}
 	}
 	res, err := db.Exec(`UPDATE Opportunity SET `+strings.Join(sets, ", ")+` WHERE id = ?`, append(args, opp.ID)...)
