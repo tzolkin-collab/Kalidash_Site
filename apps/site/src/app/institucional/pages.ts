@@ -278,12 +278,6 @@ export const sobreNos: PageContent = {
         { label: "Execução", href: "/execucao" },
       ],
     },
-    {
-      type: "cta",
-      title: "Se a sua operação ainda trabalha como antes, a gente sabe por onde começar.",
-      text: "Já estivemos onde você está. Conte o momento da sua empresa e vamos conversar.",
-      cta: { label: "Fale com a Kalidash", href: diagnostico },
-    },
   ],
 };
 
