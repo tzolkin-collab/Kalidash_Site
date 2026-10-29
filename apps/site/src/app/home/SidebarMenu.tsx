@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import styles from "./SidebarMenu.module.css";
 import BrandLogo from "../components/BrandLogo";
 import { config, nav, navCta } from "./content";
-import { ArrowRight, Close, Facebook, Instagram, Linkedin, WhatsApp, Youtube } from "./icons";
+import { ArrowRight, ChevronDown, Close, Facebook, Instagram, Linkedin, WhatsApp, Youtube } from "./icons";
 
 interface SidebarMenuProps {
   isOpen: boolean;
@@ -19,13 +19,13 @@ export default function SidebarMenu({
   isOpen,
   onClose,
 }: SidebarMenuProps) {
-  // true apenas no cliente (false durante SSR/hidratação), sem setState dentro de effect.
   const mounted = useSyncExternalStore(
     subscribeNoop,
     () => true,
     () => false,
   );
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
 
   // Bloqueio de scroll do body e listener para ESC
   useEffect(() => {
@@ -55,6 +55,10 @@ export default function SidebarMenu({
 
   if (!mounted) return null;
 
+  const toggleGroup = (label: string) => {
+    setExpandedGroup((prev) => (prev === label ? null : label));
+  };
+
   const content = (
     <>
       <div
@@ -73,6 +77,7 @@ export default function SidebarMenu({
         aria-label="Menu principal"
       >
         <div className={styles.sheetInner}>
+          {/* Topo da Gaveta */}
           <div className={styles.topBar}>
             <Link
               href="/"
@@ -94,61 +99,84 @@ export default function SidebarMenu({
             </button>
           </div>
 
+          {/* Faixa decorativa superior da marca no lugar do border cinza */}
+          <div className={styles.menuStripTop} aria-hidden="true" />
+
+          {/* Seção de Navegação Principal */}
           <nav className={styles.navSection} aria-label="Navegação">
             <ul className={styles.navList}>
               {nav.map((item, index) => {
-                const isAnchor = !item.href.startsWith("/");
-                const formattedIndex = String(index + 1).padStart(2, "0");
+                const hasChildren = Boolean(item.children && item.children.length > 0);
+                const isExpanded = expandedGroup === item.label;
 
                 return (
                   <li
-                    key={item.href}
+                    key={item.label}
                     className={styles.navItem}
                     style={{ "--delay": index } as React.CSSProperties}
                   >
-                    {isAnchor ? (
-                      <a
-                        href={item.href}
-                        className={styles.navLink}
-                        onClick={onClose}
-                      >
-                        <div className={styles.navLeft}>
-                          <span className={styles.navIndex}>{formattedIndex}</span>
+                    {hasChildren ? (
+                      <>
+                        <button
+                          type="button"
+                          className={styles.groupToggle}
+                          onClick={() => toggleGroup(item.label)}
+                          aria-expanded={isExpanded}
+                        >
                           <span className={styles.navLabel}>{item.label}</span>
-                        </div>
-                        <div className={styles.navRight}>
-                          <span className={styles.arrowIcon}>
-                            <ArrowRight />
+                          <span
+                            className={styles.chevronWrap}
+                            data-expanded={isExpanded}
+                            aria-hidden="true"
+                          >
+                            <ChevronDown />
                           </span>
+                        </button>
+
+                        <div
+                          className={styles.subListWrap}
+                          data-expanded={isExpanded}
+                        >
+                          <ul className={styles.subList}>
+                            {item.children?.map((child) => (
+                              <li key={child.href}>
+                                <Link
+                                  href={child.href}
+                                  className={styles.subLink}
+                                  onClick={onClose}
+                                >
+                                  <span className={styles.subTitle}>{child.label}</span>
+                                  <span className={styles.subArrow} aria-hidden="true">
+                                    <ArrowRight />
+                                  </span>
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
                         </div>
-                      </a>
-                    ) : (
+                      </>
+                    ) : item.href.startsWith("/") ? (
                       <Link
                         href={item.href}
                         className={styles.navLink}
                         onClick={onClose}
                       >
-                        <div className={styles.navLeft}>
-                          <span className={styles.navIndex}>{formattedIndex}</span>
-                          <span className={styles.navLabel}>{item.label}</span>
-                        </div>
-                        <div className={styles.navRight}>
-                          <span className={styles.arrowIcon}>
-                            <ArrowRight />
-                          </span>
-                        </div>
+                        <span className={styles.navLabel}>{item.label}</span>
+                        <span className={styles.arrowIcon} aria-hidden="true">
+                          <ArrowRight />
+                        </span>
                       </Link>
-                    )}
-                    {item.children && (
-                      <ul className={styles.subList}>
-                        {item.children.map((child) => (
-                          <li key={child.href}>
-                            <Link href={child.href} className={styles.subLink} onClick={onClose}>
-                              {child.label}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
+                    ) : (
+                      <a
+                        href={item.href}
+                        className={styles.navLink}
+                        onClick={onClose}
+                      >
+                        <span className={styles.navLabel}>{item.label}</span>
+                        <span className={styles.arrowIcon} aria-hidden="true">
+                          <ArrowRight />
+                        </span>
+                      </a>
                     )}
                   </li>
                 );
@@ -156,6 +184,10 @@ export default function SidebarMenu({
             </ul>
           </nav>
 
+          {/* Faixa decorativa inferior da marca no lugar do border cinza */}
+          <div className={styles.menuStripBottom} aria-hidden="true" />
+
+          {/* Ações e CTAs */}
           <div className={styles.actions}>
             <Link
               href={navCta.href}
@@ -179,6 +211,7 @@ export default function SidebarMenu({
             )}
           </div>
 
+          {/* Rodapé da Gaveta */}
           <div className={styles.footer}>
             <div className={styles.socialGroup}>
               {config.social.instagram && (
@@ -227,7 +260,7 @@ export default function SidebarMenu({
               )}
             </div>
 
-            <span className={styles.footerNote}>Kalidash</span>
+            <span className={styles.footerNote}>© Kalidash · Eficiência Operacional</span>
           </div>
         </div>
       </aside>

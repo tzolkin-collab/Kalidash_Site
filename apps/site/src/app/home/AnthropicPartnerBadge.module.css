@@ -232,7 +232,7 @@
    Design ultra-minimalista: monocromático na cor do verified partner,
    sem fundo laranja, com a logo do Claude brilhando com glow radiante
    ============================================================ */
-@media (max-width: 640px) {
+@media (max-width: 820px) {
   .badge {
     width: auto !important;
     min-width: 0 !important;

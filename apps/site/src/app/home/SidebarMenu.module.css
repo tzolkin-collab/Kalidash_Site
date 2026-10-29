@@ -1,20 +1,20 @@
 /* ============================================================
-   KALIDASH — SIDEBAR MENU (EDITORIAL & MINIMALIST)
-   Identidade: Clean, Editorial, Branco/Off-white (#fff, #faf9f6)
-   Cores: Ink (#28183b), Terracotta (#b6644d), Linhas (#ece8e1)
+   KALIDASH — SIDEBAR MENU (EDITORIAL & ELEVATED DESIGN)
+   Identidade: Clean, Editorial, Neoclássico com Bordas da Marca
+   Cores: Ink (#19171b), Terracotta (#b6644d), Fundo (#ffffff)
    ============================================================ */
 
 .overlay {
   position: fixed;
   inset: 0;
   z-index: 999;
-  background: rgba(30, 18, 40, 0.48);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(18, 14, 22, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-              visibility 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0.32s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .overlay[data-open="true"] {
@@ -28,22 +28,21 @@
   right: 0;
   bottom: 0;
   z-index: 1000;
-  width: min(420px, 88vw);
+  width: min(440px, 92vw);
   height: 100dvh;
   display: flex;
   flex-direction: column;
   background: #ffffff;
-  border-left: 1px solid #eeebe4;
-  box-shadow: -12px 0 40px rgba(40, 24, 59, 0.12);
-  color: var(--ink, #28183b);
+  box-shadow: -16px 0 48px rgba(25, 23, 27, 0.16);
+  color: var(--ink, #19171b);
   transform: translateX(100%);
   visibility: hidden;
-  transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1),
-              visibility 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
-  scrollbar-color: #ddd transparent;
+  scrollbar-color: rgba(25, 23, 27, 0.15) transparent;
 }
 
 .sheet[data-open="true"] {
@@ -64,8 +63,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 22px;
-  border-bottom: 1px solid #f0ece5;
+  padding-bottom: 20px;
 }
 
 .brandLink {
@@ -77,19 +75,21 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background: #faf8f5;
-  border: 1px solid #e8e4dc;
-  color: var(--ink, #28183b);
+  border: 1px solid #eae6de;
+  color: var(--ink, #19171b);
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.closeButton:hover {
+.closeButton:hover,
+.closeButton:active {
   background: #f2eee6;
-  border-color: var(--ink, #28183b);
+  border-color: var(--accent, #b6644d);
+  color: var(--accent, #b6644d);
   transform: rotate(90deg);
 }
 
@@ -98,11 +98,39 @@
   height: 18px;
 }
 
-/* ---- Navegação ---- */
+/* ---- Faixas Decorativas da Marca no lugar dos borders convencionais ---- */
+.menuStripTop {
+  width: calc(100% + 56px);
+  margin-left: -28px;
+  height: 18px;
+  background-image: url("/home/pattern-chevron.png");
+  background-repeat: repeat-x;
+  background-position: center;
+  background-size: auto 18px;
+  opacity: 0.35;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.menuStripBottom {
+  width: calc(100% + 56px);
+  margin-left: -28px;
+  height: 16px;
+  background-image: url("/home/pattern-greek.png");
+  background-repeat: repeat-x;
+  background-position: center;
+  background-size: auto 16px;
+  opacity: 0.35;
+  margin-top: 24px;
+  margin-bottom: 24px;
+  flex-shrink: 0;
+}
+
+/* ---- Navegação Principal ---- */
 .navSection {
-  margin-top: 32px;
-  margin-bottom: 32px;
   flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .navList {
@@ -111,114 +139,179 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 
 .navItem {
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateY(8px);
   transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  transition-delay: calc(var(--delay) * 40ms + 60ms);
+  transition-delay: calc(var(--delay) * 45ms + 50ms);
 }
-
-.subList {
-  list-style: none;
-  margin: 0 0 8px;
-  padding: 0 0 0 44px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.subLink {
-  display: block;
-  padding: 6px 0;
-  font-size: 15px;
-  color: inherit;
-  opacity: 0.7;
-  text-decoration: none;
-}
-
-.subLink:hover { opacity: 1; }
 
 .sheet[data-open="true"] .navItem {
   opacity: 1;
   transform: translateY(0);
 }
 
+/* Linha de Link Direto (Sobre nós, Blog) */
 .navLink {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 10px;
-  border-bottom: 1px solid #f6f3ee;
+  padding: 12px 14px;
+  border-radius: 8px;
   text-decoration: none;
-  color: var(--ink, #28183b);
-  transition: all 0.2s ease;
+  color: var(--ink, #19171b);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.navLink:hover {
-  transform: translateX(4px);
+.navLink:hover,
+.navLink:active {
+  background: #fbf9f5;
   color: var(--accent, #b6644d);
-  border-bottom-color: var(--accent, #b6644d);
-}
-
-.navLeft {
-  display: flex;
-  align-items: baseline;
-  gap: 16px;
-}
-
-.navIndex {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  color: #a49ea8;
-  font-family: var(--font-title, sans-serif);
-  transition: color 0.2s ease;
-}
-
-.navLink:hover .navIndex {
-  color: var(--accent, #b6644d);
+  transform: translateX(3px);
 }
 
 .navLabel {
   font-family: var(--font-title, sans-serif);
-  font-size: 21px;
+  font-size: 20px;
   font-weight: 500;
   letter-spacing: -0.025em;
   color: inherit;
-}
-
-.navRight {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .arrowIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #c4bfc7;
+  color: #a49ea8;
   transition: all 0.2s ease;
 }
 
-.navLink:hover .arrowIcon {
+.navLink:hover .arrowIcon,
+.navLink:active .arrowIcon {
   color: var(--accent, #b6644d);
   transform: translateX(3px);
 }
 
 .arrowIcon svg {
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
+}
+
+/* Linha de Grupo com Acordeão (Para empresas, Produtos) */
+.groupToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink, #19171b);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.groupToggle:hover,
+.groupToggle:active {
+  background: #fbf9f5;
+  color: var(--accent, #b6644d);
+}
+
+.chevronWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a49ea8;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
+}
+
+.chevronWrap svg {
+  width: 18px;
+  height: 18px;
+}
+
+.chevronWrap[data-expanded="true"] {
+  transform: rotate(180deg);
+  color: var(--accent, #b6644d);
+}
+
+/* Lista Aninhada de Subitens */
+.subListWrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+  opacity: 0;
+}
+
+.subListWrap[data-expanded="true"] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.subList {
+  list-style: none;
+  margin: 2px 0 6px 14px;
+  padding: 2px 0 2px 12px;
+  border-left: 2px solid rgba(182, 100, 77, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.subLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.18s ease;
+}
+
+.subLink:hover,
+.subLink:active {
+  background: #faf7f2;
+}
+
+.subTitle {
+  font-family: var(--font-title, sans-serif);
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--ink, #19171b);
+  letter-spacing: -0.01em;
+}
+
+.subArrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c4bfc7;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: all 0.18s ease;
+}
+
+.subArrow svg {
+  width: 14px;
+  height: 14px;
+}
+
+.subLink:hover .subArrow,
+.subLink:active .subArrow {
+  opacity: 1;
+  color: var(--accent, #b6644d);
+  transform: translateX(0);
 }
 
 /* ---- Ações Inferiores ---- */
 .actions {
-  margin-top: auto;
-  padding-top: 24px;
-  border-top: 1px solid #f0ece5;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -230,43 +323,53 @@
   justify-content: center;
   gap: 10px;
   width: 100%;
-  height: 48px;
+  min-height: 52px;
   padding: 0 20px;
-  border-radius: 4px;
+  border-radius: 6px;
   background: var(--accent, #b6644d);
   border: 1px solid var(--accent, #b6644d);
-  color: #fff;
+  color: #ffffff;
   font-family: var(--font-title, sans-serif);
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
   text-decoration: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(182, 100, 77, 0.2);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.ctaButton:hover {
+.ctaButton:hover,
+.ctaButton:active {
   background: #a35641;
   border-color: #a35641;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(182, 100, 77, 0.25);
+  box-shadow: 0 6px 18px rgba(182, 100, 77, 0.28);
 }
 
 .ctaButton svg {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
+  transition: transform 0.2s ease;
+}
+
+.ctaButton:hover svg,
+.ctaButton:active svg {
+  transform: translateX(3px);
 }
 
 .whatsappLink {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
-  height: 44px;
-  border-radius: 8px;
-  background: #fbfbf9;
-  border: 1px solid #e8e4dc;
-  color: #2e7d32;
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 6px;
+  background: #faf8f5;
+  border: 1px solid #eae5dc;
+  color: #19171b;
+  font-family: var(--font-title, sans-serif);
   font-size: 14px;
   font-weight: 500;
   text-decoration: none;
@@ -274,74 +377,63 @@
   transition: all 0.2s ease;
 }
 
-.whatsappLink:hover {
-  background: #f4fbf4;
-  border-color: #a5d6a7;
+.whatsappLink:hover,
+.whatsappLink:active {
+  background: #f2eee4;
+  border-color: #25D366;
+  color: #128C7E;
 }
 
 .whatsappLink svg {
-  width: 18px;
-  height: 18px;
+  width: 19px;
+  height: 19px;
+  color: #25D366;
 }
 
-/* ---- Rodapé com Redes Sociais ---- */
+/* ---- Rodapé da Gaveta ---- */
 .footer {
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid #f6f3ee;
+  margin-top: 24px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 14px;
 }
 
 .socialGroup {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .socialLink {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   background: #faf8f5;
-  border: 1px solid #ebe7df;
-  color: var(--ink, #28183b);
+  border: 1px solid #eae6de;
+  color: #55505c;
   transition: all 0.2s ease;
-  text-decoration: none;
 }
 
-.socialLink:hover {
-  background: #f2eee6;
-  border-color: #d8d3c8;
+.socialLink:hover,
+.socialLink:active {
+  color: var(--accent, #b6644d);
+  border-color: var(--accent, #b6644d);
+  background: #ffffff;
   transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(40, 24, 59, 0.08);
+  box-shadow: 0 4px 12px rgba(182, 100, 77, 0.12);
 }
 
 .socialLink svg {
-  width: 18px;
-  height: 18px;
-  display: block;
+  width: 17px;
+  height: 17px;
 }
 
 .footerNote {
-  font-size: 11px;
-  color: #8c8591;
-  font-family: var(--font-title, sans-serif);
-}
-
-/* Responsivo para telas pequenas */
-@media (max-width: 440px) {
-  .sheet {
-    width: 100vw;
-  }
-  .sheetInner {
-    padding: 20px 20px 28px;
-  }
-  .navLabel {
-    font-size: 19px;
-  }
+  font-size: 12px;
+  color: #9c96a2;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }

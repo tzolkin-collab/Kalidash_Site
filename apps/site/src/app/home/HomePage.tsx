@@ -78,6 +78,7 @@ export default function HomePage() {
 
       <main>
         <section className={styles.hero} data-block="home-hero">
+          <div className={styles.heroStripTop} aria-hidden="true" />
           <Eyebrow>{hero.eyebrow}</Eyebrow>
           <h1>{hero.title}</h1>
           <div className={styles.heroCopy}>
@@ -106,6 +107,8 @@ export default function HomePage() {
               onHoverChange={setIsBadgeHovered}
             />
           </div>
+
+          <div className={styles.heroStripBottom} aria-hidden="true" />
 
           <div className={styles.heroProof} aria-label="Experiência da Kalidash">
             <div className={styles.logoMarquee} aria-label="Clientes atendidos">
@@ -334,12 +337,12 @@ export default function HomePage() {
           </div>
           <div className={styles.frontRows}>
             {fronts.items.map((item, index) => (
-              <article key={item.number} className={styles.frontRow} data-reverse={index % 2 === 1}>
+              <article key={item.name} className={styles.frontRow} data-reverse={index % 2 === 1}>
                 <div className={styles.frontImage}>
                   <Image src={item.image.src} alt={item.image.alt} fill sizes="(min-width: 1100px) 50vw, 100vw" />
                 </div>
                 <div className={styles.frontText}>
-                  <p className={styles.frontLabel}><span>{item.number}</span>{item.name}</p>
+                  <p className={styles.frontLabel}>{item.name}</p>
                   <h3>{item.title}</h3>
                   <p>{item.text}</p>
                   {item.audience && <p>{item.audience}</p>}

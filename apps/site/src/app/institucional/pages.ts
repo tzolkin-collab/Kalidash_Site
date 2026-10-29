@@ -395,12 +395,6 @@ export const aiCulture: PageContent = {
         { nome: "Larissa", cargo: "", empresa: "", embedUrl: "", posterUrl: "", status: "pending" },
       ],
     },
-    {
-      type: "cta",
-      title: "Desenvolva um time que sabe o que fazer com IA.",
-      text: "Conte um pouco sobre o momento da sua empresa. A gente entende o contexto, o perfil do time e os objetivos antes de falar sobre formato.",
-      cta: { label: "Solicitar proposta", href: diagnostico },
-    },
   ],
 };
 
