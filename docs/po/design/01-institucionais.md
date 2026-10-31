@@ -264,7 +264,7 @@ Em aberto:
 
 ## 7. Auditoria dos protótipos contra os tells
 
-| Tell | Resultado nos 5 protótipos |
+| Tell | Resultado nos protótipos |
 |---|---|
 | Grade de 3+ cartões iguais | nenhum cartão. Colunas separadas por hairline só em passos/métricas (conteúdo sequencial/tabular) |
 | Cartão dentro de cartão | nenhum |
@@ -279,8 +279,8 @@ Em aberto:
 ## 8. Verificações e limites
 
 **Feitas na segunda rodada:**
-- **Diff de copy automático dos protótipos:** [proto/copy-check.mjs](proto/copy-check.mjs). Compara o texto visível de cada protótipo com `docs/po/relatorios/copy-baseline/<rota>.txt` (sem distinção de caixa, porque os eyebrows são `text-transform` de CSS) e, para texto de `<details>` recolhido (que não está na baseline), com o literal em `pages.ts`. Resultado: **0 linhas extras nos 5 protótipos** (saída no relatório). Teste negativo: troquei uma palavra ("desafios" por "metas") e o script reprovou apontando a linha; revertido.
-- **Overflow horizontal:** [proto/overflow-check.mjs](proto/overflow-check.mjs) mede `scrollWidth` em 390, 768, 1024 e 1440 nos 5 protótipos: **20 de 20 sem overflow**. O excesso de 9px do Kognis em 390 era o numeral de 56px nas duas colunas da régua de números; corrigido (36–48px no mobile).
+- **Diff de copy automático dos protótipos:** [proto/copy-check.mjs](proto/copy-check.mjs). Compara o texto visível de cada protótipo com `docs/po/relatorios/copy-baseline/<rota>.txt` (sem distinção de caixa, porque os eyebrows são `text-transform` de CSS) e, para texto de `<details>` recolhido (que não está na baseline), com o literal em `pages.ts`. Resultado: **0 linhas extras nos 6 protótipos** (saída no relatório). Teste negativo: troquei uma palavra ("desafios" por "metas") e o script reprovou apontando a linha; revertido.
+- **Overflow horizontal:** [proto/overflow-check.mjs](proto/overflow-check.mjs) mede `scrollWidth` em 390, 768, 1024 e 1440 nos 6 protótipos: **24 de 24 sem overflow**. O excesso de 9px do Kognis em 390 era o numeral de 56px nas duas colunas da régua de números; corrigido (36–48px no mobile).
 - **Olhei em 390** (`proto/shots/*-390.png`): timeline do Sobre nós, showcase de Execução, passos e formatos do AI Culture (passos refeitos com trilho vertical, o anterior ficava com pontos soltos), rituais do Advisory, tabela do Kognis. **Olhei em 1440** também `beliefs`, `team`, `proof` e `offer-2` (a oferta 02 saía com a coluna da foto errada ao alternar; corrigido).
 
 **Ainda não verifiquei:**
