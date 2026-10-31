@@ -151,7 +151,7 @@ Base: apêndice A do prompt de PO, adaptada.
 | WP | Worker | Nota | Evidência | Descontos |
 |---|---|---|---|---|
 | C1 Baseline | sessão baseline | pendente de conferência | commit `a003d5c`: copy de 10 rotas, Web Vitals, 40 capturas, `copy-diff.mjs`. Ressalvas: blog com servidor falso, /diagnostico só passo 1, teste negativo do diff não feito; medido com 23 arquivos não commitados | |
-| D0+D1 Direção | sessão designer | 8,0 (31/10); revisado 9,0 após correções (c608559, a091e0a) | commits `65a4952`, `09b1805`, `21e78bc`; vi protótipos de Sobre nós e Kognis (editorial, régua, sem cartões) | -1 Soluções/Spectra sem âncora; -0,5 mobile dos protótipos e FAQ incompletos; -0,5 sem diff de copy; Kognis sem tela real |
+| D0+D1 Direção | sessão designer | 8,0 (31/10); 9,0 após correções (c608559, a091e0a); **revisto para 8,0 em 31/10** (revisão visual: falta vida e variação de ritmo, rodada 2) | commits `65a4952`, `09b1805`, `21e78bc`; vi protótipos de Sobre nós e Kognis (editorial, régua, sem cartões) | -1 Soluções/Spectra sem âncora; -0,5 mobile dos protótipos e FAQ incompletos; -0,5 sem diff de copy; Kognis sem tela real |
 
 ## 10. Decisões do PO
 
@@ -166,3 +166,5 @@ Base: apêndice A do prompt de PO, adaptada.
 - **D8 (31/10)** Kognis/Spectra: sem tela de produto inventada. Aguardando prints reais do dono.
 - **D9 (31/10)** D0/D1 aceito com 9,0: reproduzi `copy-check.mjs` (0 extras nos 6 protótipos) e `overflow-check.mjs` (sem excesso). Espaços K1-K3 e S1 reservados para prints reais. Próximo: D2 (Diagnóstico) e D3 (Blog); código só após o dono commitar o trabalho aberto e aprovar a direção.
 - **D10 (31/10)** D2/D3 aceito (9,0). Lista do blog é exceção justificada à regra de grade. Próximo: dono commita o trabalho aberto e aprova a direção; então B0 (fundação).
+- **D11 (31/10)** Trabalho aberto de `apps/site` commitado pelo PO em 4 commits (`1a7a31c` home, `6df114f` GTM/atribuição/domínio, `77e7a18` blog, `dc65771` sobre-nos). 🟡 A baseline C1 foi tirada com esse disco: mudanças de texto do Sobre nós (marcadores 01-03 removidos, legendas das fotos trocadas por uma nova) estão na baseline e o diff de copy não as pega; origem (Carol?) não confirmada.
+- **D12 (31/10)** Critério novo de design, dito pelo dono: olhar a imagem, não o código. Direção precisa de "assinatura" por página, ritmo sem repetir padrão em seções vizinhas, foto real em escala grande e um micro-movimento por página.
