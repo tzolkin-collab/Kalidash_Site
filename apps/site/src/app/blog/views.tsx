@@ -151,16 +151,36 @@ export function BlogGalleryView({
     window.history.replaceState(null, "", url);
   };
 
+  const filtersRef = useRef<HTMLElement>(null);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
+    const checkScroll = () => {
+      const el = filtersRef.current;
+      if (!el) {
+        setScrolled(false);
+        return;
+      }
+      // Posição do topo do filtro na página em relação ao viewport
+      const rect = el.getBoundingClientRect();
+      // O header fixo tem altura de ~56px.
+      // Quando o topo do filtro chega no header, ele ancora no header e some da página abaixo
+      const isDocked = rect.top <= 58;
+      setScrolled((prev) => (prev !== isDocked ? isDocked : prev));
+    };
+
     const handleScroll = () => {
-      setScrolled(window.scrollY > 25);
+      checkScroll();
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("resize", handleScroll, { passive: true });
+    checkScroll();
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
   }, []);
 
   const counts = useMemo(() => {
@@ -232,7 +252,13 @@ export function BlogGalleryView({
         )}
 
         {categories.length > 0 && (
-          <nav className={styles.filters} data-block="category-filter" aria-label="Filtrar por categoria">
+          <nav
+            ref={filtersRef}
+            className={styles.filters}
+            data-block="category-filter"
+            data-docked={scrolled ? "true" : "false"}
+            aria-label="Filtrar por categoria"
+          >
             {renderFilterButtons(false)}
           </nav>
         )}

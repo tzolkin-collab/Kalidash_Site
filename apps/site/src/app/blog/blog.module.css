@@ -155,6 +155,12 @@
   width: 100%;
 }
 
+.filters[data-docked="true"] {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .filtersSentinel {
   width: 100%;
   height: 1px;
