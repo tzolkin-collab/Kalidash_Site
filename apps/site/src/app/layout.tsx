@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, Inter, Source_Sans_3 } from "next/font/google";
+import GoogleTagManager from "./components/GoogleTagManager";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -14,7 +15,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "sw
 const sourceSans = Source_Sans_3({ subsets: ["latin"], variable: "--font-source-sans", display: "swap" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://kalidash.com.br"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://kalidash.com"),
   title: {
     default: "Kalidash — Eficiência operacional na era dos agentes",
     template: "%s | Kalidash",
@@ -38,7 +39,11 @@ export const metadata: Metadata = {
     images: ["/kalidash-hero-sculpture.png"],
   },
   icons: {
-    icon: "/kalidash-symbol.svg",
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    apple: "/apple-icon.png",
   },
   robots: {
     index: true,
@@ -68,7 +73,10 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: PRE_PAINT_HEADER_SCRIPT }} />
       </head>
-      <body>{children}</body>
+      <body>
+        <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID} />
+        {children}
+      </body>
     </html>
   );
 }

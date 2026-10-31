@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "**.kalidash.com",
+      },
+      {
+        protocol: "https",
         hostname: "**.kalidash.com.br",
       },
       {

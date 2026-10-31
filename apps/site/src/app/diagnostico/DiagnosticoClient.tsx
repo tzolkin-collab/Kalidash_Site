@@ -27,6 +27,38 @@ interface FormDataState {
 
 const TOTAL_STEPS = 3;
 
+function getAttribution(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  const params = new URLSearchParams(window.location.search);
+  const attr: Record<string, string> = {
+    page_url: window.location.href.split("#")[0],
+    device: window.innerWidth < 768 ? "mobile" : "desktop",
+  };
+  if (document.referrer) attr.referrer = document.referrer;
+  const keys = [
+    "utm_source",
+    "utm_medium",
+    "utm_campaign",
+    "utm_content",
+    "utm_term",
+    "gclid",
+    "fbclid",
+    "gbraid",
+    "wbraid",
+  ];
+  keys.forEach((k) => {
+    const val = params.get(k);
+    if (val) attr[k] = val;
+  });
+  try {
+    const fbp = document.cookie.match(/(^|;)\s*_fbp=([^;]+)/);
+    if (fbp) attr._fbp = fbp[2];
+    const fbc = document.cookie.match(/(^|;)\s*_fbc=([^;]+)/);
+    if (fbc) attr._fbc = fbc[2];
+  } catch {}
+  return attr;
+}
+
 export default function DiagnosticoClient() {
   const router = useRouter();
   const [step, setStep] = useState<number>(1);
@@ -138,6 +170,7 @@ export default function DiagnosticoClient() {
       return;
     }
 
+    const attribution = getAttribution();
     const payload = {
       name: formData.name.trim(),
       email: formData.email.trim(),
@@ -155,6 +188,7 @@ export default function DiagnosticoClient() {
         .join("\n\n"),
       source: "site-pagina-diagnostico",
       website: formData.website,
+      attribution,
     };
 
     setStatus("sending");
@@ -166,6 +200,20 @@ export default function DiagnosticoClient() {
       });
       if (!res.ok) throw new Error(String(res.status));
       setStatus("sent");
+
+      try {
+        if (typeof window !== "undefined") {
+          (window as unknown as { dataLayer?: unknown[] }).dataLayer =
+            (window as unknown as { dataLayer?: unknown[] }).dataLayer || [];
+          (window as unknown as { dataLayer: unknown[] }).dataLayer.push({
+            event: "lead_form_submitted",
+            form_name: "diagnostico",
+            lead_source: "site-pagina-diagnostico",
+            goals: formData.goals,
+            team_size: formData.teamSize,
+          });
+        }
+      } catch {}
     } catch {
       setStatus("error");
     }
