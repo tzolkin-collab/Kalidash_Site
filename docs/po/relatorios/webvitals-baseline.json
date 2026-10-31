@@ -1,0 +1,344 @@
+{
+  "_meta": {
+    "data": "2026-10-31",
+    "commit_partida": "ea5d0b30b034b21e45d9ab6fc43375147300fad0",
+    "arvore": "apps/site com alterações não commitadas de outra sessão (ver relatório c1-baseline.md)",
+    "servidor": "next build + next start -p 3199, API_URL=http://localhost:8199 (servidor falso do blog, fora do repo)",
+    "lighthouse": "12.x (instalado fora do repo), docs/web-vitals-medir.mjs, mediana de 3 por página",
+    "throttling": "simulado (padrão do script); LCP simulado dominado pelo modelo de rede",
+    "cls": "design-craft/scripts/cls.mjs, 844 px de altura, passo 120 px; cls=total por largura",
+    "limites": "INP substituído por TBT; /diagnostico é um passo a passo (só o passo 1 visível)"
+  },
+  "pagina": {
+    "/sobre-nos": {
+      "cls_scroll": {
+        "390": 0,
+        "900": 0,
+        "1440": 0
+      },
+      "mobile": {
+        "perf": 87,
+        "lcp_ms": 4046,
+        "cls": 0,
+        "tbt_ms": 70,
+        "fcp_ms": 1212,
+        "ttfb_ms": 6,
+        "js_kb": 189,
+        "img_kb": 225,
+        "font_kb": 110,
+        "total_kb": 625,
+        "lcp_elemento": "<img alt=\"César Germano no chão de operação usando equipamento de proteção\" load"
+      },
+      "desktop": {
+        "perf": 99,
+        "lcp_ms": 822,
+        "cls": 0,
+        "tbt_ms": 0,
+        "fcp_ms": 332,
+        "ttfb_ms": 5,
+        "js_kb": 189,
+        "img_kb": 338,
+        "font_kb": 110,
+        "total_kb": 775,
+        "lcp_elemento": "<h1>"
+      }
+    },
+    "/treinamento-corporativo-ia": {
+      "cls_scroll": {
+        "390": 0,
+        "900": 0,
+        "1440": 0
+      },
+      "mobile": {
+        "perf": 90,
+        "lcp_ms": 3624,
+        "cls": 0,
+        "tbt_ms": 64,
+        "fcp_ms": 1219,
+        "ttfb_ms": 8,
+        "js_kb": 189,
+        "img_kb": 82,
+        "font_kb": 110,
+        "total_kb": 479,
+        "lcp_elemento": "<img alt=\"Turma em sala durante um treinamento da Kalidash\" fetchpriority=\"high\""
+      },
+      "desktop": {
+        "perf": 100,
+        "lcp_ms": 753,
+        "cls": 0,
+        "tbt_ms": 0,
+        "fcp_ms": 328,
+        "ttfb_ms": 4,
+        "js_kb": 189,
+        "img_kb": 140,
+        "font_kb": 110,
+        "total_kb": 574,
+        "lcp_elemento": "<img alt=\"Turma em sala durante um treinamento da Kalidash\" fetchpriority=\"high\""
+      }
+    },
+    "/advisory": {
+      "cls_scroll": {
+        "390": 0,
+        "900": 0,
+        "1440": 0
+      },
+      "mobile": {
+        "perf": 90,
+        "lcp_ms": 3528,
+        "cls": 0,
+        "tbt_ms": 71,
+        "fcp_ms": 1217,
+        "ttfb_ms": 6,
+        "js_kb": 189,
+        "img_kb": 46,
+        "font_kb": 110,
+        "total_kb": 445,
+        "lcp_elemento": "<img alt=\"Reunião da Kalidash com a diretoria de uma empresa\" fetchpriority=\"hig"
+      },
+      "desktop": {
+        "perf": 100,
+        "lcp_ms": 697,
+        "cls": 0,
+        "tbt_ms": 0,
+        "fcp_ms": 329,
+        "ttfb_ms": 4,
+        "js_kb": 189,
+        "img_kb": 46,
+        "font_kb": 110,
+        "total_kb": 482,
+        "lcp_elemento": "<img alt=\"Reunião da Kalidash com a diretoria de uma empresa\" fetchpriority=\"hig"
+      }
+    },
+    "/execucao": {
+      "cls_scroll": {
+        "390": 0,
+        "900": 0,
+        "1440": 0
+      },
+      "mobile": {
+        "perf": 89,
+        "lcp_ms": 3718,
+        "cls": 0,
+        "tbt_ms": 74,
+        "fcp_ms": 1213,
+        "ttfb_ms": 7,
+        "js_kb": 189,
+        "img_kb": 124,
+        "font_kb": 110,
+        "total_kb": 522,
+        "lcp_elemento": "<img alt=\"Apresentação da entrega de um projeto de IA\" fetchpriority=\"high\" widt"
+      },
+      "desktop": {
+        "perf": 100,
+        "lcp_ms": 693,
+        "cls": 0,
+        "tbt_ms": 0,
+        "fcp_ms": 328,
+        "ttfb_ms": 3,
+        "js_kb": 189,
+        "img_kb": 62,
+        "font_kb": 110,
+        "total_kb": 497,
+        "lcp_elemento": "<img alt=\"Apresentação da entrega de um projeto de IA\" fetchpriority=\"high\" widt"
+      }
+    },
+    "/solucoes": {
+      "cls_scroll": {
+        "390": 0,
+        "900": 0,
+        "1440": 0
+      },
+      "mobile": {
+        "perf": 93,
+        "lcp_ms": 3221,
+        "cls": 0,
+        "tbt_ms": 41,
+        "fcp_ms": 1210,
+        "ttfb_ms": 4,
+        "js_kb": 189,
+        "img_kb": 22,
+        "font_kb": 110,
+        "total_kb": 416,
+        "lcp_elemento": "<h1>"
+      },
+      "desktop": {
+        "perf": 100,
+        "lcp_ms": 677,
+        "cls": 0,
+        "tbt_ms": 0,
+        "fcp_ms": 330,
+        "ttfb_ms": 3,
+        "js_kb": 189,
+        "img_kb": 22,
+        "font_kb": 110,
+        "total_kb": 453,
+        "lcp_elemento": "<h1>"
+      }
+    },
+    "/kognis": {
+      "cls_scroll": {
+        "390": 0,
+        "900": 0,
+        "1440": 0
+      },
+      "mobile": {
+        "perf": 91,
+        "lcp_ms": 3479,
+        "cls": 0,
+        "tbt_ms": 38,
+        "fcp_ms": 1210,
+        "ttfb_ms": 7,
+        "js_kb": 189,
+        "img_kb": 52,
+        "font_kb": 110,
+        "total_kb": 451,
+        "lcp_elemento": "<img alt=\"Kognis — Escritório de Advocacia Inteligente\" fetchpriority=\"high\" wid"
+      },
+      "desktop": {
+        "perf": 100,
+        "lcp_ms": 744,
+        "cls": 0,
+        "tbt_ms": 0,
+        "fcp_ms": 331,
+        "ttfb_ms": 5,
+        "js_kb": 189,
+        "img_kb": 52,
+        "font_kb": 110,
+        "total_kb": 488,
+        "lcp_elemento": "<img alt=\"Kognis — Escritório de Advocacia Inteligente\" fetchpriority=\"high\" wid"
+      }
+    },
+    "/spectra": {
+      "cls_scroll": {
+        "390": 0,
+        "900": 0,
+        "1440": 0
+      },
+      "mobile": {
+        "perf": 93,
+        "lcp_ms": 3227,
+        "cls": 0,
+        "tbt_ms": 40,
+        "fcp_ms": 1211,
+        "ttfb_ms": 3,
+        "js_kb": 189,
+        "img_kb": 150,
+        "font_kb": 110,
+        "total_kb": 544,
+        "lcp_elemento": "<h1>"
+      },
+      "desktop": {
+        "perf": 100,
+        "lcp_ms": 772,
+        "cls": 0,
+        "tbt_ms": 0,
+        "fcp_ms": 331,
+        "ttfb_ms": 3,
+        "js_kb": 189,
+        "img_kb": 124,
+        "font_kb": 110,
+        "total_kb": 554,
+        "lcp_elemento": "<img alt=\"Spectra AI visão computacional na operação\" fetchpriority=\"high\" width"
+      }
+    },
+    "/diagnostico": {
+      "cls_scroll": {
+        "390": 0,
+        "900": 0,
+        "1440": 0
+      },
+      "mobile": {
+        "perf": 93,
+        "lcp_ms": 3179,
+        "cls": 0,
+        "tbt_ms": 75,
+        "fcp_ms": 1058,
+        "ttfb_ms": 2,
+        "js_kb": 180,
+        "img_kb": 0,
+        "font_kb": 110,
+        "total_kb": 342,
+        "lcp_elemento": "<p class=\"diagnostico-module__IW2j8a__stepDesc\">"
+      },
+      "desktop": {
+        "perf": 100,
+        "lcp_ms": 584,
+        "cls": 0,
+        "tbt_ms": 0,
+        "fcp_ms": 292,
+        "ttfb_ms": 3,
+        "js_kb": 180,
+        "img_kb": 0,
+        "font_kb": 110,
+        "total_kb": 342,
+        "lcp_elemento": "<h1 class=\"diagnostico-module__IW2j8a__editorialTitle\">"
+      }
+    },
+    "/blog": {
+      "cls_scroll": {
+        "390": 0,
+        "900": 0,
+        "1440": 0.003
+      },
+      "mobile": {
+        "perf": 94,
+        "lcp_ms": 3001,
+        "cls": 0,
+        "tbt_ms": 45,
+        "fcp_ms": 1061,
+        "ttfb_ms": 6,
+        "js_kb": 189,
+        "img_kb": 22,
+        "font_kb": 110,
+        "total_kb": 420,
+        "lcp_elemento": "<h1>"
+      },
+      "desktop": {
+        "perf": 100,
+        "lcp_ms": 638,
+        "cls": 0,
+        "tbt_ms": 0,
+        "fcp_ms": 291,
+        "ttfb_ms": 5,
+        "js_kb": 189,
+        "img_kb": 22,
+        "font_kb": 110,
+        "total_kb": 461,
+        "lcp_elemento": "<h1>"
+      }
+    },
+    "/blog/artigo-1": {
+      "cls_scroll": {
+        "390": 0,
+        "900": 0,
+        "1440": 0
+      },
+      "mobile": {
+        "perf": 93,
+        "lcp_ms": 3213,
+        "cls": 0,
+        "tbt_ms": 40,
+        "fcp_ms": 1210,
+        "ttfb_ms": 3,
+        "js_kb": 189,
+        "img_kb": 22,
+        "font_kb": 110,
+        "total_kb": 419,
+        "lcp_elemento": "<div class=\"article-module__ZQqshq__excerpt\" data-focus=\"excerpt\">"
+      },
+      "desktop": {
+        "perf": 100,
+        "lcp_ms": 662,
+        "cls": 0,
+        "tbt_ms": 0,
+        "fcp_ms": 330,
+        "ttfb_ms": 5,
+        "js_kb": 189,
+        "img_kb": 22,
+        "font_kb": 110,
+        "total_kb": 456,
+        "lcp_elemento": "<h1 class=\"article-module__ZQqshq__title\" data-focus=\"title\">"
+      }
+    }
+  }
+}

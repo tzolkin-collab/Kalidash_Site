@@ -1,0 +1,67 @@
+EXECUÇÃO · IMPLEMENTAÇÃO DE IA E AUTOMAÇÃO
+Da ideia à solução de IA rodando na sua operação.
+Implementamos agentes de IA, automações, integrações e soluções de dados para resolver problemas reais da operação. Do mapeamento do processo à entrega, com o seu time treinado.
+Escopo, prazo e métricas definidos antes de começar.
+Falar sobre o meu projeto
+Saber o que mudar não é o mesmo que conseguir implementar.
+Processos manuais, tarefas repetitivas, sistemas que não conversam. A maioria das empresas sabe onde estão os gargalos. O que falta é tempo, time técnico e método para resolver sem parar a operação.
+É aí que a Kalidash entra.
+O QUE CONSTRUÍMOS
+Construímos o que a sua operação precisa.
+01
+Agentes de IA
+Executam tarefas dentro dos processos, com supervisão humana quando necessário.
+Ex.: agente que faz a triagem de solicitações
+02
+Automações
+Eliminam etapas manuais e repetitivas.
+Ex.: relatório semanal gerado sozinho
+03
+Integrações
+Fazem sistemas e ferramentas conversarem, sem retrabalho entre áreas.
+Ex.: ERP conectado ao CRM
+04
+Dados
+Organizam a informação da operação para apoiar decisões.
+Ex.: painel de indicadores da produção
+05
+Soluções sob medida
+Quando nada pronto resolve, construímos do zero.
+Ex.: captura inteligente de conhecimento na CBA
+COMO ENTREGAMOS
+Do problema à solução rodando.
+01
+Entendimento
+Mapeamos o processo e identificamos onde a tecnologia pode gerar impacto.
+02
+Escopo
+O que será entregue, em quanto tempo e como será medido.
+03
+Construção
+Desenvolvemos a solução junto de quem conhece a operação, validando durante o processo.
+04
+Entrega
+Solução rodando, documentada, e o seu time treinado para manter.
+O projeto termina quando a sua empresa consegue seguir sem a gente.
+A solução vem com documentação e transferência de conhecimento, porque projeto que só o fornecedor consegue mexer é dependência com outro nome.
+FEITO PARA FUNCIONAR
+Projetos que já estão rodando.
++100
+processos automatizados
+170
+operações atendidas
+12 horas
+economizadas por semana até a primeira entrega
+CBA · CAPTURA INTELIGENTE DO CONHECIMENTO
+Captura Inteligente do Conhecimento
+As reuniões diárias da operação viraram dado estruturado. 1.681 problemas registrados em 3 meses de piloto, com 97% de encaminhamento definido.
+Finalista Prêmio Inovativos 2026
+Ver o case
+01
+Kognis
+Plataforma de IA para advocacia trabalhista, desenvolvida pela Kalidash.
+Saiba mais
+02
+Spectra AI
+Visão computacional aplicada à operação.
+Saiba mais
