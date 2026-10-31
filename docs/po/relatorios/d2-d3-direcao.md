@@ -46,7 +46,7 @@ Todos em `docs/po/`. **Nada em `apps/`, `.env`, flags ou produção.** `git stat
 
 - Novos: `design/02-diagnostico.md`, `design/03-blog.md`, `design/tokens-d2d3.css`, `design/proto/{07-diagnostico,08-blog-lista,09-blog-artigo}.html`, `design/proto/measure-check.mjs`, `design/proto/copy-source/*.txt`, `design/proto/shots/{07,08,09}-*.png`, `design/refs/d2d3-*.png`, `relatorios/antes/d2-d3/*.png`, `relatorios/d2-d3-ferramentas/*`, este relatório.
 - Alterados: `design/proto/copy-check.mjs`, `design/proto/overflow-check.mjs` (só ampliam: os 6 protótipos antigos seguem passando).
-- Commits: ver `git log --oneline` (mensagens `docs(po): …`, 4 commits; hashes no fim).
+- Commits: `c57abb2` checagens e tokens; `4c53e21` D2 (direção + protótipo 07); `d095c78` D3 (direção + protótipos 08/09); `c58abc9` relatório, referências e capturas "antes" (+ 1 commit com estes hashes).
 
 ## 4. O que ficou de fora e por quê
 
