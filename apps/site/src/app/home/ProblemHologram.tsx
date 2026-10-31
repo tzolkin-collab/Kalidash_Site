@@ -50,7 +50,7 @@ export default function ProblemHologram({
           restartRef.current?.();
         }
       },
-      { rootMargin: "300px" }
+      { rootMargin: "50px", threshold: 0.05 }
     );
 
     observer.observe(el);
@@ -120,29 +120,45 @@ export default function ProblemHologram({
       const camera = new THREE.PerspectiveCamera(38, 1, 0.01, 100);
       camera.position.set(0, 0, 4.6);
 
-      // Holographic & theatrical lighting in Kalidash warm copper & amber tones
-      const hemiLight = new THREE.HemisphereLight(0xffeedd, 0x6b4a3a, 1.6);
+      // Holographic & theatrical lighting in sculpted rich purple tones with brilliant crystalline white highlights
+      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x4a0e4e, 3.0);
       scene.add(hemiLight);
 
-      const dirLight = new THREE.DirectionalLight(0xfff5ec, 3.8);
-      dirLight.position.set(4, 5, 5);
-      scene.add(dirLight);
+      // Brilho principal: branco puro cristalino de altíssimo reflexo especular
+      const dirLightCrystal = new THREE.DirectionalLight(0xffffff, 7.2);
+      dirLightCrystal.position.set(4, 5, 5);
+      scene.add(dirLightCrystal);
 
-      const pointLightCopper = new THREE.PointLight(0xf38763, 18, 12);
-      pointLightCopper.position.set(-3, -1, 3);
-      scene.add(pointLightCopper);
+      // Luz frontal adicional para cintilação branca nos contornos e cristas
+      const dirLightFrontWhite = new THREE.DirectionalLight(0xffffff, 5.0);
+      dirLightFrontWhite.position.set(-1.8, 3.2, 4.5);
+      scene.add(dirLightFrontWhite);
 
-      const pointLightAmber = new THREE.PointLight(0xffb347, 15, 10);
-      pointLightAmber.position.set(3, -2, 2);
-      scene.add(pointLightAmber);
+      // Luz pontual frontal cristalina para brilho vívido branco nas partículas da frente
+      const pointLightFrontCrystal = new THREE.PointLight(0xffffff, 30, 12);
+      pointLightFrontCrystal.position.set(0, 0.6, 3.8);
+      scene.add(pointLightFrontCrystal);
 
-      const pointLightWarmGlow = new THREE.PointLight(0xe04410, 10, 8);
-      pointLightWarmGlow.position.set(0, 3, 2);
-      scene.add(pointLightWarmGlow);
+      // Tons de roxo desenhados para escultura tridimensional e relevo do cérebro
+      const pointLightRoyal = new THREE.PointLight(0x9d4edd, 22, 12);
+      pointLightRoyal.position.set(-3.2, -1, 3);
+      scene.add(pointLightRoyal);
 
-      // Cool-ish back rim light to separate the brain from the light background
-      const rimLight = new THREE.DirectionalLight(0xffd9c4, 2.2);
-      rimLight.position.set(-3, 2, -4);
+      const pointLightPurpura = new THREE.PointLight(0xc084fc, 18, 11);
+      pointLightPurpura.position.set(3, -1.8, 2);
+      scene.add(pointLightPurpura);
+
+      const pointLightDeepViolet = new THREE.PointLight(0x6b21a8, 16, 9);
+      pointLightDeepViolet.position.set(0, -3.5, 2);
+      scene.add(pointLightDeepViolet);
+
+      const pointLightTopCrystal = new THREE.PointLight(0xffffff, 24, 10);
+      pointLightTopCrystal.position.set(0, 3.4, 2.2);
+      scene.add(pointLightTopCrystal);
+
+      // Luz de contorno posterior cristalina branca para destacar suavemente a silhueta do cérebro
+      const rimLight = new THREE.DirectionalLight(0xffffff, 5.2);
+      rimLight.position.set(-3.2, 2.2, -4);
       scene.add(rimLight);
 
       // Root tilt & rotation group
@@ -165,10 +181,11 @@ export default function ProblemHologram({
       }
 
       const model = gltf.scene;
-      const warmTint = new THREE.Color(0xf38763);
-      const warmEmissive = new THREE.Color(0xff8844);
+      const purpleTint = new THREE.Color(0x7e22ce);
+      const purpleDeep = new THREE.Color(0x581c87);
+      const purpleEmissive = new THREE.Color(0x4c1d95);
 
-      // Harmonize materials into warm glowing copper/terracotta hologram
+      // Harmonize materials into rich deep purple points with brilliant crystalline white specular gleam
       model.traverse((child) => {
         if (child instanceof THREE.Mesh && child.material) {
           const mats: Material[] = Array.isArray(child.material)
@@ -177,19 +194,19 @@ export default function ProblemHologram({
           mats.forEach((raw) => {
             const mat = raw as MeshStandardMaterial;
             if (mat.color) {
-              mat.color.lerp(warmTint, 0.2);
+              mat.color.set(purpleTint).lerp(purpleDeep, 0.35);
             }
             if (mat.emissive) {
-              mat.emissive.copy(warmEmissive);
-              mat.emissiveIntensity = 0.06;
+              mat.emissive.copy(purpleEmissive);
+              mat.emissiveIntensity = 0.08;
             }
-            // Normalize holographic/translucent materials into a solid, readable surface
+            // Keep points rich and solid while specular reflection sparkles crystalline white with smooth falloff
             mat.transparent = false;
             mat.opacity = 1;
             mat.depthWrite = true;
             mat.blending = THREE.NormalBlending;
-            if ("roughness" in mat) mat.roughness = Math.max(mat.roughness ?? 0.6, 0.55);
-            if ("metalness" in mat) mat.metalness = Math.min(mat.metalness ?? 0, 0.15);
+            mat.roughness = 0.20;
+            mat.metalness = 0.04;
             mat.needsUpdate = true;
           });
         }
@@ -340,8 +357,8 @@ export default function ProblemHologram({
       >
         <defs>
           <linearGradient id="problem-hologram-link" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="100" y2="100">
-            <stop offset="0%" stopColor="rgba(255, 209, 125, 0.85)" />
-            <stop offset="100%" stopColor="rgba(243, 135, 99, 0.95)" />
+            <stop offset="0%" stopColor="rgba(255, 255, 255, 0.98)" />
+            <stop offset="100%" stopColor="rgba(216, 180, 254, 0.95)" />
           </linearGradient>
         </defs>
         {tags.map((tag) => (
@@ -374,9 +391,7 @@ export default function ProblemHologram({
           className={styles.tagWrap}
           style={{ left: `${tag.to[0]}%`, top: `${tag.to[1]}%` }}
         >
-          <span className={styles.tagPing} />
           <span className={styles.tagPill}>
-            <span className={styles.tagDot} />
             {tag.label}
           </span>
         </div>

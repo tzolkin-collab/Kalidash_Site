@@ -78,9 +78,10 @@ export const problem = {
   text: "Quando pessoas, processos e tecnologia andam em ritmos diferentes, a execução trava e as decisões demoram. Ferramenta nova não resolve. O que resolve é mudar o jeito de trabalhar.",
   closingFinal: "Ferramenta nova não resolve isso. Muda-se o jeito de trabalhar.",
   quote: {
-    text: "Nosso time perdia horas com tarefas manuais e retrabalho. Hoje, os processos fluem e focamos no que realmente importa.",
-    author: "Aline Motta",
-    role: "empresária",
+    text: "Pequenas tarefas se acumulavam e atrasavam outras entregas. Agora temos processos mais bem definidos e as automações certas, a equipe ganhou fluidez e reduziu o retrabalho.",
+    author: "Iasmin Ramiro",
+    role: "COO",
+    image: "/home/depoimento-iasmin.jpg",
   },
   cards: [
     {
@@ -105,14 +106,14 @@ export const problem = {
   /* Depoimentos pareados aos cards 02 e 03 (exibidos no empilhamento mobile). Substituir por depoimentos reais. */
   pairedQuotes: [
     {
-      text: "Saí do treinamento sabendo exatamente o que aplicar na minha rotina. Menos teoria, mais operação.",
-      author: "Daniel",
-      role: "participante de treinamento Kalidash",
+      text: "Já tínhamos ferramentas, mas faltava transformar os testes em ROI consistentes. Ao olhar para os processos e definir prioridades, entendemos onde a IA realmente poderia gerar valor.",
+      author: "Fernando Torquetti",
+      role: "empresário",
     },
     {
-      text: "A IA deixou de ser promessa e virou parte do trabalho. Hoje a equipe sabe onde usar e por quê.",
-      author: "Larissa",
-      role: "participante de treinamento Kalidash",
+      text: "A estratégia de inovação precisava chegar à rotina das áreas, com prioridades claras. Passamos a conectar melhor tecnologia e pessoas para integrar a implementação à operação.",
+      author: "Geraldo Nunes",
+      role: "Head de TI",
     },
   ] as Array<{ text: string; author: string; role: string }>,
   hologramTags: [
@@ -222,16 +223,16 @@ export const testimonial = {
       metric: undefined as { value: string; label: string } | undefined,
     },
     {
-      quote: "Saí do treinamento sabendo exatamente o que aplicar na minha rotina. Menos teoria, mais operação.",
-      author: "Daniel",
-      role: "participante de treinamento Kalidash",
+      quote: "Saí do treinamento sabendo exatamente o que aplicar na minha rotina e como fazer isso com segurança de dados, que era uma coisa que não tínhamos antes",
+      author: "Daniel Alves",
+      role: "Projetos Logísticos na DHL Supply Chain",
       photo: "/depoimentos/daniel.jpg",
       metric: undefined,
     },
     {
       quote: "A IA deixou de ser promessa e virou parte do trabalho. Hoje a equipe sabe onde usar e por quê.",
-      author: "Larissa",
-      role: "participante de treinamento Kalidash",
+      author: "Larissa Gomes",
+      role: "CEO da Aliança Representações",
       photo: "/depoimentos/larissa.jpg",
       metric: undefined,
     },

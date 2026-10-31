@@ -191,7 +191,7 @@ export default function HomeHeader({
         data-block="home-header"
         data-open={open}
         data-scrolled={scrolled}
-        data-hidden={hidden && !open}
+        data-hidden={hidden && !open && !(filtersActive && Boolean(filterSlot))}
         data-bg={bg}
         data-filters-active={filtersActive && Boolean(filterSlot) ? "true" : undefined}
       >

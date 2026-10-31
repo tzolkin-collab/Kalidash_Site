@@ -78,7 +78,6 @@ export default function HomePage() {
 
       <main>
         <section className={styles.hero} data-block="home-hero">
-          <div className={styles.heroStripTop} aria-hidden="true" />
           <Eyebrow>{hero.eyebrow}</Eyebrow>
           <h1>{hero.title}</h1>
           <div className={styles.heroCopy}>
@@ -108,9 +107,8 @@ export default function HomePage() {
             />
           </div>
 
-          <div className={styles.heroStripBottom} aria-hidden="true" />
-
           <div className={styles.heroProof} aria-label="Experiência da Kalidash">
+            <div className={styles.heroStripTop} aria-hidden="true" />
             <div className={styles.logoMarquee} aria-label="Clientes atendidos">
               <ul className={styles.logoTrack}>
                 {logoLoop.map((client, index) => (
@@ -120,6 +118,7 @@ export default function HomePage() {
                 ))}
               </ul>
             </div>
+            <div className={styles.heroStripBottom} aria-hidden="true" />
             <dl className={styles.stats}>
               {hero.stats.map((stat) => (
                 <div key={stat.label}>
@@ -143,8 +142,8 @@ export default function HomePage() {
               <FlickeringGrid
                 squareSize={4}
                 gridGap={6}
-                color="rgb(240, 179, 159)"
-                maxOpacity={0.24}
+                color="rgb(255, 235, 228)"
+                maxOpacity={0.16}
                 flickerChance={0.2}
               />
               <div className={styles.topVignette} aria-hidden="true" />
@@ -194,14 +193,14 @@ export default function HomePage() {
                 </div>
               </article>
 
-              {/* Card 01 Quote: Depoimento fotográfico (Aline Motta) */}
+              {/* Card 01 Quote: Depoimento fotográfico (Iasmin Ramiro) */}
               <article
                 className={styles.quoteCard}
                 data-role="problem-quote"
                 data-active={activeQuoteIndex === 0}
                 onMouseEnter={() => setActiveQuoteIndex(0)}
               >
-                <Image src="/home/depoimento-fundo.jpg" alt="" fill sizes="(min-width: 1100px) 380px, 100vw" />
+                <Image src={problem.quote.image ?? "/home/depoimento-fundo.jpg"} alt="" fill sizes="(min-width: 1100px) 380px, 100vw" />
                 <div className={styles.problemCardHeader}>
                   <span className={styles.problemCardNumber} style={{ color: "rgba(255,255,255,0.7)" }}>DEPOIMENTO</span>
                   <div className={styles.problemCardIconWrap} style={{ background: "rgba(255,255,255,0.16)", color: "#fff" }}>
@@ -248,7 +247,7 @@ export default function HomePage() {
                 </div>
               </article>
 
-              {/* Card 02 Quote: Depoimento pareado (Camila Duarte) */}
+              {/* Card 02 Quote: Depoimento pareado (Fernando Torquetti) */}
               <article
                 className={styles.quoteCard}
                 data-role="problem-quote"
@@ -302,7 +301,7 @@ export default function HomePage() {
                 </div>
               </article>
 
-              {/* Card 03 Quote: Depoimento pareado (Eduardo Lima) */}
+              {/* Card 03 Quote: Depoimento pareado (Geraldo Nunes) */}
               <article
                 className={styles.quoteCard}
                 data-role="problem-quote"

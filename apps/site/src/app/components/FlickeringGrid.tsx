@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 
 interface FlickeringGridProps extends React.HTMLAttributes<HTMLDivElement> {
   squareSize?: number;
@@ -28,7 +28,6 @@ export default function FlickeringGrid({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const isInViewRef = useRef(false);
-  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
   // Converte a cor base em string estável para o context do Canvas
   const baseColor = useMemo(() => {
@@ -110,7 +109,6 @@ export default function FlickeringGrid({
     let currentWidth = width || container.clientWidth || 300;
     let currentHeight = height || container.clientHeight || 200;
 
-    setCanvasSize({ width: currentWidth, height: currentHeight });
     let { cols, rows, squares, dpr } = setupCanvas(canvas, currentWidth, currentHeight);
 
     let lastTime = 0;
@@ -150,7 +148,6 @@ export default function FlickeringGrid({
         if (rect.width > 0 && rect.height > 0) {
           currentWidth = rect.width;
           currentHeight = rect.height;
-          setCanvasSize({ width: currentWidth, height: currentHeight });
           const canvasData = setupCanvas(canvas, currentWidth, currentHeight);
           cols = canvasData.cols;
           rows = canvasData.rows;
@@ -206,8 +203,8 @@ export default function FlickeringGrid({
       <canvas
         ref={canvasRef}
         style={{
-          width: canvasSize.width,
-          height: canvasSize.height,
+          width: "100%",
+          height: "100%",
           display: "block",
           pointerEvents: "none",
         }}

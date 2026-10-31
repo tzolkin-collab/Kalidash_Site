@@ -221,12 +221,12 @@
   grid-column: 2 / 5;
   grid-row: 1;
   min-height: 400px; padding: 64px 48px 44px;
-  background: linear-gradient(135deg, #181020 0%, #261427 60%, #361726 100%);
-  border: 1px solid rgba(182, 100, 77, 0.35);
+  background: linear-gradient(135deg, #a85640 0%, #b6644d 45%, #c7745e 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
   color: #fff;
   overflow: hidden;
-  box-shadow: 0 16px 44px rgba(24, 16, 32, 0.3);
+  box-shadow: 0 16px 40px rgba(182, 100, 77, 0.28);
 }
 .problemCardsRow {
   grid-column: 1 / 5;
@@ -242,15 +242,12 @@
   inset: 0;
   pointer-events: none;
   z-index: 1;
-  /* Separador visual / sombra rica que protege o texto manifesto */
   background: radial-gradient(
-    ellipse 90% 85% at 30% 65%,
-    rgba(24, 16, 32, 0.96) 30%,
-    rgba(24, 16, 32, 0.82) 60%,
-    rgba(24, 16, 32, 0.25) 90%,
+    ellipse 85% 80% at 25% 65%,
+    rgba(145, 68, 48, 0.42) 0%,
+    rgba(182, 100, 77, 0.12) 60%,
     transparent 100%
   );
-  box-shadow: inset 0 0 60px rgba(24, 16, 32, 0.7);
 }
 .problemTopContent {
   position: relative; z-index: 2; max-width: 680px;
@@ -260,14 +257,14 @@
   text-shadow: 0 2px 18px rgba(0, 0, 0, 0.8);
 }
 .problemTop h2 em {
-  display: block; margin-top: 8px; color: #f0b39f; font-style: normal; font-size: 30px; font-weight: 500;
+  display: block; margin-top: 8px; color: #ffe4dc; font-style: normal; font-size: 30px; font-weight: 500;
   text-shadow: 0 2px 16px rgba(0, 0, 0, 0.7);
 }
 .problemTop p {
   max-width: 680px; margin-top: 18px; font-size: 18px; line-height: 28px; color: rgba(255, 255, 255, 0.95);
   text-shadow: 0 1px 12px rgba(0, 0, 0, 0.7);
 }
-.problemArrow { width: 30px; height: 30px; margin-top: 24px; color: var(--accent); }
+.problemArrow { width: 30px; height: 30px; margin-top: 24px; color: #ffe4dc; }
 
 .problemCard {
   flex: 1 1 0;
@@ -625,7 +622,8 @@
 /* ---- Tablet e celular ---- */
 @media (max-width: 1100px) {
   .home p.chip { height: auto; padding: 11px 18px; line-height: 1.45; white-space: normal; border-radius: 22px; text-align: center; }
-  .header {
+  .header,
+  .header[data-bg="white"]:not([data-filters-active="true"]) {
     background: transparent !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
@@ -633,16 +631,42 @@
     box-shadow: none !important;
     pointer-events: none;
   }
-  .header[data-scrolled="true"] {
+  .header[data-scrolled="true"],
+  .header[data-bg="white"][data-scrolled="true"]:not([data-filters-active="true"]) {
     background: transparent !important;
     border-bottom: none !important;
     box-shadow: none !important;
+  }
+  /* Header com background no mobile APENAS depois de scrollar quando os filtros sobem para o header */
+  .header[data-filters-active="true"] {
+    background: #ffffff !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+    border-bottom: 1px solid #e2dfda !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
+    pointer-events: auto !important;
   }
   .headerInner {
     width: 100%;
     height: auto;
     padding: 16px 20px;
     pointer-events: none;
+  }
+  .header[data-bg="white"] .headerInner,
+  .header[data-filters-active="true"] .headerInner {
+    height: 3.5rem;
+    padding: 0 16px;
+    pointer-events: auto !important;
+  }
+  .header[data-filters-active="true"] .headerFilters {
+    margin: 0 10px;
+    pointer-events: auto !important;
+  }
+  .header[data-filters-active="true"] .logo,
+  .header[data-filters-active="true"] .burger {
+    transform: none !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
   }
   .logo {
     pointer-events: auto;
@@ -756,10 +780,10 @@
 .hero .eyebrow { max-width: none; margin: 0; font-size: 13px; line-height: 18px; text-align: center; }
 
 .hero {
-  width: var(--container); margin: 0 auto; padding: 16px 0 0; text-align: center;
+  width: var(--container); margin: 0 auto; padding: clamp(64px, 8vw, 108px) 0 0; text-align: center;
 }
 
-/* Faixas decorativas de borda (listras) no Hero */
+/* Faixas decorativas de borda (listras) em volta do carrossel */
 .heroStripTop {
   width: 100vw;
   position: relative;
@@ -772,8 +796,8 @@
   background-repeat: repeat-x;
   background-position: center;
   background-size: auto 38px;
-  margin-top: 0;
-  margin-bottom: clamp(32px, 4vw, 56px);
+  margin-top: clamp(48px, 6vw, 76px);
+  margin-bottom: 0;
   opacity: 0.25;
 }
 
@@ -789,7 +813,7 @@
   background-repeat: repeat-x;
   background-position: center;
   background-size: auto 34px;
-  margin-top: clamp(48px, 6vw, 76px);
+  margin-top: 0;
   margin-bottom: 0;
   opacity: 0.25;
 }
@@ -874,10 +898,12 @@
   transform: translateX(0);
 }
 .heroProof { margin-top: 0; border-top: none; }
-.logoMarquee { overflow: hidden; padding: 34px 0; border-bottom: 1px solid var(--line); }
+.logoMarquee { overflow: hidden; padding: clamp(24px, 2.8vw, 36px) 0; border-bottom: none; }
 .logoTrack {
   display: flex; align-items: center; width: max-content; gap: 64px; padding: 0; list-style: none;
   animation: logo-loop 32s linear infinite;
+  will-change: transform;
+  transform: translateZ(0);
 }
 .logoTrack li { display: grid; place-items: center; width: 150px; height: 64px; flex: none; }
 .logoTrack img { width: 100%; height: 54px; object-fit: contain; filter: grayscale(1); opacity: 0.72; }
@@ -891,27 +917,29 @@
 .stats dd { margin: 10px 0 0; color: #545057; font-size: 15px; }
 @keyframes logo-loop { to { transform: translateX(calc(-50% - 32px)); } }
 
-.fronts { padding: 120px 0; background: white; }
+.fronts { padding: 120px 0; background: white; border: none !important; }
 .frontsIntro {
   display: grid; grid-template-columns: 1fr 1fr; gap: 72px;
   width: var(--container); margin: 0 auto 72px;
+  border: none !important;
 }
 .frontsIntro .eyebrow { grid-column: 1 / -1; margin-bottom: -40px; }
 .frontsIntro h2 { max-width: 600px; font-size: 62px; line-height: 1; letter-spacing: -0.05em; }
 .frontsIntro > div p { font-size: 19px; line-height: 30px; }
 .frontsIntro > div p + p { margin-top: 20px; }
-.frontRows { width: var(--container); margin: 0 auto; }
-.frontRow { display: grid; grid-template-columns: 1fr 1fr; min-height: 530px; border-top: 1px solid #d9d7d5; }
+.frontRows { width: var(--container); margin: 0 auto; border: none !important; }
+.frontRow { display: grid; grid-template-columns: 1fr 1fr; min-height: 530px; border: none !important; border-top: none !important; }
 .frontRow[data-reverse="true"] .frontImage { order: 2; }
-.frontImage { position: relative; min-height: 430px; overflow: hidden; background: var(--gray-2); }
-.frontImage img { object-fit: cover; }
-.frontText { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: 64px 64px 84px 64px; background: #fff; }
+.frontImage { position: relative; min-height: 430px; overflow: hidden; background: var(--gray-2); border: none !important; }
+.frontImage img { object-fit: cover; border: none !important; }
+.frontText { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: 64px 64px 84px 64px; background: #fff; border: none !important; }
 .frontLabel { display: flex; gap: 18px; color: var(--accent); font-size: 13px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
 .frontLabel span { color: #979096; }
 .frontText h3 { max-width: 470px; margin-top: 24px; font-size: 40px; line-height: 1.06; }
 .frontText > p:not(.frontLabel) { max-width: 520px; margin-top: 20px; color: #514c53; font-size: 17px; line-height: 27px; }
 .frontText > strong { max-width: 500px; margin-top: 20px; font-size: 17px; line-height: 26px; }
-.frontText .textLink { margin-top: 30px; }
+.frontText .textLink { margin-top: 30px; border: none !important; border-bottom: none !important; padding-bottom: 0 !important; }
+.frontText .textLink:hover { opacity: 0.85; }
 
 .experience {
   padding: 120px 0;
@@ -1094,17 +1122,17 @@
 @media (max-width: 1100px) {
   .nav { display: none; }
   .burger { display: grid; }
-  .hero { padding: 12px 0 0; }
+  .hero { padding: clamp(44px, 5.5vw, 64px) 0 0; }
   .heroStripTop {
     height: clamp(24px, 3.2vw, 34px);
     background-size: auto clamp(24px, 3.2vw, 34px);
-    margin-top: 0;
-    margin-bottom: clamp(32px, 4.5vw, 48px);
+    margin-top: clamp(36px, 5vw, 56px);
+    margin-bottom: 0;
   }
   .heroStripBottom {
     height: clamp(22px, 2.8vw, 30px);
     background-size: auto clamp(22px, 2.8vw, 30px);
-    margin-top: clamp(40px, 5.5vw, 60px);
+    margin-top: 0;
     margin-bottom: 0;
   }
   .hero h1 { font-size: clamp(46px, 11vw, 72px); }
@@ -1224,25 +1252,26 @@
 }
 
 @media (max-width: 640px) {
-  .hero { width: calc(100% - 40px); padding-top: 4px; }
+  .hero { width: calc(100% - 40px); padding-top: 36px; }
   .heroStripTop {
     height: 22px;
     background-size: auto 22px;
-    margin-top: 0;
-    margin-bottom: clamp(38px, 7vw, 52px);
+    margin-top: clamp(32px, 6vw, 44px);
+    margin-bottom: 0;
   }
   .heroStripBottom {
     height: 20px;
     background-size: auto 20px;
-    margin-top: clamp(48px, 9vw, 64px);
+    margin-top: 0;
     margin-bottom: 0;
   }
   .heroProof {
     margin-top: 0;
   }
   .logoMarquee {
-    padding-top: 8px;
-    padding-bottom: 24px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    border-bottom: none;
   }
   .hero h1 { font-size: 45px; line-height: .99; }
   .heroActions { display: grid; }
