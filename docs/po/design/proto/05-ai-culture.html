@@ -1,38 +1,39 @@
 <!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Proto D1 · AI Culture</title>
+<title>Proto D1 r2 · AI Culture</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Sans+3:wght@400;600&display=swap">
-<link rel="stylesheet" href="proto.css">
+<link rel="stylesheet" href="proto.css"><link rel="stylesheet" href="proto-r2.css">
 <style>
   .two { display: grid; grid-template-columns: minmax(0,5fr) minmax(0,7fr); gap: var(--gutter-col); }
   .hero { display: grid; grid-template-columns: minmax(0,7fr) minmax(0,5fr); gap: clamp(32px,5vw,80px); align-items: end; padding: clamp(48px,7vw,96px) 0 var(--s-6); }
-  .hero h1 { font-size: var(--t-h1); line-height: 1.04; letter-spacing: var(--ls-display); margin-top: var(--s-2); }
+  .hero h1 { font-size: clamp(40px, 5.6vw, 84px); line-height: 1.0; letter-spacing: -0.055em; margin-top: var(--s-2); }
   .hero .lead { margin-top: var(--s-4); max-width: 44ch; }
   .hero .sup { margin-top: var(--s-3); padding-top: var(--s-2); border-top: 1px solid var(--c-rule-strong); max-width: 52ch; }
   .hero .btn { margin-top: var(--s-4); }
-  .hero .photo { aspect-ratio: 4/5; max-height: 620px; }
-  .figs { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); border-top: 1px solid var(--c-rule-strong); border-bottom: 1px solid var(--c-rule); }
-  .figs li { padding: var(--s-5) var(--s-3) var(--s-5) 0; }
-  .figs li + li { padding-left: var(--s-3); border-left: 1px solid var(--c-rule); }
-  .figs .small { margin-top: var(--s-2); color: var(--c-text-2); }
-  .chips { display:none }
+  .hero .photo { aspect-ratio: 4/5; max-height: 640px; }
+
+  /* números de cartaz sobre branco: nenhuma faixa */
+  .nums { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-5); padding: var(--s-6) 0; border-top: 2px solid var(--c-title); }
+  .nums .poster { font-size: clamp(64px, 11vw, 168px); }
+  .nums .small { margin-top: var(--s-1); font-size: 18px; color: var(--c-text-2); }
+
+  .why { padding: var(--pad-y) 0; }
+  .why .lema { font-family: var(--f-title); font-weight: 500; font-size: var(--t-poster-sm); line-height: 1.04; letter-spacing: -0.05em; color: var(--c-title); margin-top: var(--s-5); max-width: 18ch; text-wrap: balance; }
+
   .seq { position: relative; display: grid; grid-template-columns: repeat(4,1fr); gap: var(--gutter-col); padding-top: var(--s-5); }
-  .seq::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: var(--c-rule-strong); }
+  .seq::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--c-title); }
   .seq li { position: relative; padding-top: var(--s-4); }
-  .seq li::before { content: ""; position: absolute; top: -5px; left: 0; width: 11px; height: 11px; border-radius: 50%; background: var(--c-title); }
+  .seq li::before { content: ""; position: absolute; top: -6px; left: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--c-title); }
   .seq .fig { margin-bottom: var(--s-3); }
   .seq p { margin-top: var(--s-1); color: var(--c-text-2); max-width: 28ch; }
   .after { margin-top: var(--s-6); }
-  .after p:first-child { font-family: var(--f-title); font-size: var(--t-h2); letter-spacing: var(--ls-title); line-height: 1.1; color: var(--c-title); }
+  .after p:first-child { font-family: var(--f-title); font-size: var(--t-poster-sm); letter-spacing: -0.05em; line-height: 1.04; color: var(--c-title); font-weight: 500; text-wrap: balance; max-width: 16ch; }
   .after p:last-child { margin-top: var(--s-2); color: var(--c-text-2); }
 
-  /* faixa foto atrás do cabeçalho de formatos */
-  .fhead { position: relative; color: #fff; padding: var(--pad-y) 0; background: #1a1220; overflow: hidden; }
-  .fhead img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .5; }
-  .fhead::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(14,14,14,.82), rgba(14,14,14,.35)); }
-  .fhead .wrap { position: relative; z-index: 1; }
-  .fhead h2 { color: #fff; max-width: 18ch; margin-top: var(--s-2); }
-  .fhead .meta { color: var(--c-on-band-brand); }
+  /* ASSINATURA: faixa de foto sangrando a tela com o título de cartaz; dois formatos em linhas logo abaixo */
+  .fband { height: min(72vh, 640px); min-height: 440px; }
+  .fband img { object-position: 50% 45%; }
+  .fband h2 { color: #fff; font-size: var(--t-poster); line-height: 1.02; letter-spacing: -0.055em; max-width: 12ch; margin-top: var(--s-4); }
   .fmt > li { grid-template-columns: minmax(0,4fr) minmax(0,5fr) minmax(0,3fr); padding: var(--s-6) 0; }
   .fmt h3 { font-size: var(--t-h2); line-height: var(--lh-title); letter-spacing: var(--ls-title); }
   .fmt .aud { margin-top: var(--s-2); color: var(--c-text-1); font-size: 19px; }
@@ -43,12 +44,12 @@
   .feat strong { color: var(--c-text-1); }
   .fmt .sup2 { color: var(--c-text-3); font-size: var(--t-small); }
   .fmt .btn { margin-top: var(--s-3); }
-  @media (max-width: 760px) { .hero, .fmt > li, .seq { grid-template-columns: 1fr; } .seq { padding-top: 0; padding-left: var(--s-4); gap: var(--s-5); } .seq::before { right: auto; top: 6px; bottom: 6px; width: 1px; height: auto; left: 5px; } .seq li { padding-top: 0; } .seq li::before { top: 6px; left: calc(-1 * var(--s-4)); } .hero .photo { aspect-ratio: 4/3; } }
+  @media (max-width: 760px) { .two, .hero, .fmt > li, .nums { grid-template-columns: minmax(0,1fr); } .seq { grid-template-columns: minmax(0,1fr); padding-left: var(--s-4); gap: var(--s-5); padding-top: 0; } .seq::before { right: auto; top: 6px; bottom: 6px; width: 2px; height: auto; left: 5px; } .seq li { padding-top: 0; } .seq li::before { top: 6px; left: calc(-1 * var(--s-4)); } .hero .photo { aspect-ratio: 4/3; } .nums .poster { font-size: clamp(56px, 18vw, 96px); } }
 </style></head>
 <body>
-<span class="tag">proto · ai culture</span>
+<span class="tag">proto r2 · ai culture</span>
 
-<section class="hero wrap" data-sec="hero">
+<section class="wrap hero" data-sec="hero">
   <div>
     <p class="meta">AI Culture · Treinamento corporativo em IA</p>
     <h1>Não basta aprender IA. Seu time precisa saber o que fazer com ela.</h1>
@@ -59,33 +60,32 @@
   <figure class="photo lift"><img src="../../../../apps/site/public/home/evento-sala.jpg" alt="Turma em sala durante um treinamento da Kalidash"></figure>
 </section>
 
-<section class="wrap" data-sec="proofbar">
-  <ul class="figs" aria-label="Resultados">
-    <li><p class="fig">+10 mil</p><p class="small">pessoas capacitadas</p></li>
-    <li><p class="fig">170</p><p class="small">operações atendidas</p></li>
-  </ul>
-</section>
+<section class="wrap" data-sec="proofbar"><ul class="nums" aria-label="Resultados">
+  <li><p class="poster">+10 mil</p><p class="small">pessoas capacitadas</p></li>
+  <li><p class="poster">170</p><p class="small">operações atendidas</p></li>
+</ul></section>
 
-<section class="section warm" style="margin-top:var(--pad-y)" data-sec="text"><div class="wrap two">
+<section class="section warm why" data-sec="text"><div class="wrap two">
   <div><div class="caption"><span class="meta">Por que capacitar?</span></div><h2 class="h2">Ter acesso à IA não é saber trabalhar com ela.</h2></div>
   <div><p class="body-2">Muitas empresas já liberaram ChatGPT, Copilot ou Gemini para o time e a rotina continua igual. O gargalo não é a ferramenta, é saber onde aplicar, testar no próprio trabalho e transformar isso em hábito.</p>
-  <p class="keyline">Nosso objetivo é criar capacidade dentro da empresa, não ensinar mais uma ferramenta.</p></div>
+  <p class="lema">Nosso objetivo é criar capacidade dentro da empresa, não ensinar mais uma ferramenta.</p></div>
 </div></section>
 
 <section class="section wrap" data-sec="steps">
   <div class="caption"><span class="meta">Nossa metodologia</span></div>
   <h2 class="h2" style="max-width:20ch">Começamos pelo trabalho, não pela ferramenta.</h2>
-  <ol class="seq" style="margin-top:var(--head-gap)">
+  <ol class="seq m-draw" style="margin-top:var(--head-gap)">
     <li><p class="fig sm">01</p><h3 class="h3">Contexto</h3><p>Mapeamos áreas, processos e desafios do time antes de montar o conteúdo.</p></li>
     <li><p class="fig sm">02</p><h3 class="h3">Capacitação</h3><p>O time aprende a usar IA com segurança, com exemplos do próprio setor.</p></li>
     <li><p class="fig sm">03</p><h3 class="h3">Aplicação</h3><p>Cada pessoa aplica IA em tarefas reais da rotina, durante o treinamento.</p></li>
     <li><p class="fig sm">04</p><h3 class="h3">Cultura</h3><p>O time sai com autonomia para encontrar novas melhorias sozinho.</p></li>
   </ol>
-  <div class="after"><p><strong style="font-weight:500">O treinamento termina. A capacidade fica.</strong></p><p>O próprio time continua evoluindo, sem depender de consultoria.</p></div>
+  <div class="after"><p>O treinamento termina. A capacidade fica.</p><p>O próprio time continua evoluindo, sem depender de consultoria.</p></div>
 </section>
 
 <section data-sec="formats">
-  <div class="fhead"><img src="../../../../apps/site/public/home/metodo-reuniao.jpg" alt=""><div class="wrap"><p class="meta">Formatos</p><h2 class="h2">Dois formatos, conforme o seu objetivo.</h2></div></div>
+  <div class="bleed-img fband"><img src="../../../../apps/site/public/home/metodo-reuniao.jpg" alt=""><div class="ph-over"></div>
+    <div class="ph-copy"><div class="wrap"><p class="meta">Formatos</p><h2>Dois formatos, conforme o seu objetivo.</h2></div></div></div>
   <div class="wrap"><ul class="ruled fmt">
     <li>
       <div><h3>AI Culture In Company</h3><p class="aud">Para quem quer <strong>desenvolver capacidade real no time.</strong></p></div>

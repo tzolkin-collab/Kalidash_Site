@@ -78,3 +78,12 @@
   --t-fast: 160ms;                          /* hover, foco, abrir/fechar */
   --t-draw: 600ms;                          /* só a linha dos passos, uma vez */
 }
+
+/* ---------- Rodada 2 (vida): escala de cartaz, faixa quente, movimento ligado à rolagem ---------- */
+:root {
+  --t-poster: clamp(56px, 8.4vw, 128px);     /* lemas e números de cartaz: no máximo 1 por seção */
+  --t-poster-sm: clamp(44px, 6vw, 88px);     /* lema longo (frase) em faixa */
+  --c-band-warm: #b6644d;                    /* faixa quente (= --accent). Só texto >= 40px (branco sobre ela dá 4,3:1: reprova AA em texto pequeno) */
+  --bleed: calc(50% - 50vw);                 /* margem negativa para sangrar até a borda da tela */
+  --parallax: 32px;                          /* deslocamento máximo de fotos ligadas à rolagem */
+}

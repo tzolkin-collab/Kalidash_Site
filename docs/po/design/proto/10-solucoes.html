@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Proto D1 r2 · Soluções</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Sans+3:wght@400;600&display=swap">
+<link rel="stylesheet" href="proto.css"><link rel="stylesheet" href="proto-r2.css">
+<style>
+  .two { display: grid; grid-template-columns: minmax(0,5fr) minmax(0,7fr); gap: var(--gutter-col); }
+  /* abertura à la Mistral: manchete embaixo à esquerda, apoio embaixo à direita, na mesma linha de base */
+  .hero { display: grid; grid-template-columns: minmax(0,8fr) minmax(0,4fr); gap: var(--gutter-col); align-items: end; padding: clamp(72px,10vw,160px) 0 var(--pad-y); }
+  .hero h1 { font-size: var(--t-poster); line-height: .96; letter-spacing: -0.058em; margin-top: var(--s-2); }
+  .hero .side { display: grid; gap: var(--s-2); justify-items: start; padding-bottom: var(--s-1); }
+  .hero .side p { font-size: 19px; line-height: 1.55; color: var(--c-text-2); }
+
+  /* ASSINATURA: dois painéis cheios, um claro e um escuro, o produto em escala grande */
+  .offer { position: relative; overflow: hidden; }
+  .offer .grid { display: grid; grid-template-columns: minmax(0,5fr) minmax(0,7fr); gap: clamp(32px,6vw,96px); align-items: center; }
+  .offer h2 { margin-top: var(--s-1); font-size: var(--t-h2); line-height: 1.04; letter-spacing: var(--ls-title); }
+  .offer .tx { margin-top: var(--s-3); }
+  .offer .feat { margin: var(--s-5) 0; }
+  .offer .feat > li { grid-template-columns: minmax(0,3fr) minmax(0,5fr); }
+  .offer .feat h3 { font-size: 20px; letter-spacing: -0.015em; }
+  .offer .feat p { font-size: 17px; }
+  .o1 { background: var(--c-warm); padding-top: var(--s-7); }
+  .o1 .cut { display: block; width: 120%; max-width: none; margin-left: -10%; height: min(84vh, 800px); object-fit: contain; object-position: 50% 100%; margin-bottom: -1px; }
+  .o1 .grid { align-items: end; }
+  .o1 .copy { padding-bottom: var(--s-7); align-self: center; }
+  .o2 { background: var(--c-band); color: #fff; padding-left: max(24px, calc((100vw - 1280px) / 2)); }
+  .o2 .grid { grid-template-columns: minmax(0,6fr) minmax(0,6fr); gap: var(--gutter-col); align-items: stretch; }
+  .o2 .copy { padding: var(--pad-y) 0; align-self: center; }
+  .o2 h2 { color: #fff; }
+  .o2 .body-2 { color: var(--c-on-band-2); }
+  .o2 .ruled > li { border-color: var(--c-rule-on-band); }
+  .o2 .ruled > li:last-child { border-color: var(--c-rule-on-band); }
+  .o2 .feat h3 { color: #fff; } .o2 .feat p { color: var(--c-on-band-2); }
+  .o2 .link { color: var(--c-on-band-brand); border-color: var(--c-on-band-brand); }
+  .o2 .meta { color: var(--c-on-band-brand); }
+  .o2 .bleed-img { min-height: 640px; border-radius: 0; }
+  .o2 .bleed-img img { object-position: 50% 30%; }
+  .marker { display: block; } .marker .idx-num { margin-right: var(--s-1); }
+  .idx-num { font-family: var(--f-title); font-size: var(--t-poster); line-height: .9; letter-spacing: -0.06em; color: var(--c-brand-text); }
+  .o2 .idx-num { color: var(--c-on-band-brand); }
+  @media (max-width: 760px) { .two, .hero, .offer .grid, .o2 .grid, .offer .feat > li { grid-template-columns: minmax(0,1fr); } .o1 .cut { width: 100%; margin-left: 0; height: 360px; } .o2 { padding-left: 0; } .o2 .copy { padding: var(--s-6) 24px; } .o2 .bleed-img { min-height: 320px; } .o1 .copy { padding-bottom: var(--s-5); } }
+</style></head>
+<body>
+<span class="tag">proto r2 · soluções</span>
+
+<section class="wrap hero" data-sec="hero">
+  <div><p class="meta">Soluções próprias</p><h1>Tecnologia que nasce de problemas reais.</h1></div>
+  <div class="side"><p>Às vezes encontramos um problema tão específico que nenhuma ferramenta de mercado resolve. Quando isso acontece, a gente constrói.</p><p>São tecnologias desenvolvidas pela Kalidash, a partir de operações reais e usadas por empresas hoje.</p><a class="btn" href="#">Falar sobre o meu caso →</a></div>
+</section>
+
+<section class="offer o1" id="kognis" data-sec="offer-1"><div class="wrap grid">
+  <img class="cut m-rise" src="../../../../apps/site/public/kognis-heroes.png" alt="Kognis — Escritório de Advocacia Inteligente">
+  <div class="copy"><p class="marker"><span class="idx-num">01</span> · <span class="meta">Kognis</span></p>
+    <h2>Uma operação mais inteligente para a advocacia.</h2>
+    <p class="body-2 tx">Tecnologia para automatizar <strong>atendimento</strong>, <strong>financeiro</strong> e <strong>gestão de KPIs</strong> de escritórios de advocacia em um só lugar, reduzindo o trabalho operacional e aumentando o controle sobre o negócio.</p>
+    <ul class="ruled feat"><li><h3>Atendimento</h3><p>Triagem e acompanhamento automatizados sem perder o contexto de cada cliente.</p></li><li><h3>Financeiro</h3><p>Rotinas operacionais organizadas em fluxo contínuo, com menos retrabalho.</p></li><li><h3>Gestão de KPIs</h3><p>Indicadores do escritório consolidados em tempo real para apoiar decisões.</p></li></ul>
+    <a class="link" href="#">Conhecer Kognis →</a></div>
+</div></section>
+
+<section class="offer o2" id="spectra-ai" data-sec="offer-2"><div class="grid">
+  <div class="copy"><p class="marker"><span class="idx-num">02</span> · <span class="meta">Spectra AI</span></p>
+    <h2>Visão computacional aplicada ao chão de operação.</h2>
+    <p class="body-2 tx">A operação fala e o Spectra AI traduz. Câmeras transformam o que acontece na operação em dados de produtividade, identificando oportunidades em tempo real e apontando onde melhorar.</p>
+    <ul class="ruled feat"><li><h3>Leitura em tempo real</h3><p>Câmeras conectadas ao ambiente físico traduzem a rotina sem interromper o time.</p></li><li><h3>Dados de produtividade</h3><p>O que antes dependia de observação manual vira histórico estruturado.</p></li><li><h3>Oportunidades claras</h3><p>Identificação objetiva de gargalos e pontos de melhoria na operação.</p></li></ul>
+    <a class="link" href="#">Conhecer Spectra AI →</a></div>
+  <figure class="bleed-img"><img src="../../../../apps/site/public/sobre-nos/ato-01-operacao.jpg" alt="Spectra AI visão computacional na operação"></figure>
+</div></section>
+</body></html>

@@ -1,6 +1,55 @@
-# Relatório D0 + D1: direção das páginas institucionais (v2, após revisão do PO)
+# Relatório D0 + D1: direção das páginas institucionais (v3, rodada 2: vida)
 
 > Designer. v1 entregue 31/10 (nota do PO 8,0); esta v2 fecha as correções a–e. Nada em `apps/site` foi editado; só `docs/po/design/` e `docs/po/relatorios/`.
+
+## Rodada 2 (vida): o que foi feito
+
+Pedido do PO (nota de volta a 8,0 até isto): para **cada página**, assinatura própria, ritmo sem padrão repetido, foto real grande, banda de cor com função, um micro-movimento, três níveis de título, e nota de "vida" antes/depois. Resultado em [01-institucionais.md](../design/01-institucionais.md) §0 e [00-sistema.md](../design/00-sistema.md) §10.
+
+| Pedido | Estado | Evidência |
+|---|---|---|
+| (1) Assinatura por página | ✅ | Sobre nós: foto dos fundadores sangrando; AI Culture: faixa de foto com título de cartaz; Advisory: faixa quente com o lema; Execução: índice de cartaz + faixa escura; Soluções: dois painéis cheios claro/escuro; Kognis: advogados em pé sobre a faixa de números; Spectra: tela dividida de altura cheia |
+| (2) Ritmo: nunca duas seguidas iguais; régua no máx. 1 | ✅ (por leitura) | Sequências de padrões por página em §0.2 do doc; conferi lendo as capturas de página inteira; **no Advisory, "critérios" (régua) e "FAQ" são vizinhos e ambos têm hairline** (FAQ é padrão distinto na lista do PO; registrei o risco) |
+| (3) Foto real existente, grande, com corte; faixa de cor com função | ✅ | arquivos, escala e corte por página em §0.2; nenhuma imagem nova |
+| (4) Um micro-movimento por página, só opacity/transform | ✅ / ⚠️ | quatro peças em `proto/proto-r2.css` (parallax, rise, zoom, draw), todas **só transform**, CSS scroll-driven, nenhuma em loop, desligadas em `prefers-reduced-motion`; Spectra usa hover/foco (opacity 160ms). **Não vi o movimento acontecendo**: só conferi que as capturas estáticas não quebram (nenhuma parte de opacity 0) |
+| (5) Títulos em 3 níveis; números/lemas de cartaz | ✅ | `--t-poster` 56–128, `--t-poster-sm` 44–88, `--t-h2`, `--t-h3` |
+| Refazer os 4 mais fracos + capturas 1440/390 | ✅ | refiz **todas as 7**; 14 PNGs de página inteira em `design/depois/` (1440 e 390), mais recortes `m-*-390.png`; comparativos lado a lado em `design/comparativo/` |
+| Auditar contra `tells.md` | ✅ | §0.4 do doc; risco declarado: legenda + h2 ainda recorrente em Kognis e Advisory |
+| Nota de "vida" 0–10 antes → depois | ✅ (autoavaliação) | Sobre nós 3→7,5 · AI Culture 3→6,5 · Advisory 2→7,5 · Execução 3→7 · Soluções 2→7,5 · Kognis 2→**6** · Spectra 2→6,5. Kognis e Spectra são as menores porque **K1–K3 e S1 estão vazios** |
+| Sem texto novo, imagem inventada ou tela falsa | ✅ | `copy-check`: 0 linhas extras nos 7 protótipos (saída abaixo); espaços K/S continuam rotulados só por CSS |
+| `copy-check` e `overflow-check` | ✅ | saídas abaixo |
+| Mobile (390) visto | ⚠️ | vi como imagem: hero do Sobre nós (corrigido: a foto cortava os dois rostos, agora 3:2 inteira com título embaixo), hero do Kognis, lema do Advisory, painel claro de Soluções; para o resto, só overflow medido. **Não vi** AI Culture, Execução e Spectra em 390 como imagem |
+
+### Saídas dos testes (rodada 2)
+
+`node docs/po/design/proto/copy-check.mjs` (exit 0), páginas 01–06 e 10:
+
+```
+OK  01-sobre-nos.html: 45 linhas, extras=0, só-no-código=0, cobertura da baseline=45/45 (100%)
+OK  02-kognis.html: 59 linhas, extras=0, só-no-código=1, cobertura da baseline=58/58 (100%)
+OK  03-advisory.html: 52 linhas, extras=0, só-no-código=1, cobertura da baseline=50/50 (100%)
+OK  04-execucao.html: 56 linhas, extras=0, só-no-código=0, cobertura da baseline=55/55 (100%)
+OK  10-solucoes.html: 25 linhas, extras=0, só-no-código=0, cobertura da baseline=25/25 (100%)
+OK  05-ai-culture.html: 42 linhas, extras=0, só-no-código=0, cobertura da baseline=41/41 (100%)
+OK  06-spectra.html: 13 linhas, extras=0, só-no-código=0, cobertura da baseline=13/13 (100%)
+```
+
+O teste achou erros reais nesta rodada, corrigidos: o "Saiba mais" das duas linhas de produto na Execução tinha virado só uma seta, e o marcador "01 · Kognis"/"02 · Spectra AI" de Soluções perdia o "·" (virava elementos separados). **`só-no-código`** = resposta de `<details>` recolhido, validada contra o literal em `pages.ts`.
+
+`node docs/po/design/proto/overflow-check.mjs`: **28 de 28** combinações dos 7 protótipos (390/768/1024/1440) sem overflow; nenhuma linha `OVERFLOW`. Antes de eu corrigir, achou: faixa dos advogados do Kognis passando da borda em 768/1024 (recorte a 118%), título dos rituais e lema do Advisory em 390, e grade `1fr` esticada pela foto (`minmax(0,1fr)` nos blocos móveis).
+
+### Pontos fracos que o PO deve checar
+
+- **A nota de vida é minha**, sobre PNGs estáticos, e o movimento não foi visto em ação.
+- Sem as telas do Kognis (K1–K3) e imagem do Spectra (S1), essas duas páginas têm teto em ~6,5.
+- A mesma foto do operário (`ato-01-operacao.jpg`) aparece em Spectra, Soluções e na colagem do Sobre nós; é a única foto de chão de operação disponível em `public/`.
+- O hero da Execução usa uma foto de palco (já marcada "confirmar" em `pages.ts`; PO decidiu manter).
+- A faixa quente do Advisory é a decisão mais ousada do pacote: usa o `--accent` como fundo (branco sobre `#b6644d` dá 4,3:1, por isso só a partir de 40px). Se o dono achar forte demais, a alternativa é a mesma frase em `--ink` sobre `warm`.
+
+
+---
+
+> **As seções abaixo são o relatório da rodada 1/v2** (correções a–e e espaços reservados). Onde citam protótipos, `04-execucao-solucoes.html` foi substituído por `04-execucao.html` e `10-solucoes.html`; os protótipos de 01 a 06 foram refeitos na rodada 2.
 
 ## 1. Checklist
 

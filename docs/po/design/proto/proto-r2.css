@@ -1,0 +1,32 @@
+/* Rodada 2: vida. Complementa proto.css (não altera nada dele). */
+.bleed-img { position: relative; overflow: hidden; background: #111; }
+.bleed-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ph-over { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(14,14,14,0) 35%, rgba(14,14,14,.78) 100%); }
+.ph-copy { position: absolute; left: 0; right: 0; bottom: 0; color: #fff; padding-bottom: clamp(32px, 5vw, 72px); }
+.ph-copy h1 { color: #fff; }
+.ph-copy .meta { color: var(--c-on-band-brand); }
+.poster { font-family: var(--f-title); font-weight: 500; font-size: var(--t-poster); line-height: 1; letter-spacing: -0.055em; color: var(--c-title); }
+.poster-sm { font-family: var(--f-title); font-weight: 500; font-size: var(--t-poster-sm); line-height: 1.04; letter-spacing: -0.05em; }
+.band-ink { background: var(--c-band); color: #fff; }
+.band-ink .small { color: var(--c-on-band-2); }
+.band-warm { background: var(--c-band-warm); color: #fff; }
+.pad { padding: var(--pad-y) 0; }
+.bigfig { display: grid; gap: var(--s-4); }
+.bigfig .poster { color: #fff; }
+.bigfig .small { margin-top: var(--s-2); font-size: 17px; max-width: 26ch; }
+.kicker { font-size: var(--t-meta); font-weight: 700; letter-spacing: var(--ls-meta); text-transform: uppercase; color: var(--c-brand-text); }
+.band-ink .kicker { color: var(--c-on-band-brand); }
+
+/* movimento ligado à rolagem: só transform; o conteúdo nunca fica escondido */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .m-parallax img { animation: m-par linear both; animation-timeline: view(); animation-range: cover 0% cover 100%; transform-origin: 50% 50%; }
+    .m-rise { animation: m-rise linear both; animation-timeline: view(); animation-range: entry 0% entry 80%; }
+    .m-zoom img { animation: m-zoom linear both; animation-timeline: view(); animation-range: entry 0% cover 55%; }
+    .m-draw::before { transform-origin: 0 50%; animation: m-draw linear both; animation-timeline: view(); animation-range: entry 10% cover 45%; }
+  }
+}
+@keyframes m-par { from { transform: translateY(var(--parallax)) scale(1.12); } to { transform: translateY(calc(-1 * var(--parallax))) scale(1.12); } }
+@keyframes m-rise { from { transform: translateY(40px); } to { transform: none; } }
+@keyframes m-zoom { from { transform: scale(1.08); } to { transform: scale(1); } }
+@keyframes m-draw { from { transform: scaleX(.35); } to { transform: scaleX(1); } }

@@ -1,81 +1,99 @@
 <!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Proto D1 · Advisory</title>
+<title>Proto D1 r2 · Advisory</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Sans+3:wght@400;600&display=swap">
-<link rel="stylesheet" href="proto.css">
+<link rel="stylesheet" href="proto.css"><link rel="stylesheet" href="proto-r2.css">
 <style>
   .two { display: grid; grid-template-columns: minmax(0,5fr) minmax(0,7fr); gap: var(--gutter-col); }
-  .hero { padding: clamp(48px,7vw,96px) 0 var(--pad-y); }
-  .hero h1 { font-size: var(--t-h1); line-height: 1.04; letter-spacing: var(--ls-display); max-width: 15ch; margin-top: var(--s-2); }
-  .hero .photo { margin-top: var(--s-6); aspect-ratio: 21/9; }
-  .hero .photo img { object-position: 50% 40%; }
-  .hero .row { margin-top: var(--s-5); align-items: start; }
-  .hero .row > div { grid-column: 2; display: grid; gap: var(--s-3); justify-items: start; }
-  .chips { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--s-6); margin-top: var(--s-4); }
-  .chips li { display: flex; gap: var(--s-2); padding: var(--s-2) 0; border-top: 1px solid var(--c-rule); font-family: var(--f-title); font-size: 20px; letter-spacing: -0.015em; color: var(--c-title); }
-  .chips li span { font-size: var(--t-small); color: var(--c-brand-text); font-weight: 600; padding-top: 4px; min-width: 24px; }
-  .rit > li { grid-template-columns: minmax(0,5fr) minmax(0,7fr); }
-  .rit h3 { font-size: var(--t-h2); line-height: var(--lh-title); letter-spacing: var(--ls-title); }
-  .rit p { color: var(--c-text-2); font-size: 20px; max-width: var(--measure); }
-  .foot { margin-top: var(--s-4); padding-top: var(--s-3); border-top: 1px solid var(--c-rule-strong); max-width: 78ch; color: var(--c-text-2); }
+  /* hero: foto da reunião sangra para a borda direita da tela (7/12) */
+  .hero { display: grid; grid-template-columns: minmax(0,5fr) minmax(0,7fr); gap: var(--gutter-col); align-items: stretch; padding-left: max(24px, calc((100vw - 1280px) / 2)); }
+  .hero .copy { padding: clamp(48px,6vw,96px) 0; align-self: center; }
+  .hero h1 { font-size: var(--t-h1); line-height: 1.04; letter-spacing: var(--ls-display); margin-top: var(--s-2); }
+  .hero .lead { margin-top: var(--s-3); max-width: 40ch; }
+  .hero .sup { margin-top: var(--s-3); padding-top: var(--s-2); border-top: 1px solid var(--c-rule-strong); max-width: 36ch; }
+  .hero .btn { margin-top: var(--s-4); }
+  .hero .bleed-img { min-height: min(86vh, 720px); border-radius: 0; }
+  .hero .bleed-img img { object-position: 62% 50%; }
+
+  /* ASSINATURA: faixa quente com o lema em escala de cartaz */
+  .lema-band { padding: var(--pad-y) 0; }
+  .lema-band p { font-family: var(--f-title); font-weight: 500; font-size: var(--t-poster); line-height: .98; letter-spacing: -0.055em; max-width: 14ch; text-wrap: balance; color: #fff; }
+  .e-agora { padding: var(--pad-y) 0 var(--s-7); }
+  .e-agora .body-2 + .body-2 { margin-top: var(--s-3); }
+
+  /* "o que fazemos": coluna sticky + frases grandes, sem hairline */
+  .sticky2 { display: grid; grid-template-columns: minmax(0,5fr) minmax(0,7fr); gap: var(--gutter-col); }
+  .sticky2 .left { position: sticky; top: 96px; align-self: start; }
+  .frases li { display: flex; gap: var(--s-3); align-items: baseline; padding: var(--s-2) 0; font-family: var(--f-title); font-size: clamp(26px, 3vw, 44px); line-height: 1.12; letter-spacing: -0.035em; color: var(--c-title); }
+  .frases li span { font-size: var(--t-small); color: var(--c-brand-text); font-weight: 600; letter-spacing: .06em; min-width: 28px; }
+
+  /* rituais: numerais gigantes */
+  .rit li { display: grid; grid-template-columns: minmax(0,3fr) minmax(0,9fr); gap: var(--gutter-col); padding: var(--s-5) 0; align-items: start; }
+  .rit .n { font-family: var(--f-title); font-size: var(--t-poster); line-height: .9; letter-spacing: -0.06em; color: var(--c-brand-text); }
+  .rit h3 { font-size: var(--t-poster-sm); line-height: 1.02; letter-spacing: -0.05em; overflow-wrap: anywhere; }
+  .rit p { margin-top: var(--s-2); color: var(--c-text-2); font-size: 20px; max-width: 54ch; }
+  .foot { margin-top: var(--s-4); padding-top: var(--s-3); border-top: 2px solid var(--c-title); max-width: 78ch; color: var(--c-text-2); }
   .foot strong { color: var(--c-text-1); }
+
   .seq { position: relative; display: grid; grid-template-columns: repeat(3,1fr); gap: var(--gutter-col); padding-top: var(--s-5); }
-  .seq::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: var(--c-rule-strong); }
+  .seq::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--c-title); }
   .seq li { position: relative; padding-top: var(--s-4); }
-  .seq li::before { content: ""; position: absolute; top: -5px; left: 0; width: 11px; height: 11px; border-radius: 50%; background: var(--c-title); }
+  .seq li::before { content: ""; position: absolute; top: -6px; left: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--c-title); }
   .seq .fig { margin-bottom: var(--s-3); }
   .seq p { margin-top: var(--s-1); color: var(--c-text-2); max-width: 30ch; }
+
+  /* critérios: a ÚNICA régua da página */
   .crit > li { grid-template-columns: 32px 1fr; align-items: baseline; font-family: var(--f-title); font-size: clamp(20px,2vw,24px); letter-spacing: -0.02em; line-height: 1.3; color: var(--c-title); }
   .tick { width: 18px; height: 18px; stroke: var(--c-brand-text); fill: none; stroke-width: 1.6; transform: translateY(3px); }
   .crit .note { color: var(--c-text-2); font-family: var(--f-body); letter-spacing: 0; }
-  .sticky { position: sticky; top: 96px; align-self: start; }
   details { border-top: 1px solid var(--c-rule); }
   details:last-child { border-bottom: 1px solid var(--c-rule); }
   summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: var(--s-3); padding: var(--s-3) 0; font-family: var(--f-title); font-size: var(--t-h3); letter-spacing: var(--ls-h3); color: var(--c-title); }
   summary::after { content: "+"; color: var(--c-brand-text); }
+  details[open] summary::after { content: "–"; }
   details p { padding-bottom: var(--s-3); max-width: var(--measure); color: var(--c-text-2); }
-  @media (max-width: 760px) { .two, .rit > li, .chips, .seq { grid-template-columns: 1fr; } .seq { padding-top: 0; padding-left: var(--s-4); gap: var(--s-5); } .seq::before { right: auto; top: 6px; bottom: 6px; width: 1px; height: auto; left: 5px; } .seq li { padding-top: 0; } .seq li::before { top: 6px; left: calc(-1 * var(--s-4)); } .hero .row > div { grid-column: 1; } .hero .photo { aspect-ratio: 4/3; } .sticky { position: static; } }
+  .sticky { position: sticky; top: 96px; align-self: start; }
+  @media (max-width: 760px) { .two, .hero, .sticky2, .rit li, .seq { grid-template-columns: minmax(0,1fr); } .rit h3 { font-size: clamp(30px, 8.4vw, 40px); } .lema-band p { font-size: clamp(36px, 10vw, 48px); overflow-wrap: anywhere; } .rit .n { font-size: 56px; } .frases li { font-size: 26px; } .hero { padding-left: 0; } .hero .copy { padding: var(--s-5) 24px; } .hero .bleed-img { min-height: 320px; } .lema-band, .e-agora, .section .wrap { }
+    .seq { padding-left: var(--s-4); gap: var(--s-5); padding-top: 0; } .seq::before { right: auto; top: 6px; bottom: 6px; width: 2px; height: auto; left: 5px; } .seq li { padding-top: 0; } .seq li::before { top: 6px; left: calc(-1 * var(--s-4)); } .sticky, .sticky2 .left { position: static; } }
 </style></head>
 <body>
-<span class="tag">proto · advisory</span>
+<span class="tag">proto r2 · advisory</span>
 
-<section class="hero wrap" data-sec="hero">
-  <p class="meta">Advisory · Consultoria e governança de IA</p>
-  <h1>Sua estratégia de IA, acompanhada até virar resultado.</h1>
-  <figure class="photo lift"><img src="../../../../apps/site/public/home/metodo-reuniao.jpg" alt="Reunião da Kalidash com a diretoria de uma empresa"></figure>
-  <div class="two row"><p class="small" style="padding-top:8px">Ao lado da liderança. Dentro da execução.</p>
-    <div><p class="lead" style="max-width:44ch">Acompanhamos a liderança na implementação de iniciativas de IA e eficiência. Priorizamos, medimos e ajustamos a rota, para que o investimento se pague.</p><a class="btn" href="#">Conversar com um sócio →</a></div></div>
+<section class="hero" data-sec="hero">
+  <div class="copy">
+    <p class="meta">Advisory · Consultoria e governança de IA</p>
+    <h1>Sua estratégia de IA, acompanhada até virar resultado.</h1>
+    <p class="lead">Acompanhamos a liderança na implementação de iniciativas de IA e eficiência. Priorizamos, medimos e ajustamos a rota, para que o investimento se pague.</p>
+    <p class="small sup">Ao lado da liderança. Dentro da execução.</p>
+    <a class="btn" href="#">Conversar com um sócio →</a>
+  </div>
+  <figure class="bleed-img"><img src="../../../../apps/site/public/home/metodo-reuniao.jpg" alt="Reunião da Kalidash com a diretoria de uma empresa"></figure>
 </section>
 
-<section class="section warm" data-sec="text"><div class="wrap two">
+<section class="wrap e-agora" data-sec="text"><div class="two">
   <h2 class="h2">A estratégia foi definida. E agora?</h2>
-  <div style="display:grid;gap:var(--s-3)">
-    <p class="body-2">Escolher tecnologias e aprovar projetos é a parte fácil. O difícil vem depois: decidir o que priorizar, medir o que funciona, definir responsáveis e corrigir a rota.</p>
-    <p class="body-2">E o plano raramente sobrevive ao primeiro trimestre. Surgem informações novas, prioridades mudam, uma tecnologia não entrega o esperado, uma área resiste.</p>
-    <p class="keyline">Não entregamos um plano. Acompanhamos o que acontece depois dele.</p>
-  </div>
+  <div><p class="body-2">Escolher tecnologias e aprovar projetos é a parte fácil. O difícil vem depois: decidir o que priorizar, medir o que funciona, definir responsáveis e corrigir a rota.</p>
+  <p class="body-2">E o plano raramente sobrevive ao primeiro trimestre. Surgem informações novas, prioridades mudam, uma tecnologia não entrega o esperado, uma área resiste.</p></div>
+</div></section>
+<section class="band-warm lema-band" data-sec="lema"><div class="wrap"><p class="m-rise">Não entregamos um plano. Acompanhamos o que acontece depois dele.</p></div></section>
+
+<section class="section wrap" data-sec="chips"><div class="sticky2">
+  <div class="left"><div class="caption"><span class="meta">O que fazemos</span></div><h2 class="h2">Ajudamos sua liderança a decidir melhor sobre IA.</h2><p class="body-2" style="margin-top:var(--s-3)">Atuamos como conselho da implementação, ao lado da diretoria e dos times que executam.</p></div>
+  <ul class="frases"><li><span>01</span>Questionamos prioridades</li><li><span>02</span>Estruturamos decisões</li><li><span>03</span>Acompanhamos indicadores</li><li><span>04</span>Identificamos desvios cedo</li><li><span>05</span>Conectamos tecnologia aos objetivos do negócio</li></ul>
 </div></section>
 
-<section class="section wrap" data-sec="chips">
-  <div class="two">
-    <div><div class="caption"><span class="meta">O que fazemos</span></div><h2 class="h2">Ajudamos sua liderança a decidir melhor sobre IA.</h2></div>
-    <div><p class="body-2">Atuamos como conselho da implementação, ao lado da diretoria e dos times que executam.</p>
-      <ul class="chips"><li><span>01</span>Questionamos prioridades</li><li><span>02</span>Estruturamos decisões</li><li><span>03</span>Acompanhamos indicadores</li><li><span>04</span>Identificamos desvios cedo</li><li style="grid-column:1 / -1"><span>05</span>Conectamos tecnologia aos objetivos do negócio</li></ul></div>
-  </div>
-</section>
-
-<section class="section wrap" style="padding-top:0" data-sec="rituais">
+<section class="section warm" data-sec="rituais"><div class="wrap">
   <div class="caption"><span class="meta">Como funciona</span></div>
-  <h2 class="h2" style="max-width:22ch;margin-bottom:var(--head-gap)">Três rituais que mantêm a IA na agenda da diretoria.</h2>
-  <ul class="ruled rit">
-    <li><h3>Comitê de IA</h3><p>Encontro mensal com a liderança para revisar prioridades, indicadores e decisões em aberto. É o ritual que impede a iniciativa de morrer na primeira urgência do mês.</p></li>
-    <li><h3>Acompanhamento de iniciativas</h3><p>Proximidade com os times que executam, para destravar o que emperrou antes de virar problema de diretoria.</p></li>
-    <li><h3>Mentoria executiva</h3><p>Conversas individuais com líderes que conduzem a mudança e precisam de um olhar externo e experiente.</p></li>
+  <h2 class="h3" style="max-width:34ch;font-size:var(--t-h3);margin-bottom:var(--s-5)">Três rituais que mantêm a IA na agenda da diretoria.</h2>
+  <ul class="rit">
+    <li><span class="n">01</span><div><h3>Comitê de IA</h3><p>Encontro mensal com a liderança para revisar prioridades, indicadores e decisões em aberto. É o ritual que impede a iniciativa de morrer na primeira urgência do mês.</p></div></li>
+    <li><span class="n">02</span><div><h3>Acompanhamento de iniciativas</h3><p>Proximidade com os times que executam, para destravar o que emperrou antes de virar problema de diretoria.</p></div></li>
+    <li><span class="n">03</span><div><h3>Mentoria executiva</h3><p>Conversas individuais com líderes que conduzem a mudança e precisam de um olhar externo e experiente.</p></div></li>
   </ul>
   <p class="foot"><strong>O que a liderança recebe:</strong> painel com os indicadores das iniciativas · relatório mensal de decisões e desvios · roadmap priorizado, revisado a cada trimestre.</p>
-</section>
+</div></section>
 
-<section class="section warm" data-sec="steps"><div class="wrap">
+<section class="section wrap" data-sec="steps">
   <div class="caption"><span class="meta">Como começa</span></div>
   <h2 class="h2">Três passos para começar.</h2>
   <ol class="seq" style="margin-top:var(--head-gap)">
@@ -84,9 +102,9 @@
     <li><p class="fig sm">03</p><h3 class="h3">Acompanhamento</h3><p>Ciclos de 6 meses, com revisão ao fim de cada um.</p></li>
   </ol>
   <p style="margin-top:var(--s-6)"><a class="btn" href="#">Conversar com um sócio →</a></p>
-</div></section>
+</section>
 
-<section class="section wrap" data-sec="list"><div class="two">
+<section class="section warm" data-sec="list"><div class="wrap two">
   <div><div class="caption"><span class="meta">Para quem é?</span></div><h2 class="h2 sticky">O Advisory faz sentido quando…</h2></div>
   <ul class="ruled crit">
     <li><svg class="tick" viewBox="0 0 18 18"><path d="M3 9.5l4 4 8-9"/></svg>Já existem iniciativas de IA ou eficiência em andamento.</li>
@@ -98,8 +116,8 @@
   </ul>
 </div></section>
 
-<section class="section warm" data-sec="faq"><div class="wrap two">
-  <h2 class="h2 sticky">Perguntas frequentes</h2>
+<section class="section wrap" data-sec="faq"><div class="two">
+  <h2 class="h3 sticky" style="font-size:var(--t-h3)">Perguntas frequentes</h2>
   <div>
     <details open><summary>Qual a diferença entre Advisory e uma consultoria tradicional?</summary><p>Não entregamos um relatório e vamos embora. Acompanhamos as decisões e a execução de forma contínua, ao lado da liderança.</p></details>
     <details><summary>Quanto tempo dura?</summary><p>Ciclos de 3, 6 ou 12 meses, renováveis. A cadência é definida no diagnóstico.</p></details>

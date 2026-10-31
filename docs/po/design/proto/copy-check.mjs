@@ -17,7 +17,8 @@ const MAP = {
   '01-sobre-nos.html': ['sobre-nos'],
   '02-kognis.html': ['kognis'],
   '03-advisory.html': ['advisory'],
-  '04-execucao-solucoes.html': ['execucao', 'solucoes'],
+  '04-execucao.html': ['execucao'],
+  '10-solucoes.html': ['solucoes'],
   '05-ai-culture.html': ['treinamento-corporativo-ia'],
   '06-spectra.html': ['spectra'],
   // D2/D3: baseline = texto real renderizado em cada estado (copy-source/) + literais do código-fonte.
@@ -73,6 +74,7 @@ for (const [file, cfg] of Object.entries(MAP)) {
   const covered = [...baseSet].filter((l) => protoSet.has(l)).length;
   console.log(`${extra.length ? 'DIF' : 'OK '} ${file}: ${lines.length} linhas, extras=${extra.length}, só-no-código=${fromSource.length}, cobertura da baseline=${covered}/${baseSet.size} (${Math.round((100 * covered) / baseSet.size)}%)`);
   extra.forEach((l) => console.log('   EXTRA: ' + l));
+  if (process.env.MISSING) [...baseSet].filter((l) => !protoSet.has(l)).forEach((l) => console.log('   falta: ' + l));
   if (extra.length) failed++;
 }
 ws.close(); chrome.kill();

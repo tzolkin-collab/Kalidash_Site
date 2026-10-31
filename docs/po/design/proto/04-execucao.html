@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Proto D1 r2 · Execução</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Sans+3:wght@400;600&display=swap">
+<link rel="stylesheet" href="proto.css"><link rel="stylesheet" href="proto-r2.css">
+<style>
+  .two { display: grid; grid-template-columns: minmax(0,5fr) minmax(0,7fr); gap: var(--gutter-col); }
+  /* hero: retrato alto sangrando à direita */
+  .hero { display: grid; grid-template-columns: minmax(0,7fr) minmax(0,5fr); gap: var(--gutter-col); align-items: stretch; padding-left: max(24px, calc((100vw - 1280px) / 2)); }
+  .hero .copy { padding: clamp(48px,6vw,96px) 0; align-self: center; }
+  .hero h1 { font-size: var(--t-h1); line-height: 1.04; letter-spacing: var(--ls-display); margin-top: var(--s-2); max-width: 14ch; }
+  .hero .lead { margin-top: var(--s-3); max-width: 46ch; }
+  .hero .sup { margin-top: var(--s-3); padding-top: var(--s-2); border-top: 1px solid var(--c-rule-strong); max-width: 40ch; }
+  .hero .btn { margin-top: var(--s-4); }
+  .hero .bleed-img { min-height: min(88vh, 760px); border-radius: 0; }
+  .hero .bleed-img img { object-position: 50% 40%; }
+
+  .problema { padding: var(--pad-y) 0; }
+  .problema .lema { font-family: var(--f-title); font-weight: 500; font-size: var(--t-poster); line-height: .98; letter-spacing: -0.055em; color: var(--c-title); margin-top: var(--s-6); }
+
+  /* ASSINATURA: índice em escala de cartaz (os 5 nomes) */
+  .idx li { display: grid; grid-template-columns: minmax(0,8fr) minmax(0,4fr); gap: var(--gutter-col); align-items: end; padding: var(--s-4) 0 var(--s-3); border-top: 2px solid var(--c-title); }
+  .idx h3 { font-size: var(--t-poster-sm); line-height: 1.0; letter-spacing: -0.055em; }
+  .idx .t { font-size: 18px; color: var(--c-text-2); }
+  .idx .ex { margin-top: var(--s-1); font-size: var(--t-small); color: var(--c-brand-text); }
+  .head { margin-bottom: var(--head-gap); }
+
+  .seq { position: relative; display: grid; grid-template-columns: repeat(4,1fr); gap: var(--gutter-col); padding-top: var(--s-5); }
+  .seq::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--c-title); }
+  .seq li { position: relative; padding-top: var(--s-4); }
+  .seq li::before { content: ""; position: absolute; top: -6px; left: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--c-title); }
+  .seq .fig { margin-bottom: var(--s-3); }
+  .seq p { margin-top: var(--s-1); color: var(--c-text-2); max-width: 28ch; }
+  .after { margin-top: var(--s-6); max-width: 60ch; }
+  .after p:first-child { font-family: var(--f-title); font-size: var(--t-h2); line-height: 1.08; letter-spacing: var(--ls-title); color: var(--c-title); }
+  .after p:last-child { margin-top: var(--s-2); color: var(--c-text-2); }
+
+  /* showcase: faixa escura com os números de cartaz, depois o caso com a foto sangrando à esquerda */
+  .nums { padding: var(--pad-y) 0 var(--s-7); }
+  .nums ul { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: var(--s-5); }
+  .nums .fig2 { font-family: var(--f-title); font-weight: 500; font-size: var(--t-poster); line-height: 1; letter-spacing: -0.06em; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .nums .small { margin-top: var(--s-2); font-size: 18px; max-width: 24ch; }
+  .case { display: grid; grid-template-columns: minmax(0,7fr) minmax(0,5fr); gap: var(--gutter-col); align-items: center; padding-right: max(24px, calc((100vw - 1280px) / 2)); }
+  .case .bleed-img { aspect-ratio: 4/3; border-radius: 0; }
+  .case h3 { font-size: var(--t-h2); line-height: 1.06; letter-spacing: var(--ls-title); margin-top: var(--s-2); }
+  .case p.t { margin-top: var(--s-3); color: var(--c-text-2); font-size: 20px; }
+  .case .badge { margin-top: var(--s-3); padding-top: var(--s-2); border-top: 1px solid var(--c-rule-strong); font-weight: 600; color: var(--c-title); }
+  /* a ÚNICA régua da página: os dois produtos */
+  .prod > li { grid-template-columns: 56px minmax(0,3fr) minmax(0,5fr) minmax(0,2fr); align-items: baseline; }
+  .prod h3 { font-size: var(--t-h2); line-height: 1.1; letter-spacing: var(--ls-title); }
+  .prod p { color: var(--c-text-2); }
+  .go { justify-self: end; font-size: 17px; }
+  @media (max-width: 760px) { .two, .hero, .case, .idx li, .seq, .prod > li { grid-template-columns: minmax(0,1fr); } .hero { padding-left: 0; } .hero .copy { padding: var(--s-5) 24px; } .hero .bleed-img { min-height: 360px; } .case { padding-right: 0; } .case > div:last-child { padding: 0 24px; } .nums ul { grid-template-columns: minmax(0,1fr); gap: var(--s-4); } .nums .fig2 { font-size: clamp(48px, 15vw, 72px); }
+    .seq { padding-left: var(--s-4); gap: var(--s-5); padding-top: 0; } .seq::before { right: auto; top: 6px; bottom: 6px; width: 2px; height: auto; left: 5px; } .seq li { padding-top: 0; } .seq li::before { top: 6px; left: calc(-1 * var(--s-4)); } }
+</style></head>
+<body>
+<span class="tag">proto r2 · execução</span>
+
+<section class="hero" data-sec="hero">
+  <div class="copy">
+    <p class="meta">Execução · Implementação de IA e automação</p>
+    <h1>Da ideia à solução de IA rodando na sua operação.</h1>
+    <p class="lead">Implementamos agentes de IA, automações, integrações e soluções de dados para resolver problemas reais da operação. Do mapeamento do processo à entrega, com o seu time treinado.</p>
+    <p class="small sup">Escopo, prazo e métricas definidos antes de começar.</p>
+    <a class="btn" href="#">Falar sobre o meu projeto →</a>
+  </div>
+  <figure class="bleed-img"><img src="../../../../apps/site/public/home/front-3-entrega.jpg" alt="Apresentação da entrega de um projeto de IA"></figure>
+</section>
+
+<section class="wrap problema" data-sec="text"><div class="two">
+  <h2 class="h3" style="font-size:var(--t-h3);max-width:22ch">Saber o que mudar não é o mesmo que conseguir implementar.</h2>
+  <p class="body-2">Processos manuais, tarefas repetitivas, sistemas que não conversam. A maioria das empresas sabe onde estão os gargalos. O que falta é tempo, time técnico e método para resolver sem parar a operação.</p>
+</div><p class="lema">É aí que a Kalidash entra.</p></section>
+
+<section class="section warm" data-sec="cards"><div class="wrap">
+  <div class="caption"><span class="meta">O que construímos</span></div>
+  <h2 class="h2 head" style="max-width:20ch">Construímos o que a sua operação precisa.</h2>
+  <ul class="idx">
+    <li><h3>Agentes de IA</h3><div><p class="t">Executam tarefas dentro dos processos, com supervisão humana quando necessário.</p><p class="ex">Ex.: agente que faz a triagem de solicitações</p></div></li>
+    <li><h3>Automações</h3><div><p class="t">Eliminam etapas manuais e repetitivas.</p><p class="ex">Ex.: relatório semanal gerado sozinho</p></div></li>
+    <li><h3>Integrações</h3><div><p class="t">Fazem sistemas e ferramentas conversarem, sem retrabalho entre áreas.</p><p class="ex">Ex.: ERP conectado ao CRM</p></div></li>
+    <li><h3>Dados</h3><div><p class="t">Organizam a informação da operação para apoiar decisões.</p><p class="ex">Ex.: painel de indicadores da produção</p></div></li>
+    <li><h3>Soluções sob medida</h3><div><p class="t">Quando nada pronto resolve, construímos do zero.</p><p class="ex">Ex.: captura inteligente de conhecimento na CBA</p></div></li>
+  </ul>
+</div></section>
+
+<section class="section wrap" data-sec="steps">
+  <div class="caption"><span class="meta">Como entregamos</span></div>
+  <h2 class="h2 head">Do problema à solução rodando.</h2>
+  <ol class="seq">
+    <li><p class="fig sm">01</p><h3 class="h3">Entendimento</h3><p>Mapeamos o processo e identificamos onde a tecnologia pode gerar impacto.</p></li>
+    <li><p class="fig sm">02</p><h3 class="h3">Escopo</h3><p>O que será entregue, em quanto tempo e como será medido.</p></li>
+    <li><p class="fig sm">03</p><h3 class="h3">Construção</h3><p>Desenvolvemos a solução junto de quem conhece a operação, validando durante o processo.</p></li>
+    <li><p class="fig sm">04</p><h3 class="h3">Entrega</h3><p>Solução rodando, documentada, e o seu time treinado para manter.</p></li>
+  </ol>
+  <div class="after"><p>O projeto termina quando a sua empresa consegue seguir sem a gente.</p><p>A solução vem com documentação e transferência de conhecimento, porque projeto que só o fornecedor consegue mexer é dependência com outro nome.</p></div>
+</section>
+
+<section data-sec="showcase">
+  <div class="band-ink nums"><div class="wrap">
+    <p class="kicker" style="margin-bottom:var(--s-2)">Feito para funcionar</p>
+    <h2 class="h3" style="color:#fff;font-size:var(--t-h3);margin-bottom:var(--s-6)">Projetos que já estão rodando.</h2>
+    <ul><li><p class="fig2">+100</p><p class="small">processos automatizados</p></li><li><p class="fig2">170</p><p class="small">operações atendidas</p></li><li><p class="fig2">12 horas</p><p class="small">economizadas por semana até a primeira entrega</p></li></ul>
+  </div></div>
+  <div class="case" style="padding-block:var(--pad-y)">
+    <figure class="bleed-img m-zoom"><img src="../../../../apps/site/public/home/g21-cba-premio.jpg" alt="CBA e Kalidash no Prêmio Inovativos 2026"></figure>
+    <div><p class="meta">CBA · Captura Inteligente do Conhecimento</p><h3>Captura Inteligente do Conhecimento</h3>
+      <p class="t">As reuniões diárias da operação viraram dado estruturado. 1.681 problemas registrados em 3 meses de piloto, com 97% de encaminhamento definido.</p>
+      <p class="badge">Finalista Prêmio Inovativos 2026</p><p style="margin-top:var(--s-3)"><a class="link" href="#">Ver o case →</a></p></div>
+  </div>
+  <div class="wrap" style="padding-bottom:var(--pad-y)"><ul class="ruled prod">
+    <li><span class="num">01</span><h3>Kognis</h3><p>Plataforma de IA para advocacia trabalhista, desenvolvida pela Kalidash.</p><a class="link go" href="#">Saiba mais →</a></li>
+    <li><span class="num">02</span><h3>Spectra AI</h3><p>Visão computacional aplicada à operação.</p><a class="link go" href="#">Saiba mais →</a></li>
+  </ul></div>
+</section>
+</body></html>

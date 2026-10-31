@@ -1,54 +1,64 @@
 <!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Proto D1 · Kognis</title>
+<title>Proto D1 r2 · Kognis</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Sans+3:wght@400;600&display=swap">
-<link rel="stylesheet" href="proto.css">
+<link rel="stylesheet" href="proto.css"><link rel="stylesheet" href="proto-r2.css">
 <style>
-  .hero { display: grid; grid-template-columns: minmax(0,7fr) minmax(0,5fr); gap: var(--gutter-col); align-items: end; padding: clamp(48px,7vw,96px) 0 0; }
-  .hero h1 { font-size: var(--t-h1); line-height: 1.04; letter-spacing: var(--ls-display); margin-top: var(--s-2); }
-  .hero .lead { display: grid; gap: var(--s-2); margin-top: var(--s-4); max-width: 46ch; }
+  /* ASSINATURA: os dois advogados em escala exagerada, em pé sobre a faixa escura dos números */
+  .hero { display: grid; grid-template-columns: minmax(0,6fr) minmax(0,6fr); gap: var(--gutter-col); align-items: end; padding-top: clamp(48px,6vw,88px); overflow: clip; }
+  .hero .copy { padding-bottom: var(--s-7); align-self: center; }
+  .hero h1 { font-size: var(--t-h1); line-height: 1.02; letter-spacing: var(--ls-display); margin-top: var(--s-2); }
+  .hero .lead { display: grid; gap: var(--s-2); margin-top: var(--s-4); max-width: 44ch; }
   .hero .sup { margin-top: var(--s-3); }
   .hero .btn { margin-top: var(--s-4); }
-  .hero img { width: 100%; height: auto; max-height: 620px; object-fit: contain; object-position: bottom right; }
-
-  .figs { display: grid; grid-template-columns: repeat(4,1fr); border-top: 1px solid var(--c-rule-strong); border-bottom: 1px solid var(--c-rule); }
-  .figs li { padding: var(--s-5) var(--s-3) var(--s-5) 0; }
-  .figs li + li { padding-left: var(--s-3); border-left: 1px solid var(--c-rule); }
-  .figs .small { margin-top: var(--s-2); max-width: 22ch; color: var(--c-text-2); }
-  .figs li { min-width: 0; }
+  .hero .cut { display: block; width: 118%; max-width: none; margin-left: -8%; margin-bottom: -1px; height: min(78vh, 760px); object-fit: contain; object-position: 60% 100%; }
+  .nums { padding: var(--s-7) 0; }
+  .nums ul { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-6) var(--s-6); }
+  .nums .fig2 { font-family: var(--f-title); font-weight: 500; font-size: var(--t-poster); line-height: 1; letter-spacing: -0.06em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .nums .small { margin-top: var(--s-2); font-size: 18px; max-width: 28ch; }
 
   .tbl > li { grid-template-columns: 56px minmax(0,3fr) minmax(0,5fr) minmax(0,3fr); align-items: start; }
   .tbl h3 { font-size: var(--t-h3); line-height: 1.2; letter-spacing: var(--ls-h3); }
   .tbl p { color: var(--c-text-2); }
   .tbl .ex { font-size: var(--t-small); color: var(--c-text-3); }
   .tbl .ex::before { content: ""; display: block; width: 24px; height: 1px; background: var(--c-brand-text); margin-bottom: var(--s-1); }
+  .head { margin-bottom: var(--head-gap); }
+
+  .sticky2 { display: grid; grid-template-columns: minmax(0,4fr) minmax(0,8fr); gap: var(--gutter-col); }
+  .sticky2 .left { position: sticky; top: 96px; align-self: start; }
+  .sticky2 .item { padding: var(--s-5) 0; }
+  .sticky2 .item h3 { font-size: var(--t-h2); line-height: 1.04; letter-spacing: var(--ls-title); }
+  .sticky2 .item p { margin-top: var(--s-2); }
+
+  .idx { display: grid; grid-template-columns: minmax(0,6fr) minmax(0,6fr); gap: var(--s-3) var(--gutter-col); align-items: baseline; }
+  .idx h3 { font-size: var(--t-poster-sm); line-height: 1.02; letter-spacing: -0.05em; padding-top: var(--s-4); }
+  .idx p { font-size: 20px; color: var(--c-text-2); max-width: 40ch; padding-top: var(--s-4); }
 
   .seq { position: relative; display: grid; grid-template-columns: repeat(3,1fr); gap: var(--gutter-col); padding-top: var(--s-5); }
-  .seq::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: var(--c-rule-strong); }
+  .seq::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--c-title); }
   .seq li { position: relative; padding-top: var(--s-4); }
-  .seq li::before { content: ""; position: absolute; top: -5px; left: 0; width: 11px; height: 11px; border-radius: 50%; background: var(--c-title); }
+  .seq li::before { content: ""; position: absolute; top: -6px; left: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--c-title); }
   .seq .fig { margin-bottom: var(--s-3); }
   .seq h3 { font-size: var(--t-h3); letter-spacing: var(--ls-h3); }
   .seq p { margin-top: var(--s-1); color: var(--c-text-2); max-width: 34ch; }
-  .after { margin-top: var(--s-6); display: grid; grid-template-columns: minmax(0,5fr) minmax(0,7fr); gap: var(--gutter-col); }
-  .after .a { line-height:1.25; font-family: var(--f-title); font-size: var(--t-h3); letter-spacing: var(--ls-h3); color: var(--c-title); }
+  .after { margin-top: var(--s-6); display: grid; grid-template-columns: minmax(0,6fr) minmax(0,6fr); gap: var(--gutter-col); align-items: end; }
+  .after .a { font-family: var(--f-title); font-size: var(--t-poster-sm); line-height: 1.04; letter-spacing: -0.05em; color: var(--c-title); }
 
   .faq { display: grid; grid-template-columns: minmax(0,4fr) minmax(0,8fr); gap: var(--gutter-col); }
-  .faq h2 { position: sticky; top: 96px; align-self: start; }
+  .faq h2 { position: sticky; top: 96px; align-self: start; font-size: var(--t-h3); line-height: 1.1; }
   details { border-top: 1px solid var(--c-rule); }
   details:last-child { border-bottom: 1px solid var(--c-rule); }
   summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: var(--s-3); padding: var(--s-3) 0; font-family: var(--f-title); font-size: var(--t-h3); letter-spacing: var(--ls-h3); color: var(--c-title); }
   summary::after { content: "+"; font-weight: 400; color: var(--c-brand-text); }
   details[open] summary::after { content: "–"; }
   details p { padding: 0 0 var(--s-3); max-width: var(--measure); color: var(--c-text-2); }
-  .head { margin-bottom: var(--head-gap); }
-  @media (max-width: 760px) { .hero, .after, .faq { grid-template-columns: 1fr; } .figs { grid-template-columns: 1fr 1fr; } .figs .fig { font-size: clamp(36px, 11vw, 48px); white-space: nowrap; } .figs li { padding-right: var(--s-2); } .figs li:nth-child(3) { border-left: 0; padding-left: 0; } .tbl > li { grid-template-columns: 40px 1fr; } .tbl > li > :nth-child(n+3) { grid-column: 2; } .seq { grid-template-columns: 1fr; padding-top: 0; padding-left: var(--s-4); gap: var(--s-5); } .seq::before { right: auto; top: 6px; bottom: 6px; width: 1px; height: auto; left: 5px; } .seq li { padding-top: 0; } .seq li::before { top: 6px; left: calc(-1 * var(--s-4)); } .faq h2 { position: static; } }
+  @media (max-width: 760px) { .hero, .after, .faq, .sticky2, .idx { grid-template-columns: minmax(0,1fr); } .hero .copy { padding-bottom: var(--s-4); } .hero .cut { width: 100%; margin-left: 0; height: 360px; } .nums ul { grid-template-columns: 1fr 1fr; gap: var(--s-4); } .nums .fig2 { font-size: clamp(40px, 11vw, 56px); } .tbl > li { grid-template-columns: 40px 1fr; } .tbl > li > :nth-child(n+3) { grid-column: 2; } .seq { grid-template-columns: minmax(0,1fr); padding-left: var(--s-4); gap: var(--s-5); padding-top: 0; } .seq::before { right: auto; top: 6px; bottom: 6px; width: 2px; height: auto; left: 5px; } .seq li { padding-top: 0; } .seq li::before { top: 6px; left: calc(-1 * var(--s-4)); } .faq h2, .sticky2 .left { position: static; } }
 </style></head>
 <body>
-<span class="tag">proto · kognis</span>
+<span class="tag">proto r2 · kognis</span>
 
-<section class="hero wrap" data-sec="hero">
-  <div>
+<section class="wrap hero" data-sec="hero">
+  <div class="copy">
     <p class="meta">Kognis · Soluções próprias</p>
     <h1>Escale seu escritório<br>sem crescer sua equipe.</h1>
     <div class="lead">
@@ -58,17 +68,17 @@
     <p class="small sup">Sem trocar de ERP · Sem migrar dados · Atendimento 24h no WhatsApp</p>
     <a class="btn" href="#">Agendar demonstração →</a>
   </div>
-  <img src="../../../../apps/site/public/kognis-heroes.png" alt="Kognis — Escritório de Advocacia Inteligente">
+  <img class="cut" src="../../../../apps/site/public/kognis-heroes.png" alt="Kognis — Escritório de Advocacia Inteligente">
 </section>
 
-<section class="wrap" style="margin-top:var(--s-6)" data-sec="proofbar">
-  <ul class="figs" aria-label="Resultados">
-    <li><p class="fig">8 horas</p><p class="small">semanais a menos em tarefas operacionais</p></li>
-    <li><p class="fig">3x</p><p class="small">mais rápido na resposta ao cliente no WhatsApp</p></li>
-    <li><p class="fig">+90%</p><p class="small">das dúvidas resolvidas sem acionar sua equipe</p></li>
-    <li><p class="fig">100%</p><p class="small">dos indicadores visíveis o tempo todo</p></li>
+<section class="band-ink nums" data-sec="proofbar"><div class="wrap">
+  <ul aria-label="Resultados">
+    <li><p class="fig2">8 horas</p><p class="small">semanais a menos em tarefas operacionais</p></li>
+    <li><p class="fig2">3x</p><p class="small">mais rápido na resposta ao cliente no WhatsApp</p></li>
+    <li><p class="fig2">+90%</p><p class="small">das dúvidas resolvidas sem acionar sua equipe</p></li>
+    <li><p class="fig2">100%</p><p class="small">dos indicadores visíveis o tempo todo</p></li>
   </ul>
-</section>
+</div></section>
 
 <section class="section wrap" data-sec="cards-1">
   <div class="caption"><span class="meta">Soluções para escritórios de advocacia</span></div>
@@ -81,39 +91,39 @@
   </ul>
 </section>
 
-<section class="section warm" data-sec="cards-2"><div class="wrap faq">
-  <div><div class="caption"><span class="meta">Atendimento Inteligente 24h</span></div><h2 class="h2" style="position:sticky;top:96px">Seu escritório atendendo 24h. Sem contratar ninguém.</h2>
-  <div class="slot p45" data-slot="K2" data-label="K2 · tela real do atendimento no WhatsApp (fila + conversa). 4:5" style="margin-top:var(--s-5);max-width:340px"></div></div>
-  <ul class="ruled" style="border-bottom:0">
-    <li style="grid-template-columns:1fr"><h3 class="h3">Venda e pré-atendimento</h3><p class="body-2">Qualifica quem chega pelo WhatsApp e já agenda a reunião diretamente pra você.</p></li>
-    <li style="grid-template-columns:1fr"><h3 class="h3">Atendimento ao cliente</h3><p class="body-2">O cliente pergunta do processo dele e recebe a resposta com dados reais na hora.</p></li>
-    <li style="grid-template-columns:1fr"><h3 class="h3">Central completa</h3><p class="body-2">Histórico de conversas, filas e painel de performance da equipe num único lugar.</p></li>
-  </ul>
+<section class="section warm" data-sec="cards-2"><div class="wrap sticky2">
+  <div class="left"><div class="caption"><span class="meta">Atendimento Inteligente 24h</span></div><h2 class="h2">Seu escritório atendendo 24h. Sem contratar ninguém.</h2>
+    <div class="slot p45" data-slot="K2" data-label="K2 · tela real do atendimento no WhatsApp (fila + conversa). 4:5" style="margin-top:var(--s-5);max-width:300px"></div></div>
+  <div>
+    <div class="item"><h3>Venda e pré-atendimento</h3><p class="body-2">Qualifica quem chega pelo WhatsApp e já agenda a reunião diretamente pra você.</p></div>
+    <div class="item"><h3>Atendimento ao cliente</h3><p class="body-2">O cliente pergunta do processo dele e recebe a resposta com dados reais na hora.</p></div>
+    <div class="item"><h3>Central completa</h3><p class="body-2">Histórico de conversas, filas e painel de performance da equipe num único lugar.</p></div>
+  </div>
 </div></section>
 
 <section class="section wrap" data-sec="cards-3">
   <div class="caption"><span class="meta">Controle Financeiro</span></div>
-  <h2 class="h2 head" style="max-width:26ch">Seu financeiro fechando sozinho. Sem erro, sem retrabalho.</h2>
+  <h2 class="h3 head" style="max-width:32ch;font-size:var(--t-h3)">Seu financeiro fechando sozinho. Sem erro, sem retrabalho.</h2>
   <div class="slot w169" data-slot="K3" data-label="K3 · tela real do painel financeiro (conciliação e honorários). 16:9" style="margin-bottom:var(--head-gap)"></div>
-  <ul class="ruled tbl">
-    <li style="grid-template-columns:56px minmax(0,3fr) minmax(0,8fr)"><span class="num">01</span><h3>Conciliação automática</h3><p>Conecta com os principais bancos do Brasil. Lançamentos batem com o sistema sem você precisar fazer nada.</p></li>
-    <li style="grid-template-columns:56px minmax(0,3fr) minmax(0,8fr)"><span class="num">02</span><h3>Divisão de honorários</h3><p>Define as regras uma vez. A divisão entre sócios sai certinha e sem discussão, caso a caso.</p></li>
-    <li style="grid-template-columns:56px minmax(0,3fr) minmax(0,8fr)"><span class="num">03</span><h3>Painel financeiro</h3><p>O que entrou, o que saiu, o que está pendente. Tudo ali, atualizado em tempo real.</p></li>
-  </ul>
+  <div class="idx">
+    <h3>Conciliação automática</h3><p>Conecta com os principais bancos do Brasil. Lançamentos batem com o sistema sem você precisar fazer nada.</p>
+    <h3>Divisão de honorários</h3><p>Define as regras uma vez. A divisão entre sócios sai certinha e sem discussão, caso a caso.</p>
+    <h3>Painel financeiro</h3><p>O que entrou, o que saiu, o que está pendente. Tudo ali, atualizado em tempo real.</p>
+  </div>
 </section>
 
-<section class="section wrap" style="padding-top:0" data-sec="steps">
+<section class="section warm" data-sec="steps"><div class="wrap">
   <div class="caption"><span class="meta">Como funciona</span></div>
   <h2 class="h2 head" style="max-width:24ch">Do zero ao escritório inteligente em três passos.</h2>
-  <ol class="seq">
+  <ol class="seq m-draw">
     <li><p class="fig sm">01</p><h3>Conectamos</h3><p>A gente conecta no seu sistema jurídico e nos seus bancos. Você não troca nada do que já usa.</p></li>
     <li><p class="fig sm">02</p><h3>Configuramos</h3><p>Ativamos os agentes, montamos os painéis e ajustamos o financeiro do jeito que seu escritório precisa.</p></li>
     <li><p class="fig sm">03</p><h3>Você escala</h3><p>Seu escritório passa a operar com previsibilidade. Sobra tempo pra fazer o que você faz de melhor: advogar.</p></li>
   </ol>
   <div class="after"><p class="a">Implementação ágil em 2 a 3 semanas.</p><p class="body-2">Os agentes de IA costumam ficar operacionais já nos primeiros dias, sem travar a rotina do escritório.</p></div>
-</section>
+</div></section>
 
-<section class="section warm" data-sec="faq"><div class="wrap faq">
+<section class="section wrap" data-sec="faq"><div class="faq">
   <h2 class="h2">Tire suas dúvidas sobre o Kognis</h2>
   <div>
     <details open><summary>Preciso trocar meu sistema jurídico?</summary><p>Não. A gente conecta no sistema que você já usa. Sem trocar de ERP, sem migrar dados. Você continua com tudo que tem e ganha uma camada de inteligência por cima.</p></details>

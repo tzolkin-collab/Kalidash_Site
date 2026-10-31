@@ -3,6 +3,65 @@
 > Designer D0/D1. Só direção e protótipo; nada em `apps/site` foi editado. Sistema em [00-sistema.md](00-sistema.md) e [tokens.css](tokens.css). Copy: **só** as strings de `pages.ts` (conferi os protótipos contra o arquivo; ver §8).
 > Capturas reais do estado atual em [antes/](antes/) (PNG de página inteira, 1440 e 390, rolagem gradual para disparar o `Reveal`). Referências em [refs/](refs/). Protótipos em [proto/](proto/) com capturas de seção em [proto/shots/](proto/shots/).
 
+## 0. Rodada 2: vida (assinatura, ritmo, escala, cor, movimento)
+
+> Pedido do PO após ver as imagens em tamanho real: a rodada 1 tirou os tells mas arriscava trocar "chapado de cartões" por "chapado de texto" (régua + título gigante à esquerda + parágrafo à direita repetido, quase tudo branco). Esta rodada refaz os protótipos de **todas as 7 páginas** (Sobre nós, AI Culture, Advisory, Execução, Soluções, Kognis, Spectra) com **uma ideia forte por página**. Onde esta seção e a §4 divergirem no padrão visual de uma seção, **vale esta seção**; a §4 continua valendo para o papel, o objeto e o próximo passo.
+> Protótipos: [01](proto/01-sobre-nos.html) · [02](proto/02-kognis.html) · [03](proto/03-advisory.html) · [04](proto/04-execucao.html) · [05](proto/05-ai-culture.html) · [06](proto/06-spectra.html) · [10](proto/10-solucoes.html). Capturas reais em [depois/](depois/) (1440 e 390, página inteira) e lado a lado com o estado atual em [comparativo/](comparativo/).
+
+### 0.1 Regras da rodada 2 (valem para todas as páginas)
+
+1. **Uma assinatura por página**, que nenhuma outra página usa como ideia principal.
+2. **Ritmo: duas seções seguidas nunca usam o mesmo padrão.** Vocabulário de padrões: foto sangrando (bleed), faixa escura com números, faixa quente com lema, coluna sticky, número gigante, índice em escala de cartaz, linha de sequência, régua (linhas separadas por hairline), FAQ. **No máximo um uso de régua por página.**
+3. **Foto real já existente em `public/` em escala grande** em toda página: full-bleed (100vw) ou 7/12, com corte e proporção intencionais. Nenhuma imagem nova nem inventada.
+4. **Banda de cor só onde tem função:** escura = prova/números (Sobre nós, Kognis, Execução) ou produto de noite (Spectra, Soluções); quente (`--c-band-warm` = `--accent`) = **uma** frase-tese (Advisory). Texto branco sobre a faixa quente só a partir de 40px (contraste 4,3:1 reprova AA em texto pequeno).
+5. **Um micro-movimento por página**, só `opacity`/`transform`, ligado à rolagem (CSS scroll-driven, sem JS) ou ao hover/foco, **nunca em loop**, desligado em `prefers-reduced-motion`. Regra anti-faixa-branca: **o conteúdo nunca nasce escondido** (nenhum movimento parte de `opacity: 0`; transformações partem de um estado já legível).
+6. **Escala de títulos em 3 níveis:** **cartaz** (`--t-poster` 56–128px e `--t-poster-sm` 44–88px: lemas, números, h1 com foto), **seção** (`--t-h2` 32–55px) e **subordinado** (`--t-h3` 22–30px: título de seção secundária e de item). Cada página usa os três.
+7. **Mobile não é o desktop encolhido:** foto sobreposta ao título vira foto inteira em 3:2 com o título embaixo (Sobre nós); lemas de cartaz caem para 36–48px; faixas e passos viram trilho vertical.
+
+### 0.2 Por página
+
+| Página | Assinatura | Sequência de padrões (nenhum igual ao vizinho) | Fotos grandes (arquivo · escala · corte) | Faixa de cor e função | Micro-movimento |
+|---|---|---|---|---|---|
+| **Sobre nós** | **Foto dos fundadores sangrando a tela**, "Já estivemos do seu lado da mesa." a 128px sobreposto (véu de baixo para cima) | bleed → texto 5/7 → colagem + atos em régua (**a única**) → credo em **números gigantes** (warm) → foto do time 8/12 + coluna → faixa escura com números de 168px | `founders-studio.jpg` 100vw × min(88vh, 780px), corte 50% 30% · `time-kalidash.jpg` 8/12 em 4:3 · colagem das 7 fotos | escura só na prova (`+10 mil`, `170`, `Parceira`, `Finalista`): é a credencial | foto do hero desliza ±32px com `scale(1.12)` fixo, ligada à rolagem (`cover 0–100%`); sem duração própria |
+| **AI Culture** | **Faixa de foto sangrando com "Dois formatos…" a 128px** + números de cartaz sobre branco (sem faixa) | hero contido → números (`+10 mil`, `170` a 168px, filete de 2px) → warm com lema → passos em linha → bleed + formatos em linhas | `evento-sala.jpg` 4:5 (contida, hero) · `metodo-reuniao.jpg` 100vw × min(72vh, 640px), corte 50% 45% | nenhuma faixa de cor; `warm` só na pausa do "por quê" | linha dos passos desenha (`scaleX .35→1`, `entry 10% – cover 45%`) |
+| **Advisory** | **Faixa quente com o lema** "Não entregamos um plano. Acompanhamos o que acontece depois dele." a 128px | hero (foto 7/12 à direita) → "E agora?" → **faixa quente** → coluna sticky + frases de 44px → rituais em números gigantes (warm) → passos em linha → critérios em régua (**a única**, warm) → FAQ | `metodo-reuniao.jpg` 7/12 sangrando à direita, min-height min(86vh, 720px), corte 62% 50% | quente (`#b6644d`) só no lema: é a tese da página | o lema sobe 40px→0 na entrada (`entry 0–80%`) |
+| **Execução** | **Índice em escala de cartaz** (os 5 nomes a 88px) + faixa escura com `+100 · 170 · 12 horas` a 128px | hero (retrato sangrando à direita) → lema "É aí que a Kalidash entra." a 128px → índice → passos em linha → faixa escura → caso com foto sangrando à esquerda → régua com os 2 produtos (**a única**) | `front-3-entrega.jpg` 5/12 sangrando · `g21-cba-premio.jpg` 7/12 em 4:3 sangrando à esquerda | escura nos números: é a prova | a foto do caso faz zoom `1.08→1` (`entry 0 – cover 55%`) |
+| **Soluções** | **Dois painéis cheios, um claro e um escuro:** os advogados recortados em pé na base do painel claro; a foto do Spectra em 6/12 sangrando no escuro | manchete 128px (abertura à la Mistral) → painel claro (Kognis) → painel escuro (Spectra) | `kognis-heroes.png` ~800px de altura, apoiado na borda · `ato-01-operacao.jpg` 6/12 sangrando, corte 50% 30% | escura só no Spectra (produto de chão de fábrica); claro (`warm`) no Kognis | o recorte dos advogados sobe 40px→0 na entrada |
+| **Kognis** | **Os advogados em pé sobre a faixa escura** com os 4 números a 128px (`8 horas`, `3x`, `+90%`, `100%`) | hero (recorte) → faixa escura → tabela em régua (**a única**) → coluna sticky + itens (warm) → índice de cartaz (financeiro) → passos em linha (warm) → FAQ com título sticky | `kognis-heroes.png` ~760px de altura sobre o filete da faixa + espaços **K1–K3 reservados** (§4.8) | escura nos números: é a prova | linha dos passos desenha (`scaleX .35→1`) |
+| **Spectra** | **Tela dividida em altura cheia:** texto sobre escuro à esquerda, a foto real do chão de operação ocupando a metade direita | split → [S1 reservado] → lista de 3 capacidades em cartaz (56–88px) | `ato-01-operacao.jpg` 50vw × min(92vh, 820px), corte 50% 25% | escura no hero: é a abertura | ao passar/focar um item, os outros recuam a `opacity .45` em 160ms (hover/foco; não depende de rolagem) |
+
+Escala de títulos usada (cada página tem os três níveis): cartaz = h1 de hero, lemas, números e nomes do índice; seção = `--t-h2` nos títulos principais; subordinado = `--t-h3` em seções de apoio (a abertura do credo no Sobre nós, "O que faz" no Spectra, o financeiro no Kognis, o problema na Execução).
+
+### 0.3 Vida: nota de 0 a 10, antes → depois (minha, para o PO desmentir)
+
+Critério: *"se eu rolasse esta página por 10 segundos, algo me pararia?"* — foto com peso, número ou frase em escala de cartaz, um contraste de fundo com função, algo que se mova ou responda. Comparei [antes/](antes/) e [depois/](depois/) lado a lado nos PNGs de [comparativo/](comparativo/).
+
+| Página | Antes | Depois | Por quê (e o que ainda segura a nota) |
+|---|---|---|---|
+| Sobre nós | 3 | **7,5** | Hero sangrado com o rosto dos fundadores, credo e prova em números enormes. Segura: a colagem de 7 fotos continua pequena; os atos em régua ainda são texto sobre branco. |
+| AI Culture | 3 | **6,5** | Faixa de foto com título de cartaz e números de 168px. Segura: o hero continua contido e é a página com mais branco; só uma foto grande. |
+| Advisory | 2 | **7,5** | A faixa quente é o momento memorável da página; numerais de 128px nos rituais. Segura: sem produto ou número real; sete seções de tipo. |
+| Execução | 3 | **7** | Índice de cartaz e faixa escura com `12 horas`. Segura: o hero tem uma foto de palco sem relação direta com "execução"; a régua final é fria. |
+| Soluções | 2 | **7,5** | Dois painéis cheios, claro/escuro, produto em escala grande. Segura: o painel escuro mostra um operário, não o produto. |
+| Kognis | 2 | **6** | Advogados sobre a faixa escura e números de 128px. Segura: **os espaços K1–K3 estão vazios** (sem telas) e o miolo da página é tipo sobre branco; sem as telas, o teto é 6–6,5. Com as telas reais, estimo 7,5–8 (palpite). |
+| Spectra | 2 | **6,5** | Tela dividida com foto de altura cheia, lista em cartaz com hover. Segura: **S1 vazio**, página curta, uma foto só (a mesma da Soluções e do Sobre nós). |
+
+Limites desta nota: eu mesmo a atribuo, a partir de PNGs estáticos; **não vi o movimento acontecendo** (scroll-driven animations só testadas por estarem declaradas e por não quebrarem a captura), e nenhuma página foi vista no navegador real do dono.
+
+### 0.4 Auditoria dos protótipos r2 contra `tells.md`
+
+| Tell | Resultado |
+|---|---|
+| Grade de 3+ cartões iguais / cartão em cartão / barra lateral | nenhum |
+| Eyebrow + título + cinza em toda seção | o eyebrow continua como legenda em várias seções (não contei); os outros modos (sem eyebrow: lema, numeral, foto com título, split) cobrem o resto. **Risco declarado:** Kognis e Advisory ainda têm 4–5 seções com legenda + h2 |
+| Ícone no lugar de objeto | nenhum ícone; os "objetos" são fotos, números e o diagrama de sequência |
+| Blob/orb/glow | nenhum; **o único gradiente é o véu preto sob o título de foto (legibilidade)** |
+| Entrada escalonada em todo bloco | nenhuma; um movimento por página |
+| Dois estilos de raio/sombra | só 4 e 12px; sombra só em foto-herói (`--shadow-lift`) |
+| Alternância claro/escuro como ritmo | no máximo uma faixa escura (ou a quente, no Advisory) por página, sempre com função |
+| Texto sobre foto sem painel | só com véu de 78% de preto na base (Sobre nós, AI Culture); mobile do Sobre nós tira o título de cima da foto |
+| Métrica ou depoimento inventado | nenhum; `copy-check` 0 extras |
+
 ## 1. Diagnóstico do estado atual (visto, não só lido)
 
 Capturei as 7 rotas em 1440 e 390 com `shot.mjs` adaptado (página inteira). Servidor usado: o `next dev` que já rodava na porta 3000 (de outra sessão; só li). O `preview_start` desta sessão caiu porque a porta já estava ocupada.
@@ -178,7 +237,7 @@ Ritmo: paper (hero) → warm (problema) → paper (o que construímos) → paper
 | 4 | Como entregamos (`steps`, 4) | mostrar o método | linha de sequência | numerais | rolar |
 | 5 | Feito para funcionar (`showcase`) | provar | foto do caso CBA 4:3 + régua `+100 · 170 · 12 horas` | os 3 números e a foto | link "Ver o case" ou ir a Kognis/Spectra |
 
-Protótipo: [proto/04-execucao-solucoes.html](proto/04-execucao-solucoes.html) (`showcase`), captura [showcase](proto/shots/04-showcase-1440.png). A seção 3 usa o mesmo desenho Tabela do protótipo do Kognis ([cards-1](proto/shots/02-cards-1-1440.png)).
+Protótipo (r2): [proto/04-execucao.html](proto/04-execucao.html); capturas em [depois/](depois/). As capturas `proto/shots/04-*` e `01/02/03/05/06-*` são da rodada 1 e ficam só como histórico. A seção 3 usa o mesmo desenho Tabela do protótipo do Kognis ([cards-1](proto/shots/02-cards-1-1440.png)).
 Observação: o card "Soluções sob medida" cita "captura inteligente de conhecimento na CBA": o showcase logo abaixo fecha o raciocínio. Boa costura; manter a ordem.
 
 ### 4.5 `/solucoes` — âncora Mistral /products (abertura dividida, dois produtos de peso igual)
@@ -190,7 +249,7 @@ Ritmo: paper (manchete) → paper (Kognis) → warm (Spectra). Sem faixa escura.
 | 2 | Oferta 01 Kognis (`offers`) | apresentar o produto | recorte `kognis-heroes.png` (já em uso no `/kognis`) | h2 da oferta + numeral 01 | "Conhecer Kognis" |
 | 3 | Oferta 02 Spectra (`offers`) | idem | `ato-01-operacao.jpg` (a mesma foto do hero do `/spectra`) | h2 + numeral 02 | "Conhecer Spectra AI" |
 
-Protótipo: [proto/04-execucao-solucoes.html](proto/04-execucao-solucoes.html) (`solucoes-hero`, `offer-1`, `offer-2`); captura [offer-1](proto/shots/04-offer1-1440.png). O fundo cinza `#f8f8f8` atual dá lugar a `paper`/`warm`; o lado da imagem alterna entre as ofertas.
+Protótipo (r2): [proto/10-solucoes.html](proto/10-solucoes.html); capturas em [depois/](depois/). O fundo cinza `#f8f8f8` atual dá lugar a `paper`/`warm`; o lado da imagem alterna entre as ofertas.
 Fraqueza assumida: a foto da oferta 02 é uma pessoa de EPI, não o produto; a oferta 01 usa uma foto de modelos. Nenhuma das duas mostra o software. Ver §6.
 
 ### 4.6 `/kognis` — âncora: princípio do Linear /features (artefato real), **sem artefato disponível**
@@ -279,14 +338,14 @@ Em aberto:
 ## 8. Verificações e limites
 
 **Feitas na segunda rodada:**
-- **Diff de copy automático dos protótipos:** [proto/copy-check.mjs](proto/copy-check.mjs). Compara o texto visível de cada protótipo com `docs/po/relatorios/copy-baseline/<rota>.txt` (sem distinção de caixa, porque os eyebrows são `text-transform` de CSS) e, para texto de `<details>` recolhido (que não está na baseline), com o literal em `pages.ts`. Resultado: **0 linhas extras nos 6 protótipos** (saída no relatório). Teste negativo: troquei uma palavra ("desafios" por "metas") e o script reprovou apontando a linha; revertido.
-- **Overflow horizontal:** [proto/overflow-check.mjs](proto/overflow-check.mjs) mede `scrollWidth` em 390, 768, 1024 e 1440 nos 6 protótipos: **24 de 24 sem overflow**. O excesso de 9px do Kognis em 390 era o numeral de 56px nas duas colunas da régua de números; corrigido (36–48px no mobile).
+- **Diff de copy automático dos protótipos:** [proto/copy-check.mjs](proto/copy-check.mjs). Compara o texto visível de cada protótipo com `docs/po/relatorios/copy-baseline/<rota>.txt` (sem distinção de caixa, porque os eyebrows são `text-transform` de CSS) e, para texto de `<details>` recolhido (que não está na baseline), com o literal em `pages.ts`. Resultado: **0 linhas extras nos 7 protótipos** (incl. Soluções e Execução separados) (saída no relatório). Teste negativo: troquei uma palavra ("desafios" por "metas") e o script reprovou apontando a linha; revertido.
+- **Overflow horizontal:** [proto/overflow-check.mjs](proto/overflow-check.mjs) mede `scrollWidth` em 390, 768, 1024 e 1440 nos 7 protótipos: **28 de 28 sem overflow**. O excesso de 9px do Kognis em 390 era o numeral de 56px nas duas colunas da régua de números; corrigido (36–48px no mobile).
 - **Olhei em 390** (`proto/shots/*-390.png`): timeline do Sobre nós, showcase de Execução, passos e formatos do AI Culture (passos refeitos com trilho vertical, o anterior ficava com pontos soltos), rituais do Advisory, tabela do Kognis. **Olhei em 1440** também `beliefs`, `team`, `proof` e `offer-2` (a oferta 02 saía com a coluna da foto errada ao alternar; corrigido).
 
 **Ainda não verifiquei:**
 - Em 390 não abri `proof` (Sobre nós), a régua de números do Kognis (medida por script, não vista), FAQ nem o hero de nenhum protótipo. 768 e 1024: só medi overflow, não vi imagem.
 - Referências: não vi página de produto de visão computacional. Mistral e Cohere: só a primeira dobra.
-- O `copy-check` cobre o texto dos protótipos; **não prova** que a implementação em `SitePage.tsx` mantém a copy (isso é o `copy-diff.mjs` do aceite 3.1, rodado pelo dev). A cobertura de `04-execucao-solucoes.html` contra a baseline é 50% porque o protótipo traz só o showcase de Execução e a página Soluções.
+- O `copy-check` cobre o texto dos protótipos; **não prova** que a implementação em `SitePage.tsx` mantém a copy (isso é o `copy-diff.mjs` do aceite 3.1, rodado pelo dev). Na r2 a cobertura contra a baseline é de 100% por protótipo (`copy-check` com `MISSING=1` lista o que falta).
 - O espaço título→conteúdo (~150px) foi lido na captura, não medido por `getBoundingClientRect`. Console, Web Vitals e CLS não foram medidos (fora do escopo D0/D1).
 - Contraste: `--c-brand-text` (5,4:1) e `--accent` (4,3:1) são cálculo meu pela fórmula WCAG, sem ferramenta.
 - Servidor: usei o `next dev` da porta 3000 de outra sessão; as capturas "antes" incluem o trabalho não commitado dela.

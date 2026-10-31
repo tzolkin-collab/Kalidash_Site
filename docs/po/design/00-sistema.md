@@ -109,3 +109,13 @@ Cada tipo de `SitePage` ganha **um** tratamento. Nenhum texto muda; só estrutur
 - Ordem do conteúdo é intocável: nenhum tratamento de bloco pode reordenar ou fundir seções.
 - Sem CTA novo: o bloco `cta` (hoje só existe como tipo, nenhuma página o usa) só pode reaproveitar CTA e rótulo que a página já tem.
 
+## 10. Rodada 2 (vida): o que muda no sistema
+
+Detalhe por página em [01-institucionais.md](01-institucionais.md) §0. O que entra no sistema:
+
+- **Escala de cartaz:** `--t-poster` (56–128px) e `--t-poster-sm` (44–88px) para lemas, números e h1 com foto; os três níveis de título são cartaz, seção (`--t-h2`) e subordinado (`--t-h3`).
+- **Padrões de seção** (vocabulário): foto sangrando, faixa escura com números, faixa quente com lema, coluna sticky, número gigante, índice em escala de cartaz, linha de sequência, régua, FAQ. **Duas seções seguidas nunca usam o mesmo; régua no máximo uma vez por página.**
+- **Faixa quente** (`--c-band-warm` = `--accent`) só com texto >= 40px; só uma frase-tese por página.
+- **Movimento:** quatro peças prontas em [proto/proto-r2.css](proto/proto-r2.css) (`m-parallax`, `m-rise`, `m-zoom`, `m-draw`), todas só `transform`, ligadas à rolagem por CSS (`animation-timeline: view()`), com `@supports` e `prefers-reduced-motion`. **Um por página.** Nenhuma começa em `opacity: 0`.
+- **Sangrar a tela:** `--bleed` e o padrão `padding-left: max(24px, calc((100vw - 1280px) / 2))` para alinhar o texto ao container enquanto a foto vai até a borda.
+
