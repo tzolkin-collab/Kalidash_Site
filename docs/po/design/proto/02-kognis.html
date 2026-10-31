@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Proto D1 · Kognis</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Sans+3:wght@400;600&display=swap">
+<link rel="stylesheet" href="proto.css">
+<style>
+  .hero { display: grid; grid-template-columns: minmax(0,7fr) minmax(0,5fr); gap: var(--gutter-col); align-items: end; padding: clamp(48px,7vw,96px) 0 0; }
+  .hero h1 { font-size: var(--t-h1); line-height: 1.04; letter-spacing: var(--ls-display); margin-top: var(--s-2); }
+  .hero .lead { display: grid; gap: var(--s-2); margin-top: var(--s-4); max-width: 46ch; }
+  .hero .sup { margin-top: var(--s-3); }
+  .hero .btn { margin-top: var(--s-4); }
+  .hero img { width: 100%; height: auto; max-height: 620px; object-fit: contain; object-position: bottom right; }
+
+  .figs { display: grid; grid-template-columns: repeat(4,1fr); border-top: 1px solid var(--c-rule-strong); border-bottom: 1px solid var(--c-rule); }
+  .figs li { padding: var(--s-5) var(--s-3) var(--s-5) 0; }
+  .figs li + li { padding-left: var(--s-3); border-left: 1px solid var(--c-rule); }
+  .figs .small { margin-top: var(--s-2); max-width: 22ch; color: var(--c-text-2); }
+
+  .tbl > li { grid-template-columns: 56px minmax(0,3fr) minmax(0,5fr) minmax(0,3fr); align-items: start; }
+  .tbl h3 { font-size: var(--t-h3); line-height: 1.2; letter-spacing: var(--ls-h3); }
+  .tbl p { color: var(--c-text-2); }
+  .tbl .ex { font-size: var(--t-small); color: var(--c-text-3); }
+  .tbl .ex::before { content: ""; display: block; width: 24px; height: 1px; background: var(--c-brand-text); margin-bottom: var(--s-1); }
+
+  .seq { position: relative; display: grid; grid-template-columns: repeat(3,1fr); gap: var(--gutter-col); padding-top: var(--s-5); }
+  .seq::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: var(--c-rule-strong); }
+  .seq li { position: relative; padding-top: var(--s-4); }
+  .seq li::before { content: ""; position: absolute; top: -5px; left: 0; width: 11px; height: 11px; border-radius: 50%; background: var(--c-title); }
+  .seq .fig { margin-bottom: var(--s-3); }
+  .seq h3 { font-size: var(--t-h3); letter-spacing: var(--ls-h3); }
+  .seq p { margin-top: var(--s-1); color: var(--c-text-2); max-width: 34ch; }
+  .after { margin-top: var(--s-6); display: grid; grid-template-columns: minmax(0,5fr) minmax(0,7fr); gap: var(--gutter-col); }
+  .after .a { line-height:1.25; font-family: var(--f-title); font-size: var(--t-h3); letter-spacing: var(--ls-h3); color: var(--c-title); }
+
+  .faq { display: grid; grid-template-columns: minmax(0,4fr) minmax(0,8fr); gap: var(--gutter-col); }
+  .faq h2 { position: sticky; top: 96px; align-self: start; }
+  details { border-top: 1px solid var(--c-rule); }
+  details:last-child { border-bottom: 1px solid var(--c-rule); }
+  summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: var(--s-3); padding: var(--s-3) 0; font-family: var(--f-title); font-size: var(--t-h3); letter-spacing: var(--ls-h3); color: var(--c-title); }
+  summary::after { content: "+"; font-weight: 400; color: var(--c-brand-text); }
+  details[open] summary::after { content: "–"; }
+  details p { padding: 0 0 var(--s-3); max-width: var(--measure); color: var(--c-text-2); }
+  .head { margin-bottom: var(--head-gap); }
+  @media (max-width: 760px) { .hero, .after, .faq { grid-template-columns: 1fr; } .figs { grid-template-columns: 1fr 1fr; } .figs li:nth-child(3) { border-left: 0; padding-left: 0; } .tbl > li { grid-template-columns: 40px 1fr; } .tbl > li > :nth-child(n+3) { grid-column: 2; } .seq { grid-template-columns: 1fr; } .faq h2 { position: static; } }
+</style></head>
+<body>
+<span class="tag">proto · kognis</span>
+
+<section class="hero wrap" data-sec="hero">
+  <div>
+    <p class="meta">Kognis · Soluções próprias</p>
+    <h1>Escale seu escritório<br>sem crescer sua equipe.</h1>
+    <div class="lead">
+      <p>Escritório de advocacia com um time que nunca dorme: <strong>Inteligência Artificial no atendimento</strong>, <strong>indicadores em tempo real</strong> e <strong>financeiro no automático</strong>.</p>
+      <p>Conectamos direto no seu sistema jurídico e nos seus bancos, sem precisar trocar nada do que você já usa.</p>
+    </div>
+    <p class="small sup">Sem trocar de ERP · Sem migrar dados · Atendimento 24h no WhatsApp</p>
+    <a class="btn" href="#">Agendar demonstração →</a>
+  </div>
+  <img src="../../../../apps/site/public/kognis-heroes.png" alt="Kognis — Escritório de Advocacia Inteligente">
+</section>
+
+<section class="wrap" style="margin-top:var(--s-6)" data-sec="proofbar">
+  <ul class="figs" aria-label="Resultados">
+    <li><p class="fig">8 horas</p><p class="small">semanais a menos em tarefas operacionais</p></li>
+    <li><p class="fig">3x</p><p class="small">mais rápido na resposta ao cliente no WhatsApp</p></li>
+    <li><p class="fig">+90%</p><p class="small">das dúvidas resolvidas sem acionar sua equipe</p></li>
+    <li><p class="fig">100%</p><p class="small">dos indicadores visíveis o tempo todo</p></li>
+  </ul>
+</section>
+
+<section class="section wrap" data-sec="cards-1">
+  <div class="caption"><span class="meta">Soluções para escritórios de advocacia</span></div>
+  <h2 class="h2 head" style="max-width:24ch">Três problemas resolvidos. Uma plataforma.</h2>
+  <ul class="ruled tbl">
+    <li><span class="num">01</span><h3>Agentes de IA</h3><p>Agentes que vendem e atendem pelo WhatsApp, 24 horas por dia. Qualificam leads, agendam reuniões e respondem seus clientes sobre o andamento dos processos na hora.</p><p class="ex">Central de atendimento com histórico de conversas, filas e painel de performance.</p></li>
+    <li><span class="num">02</span><h3>Conciliação Bancária</h3><p>Conecta direto nos seus bancos. Contas a pagar e receber se conciliam sozinhas, e a divisão de honorários entre sócios sai sem discussão e sem erro.</p><p class="ex">Você abre o painel e o financeiro já está fechado.</p></li>
+    <li><span class="num">03</span><h3>BI e Indicadores</h3><p>Processos, prazos e tarefas em painéis que atualizam sozinhos. Você abre e sabe: quem está em dia, quem está atrasado, onde está o gargalo.</p><p class="ex">Sem planilha, sem pedir relatório pra ninguém.</p></li>
+  </ul>
+</section>
+
+<section class="section warm" data-sec="cards-2"><div class="wrap faq">
+  <div><div class="caption"><span class="meta">Atendimento Inteligente 24h</span></div><h2 class="h2" style="position:sticky;top:96px">Seu escritório atendendo 24h. Sem contratar ninguém.</h2></div>
+  <ul class="ruled" style="border-bottom:0">
+    <li style="grid-template-columns:1fr"><h3 class="h3">Venda e pré-atendimento</h3><p class="body-2">Qualifica quem chega pelo WhatsApp e já agenda a reunião diretamente pra você.</p></li>
+    <li style="grid-template-columns:1fr"><h3 class="h3">Atendimento ao cliente</h3><p class="body-2">O cliente pergunta do processo dele e recebe a resposta com dados reais na hora.</p></li>
+    <li style="grid-template-columns:1fr"><h3 class="h3">Central completa</h3><p class="body-2">Histórico de conversas, filas e painel de performance da equipe num único lugar.</p></li>
+  </ul>
+</div></section>
+
+<section class="section wrap" data-sec="cards-3">
+  <div class="caption"><span class="meta">Controle Financeiro</span></div>
+  <h2 class="h2 head" style="max-width:26ch">Seu financeiro fechando sozinho. Sem erro, sem retrabalho.</h2>
+  <ul class="ruled tbl">
+    <li style="grid-template-columns:56px minmax(0,3fr) minmax(0,8fr)"><span class="num">01</span><h3>Conciliação automática</h3><p>Conecta com os principais bancos do Brasil. Lançamentos batem com o sistema sem você precisar fazer nada.</p></li>
+    <li style="grid-template-columns:56px minmax(0,3fr) minmax(0,8fr)"><span class="num">02</span><h3>Divisão de honorários</h3><p>Define as regras uma vez. A divisão entre sócios sai certinha e sem discussão, caso a caso.</p></li>
+    <li style="grid-template-columns:56px minmax(0,3fr) minmax(0,8fr)"><span class="num">03</span><h3>Painel financeiro</h3><p>O que entrou, o que saiu, o que está pendente. Tudo ali, atualizado em tempo real.</p></li>
+  </ul>
+</section>
+
+<section class="section wrap" style="padding-top:0" data-sec="steps">
+  <div class="caption"><span class="meta">Como funciona</span></div>
+  <h2 class="h2 head" style="max-width:24ch">Do zero ao escritório inteligente em três passos.</h2>
+  <ol class="seq">
+    <li><p class="fig sm">01</p><h3>Conectamos</h3><p>A gente conecta no seu sistema jurídico e nos seus bancos. Você não troca nada do que já usa.</p></li>
+    <li><p class="fig sm">02</p><h3>Configuramos</h3><p>Ativamos os agentes, montamos os painéis e ajustamos o financeiro do jeito que seu escritório precisa.</p></li>
+    <li><p class="fig sm">03</p><h3>Você escala</h3><p>Seu escritório passa a operar com previsibilidade. Sobra tempo pra fazer o que você faz de melhor: advogar.</p></li>
+  </ol>
+  <div class="after"><p class="a">Implementação ágil em 2 a 3 semanas.</p><p class="body-2">Os agentes de IA costumam ficar operacionais já nos primeiros dias, sem travar a rotina do escritório.</p></div>
+</section>
+
+<section class="section warm" data-sec="faq"><div class="wrap faq">
+  <h2 class="h2">Tire suas dúvidas sobre o Kognis</h2>
+  <div>
+    <details open><summary>Preciso trocar meu sistema jurídico?</summary><p>Não. A gente conecta no sistema que você já usa. Sem trocar de ERP, sem migrar dados. Você continua com tudo que tem e ganha uma camada de inteligência por cima.</p></details>
+    <details><summary>Quanto tempo leva para implementar?</summary><p>De 2 a 3 semanas, dependendo do tamanho do escritório. Os agentes de IA costumam ficar prontos nos primeiros dias.</p></details>
+    <details><summary>Meus dados e os dados dos meus clientes ficam seguros?</summary><p>Sim. Infraestrutura com criptografia, conformidade com a LGPD e sigilo total. Tratamos dados jurídicos com o mesmo cuidado que você trata.</p></details>
+    <details><summary>E se eu precisar de ajuda depois da implementação?</summary><p>Você terá suporte dedicado. Não é um chatbot genérico. É um time que conhece seu escritório e responde rápido.</p></details>
+    <details><summary>Preciso entender de tecnologia para usar?</summary><p>Não. A plataforma foi feita pra quem quer resultado, não pra quem entende de TI. Se você usa WhatsApp, sabe usar o que a gente entrega.</p></details>
+  </div>
+</div></section>
+</body></html>

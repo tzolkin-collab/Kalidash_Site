@@ -1,0 +1,59 @@
+@import url("../tokens.css");
+
+:root {
+  --ink: #28183b; --purple: #462f4f; --accent: #b6644d; --gray-1: #f8f8f8;
+  --black-1: #0e0e0e; --black-2: #0a0a0a; --line: #ececec;
+  --container: min(1280px, 100% - 48px);
+  --font-title: "Inter", system-ui, sans-serif;
+  --font-source-sans: "Source Sans 3";
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--c-paper); color: var(--c-text-1); font-family: var(--f-body); font-size: var(--t-body); line-height: var(--lh-body); -webkit-font-smoothing: antialiased; }
+h1, h2, h3, p, ul, ol, figure, blockquote { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+h1, h2, h3 { font-family: var(--f-title); font-weight: 500; color: var(--c-title); }
+img { display: block; max-width: 100%; }
+a { color: inherit; }
+.wrap { width: var(--container); margin: 0 auto; }
+.tag { position: fixed; top: 8px; right: 8px; z-index: 9; font: 600 11px/1 system-ui; background: #000; color: #fff; padding: 6px 8px; border-radius: 4px; opacity: .55; }
+
+/* ---- peças do sistema ---- */
+.meta { font-size: var(--t-meta); line-height: 18px; font-weight: 700; letter-spacing: var(--ls-meta); text-transform: uppercase; color: var(--c-brand-text); }
+.section { padding: var(--pad-y) 0; }
+.section.warm { background: var(--c-warm); }
+.btn { display: inline-flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 24px; border: 1px solid var(--accent); border-radius: var(--r-control); background: var(--accent); color: #fff; font: 600 16px/1 var(--f-title); text-decoration: none; }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--ink); }
+.link { display: inline-flex; gap: 10px; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--c-brand-text); color: var(--c-brand-text); text-decoration: none; font-size: 18px; }
+
+/* legenda na hairline: eyebrow na mesma linha do filete */
+.caption { display: flex; align-items: center; gap: var(--s-3); margin-bottom: var(--s-4); }
+.caption::after { content: ""; flex: 1; height: 1px; background: var(--c-rule-strong); }
+
+.h2 { font-size: var(--t-h2); line-height: var(--lh-title); letter-spacing: var(--ls-title); }
+.h3 { font-size: var(--t-h3); line-height: 1.2; letter-spacing: var(--ls-h3); }
+.lead { font-size: var(--t-lead); line-height: 1.55; color: var(--c-text-2); }
+.body-2 { font-size: 20px; line-height: 1.6; color: var(--c-text-2); max-width: var(--measure); }
+.body-2 strong, .lead strong { color: var(--c-text-1); font-weight: 600; }
+.small { font-size: var(--t-small); line-height: 1.55; color: var(--c-text-3); }
+
+/* frase-chave: substitui highlight/closing com barra */
+.keyline { margin-top: var(--s-5); padding-top: var(--s-4); border-top: 1px solid var(--c-rule-strong); max-width: none !important; display: block; font-family: var(--f-title); font-weight: 500; font-size: var(--t-h2); line-height: var(--lh-title); letter-spacing: var(--ls-title); color: var(--c-title); max-width: 18ch; }
+
+/* tabela ruled */
+.ruled > li { display: grid; gap: var(--gutter-col); padding: var(--row-pad) 0; border-top: 1px solid var(--c-rule); }
+.ruled > li:last-child { border-bottom: 1px solid var(--c-rule); }
+.num { font-family: var(--f-title); font-variant-numeric: tabular-nums; font-size: var(--t-small); font-weight: 600; letter-spacing: .06em; color: var(--c-brand-text); padding-top: 6px; }
+.fig { font-family: var(--f-title); font-weight: 500; font-variant-numeric: tabular-nums; font-size: var(--t-figure); line-height: 1; letter-spacing: -0.06em; color: var(--c-title); }
+.fig.sm { font-size: var(--t-figure-sm); letter-spacing: -0.05em; }
+.photo { overflow: hidden; border-radius: var(--r-surface); background: #ececec; }
+.photo img { width: 100%; height: 100%; object-fit: cover; }
+.lift { box-shadow: var(--shadow-lift); }
+
+.band { background: var(--c-band); color: var(--c-on-band-1); padding: var(--pad-y) 0; }
+.band .fig { color: #fff; }
+.band .small, .band .cap { color: var(--c-on-band-2); }
+.band .meta { color: var(--c-on-band-brand); }
+
+@media (max-width: 760px) {
+  .split, .split-57, .split-48, .split-75 { grid-template-columns: 1fr !important; }
+}

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Proto D1 · Sobre nós</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Sans+3:wght@400;600&display=swap">
+<link rel="stylesheet" href="proto.css">
+<style>
+  .hero { padding: clamp(48px,7vw,96px) 0 var(--pad-y); }
+  .hero h1 { font-size: var(--t-h1); line-height: 1.04; letter-spacing: var(--ls-display); max-width: 15ch; margin-top: var(--s-2); }
+  .hero .photo { margin-top: var(--s-6); aspect-ratio: 21/9; }
+  .hero .photo img { object-position: 50% 28%; }
+  .hero-row { display: grid; grid-template-columns: minmax(0,5fr) minmax(0,7fr); gap: var(--gutter-col); margin-top: var(--s-5); }
+  .hero-row .lead { grid-column: 2; max-width: 40ch; }
+
+  /* colagem: 7 fotos, uma retrato grande */
+  .collage { display: grid; grid-template-columns: repeat(12, 1fr); grid-auto-rows: 88px; gap: 12px; margin-top: var(--s-5); }
+  .collage .photo { border-radius: var(--r-surface); }
+  .c1 { grid-column: 1 / 4; grid-row: 1 / 6; }
+  .c2 { grid-column: 4 / 8; grid-row: 1 / 4; }
+  .c3 { grid-column: 8 / 13; grid-row: 1 / 4; }
+  .c4 { grid-column: 4 / 7; grid-row: 4 / 6; }
+  .c5 { grid-column: 7 / 10; grid-row: 4 / 6; }
+  .c6 { grid-column: 10 / 13; grid-row: 4 / 6; }
+  .c7 { grid-column: 1 / 13; grid-row: 6 / 9; }
+  .cap-fig { margin-top: var(--s-2); }
+
+  .act { display: grid; grid-template-columns: minmax(0,4fr) minmax(0,8fr); gap: var(--gutter-col); padding: var(--s-6) 0; border-top: 1px solid var(--c-rule); }
+  .act h3 { font-size: clamp(28px,3vw,42px); line-height: 1.1; letter-spacing: var(--ls-title); }
+  .act .p { display: grid; gap: var(--s-2); align-content: start; }
+
+  .belief { grid-template-columns: minmax(0,5fr) minmax(0,7fr); align-items: baseline; }
+  .belief h3 { font-size: var(--t-h2); line-height: var(--lh-title); letter-spacing: var(--ls-title); }
+
+  .team .photo { aspect-ratio: 16/9; margin-top: var(--s-5); }
+  .team .head { display: grid; grid-template-columns: minmax(0,7fr) minmax(0,5fr); gap: var(--gutter-col); align-items: end; }
+
+  .creds { display: grid; grid-template-columns: repeat(4,1fr); gap: var(--s-4); padding-bottom: var(--s-6); border-bottom: 1px solid var(--c-rule-on-band); }
+  .creds .small { margin-top: var(--s-1); }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-6); padding: var(--s-6) 0; }
+  .cols p:last-child { font-family: var(--f-title); font-size: var(--t-h3); letter-spacing: var(--ls-h3); margin-top: var(--s-2); }
+  .links { display: flex; gap: var(--s-5); flex-wrap: wrap; border-top: 1px solid var(--c-rule-on-band); padding-top: var(--s-4); }
+  .links a { color: #fff; text-decoration: none; border-bottom: 1px solid var(--c-on-band-brand); padding-bottom: 8px; font-size: 16px; }
+  @media (max-width: 760px) { .hero-row, .act, .belief, .team .head, .cols { grid-template-columns: 1fr; } .hero-row .lead { grid-column: 1; } .hero .photo { aspect-ratio: 4/3; } .creds { grid-template-columns: 1fr 1fr; } .collage { grid-auto-rows: 52px; } }
+</style></head>
+<body>
+<span class="tag">proto · sobre-nos</span>
+
+<section class="hero wrap" data-sec="hero">
+  <p class="meta">Sobre nós</p>
+  <h1>Já estivemos do seu lado da mesa.</h1>
+  <figure class="photo lift"><img src="../../../../apps/site/public/founders-studio.jpg" alt="César Germano e Iago Braz, fundadores da Kalidash"></figure>
+  <div class="hero-row"><p class="lead">Antes de fundar a Kalidash, passamos 10 anos dentro de operações grandes, manuais e de margem apertada. Sabemos o que é ter que entregar resultado com o time e as ferramentas que se tem.</p></div>
+</section>
+
+<section class="wrap" style="padding-bottom:var(--pad-y)" data-sec="timeline">
+  <div class="caption"><span class="meta">Nossa história</span></div>
+  <div class="collage" role="group">
+    <figure class="photo c1"><img src="../../../../apps/site/public/sobre-nos/ato-01-operacao.jpg" alt="César Germano no chão de operação usando equipamento de proteção"></figure>
+    <figure class="photo c2"><img src="../../../../apps/site/public/sobre-nos/ato-04-ensino.jpg" alt="Formação de executivos e líderes em sala de aula"></figure>
+    <figure class="photo c3"><img src="../../../../apps/site/public/home/evento-palestra.jpg" alt="Palestra executiva para lideranças"></figure>
+    <figure class="photo c4"><img src="../../../../apps/site/public/home/g17-fdc-tech-week-1.jpg" alt="Aula executiva na Fundação Dom Cabral"></figure>
+    <figure class="photo c5"><img src="../../../../apps/site/public/home/evento-sala.jpg" alt="Treinamento corporativo com foco em aplicação de IA"></figure>
+    <figure class="photo c6"><img src="../../../../apps/site/public/home/cooxupe.jpg" alt="Equipe Kalidash na Cooxupé"></figure>
+    <figure class="photo c7"><img src="../../../../apps/site/public/home/g21-cba-premio.jpg" alt="CBA e Kalidash no Prêmio Inovativos"></figure>
+  </div>
+  <p class="small cap-fig">Do chão de operação à formação executiva</p>
+
+  <div style="margin-top:var(--s-6)">
+    <article class="act"><div><p class="meta">O chão da operação</p></div><div class="p">
+      <h3>Começamos como estagiários e técnicos na economia real: operações grandes, complexas e manuais.</h3>
+      <p class="body-2">Grandes empresas da economia real não são construídas em PowerPoint. São construídas por pessoas, processos complexos e decisões que precisam funcionar todos os dias.</p>
+      <p class="body-2">Foi ali que aprendemos que a transformação real não acontece em relatório de consultoria, acontece com quem opera o negócio.</p></div></article>
+    <article class="act"><div><p class="meta">A Kalidash</p></div><div class="p">
+      <h3>Fundamos a Kalidash para levar inteligência e tecnologia ao trabalho real da economia real.</h3>
+      <p class="body-2">Conhecemos a dor de tentar implementar tecnologia onde ela mais atrapalha do que ajuda. A única mudança que funciona é a que o time de fato abraça e faz rodar.</p>
+      <p class="body-2"><strong>Não para substituir pessoas, mas para devolver a elas o tempo de pensar e produzir.</strong></p></div></article>
+    <article class="act"><div><p class="meta">Hoje</p></div><div class="p">
+      <h3>Levamos cultura de IA e eficiência para operações como ArcelorMittal, CBA, Sicoob, Cooxupé e outras.</h3>
+      <p class="body-2">E ensinamos o que aplicamos nas maiores escolas de negócios e tecnologia do país.</p></div></article>
+    <p class="keyline">Nós ensinamos o que vivemos.<br>E vivemos o que ensinamos.</p>
+  </div>
+</section>
+
+<section class="section warm" data-sec="beliefs"><div class="wrap">
+  <div class="caption"><span class="meta">No que acreditamos</span></div>
+  <h2 class="h2" style="max-width:20ch">A inteligência artificial está a serviço da inteligência humana.</h2>
+  <p class="body-2" style="margin-top:var(--s-3)">O mercado vende IA pelo medo ("você vai ser substituído") ou pela mágica ("um clique resolve tudo"). Nós não acreditamos em nenhum dos dois.</p>
+  <ul class="ruled" style="margin-top:var(--head-gap)">
+    <li class="belief"><h3>Tecnologia é meio. Eficiência é fim.</h3><p class="body-2">Ferramenta nova só importa se mudar o resultado.</p></li>
+    <li class="belief"><h3>Mudança boa desenvolve pessoas.</h3><p class="body-2">A transformação certa amplia quem já conhece o negócio, em vez de descartá-lo.</p></li>
+    <li class="belief"><h3>Educar faz parte da entrega.</h3><p class="body-2">O projeto termina. O que o time aprendeu fica.</p></li>
+  </ul>
+</div></section>
+
+<section class="section team wrap" data-sec="team">
+  <div class="head"><div><p class="meta">Quem somos</p><h2 class="h2" style="margin-top:var(--s-2)">A história começou com dois. Hoje é de um time inteiro.</h2></div>
+  <p class="lead">+15 pessoas que vêm da operação, da tecnologia e da sala de aula, e levam para cada cliente um jeito de trabalhar mais inteligente e eficiente.</p></div>
+  <figure class="photo"><img src="../../../../apps/site/public/time-kalidash.jpg" alt="Time da Kalidash reunido no escritório"></figure>
+  <p class="small cap-fig">Fundada por César Germano (CEO) e Iago Braz (COO).</p>
+</section>
+
+<section class="band" data-sec="proof"><div class="wrap">
+  <ul class="creds">
+    <li><p class="fig sm">+10 mil</p><p class="small">pessoas capacitadas</p></li>
+    <li><p class="fig sm">170</p><p class="small">operações atendidas</p></li>
+    <li><p class="fig sm">Parceira</p><p class="small">Anthropic</p></li>
+    <li><p class="fig sm">Finalista</p><p class="small">Prêmio Inovativos 2026</p></li>
+  </ul>
+  <div class="cols">
+    <div><p class="meta">Onde aplicamos</p><p>ArcelorMittal · CBA · Sicoob · Cooxupé</p></div>
+    <div><p class="meta">Onde ensinamos</p><p>Conquer · Xperiun · Rocketseat · Hashtag · Tera</p></div>
+  </div>
+  <nav class="links"><a href="#">AI Culture →</a><a href="#">Advisory →</a><a href="#">Execução →</a></nav>
+</div></section>
+</body></html>

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Proto D1 · Execução (showcase) e Soluções (offers)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Sans+3:wght@400;600&display=swap">
+<link rel="stylesheet" href="proto.css">
+<style>
+  .two { display: grid; grid-template-columns: minmax(0,5fr) minmax(0,7fr); gap: var(--gutter-col); }
+  .figs { display: grid; grid-template-columns: repeat(3,1fr); border-top: 1px solid var(--c-rule-strong); border-bottom: 1px solid var(--c-rule); }
+  .figs li { padding: var(--s-5) var(--s-3) var(--s-5) 0; }
+  .figs li + li { padding-left: var(--s-3); border-left: 1px solid var(--c-rule); }
+  .figs .fig { font-size: clamp(44px,5.6vw,80px); white-space: nowrap; }
+  .figs .small { margin-top: var(--s-2); max-width: 24ch; color: var(--c-text-2); }
+  .case { display: grid; grid-template-columns: minmax(0,7fr) minmax(0,5fr); gap: var(--gutter-col); margin-top: var(--head-gap); align-items: end; }
+  .case .photo { aspect-ratio: 4/3; }
+  .case h3 { font-size: var(--t-h2); line-height: var(--lh-title); letter-spacing: var(--ls-title); margin-top: var(--s-2); }
+  .case p.t { margin-top: var(--s-3); color: var(--c-text-2); font-size: 20px; }
+  .case .badge { margin-top: var(--s-3); padding-top: var(--s-2); border-top: 1px solid var(--c-rule-strong); font-weight: 600; color: var(--c-title); }
+  .idx { margin-top: var(--head-gap); }
+  .idx > li { grid-template-columns: 56px minmax(0,3fr) minmax(0,6fr) 32px; align-items: baseline; }
+  .idx h3 { font-size: var(--t-h2); line-height: 1.1; letter-spacing: var(--ls-title); }
+  .idx p { color: var(--c-text-2); }
+  .idx .go { color: var(--c-brand-text); font-size: 24px; justify-self: end; }
+
+  .hero { padding: clamp(64px,9vw,120px) 0 var(--pad-y); }
+  .hero h1 { font-size: var(--t-display); line-height: var(--lh-display); letter-spacing: var(--ls-display); max-width: 12ch; margin-top: var(--s-2); }
+  .hero .row { margin-top: var(--s-6); }
+  .hero .row > div { grid-column: 2; display: grid; gap: var(--s-2); justify-items: start; }
+  .offer { padding: var(--pad-y) 0; border-top: 1px solid var(--c-rule); }
+  .offer .grid { display: grid; grid-template-columns: minmax(0,5fr) minmax(0,7fr); gap: clamp(32px,6vw,96px); align-items: center; }
+  .offer.flip .grid > :first-child { order: 2; }
+  .offer .obj { aspect-ratio: 4/5; max-height: 600px; }
+  .offer .obj.cut { background: transparent; border-radius: 0; aspect-ratio: auto; }
+  .offer .obj.cut img { object-fit: contain; object-position: bottom; }
+  .offer h2 { margin-top: var(--s-2); }
+  .offer .tx { margin-top: var(--s-3); }
+  .offer .feat { margin: var(--s-5) 0; }
+  .offer .feat > li { grid-template-columns: minmax(0,3fr) minmax(0,5fr); }
+  .offer .feat h3 { font-size: 20px; letter-spacing: -0.015em; }
+  .offer .feat p { color: var(--c-text-2); font-size: 17px; }
+  @media (max-width: 760px) { .two, .case, .offer .grid, .idx > li, .offer .feat > li { grid-template-columns: 1fr; } .hero .row > div { grid-column: 1; } .figs { grid-template-columns: 1fr; } .figs li + li { border-left: 0; padding-left: 0; border-top: 1px solid var(--c-rule); } .offer.flip .grid > :first-child { order: 0; } }
+</style></head>
+<body>
+<span class="tag">proto · execução + soluções</span>
+
+<section class="section wrap" data-sec="showcase">
+  <div class="caption"><span class="meta">Feito para funcionar</span></div>
+  <h2 class="h2" style="max-width:20ch">Projetos que já estão rodando.</h2>
+  <ul class="figs" style="margin-top:var(--head-gap)">
+    <li><p class="fig">+100</p><p class="small">processos automatizados</p></li>
+    <li><p class="fig">170</p><p class="small">operações atendidas</p></li>
+    <li><p class="fig">12 horas</p><p class="small">economizadas por semana até a primeira entrega</p></li>
+  </ul>
+  <article class="case">
+    <figure class="photo"><img src="../../../../apps/site/public/home/g21-cba-premio.jpg" alt="CBA e Kalidash no Prêmio Inovativos 2026"></figure>
+    <div><p class="meta">CBA · Captura Inteligente do Conhecimento</p>
+      <h3>Captura Inteligente do Conhecimento</h3>
+      <p class="t">As reuniões diárias da operação viraram dado estruturado. 1.681 problemas registrados em 3 meses de piloto, com 97% de encaminhamento definido.</p>
+      <p class="badge">Finalista Prêmio Inovativos 2026</p>
+      <p style="margin-top:var(--s-3)"><a class="link" href="#">Ver o case →</a></p></div>
+  </article>
+  <ul class="ruled idx">
+    <li><span class="num">01</span><h3>Kognis</h3><p>Plataforma de IA para advocacia trabalhista, desenvolvida pela Kalidash.</p><span class="go">→</span></li>
+    <li><span class="num">02</span><h3>Spectra AI</h3><p>Visão computacional aplicada à operação.</p><span class="go">→</span></li>
+  </ul>
+</section>
+
+<hr style="border:0;border-top:12px solid #000;margin:0">
+
+<section class="hero wrap" data-sec="solucoes-hero">
+  <p class="meta">Soluções próprias</p>
+  <h1>Tecnologia que nasce de problemas reais.</h1>
+  <div class="two row"><span></span><div>
+    <p class="lead" style="max-width:44ch">Às vezes encontramos um problema tão específico que nenhuma ferramenta de mercado resolve. Quando isso acontece, a gente constrói.</p>
+    <p class="lead" style="max-width:44ch">São tecnologias desenvolvidas pela Kalidash, a partir de operações reais e usadas por empresas hoje.</p>
+    <a class="btn" href="#">Falar sobre o meu caso →</a></div></div>
+</section>
+
+<div class="offers">
+  <section class="offer" data-sec="offer-1"><div class="wrap grid">
+    <div class="photo obj cut"><img src="../../../../apps/site/public/kognis-heroes.png" alt="Kognis — Escritório de Advocacia Inteligente"></div>
+    <div><p class="fig sm" style="color:var(--c-brand-text)">01</p><p class="meta" style="margin-top:var(--s-1)">Kognis</p>
+      <h2 class="h2">Uma operação mais inteligente para a advocacia.</h2>
+      <p class="body-2 tx">Tecnologia para automatizar <strong>atendimento</strong>, <strong>financeiro</strong> e <strong>gestão de KPIs</strong> de escritórios de advocacia em um só lugar, reduzindo o trabalho operacional e aumentando o controle sobre o negócio.</p>
+      <ul class="ruled feat">
+        <li><h3>Atendimento</h3><p>Triagem e acompanhamento automatizados sem perder o contexto de cada cliente.</p></li>
+        <li><h3>Financeiro</h3><p>Rotinas operacionais organizadas em fluxo contínuo, com menos retrabalho.</p></li>
+        <li><h3>Gestão de KPIs</h3><p>Indicadores do escritório consolidados em tempo real para apoiar decisões.</p></li>
+      </ul>
+      <a class="link" href="#">Conhecer Kognis →</a></div>
+  </div></section>
+  <section class="offer flip" data-sec="offer-2" style="background:var(--c-warm)"><div class="wrap grid">
+    <figure class="photo obj lift"><img src="../../../../apps/site/public/sobre-nos/ato-01-operacao.jpg" alt="Spectra AI visão computacional na operação"></figure>
+    <div><p class="fig sm" style="color:var(--c-brand-text)">02</p><p class="meta" style="margin-top:var(--s-1)">Spectra AI</p>
+      <h2 class="h2">Visão computacional aplicada ao chão de operação.</h2>
+      <p class="body-2 tx">A operação fala e o Spectra AI traduz. Câmeras transformam o que acontece na operação em dados de produtividade, identificando oportunidades em tempo real e apontando onde melhorar.</p>
+      <ul class="ruled feat">
+        <li><h3>Leitura em tempo real</h3><p>Câmeras conectadas ao ambiente físico traduzem a rotina sem interromper o time.</p></li>
+        <li><h3>Dados de produtividade</h3><p>O que antes dependia de observação manual vira histórico estruturado.</p></li>
+        <li><h3>Oportunidades claras</h3><p>Identificação objetiva de gargalos e pontos de melhoria na operação.</p></li>
+      </ul>
+      <a class="link" href="#">Conhecer Spectra AI →</a></div>
+  </div></section>
+</div>
+</body></html>
