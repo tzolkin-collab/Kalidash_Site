@@ -1,0 +1,80 @@
+/* PROPOSTA (D0) — tokens das páginas internas do site público.
+ * Não está ligado a nada: o dev (B0) copia o bloco :root para o topo de
+ * apps/site/src/app/institucional/institucional.module.css, dentro de `.page { ... }`.
+ *
+ * Regra: NÃO redefine nada da Home. Reaproveita os tokens que já existem em home.module.css
+ * (--ink, --purple, --accent, --gray-1, --black-1, --black-2, --line, --container, --gutter,
+ * --font-title). Só acrescenta o que falta às páginas internas.
+ * Fontes: as da Home (Inter nos títulos, Source Sans 3 no texto). Nenhuma fonte nova. */
+
+:root {
+  /* ---------- Herdados da Home (referência, não redefinir) ----------
+   * --ink #28183b · --purple #462f4f · --accent #b6644d · --gray-1 #f8f8f8
+   * --black-1 #0e0e0e · --black-2 #0a0a0a · --line #ececec
+   * --container min(1280px, 100% - 48px) · --font-title Inter · corpo Source Sans 3 */
+
+  /* ---------- Papéis de cor ---------- */
+  --c-paper: #fff;                 /* superfície padrão (a maior parte da página) */
+  --c-warm: #faf8f7;               /* pausa editorial: no máximo 1 faixa por página */
+  --c-band: var(--black-1);        /* faixa escura: no máximo 1 por página (a prova) */
+  --c-text-1: var(--black-2);      /* corpo e títulos */
+  --c-title: var(--ink);           /* títulos de seção e numerais */
+  --c-text-2: #3c373f;             /* texto de apoio (11:1 sobre branco) */
+  --c-text-3: #6b6670;             /* metadado (5,6:1 sobre branco) */
+  --c-rule: var(--line);           /* hairline padrão */
+  --c-rule-strong: #d9d4d0;        /* hairline sob títulos de tabela */
+  --c-brand: var(--accent);        /* só para preenchimento (botão) e para texto >= 24px */
+  --c-brand-text: #a4533c;         /* texto pequeno de marca: 5,4:1 sobre branco (o #b6644d dá 4,3:1, reprova AA) */
+  --c-on-band-1: #fff;
+  --c-on-band-2: rgba(255, 255, 255, 0.78);
+  --c-on-band-brand: #f0b39f;      /* já usado no rodapé/prova da Home */
+  --c-rule-on-band: rgba(255, 255, 255, 0.16);
+
+  /* ---------- Tipografia (escala fluida, 5 níveis + numeral) ---------- */
+  --f-title: var(--font-title);
+  --f-body: var(--font-source-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --t-display: clamp(44px, 6.4vw, 88px);   /* só h1 de página sem foto (Soluções) */
+  --t-h1: clamp(36px, 5vw, 66px);          /* h1 com foto */
+  --t-h2: clamp(32px, 3.8vw, 55px);        /* 55px = h2 da Home */
+  --t-h3: clamp(22px, 2.2vw, 30px);        /* título de item, pergunta de FAQ */
+  --t-lead: clamp(19px, 1.6vw, 22px);      /* abertura (22px = parágrafo da Home) */
+  --t-body: 18px;
+  --t-small: 15px;                          /* legenda, "Ex.:", suporte */
+  --t-meta: 13px;                           /* eyebrow/rótulo; único uso de caixa-alta */
+  --t-figure: clamp(56px, 7.5vw, 112px);   /* numeral dominante (provas, índice) */
+  --t-figure-sm: clamp(40px, 4.4vw, 64px); /* numeral de apoio */
+
+  --lh-display: 1.02; --lh-title: 1.08; --lh-body: 1.6;
+  --ls-display: -0.05em; --ls-title: -0.04em; --ls-h3: -0.025em; --ls-meta: 0.14em;
+  --measure: 62ch;                          /* medida máxima de leitura */
+
+  /* ---------- Espaçamento 8pt ---------- */
+  --s-1: 8px;  --s-2: 16px; --s-3: 24px; --s-4: 32px; --s-5: 48px;
+  --s-6: 64px; --s-7: 96px; --s-8: 128px;
+  --pad-y: clamp(64px, 9vw, 128px);         /* ritmo vertical de TODA seção */
+  --head-gap: clamp(32px, 4vw, 64px);       /* título -> conteúdo (hoje chega a ~150px) */
+  --row-pad: clamp(24px, 2.4vw, 32px);      /* altura de linha das tabelas ruled */
+
+  /* ---------- Grade ---------- */
+  --cols: 12;
+  --gutter-col: clamp(16px, 2.4vw, 32px);
+  /* três composições, as únicas permitidas: */
+  --split-5-7: minmax(0, 5fr) minmax(0, 7fr);    /* título | corpo */
+  --split-4-8: minmax(0, 4fr) minmax(0, 8fr);    /* rótulo | tabela */
+  --split-7-5: minmax(0, 7fr) minmax(0, 5fr);    /* hero com foto retrato */
+
+  /* ---------- Forma ---------- */
+  --r-control: 4px;                         /* botões, campos (é o raio dos botões da Home) */
+  --r-surface: 12px;                        /* fotos e a única superfície que sobe */
+  /* Sem outro raio. Sem pílula (os chips viram lista). */
+
+  /* ---------- Sombra ---------- */
+  --shadow-none: none;                      /* padrão: estrutura por hairline e tom */
+  --shadow-lift: 0 12px 32px rgba(40, 24, 59, 0.08); /* só a foto-herói de cada página */
+
+  /* ---------- Movimento ---------- */
+  --ease: cubic-bezier(0.33, 1, 0.68, 1);
+  --t-fast: 160ms;                          /* hover, foco, abrir/fechar */
+  --t-draw: 600ms;                          /* só a linha dos passos, uma vez */
+}
