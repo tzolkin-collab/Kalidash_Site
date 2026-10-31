@@ -19,6 +19,7 @@ const MAP = {
   '03-advisory.html': ['advisory'],
   '04-execucao-solucoes.html': ['execucao', 'solucoes'],
   '05-ai-culture.html': ['treinamento-corporativo-ia'],
+  '06-spectra.html': ['spectra'],
 };
 const chromePath = [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',

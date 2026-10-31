@@ -14,10 +14,10 @@
 | D0: `00-sistema.md` + `tokens.css` | ✅ | + §9 com as decisões do PO (tokens escopados ao CSS institucional) |
 | D1: `01-institucionais.md` por página e seção | ✅ | **Ordem do conteúdo respeitada**: Advisory sem fusão de seções (§4.3) |
 | **(b) FAQ do Advisory com as 6 perguntas** | ✅ | `proto/03-advisory.html`; `copy-check` confirma as 6 respostas contra `pages.ts` |
-| **(c) Diff de copy automático dos protótipos** | ✅ | `proto/copy-check.mjs` (modelo: `copy-diff.mjs`); saída em §2 abaixo: 0 extras nos 5 protótipos. Teste negativo feito (uma palavra trocada → reprovou) |
-| **(d) Protótipos em 390 + overflow do Kognis** | ✅ / ⚠️ | `proto/overflow-check.mjs`: **20/20 sem overflow** (5 protótipos × 390/768/1024/1440). Overflow de 9px do Kognis achado e corrigido (numeral 56px em 2 colunas). Vi em 390: timeline, showcase, offer-2, passos e formatos do AI Culture, rituais, tabela do Kognis. Passos do AI Culture em 390 estavam com pontos soltos: refeitos com trilho vertical e revistos. **Não vi em 390:** proof, régua do Kognis, FAQ, hero dos 5 |
+| **(c) Diff de copy automático dos protótipos** | ✅ | `proto/copy-check.mjs` (modelo: `copy-diff.mjs`); saída em §2 abaixo: 0 extras nos 6 protótipos. Teste negativo feito (uma palavra trocada → reprovou) |
+| **(d) Protótipos em 390 + overflow do Kognis** | ✅ / ⚠️ | `proto/overflow-check.mjs`: **24/24 sem overflow** (6 protótipos × 390/768/1024/1440). Overflow de 9px do Kognis achado e corrigido (numeral 56px em 2 colunas). Vi em 390: timeline, showcase, offer-2, passos e formatos do AI Culture, rituais, tabela do Kognis. Passos do AI Culture em 390 estavam com pontos soltos: refeitos com trilho vertical e revistos. **Não vi em 390:** proof, régua do Kognis, FAQ, hero dos 5 |
 | **(e) Abrir beliefs, team, proof, offer-2 em tamanho real** | ✅ | `proto/shots/01-beliefs-1440.png`, `01-team-1440.png`, `01-proof-1440.png`, `04-offer-2-1440.png`. A `offer-2` tinha a coluna da foto trocada ao alternar (corrigido e revisto) |
-| Telas do Kognis | ⏳ aguardando | O dono disse que existem prints, **sem caminho**. Busca no repositório: só `kognis-logo.png` e `kognis-heroes.png`. Nada inventado |
+| Telas do Kognis/Spectra | ✅ espaço reservado | Dono ainda não tem os prints (pediu à Carol). `01-institucionais.md` §4.8 descreve K1, K2, K3 (Kognis) e S1 (Spectra): onde, o que entra, formato, regras (só imagem real, dado anonimizado, `alt` novo precisa de aprovação, sem imagem o bloco não renderiza). Protótipos `02-kognis` (K1–K3) e novo `06-spectra` mostram o espaço tracejado, rotulado por CSS. Nada inventado |
 | Decisões do PO aplicadas | ✅ | ordem intocável; raio 4/12, sombra única e `#a4533c` só no CSS institucional; sem CTA novo (`/kognis` sem CTA no fim; nenhuma página usa o bloco `cta`, conferido por grep); hero de `/execucao` mantém a foto |
 | Console limpo / Web Vitals / 1024 e 768 como imagem | ❌ não feito | fora do escopo; 768/1024 só medi overflow |
 
@@ -31,18 +31,19 @@ OK  02-kognis.html: 59 linhas, extras=0, só-em-pages.ts=1, cobertura da baselin
 OK  03-advisory.html: 52 linhas, extras=0, só-em-pages.ts=1, cobertura da baseline=50/50 (100%)
 OK  04-execucao-solucoes.html: 42 linhas, extras=0, só-em-pages.ts=0, cobertura da baseline=40/80 (50%)
 OK  05-ai-culture.html: 42 linhas, extras=0, só-em-pages.ts=0, cobertura da baseline=41/41 (100%)
+OK  06-spectra.html: 13 linhas, extras=0, só-em-pages.ts=0, cobertura da baseline=13/13 (100%)
 ```
 
 Como ler: "extras" = linha do protótipo que não existe nem na baseline nem literalmente em `pages.ts`. "só-em-pages.ts" = resposta de `<details>` recolhido (a baseline não a captura); no Kognis e no Advisory é a 1ª resposta, aberta no protótipo. Comparação sem distinção de caixa (eyebrows são `text-transform` de CSS); seta decorativa `→` e numeral solto de 2 dígitos ignorados. A cobertura de `04` é 50% porque ele traz só o showcase de Execução e a página Soluções. **Teste negativo:** trocar "desafios" por "metas" em `05` gerou `DIF ... EXTRA: mapeamos áreas, processos e metas do time...`; revertido.
 
-`node docs/po/design/proto/overflow-check.mjs`: 20 linhas `ok`, 0 `OVERFLOW`. O `clientWidth` do 390 sai 375 porque o Chrome headless reserva 15px de barra de rolagem; a checagem compara `scrollWidth` com `clientWidth`, então o 9px antigo apareceu como `scrollWidth=399`.
+`node docs/po/design/proto/overflow-check.mjs`: 24 linhas `ok`, 0 `OVERFLOW`. O `clientWidth` do 390 sai 375 porque o Chrome headless reserva 15px de barra de rolagem; a checagem compara `scrollWidth` com `clientWidth`, então o 9px antigo apareceu como `scrollWidth=399`.
 
 **O que esses testes não provam:** que `SitePage.tsx` implementado mantém a copy (aceite 3.1 é do dev, com `copy-diff.mjs`), nem a aparência.
 
 ## 3. Arquivos alterados
 
 - `docs/po/design/00-sistema.md`, `tokens.css`, `01-institucionais.md`
-- `docs/po/design/proto/`: `proto.css`, `01…05-*.html`, `copy-check.mjs`, `overflow-check.mjs`, `shots/*.png`
+- `docs/po/design/proto/`: `proto.css`, `01…05-*.html`, `copy-check.mjs`, `overflow-check.mjs`, `06-spectra.html`, `shots/*.png`
 - `docs/po/design/antes/` (14 PNG), `docs/po/design/refs/` (Linear x2, Anthropic x2, Stripe about, Thoughtworks, BCG, Mistral, Cohere)
 - este relatório
 
@@ -55,8 +56,7 @@ Não toquei em `docs/ambientes/` nem em `docs/po/relatorios/copy-baseline/` e `c
 
 ## 5. O que ficou de fora
 
-- Seções do Kognis com tela real (aguarda o caminho dos prints).
-- Spectra sem imagem de câmera/dado: direção "fotográfica e curta".
+- As telas reais em si (K1–K3, S1): só o espaço está reservado e especificado.
 - Ver em 390: `proof`, régua do Kognis, FAQ e heros; ver 768/1024 como imagem.
 - Protótipo de `testimonials` (não renderiza hoje) e de `/spectra` (sem objeto real, não desenhei tela).
 - D2 (Diagnóstico) e D3 (Blog): outros pacotes.
@@ -71,14 +71,14 @@ Não toquei em `docs/ambientes/` nem em `docs/po/relatorios/copy-baseline/` e `c
 
 ## 7. O que o dono do projeto precisa fazer
 
-- Informar o caminho dos prints do Kognis (e, se houver, imagem de câmera/dado do Spectra), confirmando que não expõem dado real de cliente.
+- Conseguir com a Carol os prints do Kognis (K1 visão geral, K2 atendimento, K3 financeiro) e, se houver, imagem de câmera ou painel do Spectra (S1), anonimizados, e o texto de `alt` de cada uma.
 - Abrir `docs/po/design/proto/*.html` no navegador e dizer se a direção "régua + objeto" é a desejada antes do dev começar.
 - Commitar o trabalho aberto em `institucional/`, `diagnostico/` e `blog/` (pendência D1 do checklist).
 
 ## 8. Perguntas de produto para o PO
 
-1. Pode eu seguir sem o Kognis real e entregar o protótipo atual como direção final do Kognis, trocando só quando os prints chegarem?
-2. Spectra: aceita página fotográfica e curta como direção final, ou espera imagem real?
+1. O espaço reservado (§4.8) é opcional no tipo (`image?`) e a página funciona sem ele. Aprova esse contrato para o dev?
+2. Quem escreve o `alt` das novas telas (Carol)?
 
 ## 9. Auto-avaliação
 

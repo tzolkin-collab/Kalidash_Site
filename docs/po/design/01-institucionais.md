@@ -218,6 +218,28 @@ Ritmo: paper (hero) → warm (o que faz). Duas seções; o rodapé fecha.
 
 Risco: o botão do hero diz "Conhecer Spectra AI" mas leva ao diagnóstico (mesmo destino de todas as páginas, regra "uma conversão só"); é rótulo da copy, não mexo. A foto é um operário sorrindo, não o produto. **Sem imagem de câmera/dado, o Spectra continua sem protagonista**; com a direção atual a página fica limpa e curta, mas não "elevada".
 
+### 4.8 Espaços de objeto reservados (Kognis e Spectra)
+
+Decisão do PO (31/10): o dono ainda não tem os prints (pediu à Carol). A direção **reserva o lugar e descreve o que entra**; nada é inventado. Nos protótipos ([02-kognis](proto/02-kognis.html), [06-spectra](proto/06-spectra.html)) cada espaço é um bloco tracejado com o rótulo gerado por CSS (`data-label`), que **não é copy** e não entra no `copy-check`. Capturas: [Spectra](proto/shots/06-cards-1440.png), [Kognis atendimento](proto/shots/02-cards-2-1440.png).
+
+| Id | Onde (página · seção, ordem de `pages.ts` preservada) | O que entra | Formato | Tratamento |
+|---|---|---|---|---|
+| **K1** | `/kognis` · 1º bloco `cards` ("Três problemas resolvidos. Uma plataforma."), entre o `h2` e a tabela | tela real da plataforma com os indicadores (visão geral do BI: o que está em dia, atrasado, gargalo) | 16:9, largura do container | única mídia com `--shadow-lift` da página; `--r-surface`; sem moldura de dispositivo |
+| **K2** | `/kognis` · 2º bloco `cards` ("Seu escritório atendendo 24h…"), na coluna esquerda sob o `h2` | tela real do atendimento no WhatsApp: fila e conversa, com histórico | 4:5, até 340px | sem sombra; hairline 1px |
+| **K3** | `/kognis` · 3º bloco `cards` ("Seu financeiro fechando sozinho…"), entre o `h2` e a tabela | tela real do painel financeiro: conciliação e divisão de honorários | 16:9, largura do container | sem sombra; hairline 1px |
+| **S1** | `/spectra` · bloco `cards` ("Transforme o que acontece na operação em dados objetivos."), entre o `h2` e as 3 linhas | uma de duas: **(a)** frame real de câmera de uma operação com a leitura do Spectra sobreposta, ou **(b)** tela real do painel de produtividade com o histórico estruturado | 16:9, largura do container | `--shadow-lift`; o hero (foto do operário) permanece |
+
+Regras de entrada (valem para os quatro):
+1. **Só imagem real do produto**, em captura de tela ou frame. Sem mock, sem ilustração, sem moldura de laptop/celular desenhada.
+2. **Dados anonimizados e aprovados pela Carol**: nomes de clientes/processos e valores no Kognis; rostos e identificações de operadores no Spectra (LGPD). Se precisar desfocar, desfocar na origem, não por CSS.
+3. Tema claro de preferência; mínimo 2000px de largura no K1/K3/S1 e 1000px no K2; WebP/PNG, enviado ao repositório em `apps/site/public/` com `next/image` e dimensões.
+4. **O texto alternativo (`alt`) das novas imagens é conteúdo novo**: precisa ser escrito/aprovado pela Carol (a regra "alt editorial não muda" cobre só as imagens existentes). Sugestão de formato, a validar: descrever a tela em uma frase.
+5. **Sem a imagem, o espaço não renderiza.** O bloco é opcional (`image?` no tipo): a página funciona como hoje, sem buraco. O layout não depende do espaço (tabela e linhas continuam alinhadas sem ele).
+6. **A seção do `proofBar` do Kognis e a tabela já carregam o resto:** a tela não substitui nem repete os números; entra como prova de que o produto existe.
+7. Se chegarem mais telas, **a ordem de preferência** é K1, K3, K2 (a visão geral vence a tela de detalhe); mais de uma imagem por seção vira carrossel ou grade e **fica fora**.
+
+Pendências: K1–K3 aguardam os prints do Kognis (dono pedindo à Carol); S1 aguarda a decisão do dono sobre haver imagem de câmera/painel do Spectra.
+
 ## 5. Regras de execução para os devs (ordem sugerida)
 
 1. **B0** tokens + `Reveal` removido dos blocos de leitura (maior ganho por menor risco: some a faixa branca, o pisca e a entrada escalonada).
@@ -237,8 +259,8 @@ Decididas pelo PO (31/10):
 5. **Telas do Kognis:** usar só se o dono mandar; sem telas, nada de tela inventada.
 
 Em aberto:
-- O dono respondeu que **existem prints do Kognis**, mas **não informou o caminho**. Busquei no repositório (`**/*kognis*` em `Projetos/carol`): só há `kognis-logo.png` e `kognis-heroes.png` (o recorte dos advogados), nenhuma tela. Aguardando o caminho. Quando vier, refaço as seções 3 a 5 do Kognis com a tela como protagonista, confirmando antes que não expõem dado real de cliente.
-- Spectra segue sem imagem de câmera ou dado; o dono tem?
+- O dono respondeu que **existem prints do Kognis**, mas **não informou o caminho**. Busquei no repositório (`**/*kognis*` em `Projetos/carol`): só há `kognis-logo.png` e `kognis-heroes.png` (o recorte dos advogados), nenhuma tela. Atualização do PO: o dono ainda **não tem** os prints (pediu à Carol); não esperei. O lugar de cada tela está reservado e descrito em §4.8 (K1–K3, S1), para encaixar quando chegarem.
+- Spectra: o dono tem imagem de câmera ou painel de produtividade? (S1)
 
 ## 7. Auditoria dos protótipos contra os tells
 

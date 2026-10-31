@@ -57,3 +57,8 @@ a { color: inherit; }
 @media (max-width: 760px) {
   .split, .split-57, .split-48, .split-75 { grid-template-columns: 1fr !important; }
 }
+
+/* espaço reservado para tela real: só nos protótipos; o rótulo vem de CSS, não é copy */
+.slot { position: relative; display: grid; place-items: center; border: 1px dashed var(--c-rule-strong); border-radius: var(--r-surface); background: repeating-linear-gradient(135deg, #fff 0 12px, var(--c-warm) 12px 24px); color: var(--c-text-3); font: 600 13px/1.4 var(--f-title); text-align: center; padding: var(--s-3); }
+.slot::after { content: attr(data-label); max-width: 36ch; }
+.slot.w169 { aspect-ratio: 16/9; } .slot.w1610 { aspect-ratio: 16/10; } .slot.p45 { aspect-ratio: 4/5; }

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Proto D1 · Spectra</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Sans+3:wght@400;600&display=swap">
+<link rel="stylesheet" href="proto.css">
+<style>
+  .hero { display: grid; grid-template-columns: minmax(0,7.5fr) minmax(0,4.5fr); gap: clamp(32px,5vw,80px); align-items: end; padding: clamp(48px,7vw,96px) 0 var(--pad-y); }
+  .hero h1 { font-size: var(--t-h1); line-height: 1.04; letter-spacing: var(--ls-display); margin-top: var(--s-2); max-width: 14ch; }
+  .hero .lead { margin-top: var(--s-4); max-width: 46ch; }
+  .hero .sup { margin-top: var(--s-3); padding-top: var(--s-2); border-top: 1px solid var(--c-rule-strong); max-width: 52ch; }
+  .hero .btn { margin-top: var(--s-4); }
+  .hero .photo { aspect-ratio: 9/16; max-height: 580px; max-width: 360px; justify-self: end; width: 100%; }
+  .rit > li { grid-template-columns: minmax(0,5fr) minmax(0,7fr); }
+  .rit h3 { font-size: var(--t-h2); line-height: var(--lh-title); letter-spacing: var(--ls-title); }
+  .rit p { color: var(--c-text-2); font-size: 20px; max-width: var(--measure); }
+  @media (max-width: 760px) { .hero, .rit > li { grid-template-columns: 1fr; } .hero .photo { justify-self: start; } }
+</style></head>
+<body>
+<span class="tag">proto · spectra</span>
+
+<section class="hero wrap" data-sec="hero">
+  <div>
+    <p class="meta">Spectra AI · Soluções próprias</p>
+    <h1>Visão computacional aplicada ao chão de operação.</h1>
+    <p class="lead">A operação fala e o Spectra AI traduz. Câmeras transformam o que acontece na operação em dados de produtividade, identificando oportunidades em tempo real e apontando onde melhorar.</p>
+    <p class="small sup">Leitura visual em tempo real sem interromper o time e sem alterar o fluxo de trabalho.</p>
+    <a class="btn" href="#">Conhecer Spectra AI →</a>
+  </div>
+  <figure class="photo lift"><img src="../../../../apps/site/public/sobre-nos/ato-01-operacao.jpg" alt="Spectra AI visão computacional na operação"></figure>
+</section>
+
+<section class="section warm" data-sec="cards"><div class="wrap">
+  <div class="caption"><span class="meta">O que faz</span></div>
+  <h2 class="h2" style="max-width:24ch">Transforme o que acontece na operação em dados objetivos.</h2>
+  <div class="slot w169 lift" data-slot="S1" data-label="S1 · imagem real do Spectra: frame de câmera com a leitura sobreposta OU painel de produtividade. 16:9" style="margin:var(--head-gap) 0"></div>
+  <ul class="ruled rit">
+    <li><h3>Leitura em tempo real</h3><p>Câmeras conectadas ao ambiente físico traduzem a rotina sem interromper o time.</p></li>
+    <li><h3>Dados de produtividade</h3><p>O que antes dependia de observação manual vira histórico estruturado.</p></li>
+    <li><h3>Oportunidades claras</h3><p>Identificação objetiva de gargalos e pontos de melhoria na operação.</p></li>
+  </ul>
+</div></section>
+</body></html>
