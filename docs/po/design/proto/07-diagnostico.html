@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Proto D2 · Diagnóstico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Sans+3:wght@400;600&display=swap">
+<link rel="stylesheet" href="proto.css"><link rel="stylesheet" href="../tokens-d2d3.css">
+<style>
+  .tag { display: none; }
+  /* Estados por hash: #p1 #p1-erro #p2 #p2-erro #p3 #p3-erro #p3-ok #envio-erro #sucesso */
+  [hidden] { display: none !important; }
+  body { min-height: 100svh; }
+  .shell { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); min-height: 100svh; }
+
+  /* ---------- painel de contexto (esquerda): papel = dar confiança antes de pedir dado ---------- */
+  .pane { background: var(--c-warm); border-right: 1px solid var(--c-rule); padding: clamp(32px, 4vw, 56px) clamp(32px, 5vw, 72px); display: flex; flex-direction: column; justify-content: space-between; gap: var(--s-6); }
+  .logo img { height: 28px; width: auto; }
+  .ctx { max-width: 30rem; }
+  .ctx h1 { margin-top: var(--s-2); font-size: clamp(30px, 3vw, 46px); line-height: 1.06; letter-spacing: var(--ls-display); }
+  .ctx .lead { margin-top: var(--s-3); max-width: 40ch; }
+  .key { margin-top: var(--s-5); padding-top: var(--s-3); border-top: 1px solid var(--c-rule-strong); }
+  .key strong { display: block; font: 500 clamp(20px, 1.7vw, 24px)/1.25 var(--f-title); letter-spacing: var(--ls-h3); color: var(--c-title); text-wrap: balance; }
+  .key p { margin-top: var(--s-1); font-size: var(--t-small); line-height: 1.55; color: var(--c-text-2); max-width: 40ch; }
+  .trust { display: grid; gap: var(--s-3); }
+  .trust dl { margin: 0; border-top: 1px solid var(--c-rule-strong); }
+  .trust dl > div { display: grid; grid-template-columns: 1fr; gap: 4px; padding: 14px 0; border-bottom: 1px solid var(--c-rule); }
+  .trust dt { margin: 0; } .trust dd { margin: 0; font: 500 16px/1.4 var(--f-title); color: var(--c-text-1); }
+  .wa { display: inline-flex; align-items: center; gap: 10px; width: fit-content; min-height: 44px; font-size: 16px; font-weight: 600; font-family: var(--f-title); color: var(--c-brand-text); text-decoration: none; border-bottom: 1px solid currentColor; }
+  .wa svg { width: 18px; height: 18px; flex: none; }
+
+  /* ---------- painel do formulário (direita): papel = pedir 3 grupos de dado, um por vez ---------- */
+  .form-pane { display: flex; flex-direction: column; min-width: 0; }
+  .bar { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2); min-height: 72px; padding: 0 clamp(24px, 5vw, 72px); }
+  .bar .mark { display: none; }
+  .btn-ghost { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 1px solid var(--c-field-line); border-radius: var(--r-control); font: 600 14px/1 var(--f-title); color: var(--c-text-1); text-decoration: none; background: transparent; }
+  .rail { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 0 clamp(24px, 5vw, 72px); }
+  .rail i { height: 4px; border-radius: 2px; background: var(--c-rule-strong); }
+  .rail i.on { background: var(--c-brand); }
+  .stage { flex: 1; display: grid; align-content: start; padding: clamp(48px, 7vh, 88px) clamp(24px, 5vw, 72px) var(--s-6); }
+  .col { max-width: 34rem; margin-left: clamp(0px, 4vw, 56px); }
+  .col h2 { margin-top: var(--s-1); font-size: clamp(30px, 3vw, 44px); line-height: 1.08; letter-spacing: var(--ls-title); text-wrap: balance; }
+  .col .desc { margin-top: var(--s-2); font-size: 18px; line-height: 1.55; color: var(--c-text-2); max-width: 44ch; }
+  .fields { display: grid; gap: var(--s-3); margin-top: var(--s-5); }
+  .field label { display: block; font: 600 15px/1.3 var(--f-title); color: var(--c-text-1); margin-bottom: 8px; }
+  .req { color: var(--c-brand-text); }
+  .opt { font-weight: 400; color: var(--c-text-3); }
+  .in { display: block; width: 100%; min-height: 56px; padding: 0 16px; border: 1px solid var(--c-field-line); border-radius: var(--r-control); background: #fff; font: 400 17px/1.4 var(--f-body); color: var(--c-text-1); }
+  textarea.in { min-height: 112px; padding: 14px 16px; resize: vertical; }
+  .in::placeholder { color: var(--c-text-3); opacity: 1; }
+  .in:focus-visible, .goal:focus-visible, .btn:focus-visible, .btn-ghost:focus-visible, .back:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  .err { display: none; margin-top: 8px; font-size: 15px; line-height: 1.4; color: var(--c-error); }
+  .show-err .err { display: block; }
+  .show-err .field.bad .in { border-color: var(--c-error); box-shadow: 0 0 0 1px var(--c-error); }
+
+  /* objetivos: lista ruled selecionável (era uma nuvem de pílulas com "+") */
+  .goals { margin-top: var(--s-5); border-top: 1px solid var(--c-rule-strong); }
+  .goal { display: flex; align-items: center; gap: var(--s-2); width: 100%; min-height: 60px; padding: 12px 0; border: 0; border-bottom: 1px solid var(--c-rule); background: none; text-align: left; font: 500 17px/1.35 var(--f-title); color: var(--c-text-1); cursor: pointer; }
+  .goal .box { flex: none; width: 22px; height: 22px; border: 1.5px solid var(--c-field-line); border-radius: var(--r-control); display: grid; place-items: center; }
+  .goal[aria-pressed="true"] { font-weight: 600; color: var(--c-title); }
+  .goal[aria-pressed="true"] .box { background: var(--ink); border-color: var(--ink); }
+  .goal[aria-pressed="true"] .box::after { content: ""; width: 10px; height: 5px; border-left: 2px solid #fff; border-bottom: 2px solid #fff; transform: translateY(-1px) rotate(-45deg); }
+  .show-err .goals.bad { border-top-color: var(--c-error); }
+  .goals-err { margin-top: 10px; }
+  .field.after { margin-top: var(--s-4); }
+
+  .alert { margin-top: var(--s-3); padding: 14px 16px; border: 1px solid var(--c-error); border-radius: var(--r-control); font-size: 16px; line-height: 1.5; color: var(--c-error); }
+  .note { margin-top: var(--s-3); font-size: 16px; color: var(--c-text-2); }
+
+  .actions { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); margin-top: var(--s-5); }
+  .actions.end { justify-content: flex-end; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: 56px; padding: 0 24px; border: 1px solid var(--accent); border-radius: var(--r-control); background: var(--accent); color: #fff; font: 600 16px/1 var(--f-title); text-decoration: none; cursor: pointer; }
+  .btn svg, .back svg { width: 18px; height: 18px; }
+  .back { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 4px; border: 0; background: none; font: 600 16px/1 var(--f-title); color: var(--c-text-1); cursor: pointer; text-decoration: none; }
+
+  /* sucesso: tipo no lugar do selo verde */
+  .done h2 { font-size: var(--t-h2); line-height: 1.06; letter-spacing: var(--ls-title); max-width: 16ch; text-wrap: balance; margin-top: 0; }
+  .done .lead { margin-top: var(--s-3); max-width: 36ch; color: var(--c-text-2); }
+  .done .lead strong { color: var(--c-text-1); font-weight: 600; }
+  .done .actions { justify-content: flex-start; flex-wrap: wrap; gap: var(--s-4); }
+
+  @media (max-width: 1023px) {
+    .shell { grid-template-columns: 1fr; }
+    .form-pane { order: 1; }
+    .pane { order: 2; border-right: 0; border-top: 1px solid var(--c-rule); }
+    .pane .logo { display: none; }
+    .bar .mark { display: block; } .bar .mark img { height: 28px; width: auto; }
+    .bar { min-height: 64px; padding: 0 20px; } .rail { padding: 0 20px; }
+    .stage { padding: var(--s-5) 20px var(--s-6); align-content: start; }
+    .col { margin-left: 0; max-width: none; }
+    .trust dl > div { grid-template-columns: 1fr; gap: 2px; }
+    .ctx h1 { font-size: clamp(30px, 8vw, 40px); }
+    .actions .btn { flex: 1; }
+    .done .actions { flex-direction: column; align-items: stretch; gap: var(--s-2); } .done .actions .btn { flex: none; } .done .actions .wa { justify-content: center; }
+  }
+</style></head>
+<body>
+<span class="tag">proto · diagnóstico · #p1 #p1-erro #p2 #p2-erro #p3 #p3-erro #p3-ok #envio-erro #sucesso</span>
+
+<div class="shell">
+  <aside class="pane" data-sec="contexto">
+    <a class="logo" href="#" aria-label="Kalidash — Início"><img src="../../../../apps/site/public/brand/logo.svg" alt="Kalidash"></a>
+    <div class="ctx">
+      <p class="meta">Diagnóstico Operacional</p>
+      <h1>Existe uma oportunidade de eficiência na sua operação.</h1>
+      <p class="lead">Conte um pouco sobre o momento da sua empresa e vamos entender o desafio antes de propor qualquer solução.</p>
+      <div class="key">
+        <strong>“Primeiro entendemos. Depois construímos juntos.”</strong>
+        <p>Mapeamos fluxos, rotinas e dores reais antes de qualquer automação ou agente de IA.</p>
+      </div>
+    </div>
+    <div class="trust">
+      <dl>
+        <div><dt class="meta">Onde aplicamos</dt><dd>ArcelorMittal · CBA · Sicoob · Cooxupé</dd></div>
+        <div><dt class="meta">Onde ensinamos</dt><dd>Conquer · Xperiun · Rocketseat · Hashtag · Tera</dd></div>
+      </dl>
+      <a class="wa" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.9 7L4 20l1.5-4A8 8 0 1 1 20 11.5Z"/><path d="M9 9c.3 2.2 2.3 4.3 5.2 5.2l1.3-1.3-1.9-1-.8.7c-.8-.3-1.7-1.2-2-2l.7-.8-1-1.9L9 9Z"/></svg><span>Prefere falar direto? Iniciar WhatsApp</span></a>
+    </div>
+  </aside>
+
+  <main class="form-pane">
+    <header class="bar">
+      <div style="display:flex;align-items:center;gap:16px">
+        <a class="mark" href="#" aria-label="Kalidash — Início"><img src="../../../../apps/site/public/brand/symbol.svg" alt="" style="height:28px"></a>
+        <span class="meta" id="etapa">Etapa 1 de 3</span>
+      </div>
+      <a class="btn-ghost" href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg><span>Voltar <span class="site-word">ao site</span></span></a>
+    </header>
+    <div class="rail" role="progressbar" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100"><i></i><i></i><i></i></div>
+
+    <div class="stage"><div class="col">
+
+      <!-- ETAPA 1 -->
+      <section data-st="p1 p1-erro" data-sec="passo-1">
+        <p class="meta">Passo 1 de 3</p>
+        <h2>Seus dados de contato</h2>
+        <p class="desc">Informe onde podemos enviar o diagnóstico e alinhar os próximos passos da sua operação.</p>
+        <div class="fields">
+          <div class="field bad"><label for="name">Nome e sobrenome <span class="req">*</span></label><input class="in" id="name" placeholder="Seu nome completo"><p class="err">Informe seu nome e sobrenome.</p></div>
+          <div class="field bad"><label for="email">E-mail corporativo <span class="req">*</span></label><input class="in" id="email" placeholder="voce@suaempresa.com.br"><p class="err">Informe um e-mail corporativo válido.</p></div>
+          <div class="field bad"><label for="phone">WhatsApp com DDD <span class="req">*</span></label><input class="in" id="phone" placeholder="(11) 99999-9999"><p class="err">Informe o WhatsApp com DDD (mínimo 10 dígitos).</p></div>
+        </div>
+        <div class="actions end"><button class="btn" type="button"><span>Continuar</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></div>
+      </section>
+
+      <!-- ETAPA 2 -->
+      <section data-st="p2 p2-erro" data-sec="passo-2" hidden>
+        <p class="meta">Passo 2 de 3</p>
+        <h2>Sobre a sua operação</h2>
+        <p class="desc">Entendemos o porte e o contexto da sua empresa antes de qualquer conversa.</p>
+        <div class="fields">
+          <div class="field bad"><label for="company">Nome da empresa <span class="req">*</span></label><input class="in" id="company" placeholder="Ex: Kalidash Tecnologia"><p class="err">Informe o nome da empresa.</p></div>
+          <div class="field bad"><label for="role">Seu cargo <span class="req">*</span></label><input class="in" id="role" placeholder="Ex: Diretor de Operações / Head de TI"><p class="err">Informe o seu cargo.</p></div>
+          <div class="field bad"><label for="teamSize">Nº de pessoas na equipe ou operação <span class="req">*</span></label><input class="in" id="teamSize" placeholder="Ex: 15 pessoas (ou 50 a 100)"><p class="err">Informe o tamanho da equipe/operação.</p></div>
+        </div>
+        <div class="actions"><button class="back" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg><span>Voltar</span></button><button class="btn" type="button"><span>Continuar</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></div>
+      </section>
+
+      <!-- ETAPA 3 -->
+      <section data-st="p3 p3-erro p3-ok envio-erro" data-sec="passo-3" hidden>
+        <p class="meta">Passo 3 de 3</p>
+        <h2>O que sua empresa busca hoje?</h2>
+        <p class="desc">Selecione as frentes de inteligência e processos prioritárias para o seu momento.</p>
+        <div class="goals bad" role="group" aria-label="Objetivos" id="goals">
+          <button class="goal" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span>Capacitar meu time em IA</span></button>
+          <button class="goal" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span>Estruturar uma agenda de IA e eficiência</span></button>
+          <button class="goal" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span>Acompanhar uma transformação em andamento</span></button>
+          <button class="goal" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span>Transformar um processo ou operação</span></button>
+          <button class="goal" type="button" aria-pressed="false"><span class="box" aria-hidden="true"></span><span>Conhecer a Kalidash</span></button>
+        </div>
+        <p class="err goals-err" data-st="p3-erro">Selecione pelo menos um objetivo.</p>
+        <div class="field after"><label for="challenge">Conte um pouco sobre o momento ou principal desafio <span class="opt">(opcional)</span></label><textarea class="in" id="challenge" rows="3" placeholder="Ex: Queremos reduzir gargalos de atendimento e automatizar relatórios manuais..."></textarea></div>
+        <div class="alert" role="alert" data-st="envio-erro">Não foi possível enviar sua solicitação no momento. Por favor, tente novamente ou fale pelo WhatsApp.</div>
+        <div class="actions"><button class="back" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg><span>Voltar</span></button><button class="btn" type="submit"><span>Solicitar diagnóstico</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button></div>
+      </section>
+
+      <!-- SUCESSO -->
+      <section class="done" data-st="sucesso" data-sec="sucesso" hidden>
+        <h2>Solicitação enviada com sucesso!</h2>
+        <p class="lead">Nossa equipe de consultoria entrará em contato em até <strong>24 horas úteis</strong> para confirmar os detalhes e agendar a sessão de diagnóstico.</p>
+        <div class="actions"><a class="btn" href="#"><span>Voltar para o início</span></a><a class="wa" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.9 7L4 20l1.5-4A8 8 0 1 1 20 11.5Z"/><path d="M9 9c.3 2.2 2.3 4.3 5.2 5.2l1.3-1.3-1.9-1-.8.7c-.8-.3-1.7-1.2-2-2l.7-.8-1-1.9L9 9Z"/></svg><span>Falar agora no WhatsApp</span></a></div>
+      </section>
+
+    </div></div>
+  </main>
+</div>
+
+<script>
+  const S = (location.hash || '#p1').slice(1);
+  document.body.classList.toggle('show-err', S.endsWith('-erro') && S !== 'envio-erro');
+  document.querySelectorAll('[data-st]').forEach((el) => { el.hidden = !el.dataset.st.split(' ').includes(S); });
+  const n = S.startsWith('p2') ? 2 : S.startsWith('p1') ? 1 : 3;
+  document.getElementById('etapa').textContent = 'Etapa ' + n + ' de 3';
+  document.querySelectorAll('.rail i').forEach((i, k) => i.classList.toggle('on', k < n));
+  document.querySelector('.rail').setAttribute('aria-valuenow', Math.round(n / 3 * 100));
+  if (S === 'p3-ok' || S === 'envio-erro') { const g = document.querySelectorAll('.goal'); g[0].setAttribute('aria-pressed', 'true'); g[2].setAttribute('aria-pressed', 'true'); document.querySelector('.goals').classList.remove('bad'); }
+  if (S === 'p3') document.querySelector('.goals').classList.remove('bad');
+  if (S === 'p3-ok') document.getElementById('challenge').value = '';
+</script>
+</body></html>
