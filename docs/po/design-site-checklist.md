@@ -150,7 +150,8 @@ Base: apêndice A do prompt de PO, adaptada.
 
 | WP | Worker | Nota | Evidência | Descontos |
 |---|---|---|---|---|
-| (vazio) | | | | |
+| C1 Baseline | sessão baseline | pendente de conferência | commit `a003d5c`: copy de 10 rotas, Web Vitals, 40 capturas, `copy-diff.mjs`. Ressalvas: blog com servidor falso, /diagnostico só passo 1, teste negativo do diff não feito; medido com 23 arquivos não commitados | |
+| D0+D1 Direção | sessão designer | 8,0 (31/10) | commits `65a4952`, `09b1805`, `21e78bc`; vi protótipos de Sobre nós e Kognis (editorial, régua, sem cartões) | -1 Soluções/Spectra sem âncora; -0,5 mobile dos protótipos e FAQ incompletos; -0,5 sem diff de copy; Kognis sem tela real |
 
 ## 10. Decisões do PO
 
@@ -160,3 +161,6 @@ Base: apêndice A do prompt de PO, adaptada.
 - **D4 (31/10)** Designers entregam direção e protótipo fora de `apps/site`; dev só implementa direção aprovada.
 - **D5 (31/10)** Referências citadas são candidatas não verificadas; verificação é tarefa do designer D1.
 - **D6 (31/10)** `/consultoria-governanca-ia` e `/advisory` seguem iguais (decisão de URL/301 é da Carol, fora desta frente).
+
+- **D7 (31/10)** Ordem do conteúdo é intocável: sem fundir seções (ex.: Advisory). Tokens aprovados: raio 4/12, sombra só na foto-herói, texto `#a4533c` escopado ao CSS institucional. CTA novo proibido; só reuso de CTA existente com o mesmo rótulo. Hero de /execucao mantém a imagem.
+- **D8 (31/10)** Kognis/Spectra: sem tela de produto inventada. Aguardando prints reais do dono.
