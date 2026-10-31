@@ -22,15 +22,17 @@ const ev = async (e) => (await send('Runtime.evaluate', { expression: e, returnB
 
 await send('Page.enable');
 let bad = 0;
-for (const file of readdirSync(here).filter((f) => /^\d\d-.*\.html$/.test(f))) {
+const STATES = { '07-diagnostico.html': ['p1', 'p1-erro', 'p2', 'p2-erro', 'p3', 'p3-erro', 'p3-ok', 'envio-erro', 'sucesso'], '08-blog-lista.html': ['todos', 'cat', 'um', 'vazio'], '09-blog-artigo.html': ['com-capa', 'sem-capa'] };
+for (const [file, st] of readdirSync(here).filter((f) => /^\d\d-.*\.html$/.test(f)).flatMap((f) => (STATES[f] ?? ['']).map((x) => [f, x]))) {
   for (const w of [390, 768, 1024, 1440]) {
     await send('Emulation.setDeviceMetricsOverride', { width: w, height: 900, deviceScaleFactor: 1, mobile: false });
-    await send('Page.navigate', { url: pathToFileURL(join(here, file)).href });
-    await sleep(1200);
+    await send('Page.navigate', { url: pathToFileURL(join(here, file)).href + (st ? '#' + st : '') });
+    await sleep(600);
+    if (st) { await ev('location.reload()'); await sleep(900); }
     const r = await ev(`(()=>{const iw=document.documentElement.clientWidth; const sw=document.documentElement.scrollWidth; const off=[...document.querySelectorAll('body *')].filter(e=>e.getBoundingClientRect().right>iw+1 && !e.closest('.tag')).slice(0,4).map(e=>e.tagName.toLowerCase()+'.'+(e.className||'')+' right='+Math.round(e.getBoundingClientRect().right)); return {iw,sw,off}})()`);
     const flag = r.sw > r.iw ? 'OVERFLOW' : 'ok';
     if (flag !== 'ok') bad++;
-    console.log(`${flag.padEnd(8)} ${file} @${w}: clientWidth=${r.iw} scrollWidth=${r.sw}${r.off.length ? ' · ' + r.off.join(' | ') : ''}`);
+    console.log(`${flag.padEnd(8)} ${file}${st ? '#' + st : ''} @${w}: clientWidth=${r.iw} scrollWidth=${r.sw}${r.off.length ? ' · ' + r.off.join(' | ') : ''}`);
   }
 }
 ws.close(); chrome.kill();

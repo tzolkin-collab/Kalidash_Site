@@ -1,0 +1,9 @@
+/* PROPOSTA (D2/D3): acréscimos ao tokens.css para Diagnóstico e Blog. Aditivo: não redefine nada do D0.
+ * Cálculo de contraste pela fórmula WCAG (não medido por ferramenta). */
+:root {
+  --c-error: #b42318;          /* texto e borda de erro: 6,5:1 sobre branco */
+  --c-field-line: #8a8490;     /* borda de campo e caixa de seleção: >= 3:1 (WCAG 1.4.11); #d9d4d0 não passa */
+  --read-size: 20px;           /* corpo do artigo (hoje 18,4px) */
+  --read-lh: 1.7;
+  --read-measure: 62ch;        /* medida do artigo; hoje 740px de 18,4px ≈ 85 caracteres por linha */
+}
