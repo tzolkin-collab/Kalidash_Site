@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Proto D3 · Blog (lista e categoria)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Sans+3:wght@400;600&display=swap">
+<link rel="stylesheet" href="proto.css"><link rel="stylesheet" href="../tokens-d2d3.css">
+<style>
+  /* Estados por hash: #todos (7 artigos) #cat (categoria com 2) #um (1 artigo) #vazio (sem artigos).
+     Seletores = contrato do blog (data-block / data-variant / data-role); nenhum atributo foi renomeado. */
+  [hidden] { display: none !important; }
+  .tag { display: none; }
+  .ph { height: 56px; border-bottom: 1px solid var(--c-rule); }   /* espaço do header compartilhado (HomeHeader), não faz parte da direção */
+  .ph-foot { height: 160px; background: var(--c-band); margin-top: var(--pad-y); }   /* idem SiteFooter */
+
+  /* ---------- hero: manchete tipográfica (o HTML vem do editor: p, h1 com span, div) ---------- */
+  [data-block="hero"] { width: var(--container); margin: 0 auto; padding: clamp(48px, 7vw, 96px) 0 var(--s-6); display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); column-gap: var(--gutter-col); align-items: end; }
+  [data-block="hero"] > p { grid-column: 1 / -1; margin-bottom: var(--s-2); font-size: var(--t-meta); line-height: 18px; font-weight: 700; letter-spacing: var(--ls-meta); text-transform: uppercase; color: var(--c-brand-text); }
+  [data-block="hero"] h1 { grid-column: 1; font-size: var(--t-h1); line-height: 1.04; letter-spacing: var(--ls-display); max-width: 12ch; text-wrap: balance; }
+  [data-block="hero"] h1 span { color: var(--c-brand); }   /* >= 24px, pode usar --accent */
+  [data-block="hero"] > div { grid-column: 2; padding-bottom: 8px; font-size: var(--t-lead); line-height: 1.55; color: var(--c-text-2); max-width: 36ch; }
+
+  /* ---------- filtro: texto + numeral, sublinhado na ativa (sem pílula de contagem) ---------- */
+  [data-block="category-filter"] { border-top: 1px solid var(--c-rule-strong); border-bottom: 1px solid var(--c-rule); }
+  .filters-in { width: var(--container); margin: 0 auto; display: flex; gap: var(--s-4); overflow-x: auto; scrollbar-width: none; }
+  .filters-in button { display: inline-flex; align-items: center; gap: 8px; min-height: 56px; padding: 0; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; background: none; font: 500 16px/1 var(--f-title); color: var(--c-text-2); white-space: nowrap; cursor: pointer; }
+  .filters-in button[aria-pressed="true"] { color: var(--c-title); border-bottom-color: var(--ink); font-weight: 600; }
+  .filters-in .n { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--c-text-3); }
+  .filters-in button:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+  /* ---------- galeria: destaque + dois médios + índice ruled ---------- */
+  [data-block="gallery"] { width: var(--container); margin: 0 auto; padding-top: var(--s-6); display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter-col); }
+  [data-block="gallery"] > [data-block="article-card"] { grid-column: 1 / -1; position: relative; display: grid; column-gap: var(--gutter-col); border-top: 1px solid var(--c-rule); padding: var(--s-4) 0; min-width: 0; align-content: start; }
+  [data-block="article-card"] > p { font-size: var(--t-meta); line-height: 18px; font-weight: 700; letter-spacing: var(--ls-meta); text-transform: uppercase; color: var(--c-brand-text); }
+  [data-block="article-card"] > h2 { font-size: var(--t-h3); line-height: 1.2; letter-spacing: var(--ls-h3); }
+  [data-block="article-card"] > h2 a { color: inherit; text-decoration: none; }
+  [data-block="article-card"] > h2 a::after { content: ""; position: absolute; inset: 0; }   /* o cartão inteiro é clicável pelo título */
+  [data-block="article-card"] > div { font-size: 17px; line-height: 1.55; color: var(--c-text-2); }
+  [data-block="article-card"] > span { font-size: var(--t-small); color: var(--c-text-3); }
+  [data-role="read-more"] { position: relative; z-index: 1; width: fit-content; font: 600 15px/1 var(--f-title); color: var(--c-brand-text); text-decoration: none; }
+  [data-role="read-more"]:hover { text-decoration: underline; text-underline-offset: 4px; }
+  [data-role="cover"] { width: 100%; height: 100%; object-fit: cover; border-radius: var(--r-surface); display: block; background: #ececec; }
+
+  /* índice (padrão): meta+autor | título+resumo+link | miniatura */
+  [data-block="article-card"] { grid-template-columns: minmax(0, 3fr) minmax(0, 6fr) minmax(0, 3fr); grid-template-areas: "meta title cover" "au excerpt cover" ". link cover" ". . cover"; grid-template-rows: auto auto auto 1fr; row-gap: 8px; align-items: start; }
+  [data-block="article-card"] > p { grid-area: meta; } [data-block="article-card"] > h2 { grid-area: title; }
+  [data-block="article-card"] > div { grid-area: excerpt; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  [data-block="article-card"] > span { grid-area: au; } [data-block="article-card"] > [data-role="read-more"] { grid-area: link; margin-top: 8px; }
+  [data-block="article-card"] > [data-role="cover"] { grid-area: cover; aspect-ratio: 4 / 3; height: auto; align-self: start; }
+  [data-block="article-card"]:not(:has(> [data-role="cover"])) { grid-template-areas: "meta title title" "au excerpt excerpt" ". link link"; grid-template-rows: none; }
+  [data-block="article-card"]:not(:has(> [data-role="cover"])) > div { max-width: 64ch; }
+
+  /* destaque: 7/5, foto grande (única sombra), título em escala h2 */
+  [data-block="article-card"][data-variant="featured"] { border-top: 0; padding-top: 0; padding-bottom: var(--s-6); grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); grid-template-rows: auto auto auto auto 1fr; grid-template-areas: "cover meta" "cover title" "cover excerpt" "cover au" "cover link"; row-gap: 0; }
+  [data-block="article-card"][data-variant="featured"] > [data-role="cover"] { aspect-ratio: 16 / 10; box-shadow: var(--shadow-lift); }
+  [data-block="article-card"][data-variant="featured"] > p { padding-top: 4px; }
+  [data-block="article-card"][data-variant="featured"] > h2 { margin-top: var(--s-2); font-size: var(--t-h2); line-height: 1.08; letter-spacing: var(--ls-title); text-wrap: balance; }
+  [data-block="article-card"][data-variant="featured"] > div { margin-top: var(--s-3); font-size: var(--t-lead); max-width: 40ch; -webkit-line-clamp: 4; }
+  [data-block="article-card"][data-variant="featured"] > span { margin-top: var(--s-3); }
+  [data-block="article-card"][data-variant="featured"] > [data-role="read-more"] { align-self: end; margin-top: var(--s-3); padding-bottom: 10px; border-bottom: 1px solid var(--c-brand-text); font-size: 17px; }
+  [data-block="article-card"][data-variant="featured"]:not(:has(> [data-role="cover"])) { grid-template-columns: minmax(0, 9fr); grid-template-areas: "meta" "title" "excerpt" "au" "link"; grid-template-rows: none; }
+
+  /* dois médios (só quando há 4+ artigos): foto 3:2 em cima, sem caixa */
+  [data-block="article-card"][data-variant="default"]:nth-child(2):nth-last-child(n+3),
+  [data-block="article-card"][data-variant="default"]:nth-child(3):nth-last-child(n+2) { grid-column: span 6; grid-template-columns: minmax(0, 1fr); grid-template-areas: "cover" "meta" "title" "excerpt" "au" "link"; padding-top: var(--s-3); }
+  [data-block="article-card"][data-variant="default"]:nth-child(2):nth-last-child(n+3) > [data-role="cover"],
+  [data-block="article-card"][data-variant="default"]:nth-child(3):nth-last-child(n+2) > [data-role="cover"] { aspect-ratio: 3 / 2; margin-bottom: var(--s-3); }
+  [data-block="article-card"][data-variant="default"]:nth-child(2):nth-last-child(n+3) > h2,
+  [data-block="article-card"][data-variant="default"]:nth-child(3):nth-last-child(n+2) > h2 { margin-top: 8px; font-size: clamp(24px, 2.4vw, 32px); }
+  [data-block="article-card"][data-variant="default"]:nth-child(2):nth-last-child(n+3) > div,
+  [data-block="article-card"][data-variant="default"]:nth-child(3):nth-last-child(n+2) > div { margin-top: 8px; }
+  [data-block="article-card"][data-variant="default"]:nth-child(2):nth-last-child(n+3) > span,
+  [data-block="article-card"][data-variant="default"]:nth-child(3):nth-last-child(n+2) > span { margin-top: 8px; }
+  [data-block="article-card"][data-variant="default"]:nth-child(2):nth-last-child(n+3) > [data-role="read-more"],
+  [data-block="article-card"][data-variant="default"]:nth-child(3):nth-last-child(n+2) > [data-role="read-more"] { margin-top: var(--s-2); }
+  [data-block="article-card"][data-variant="default"]:nth-child(3):nth-last-child(n+2) ~ [data-block="article-card"]:nth-child(4) { margin-top: var(--s-4); }
+
+  /* vazio: uma frase, sem caixa */
+  [data-block="gallery"]:not([data-count]) > [data-block="article-card"] { padding: var(--s-6) 0 var(--s-4); grid-template-columns: minmax(0, 9fr); grid-template-areas: "meta" "title" "excerpt"; }
+  [data-block="gallery"]:not([data-count]) > [data-block="article-card"] > h2 { margin-top: var(--s-2); font-size: var(--t-h2); line-height: 1.08; letter-spacing: var(--ls-title); text-wrap: balance; }
+  [data-block="gallery"]:not([data-count]) > [data-block="article-card"] > div { margin-top: var(--s-2); font-size: var(--t-lead); }
+
+  @media (max-width: 1023px) {
+    [data-block="hero"] { grid-template-columns: 1fr; row-gap: var(--s-3); }
+    [data-block="hero"] h1, [data-block="hero"] > div { grid-column: 1; max-width: none; }
+    [data-block="article-card"][data-variant="featured"] { grid-template-columns: 1fr; grid-template-rows: none; grid-template-areas: "cover" "meta" "title" "excerpt" "au" "link"; }
+    [data-block="article-card"][data-variant="featured"] > [data-role="cover"] { margin-bottom: var(--s-3); }
+    [data-block="article-card"][data-variant="featured"] > [data-role="read-more"] { align-self: start; }
+    [data-block="article-card"][data-variant="featured"]:not(:has(> [data-role="cover"])) { grid-template-areas: "meta" "title" "excerpt" "au" "link"; }
+  }
+  @media (max-width: 759px) {
+    [data-block="hero"], [data-block="gallery"] { width: calc(100% - 40px); }
+    .filters-in { width: calc(100% - 40px); gap: var(--s-3); }
+    /* linhas do índice: texto à esquerda, miniatura 104px à direita */
+    [data-block="gallery"] > [data-block="article-card"][data-variant="default"]:nth-child(n):nth-last-child(n), [data-block="gallery"] > [data-block="article-card"]:not([data-variant="featured"]) { grid-column: 1 / -1; grid-template-columns: minmax(0, 1fr) 104px; grid-template-rows: none; grid-template-areas: "meta cover" "title cover" "excerpt excerpt" "au link"; column-gap: var(--s-2); padding: var(--s-3) 0; margin-top: 0; }
+    [data-block="article-card"]:not(:has(> [data-role="cover"])) { grid-template-columns: 1fr; grid-template-areas: "meta" "title" "excerpt" "au" "link"; }
+    [data-block="article-card"][data-variant="default"]:nth-child(n):nth-last-child(n) > [data-role="cover"] { aspect-ratio: 1 / 1; margin-bottom: 0; }
+    [data-block="article-card"][data-variant="default"]:nth-child(n):nth-last-child(n) > h2 { margin-top: 0; font-size: 20px; }
+    [data-block="article-card"][data-variant="default"]:nth-child(n):nth-last-child(n) > div { margin-top: 0; font-size: 16px; }
+    [data-block="article-card"][data-variant="default"]:nth-child(n):nth-last-child(n) > span { margin-top: 8px; align-self: center; }
+    [data-block="article-card"][data-variant="default"]:nth-child(n):nth-last-child(n) > [data-role="read-more"] { margin-top: 8px; justify-self: end; }
+    [data-block="article-card"][data-variant="featured"] { padding-bottom: var(--s-4); }
+    [data-block="article-card"][data-variant="featured"] > h2 { font-size: clamp(28px, 8vw, 34px); }
+    [data-block="article-card"][data-variant="featured"] > div { font-size: 18px; }
+    [data-block="article-card"][data-variant="featured"] > [data-role="read-more"] { margin-top: var(--s-2); }
+    [data-block="gallery"]:not([data-count]) > [data-block="article-card"] { grid-template-columns: 1fr; grid-template-areas: "meta" "title" "excerpt"; }
+    [data-block="gallery"]:not([data-count]) > [data-block="article-card"][data-variant="default"] > h2 { font-size: var(--t-h2); }
+    [data-block="gallery"]:not([data-count]) > [data-block="article-card"][data-variant="default"] > div { font-size: var(--t-lead); }
+  }
+</style></head>
+<body>
+<span class="tag">proto · blog lista · #todos #cat #um #vazio</span>
+<div class="ph" aria-hidden="true"></div>
+<main>
+
+<!-- HERO: lista geral (fallback do código) -->
+<section data-block="hero" data-focus="hero" data-st="todos um vazio stress-hero" data-sec="hero">
+  <p>Inteligência aplicada ao trabalho</p>
+  <h1>Ideias para a próxima <span>operação.</span></h1>
+  <div>Conteúdo sobre cultura, processos, tecnologia e organizações que trabalham com agentes.</div>
+</section>
+<!-- HERO: categoria (montado em categoria/[slug]/page.tsx) -->
+<section data-block="hero" data-focus="hero" data-st="cat" data-sec="hero-categoria" hidden>
+  <p>Blog · Categoria</p>
+  <h1>Cases<span>.</span></h1>
+  <div>Estudos de caso e resultados reais de implementação de IA e agentes em operações complexas.</div>
+</section>
+
+<nav data-block="category-filter" data-docked="false" aria-label="Filtrar por categoria" data-sec="filtro"><div class="filters-in">
+  <button type="button" aria-pressed="true" id="f-todos"><span>Todos</span><span class="n" data-fixture>7</span></button>
+  <button type="button" aria-pressed="false" id="f-cases"><span data-fixture>Cases</span><span class="n" data-fixture>2</span></button>
+  <button type="button" aria-pressed="false"><span data-fixture>Posts</span><span class="n" data-fixture>4</span></button>
+  <button type="button" aria-pressed="false"><span data-fixture>Advisory</span><span class="n" data-fixture>1</span></button>
+  <button type="button" aria-pressed="false"><span data-fixture>AI Culture</span><span class="n" data-fixture>1</span></button>
+</div></nav>
+
+<!-- GALERIA: 7 artigos -->
+<section data-block="gallery" data-count="7" data-st="todos stress-hero" data-sec="galeria-7">
+  <article data-block="article-card" data-variant="featured" data-layout="featured" data-focus="card">
+    <img data-role="cover" src="../../../../apps/site/public/home/g21-cba-premio.jpg" alt="Artigo de teste com um título longo o bastante para quebrar em duas linhas no destaque" width="1280" height="720" style="object-position:50% 40%">
+    <p data-fixture>Cases · 1 min · 01 de out. de 2026</p>
+    <h2><a href="#" data-fixture>Artigo de teste com um título longo o bastante para quebrar em duas linhas no destaque</a></h2>
+    <div data-fixture>Resumo fictício do artigo 1 para teste de layout. Este resumo é um pouco mais longo para o destaque, com duas ou três linhas de texto, só para ver a medida.</div>
+    <span data-fixture>Equipe Kalidash</span>
+    <a data-role="read-more" href="#">Ler artigo <span aria-hidden="true">→</span></a>
+  </article>
+  <article data-block="article-card" data-variant="default" data-layout="default" data-focus="card">
+    <img data-role="cover" src="../../../../apps/site/public/home/evento-palestra.jpg" alt="Segundo artigo de teste" width="1280" height="720" style="object-position:50% 40%">
+    <p data-fixture>Posts · 1 min · 02 de out. de 2026</p>
+    <h2><a href="#" data-fixture>Segundo artigo de teste</a></h2>
+    <div data-fixture>Resumo fictício do artigo 2 para teste de layout.</div>
+    <span data-fixture>Autor de Teste</span>
+    <a data-role="read-more" href="#">Ler artigo <span aria-hidden="true">→</span></a>
+  </article>
+  <article data-block="article-card" data-variant="default" data-layout="default" data-focus="card">
+    <img data-role="cover" src="../../../../apps/site/public/home/front-2-comite.jpg" alt="Terceiro artigo de teste" width="1280" height="720">
+    <p data-fixture>Posts · 1 min · 03 de out. de 2026</p>
+    <h2><a href="#" data-fixture>Terceiro artigo de teste, com título um pouco mais longo</a></h2>
+    <div data-fixture>Resumo fictício do artigo 3 para teste de layout, com uma segunda frase para ocupar mais de uma linha.</div>
+    <span data-fixture>Equipe Kalidash</span>
+    <a data-role="read-more" href="#">Ler artigo <span aria-hidden="true">→</span></a>
+  </article>
+  <article data-block="article-card" data-variant="default" data-layout="default" data-focus="card">
+    <img data-role="cover" src="../../../../apps/site/public/home/g03-imersao-claude.jpg" alt="Quarto artigo de teste" width="1280" height="720">
+    <p data-fixture>Cases · 1 min · 04 de out. de 2026</p>
+    <h2><a href="#" data-fixture>Quarto artigo de teste</a></h2>
+    <div data-fixture>Resumo fictício do artigo 4 para teste de layout.</div>
+    <span data-fixture>Autor de Teste</span>
+    <a data-role="read-more" href="#">Ler artigo <span aria-hidden="true">→</span></a>
+  </article>
+  <article data-block="article-card" data-variant="default" data-layout="default" data-focus="card">
+    <p data-fixture>Posts · 1 min · 05 de out. de 2026</p>
+    <h2><a href="#" data-fixture>Quinto artigo de teste, sem capa</a></h2>
+    <div data-fixture>Resumo fictício do artigo 5 para teste de layout.</div>
+    <span data-fixture>Equipe Kalidash</span>
+    <a data-role="read-more" href="#">Ler artigo <span aria-hidden="true">→</span></a>
+  </article>
+  <article data-block="article-card" data-variant="default" data-layout="default" data-focus="card">
+    <img data-role="cover" src="../../../../apps/site/public/home/g01-cupula.jpg" alt="Sexto artigo de teste" width="1280" height="720">
+    <p data-fixture>Advisory · 1 min · 06 de out. de 2026</p>
+    <h2><a href="#" data-fixture>Sexto artigo de teste</a></h2>
+    <div data-fixture>Resumo fictício do artigo 6 para teste de layout.</div>
+    <span data-fixture>Autor de Teste</span>
+    <a data-role="read-more" href="#">Ler artigo <span aria-hidden="true">→</span></a>
+  </article>
+  <article data-block="article-card" data-variant="default" data-layout="default" data-focus="card">
+    <img data-role="cover" src="../../../../apps/site/public/home/metodo-reuniao.jpg" alt="Sétimo artigo de teste" width="1280" height="720">
+    <p data-fixture>Posts · 1 min · 07 de out. de 2026</p>
+    <h2><a href="#" data-fixture>Sétimo artigo de teste</a></h2>
+    <div data-fixture>Resumo fictício do artigo 7 para teste de layout.</div>
+    <span data-fixture>Equipe Kalidash</span>
+    <a data-role="read-more" href="#">Ler artigo <span aria-hidden="true">→</span></a>
+  </article>
+</section>
+
+<!-- GALERIA: categoria com 2 artigos (destaque + 1 linha) -->
+<section data-block="gallery" data-count="2" data-st="cat" data-sec="galeria-2" hidden>
+  <article data-block="article-card" data-variant="featured" data-layout="featured" data-focus="card">
+    <img data-role="cover" src="../../../../apps/site/public/home/g21-cba-premio.jpg" alt="Artigo de teste" width="1280" height="720" style="object-position:50% 40%">
+    <p data-fixture>Cases · 1 min · 01 de out. de 2026</p>
+    <h2><a href="#" data-fixture>Artigo de teste com um título longo o bastante para quebrar em duas linhas no destaque</a></h2>
+    <div data-fixture>Resumo fictício do artigo 1 para teste de layout.</div>
+    <span data-fixture>Equipe Kalidash</span>
+    <a data-role="read-more" href="#">Ler artigo <span aria-hidden="true">→</span></a>
+  </article>
+  <article data-block="article-card" data-variant="default" data-layout="duo" data-focus="card">
+    <img data-role="cover" src="../../../../apps/site/public/home/g03-imersao-claude.jpg" alt="Quarto artigo de teste" width="1280" height="720">
+    <p data-fixture>Cases · 1 min · 04 de out. de 2026</p>
+    <h2><a href="#" data-fixture>Quarto artigo de teste</a></h2>
+    <div data-fixture>Resumo fictício do artigo 4 para teste de layout.</div>
+    <span data-fixture>Autor de Teste</span>
+    <a data-role="read-more" href="#">Ler artigo <span aria-hidden="true">→</span></a>
+  </article>
+</section>
+
+<!-- GALERIA: 1 artigo -->
+<section data-block="gallery" data-count="1" data-st="um" data-sec="galeria-1" hidden>
+  <article data-block="article-card" data-variant="featured" data-layout="single" data-focus="card">
+    <img data-role="cover" src="../../../../apps/site/public/home/g21-cba-premio.jpg" alt="Artigo de teste" width="1280" height="720" style="object-position:50% 40%">
+    <p data-fixture>Cases · 1 min · 01 de out. de 2026</p>
+    <h2><a href="#" data-fixture>Artigo de teste com um título longo o bastante para quebrar em duas linhas no destaque</a></h2>
+    <div data-fixture>Resumo fictício do artigo 1 para teste de layout.</div>
+    <span data-fixture>Equipe Kalidash</span>
+    <a data-role="read-more" href="#">Ler artigo <span aria-hidden="true">→</span></a>
+  </article>
+</section>
+
+<!-- GALERIA: vazia -->
+<section data-block="gallery" data-st="vazio" data-sec="galeria-vazia" hidden>
+  <article data-block="article-card" data-variant="default">
+    <p>Kalidash</p>
+    <h2>Os primeiros artigos estão a caminho.</h2>
+    <div>Nenhum artigo publicado ainda — volte em breve.</div>
+  </article>
+</section>
+
+</main>
+<div class="ph-foot" aria-hidden="true"></div>
+<script>
+  const S = (location.hash || '#todos').slice(1);
+  document.querySelectorAll('[data-st]').forEach((el) => { el.hidden = !el.dataset.st.split(' ').includes(S); });
+  if (S === 'cat') { document.getElementById('f-todos').setAttribute('aria-pressed', 'false'); document.getElementById('f-cases').setAttribute('aria-pressed', 'true'); }
+  if (S === 'vazio') document.querySelector('[data-block="category-filter"]').hidden = true;
+  // Teste de estresse (#stress-hero): o hero vem do editor e pode ser bem mais longo que o fallback. Texto lido do blog de teste de outra sessão; NÃO entra no copy-check.
+  if (S === 'stress-hero') { document.querySelector('[data-st~="todos"][data-block="hero"]').hidden = false; document.querySelector('[data-st~="todos"][data-block="hero"]').innerHTML = '<p>O blog</p><h1>A operação na era dos agentes.</h1><div>A Kalidash constrói software, infraestrutura e capacidades para empresas que entenderam que a próxima década não é sobre inteligência, mas sobre ação. O AI Culture Blog é onde documentamos a transição da teoria para a operação no chão de fábrica da IA corporativa.</div>'; document.querySelector('[data-st="todos"][data-block="gallery"]').hidden = false; }
+</script>
+</body></html>

@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Proto D3 · Blog (artigo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Sans+3:wght@400;600&display=swap">
+<link rel="stylesheet" href="proto.css"><link rel="stylesheet" href="../tokens-d2d3.css">
+<style>
+  /* Estados por hash: #com-capa  #sem-capa.  data-focus / data-block do contrato do blog preservados. */
+  [hidden] { display: none !important; }
+  .tag { display: none; }
+  .ph { height: 56px; border-bottom: 1px solid var(--c-rule); }
+  .ph-foot { height: 160px; background: var(--c-band); }
+  .progress { position: fixed; top: 0; left: 0; height: 3px; width: 34%; background: var(--c-brand); z-index: 5; }
+
+  /* grade do artigo: 12 colunas; texto começa na coluna 3 (entra 2 colunas), foto abre nas 12 */
+  .g { width: var(--container); margin: 0 auto; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter-col); }
+  .c-text { grid-column: 3 / -1; min-width: 0; }
+  .c-wide { grid-column: 1 / -1; min-width: 0; }
+
+  .crumbs { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2); min-height: 72px; font-size: 15px; color: var(--c-text-3); }
+  .crumbs a { color: inherit; text-decoration: none; }
+  .crumbs .back { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font: 600 15px/1 var(--f-title); color: var(--c-text-1); }
+  .crumbs .back svg { width: 16px; height: 16px; }
+  .trail { display: flex; gap: 10px; align-items: center; } .trail b { font-weight: 600; color: var(--c-text-1); } .trail span { color: var(--c-rule-strong); }
+  .crumbs-wrap { border-bottom: 1px solid var(--c-rule); }
+
+  /* cabeçalho: papel = dizer do que se trata e quanto custa ler */
+  .head { padding-top: clamp(40px, 6vw, 80px); }
+  .head-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+  .head-meta .meta { margin: 0; }
+  .head-meta .sep { color: var(--c-rule-strong); }
+  .head-meta .small { font-size: 15px; color: var(--c-text-3); }
+  h1.title { margin-top: var(--s-3); font-size: clamp(36px, 4.4vw, 60px); line-height: 1.05; letter-spacing: var(--ls-display); text-wrap: balance; }
+  .excerpt { margin-top: var(--s-3); font-size: var(--t-lead); line-height: 1.55; color: var(--c-text-2); max-width: 46ch; }
+
+  .byline { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-2) var(--s-3); margin-top: var(--s-5); padding: var(--s-2) 0; border-top: 1px solid var(--c-rule-strong); border-bottom: 1px solid var(--c-rule); }
+  .by-name { display: block; font: 600 16px/1.3 var(--f-title); color: var(--c-text-1); } .by-role { font-size: 14px; color: var(--c-text-3); }
+  .share { display: flex; align-items: center; gap: 8px; }
+  .share .meta { color: var(--c-text-3); margin-right: 4px; }
+  .sbtn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 44px; min-height: 44px; padding: 0 12px; border: 1px solid var(--c-rule-strong); border-radius: var(--r-control); background: #fff; font: 600 14px/1 var(--f-title); color: var(--c-text-1); cursor: pointer; }
+  .sbtn svg { width: 18px; height: 18px; }
+
+  /* capa: o objeto do artigo; única sombra da página */
+  .cover { margin: var(--s-5) 0 0; border-radius: var(--r-surface); overflow: hidden; aspect-ratio: 21 / 9; box-shadow: var(--shadow-lift); background: #ececec; }
+  .cover img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* ---------- corpo exportado pelo editor: escala de leitura ---------- */
+  .body-wrap { padding-top: var(--s-6); }
+  .body { max-width: 56rem; font-size: var(--read-size); line-height: var(--read-lh); color: var(--c-text-2); }
+  .body > * + * { margin-top: 1.25em; }
+  .body > :not(figure):not(blockquote) { max-width: var(--read-measure); }
+  .body p, .body li { text-wrap: pretty; }
+  .body strong { color: var(--c-text-1); font-weight: 600; }
+  .body h2 { margin-top: 2.4em; padding-top: 24px; border-top: 1px solid var(--c-rule-strong); font: 500 clamp(28px, 2.6vw, 38px)/1.15 var(--f-title); letter-spacing: -0.03em; color: var(--c-title); }
+  .body > h2:first-child { margin-top: 0; border-top: 0; padding-top: 0; }
+  .body h3 { margin-top: 2em; font: 500 clamp(22px, 2vw, 26px)/1.25 var(--f-title); letter-spacing: var(--ls-h3); color: var(--c-title); }
+  .body h2 + *, .body h3 + * { margin-top: 0.8em; }
+  .body ul, .body ol { padding-left: 1.35em; }
+  .body ul { list-style: disc; } .body ol { list-style: decimal; }
+  .body li { padding-left: 4px; } .body li + li { margin-top: 0.5em; }
+  .body li::marker { color: var(--c-brand-text); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .body a { color: var(--c-brand-text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  .body a:hover { text-decoration-thickness: 2px; }
+  /* citação: frase-chave (sem barra lateral): hairline em cima, tipo maior */
+  .body blockquote { max-width: 46rem; margin-top: 2em; margin-bottom: 2em; padding-top: 24px; border-top: 1px solid var(--c-rule-strong); font: 500 clamp(24px, 2.4vw, 32px)/1.3 var(--f-title); letter-spacing: var(--ls-h3); color: var(--c-title); }
+  .body blockquote p { margin: 0; }
+  .body blockquote p + p { margin-top: 0.6em; }
+  /* figura: abre além da medida (centralizada) ou fica na coluna (esquerda/direita) */
+  .body figure { margin-top: 2em; margin-bottom: 2em; max-width: 100%; }
+  .body figure img { display: block; max-width: 100%; max-height: 78svh; width: auto; height: auto; border-radius: var(--r-surface); }
+  .body figure[data-text-alignment="center"] { margin-inline: 0; } .body figure[data-text-alignment="center"] img { margin-inline: 0; }
+  .body figure[data-text-alignment="left"], .body figure[data-text-alignment="right"] { max-width: var(--read-measure); }
+  .body figure[data-text-alignment="right"] img { margin-left: auto; }
+  .body figcaption { margin-top: 12px; max-width: var(--read-measure); font-size: 15px; line-height: 1.5; color: var(--c-text-3); }
+
+  .foot-share { margin-top: var(--s-6); padding: var(--s-2) 0; border-top: 1px solid var(--c-rule-strong); }
+
+  /* conversão: a única faixa escura da página */
+  .cta { margin-top: var(--pad-y); background: var(--c-band); color: var(--c-on-band-1); padding: var(--pad-y) 0; }
+  .cta-in { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--s-5) var(--gutter-col); align-items: end; }
+  .cta .meta { color: var(--c-on-band-brand); }
+  .cta h2 { margin-top: var(--s-2); color: #fff; font-size: var(--t-h2); line-height: 1.08; letter-spacing: var(--ls-title); max-width: 18ch; text-wrap: balance; }
+  .cta p.d { margin-top: var(--s-3); max-width: 46ch; font-size: var(--t-lead); line-height: 1.55; color: var(--c-on-band-2); }
+  .cta-act { display: flex; align-items: center; gap: var(--s-4); flex-wrap: wrap; justify-content: flex-end; }
+  .cta-act .t { color: #fff; text-decoration: none; font: 600 16px/1 var(--f-title); border-bottom: 1px solid var(--c-on-band-brand); padding-bottom: 8px; }
+
+  /* leitura complementar: dois itens, sem caixa */
+  .rel { padding-top: var(--pad-y); }
+  .rel h2 { margin-top: var(--s-2); font-size: clamp(28px, 3vw, 40px); line-height: 1.1; letter-spacing: var(--ls-title); }
+  .rel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-5) var(--gutter-col); margin-top: var(--head-gap); }
+  .rel-item { position: relative; display: block; color: inherit; text-decoration: none; }
+  .rel-item .ph-img { display: block; aspect-ratio: 3 / 2; width: 100%; object-fit: cover; border-radius: var(--r-surface); }
+  .rel-item .m { display: block; margin-top: var(--s-2); font-size: var(--t-meta); font-weight: 700; letter-spacing: var(--ls-meta); text-transform: uppercase; color: var(--c-brand-text); }
+  .rel-item h3 { margin-top: 8px; font-size: clamp(22px, 2.2vw, 28px); line-height: 1.2; letter-spacing: var(--ls-h3); }
+  .rel-item p { margin-top: 8px; font-size: 17px; line-height: 1.55; color: var(--c-text-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .rel-item .go { display: inline-block; margin-top: var(--s-2); font: 600 15px/1 var(--f-title); color: var(--c-brand-text); }
+  .rel-item:hover h3 { text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 1px; }
+  .rel-item:focus-visible { outline: 2px solid var(--ink); outline-offset: 6px; }
+  .rel-foot { height: var(--pad-y); }
+
+  @media (max-width: 1099px) { .c-text { grid-column: 1 / -1; } .cta-in { grid-template-columns: 1fr; } .cta-act { justify-content: flex-start; } }
+  @media (max-width: 759px) {
+    .g { width: calc(100% - 40px); column-gap: 0; }
+    .crumbs { flex-wrap: wrap; min-height: 0; padding: 4px 0 12px; }
+    .head { padding-top: var(--s-4); }
+    .byline { align-items: flex-start; flex-direction: column; }
+    .share { flex-wrap: wrap; } .share .meta { flex-basis: 100%; margin: 0 0 4px; }
+    .cover { aspect-ratio: 4 / 3; margin-top: var(--s-4); }
+    .body { font-size: 19px; }
+    .body-wrap { padding-top: var(--s-5); }
+    .cta { padding: var(--s-7) 0; }
+    .cta-act .btn { width: 100%; }
+    .rel-grid { grid-template-columns: 1fr; }
+  }
+</style></head>
+<body>
+<span class="tag">proto · blog artigo · #com-capa #sem-capa</span>
+<div class="ph" aria-hidden="true"></div>
+<div class="progress" aria-hidden="true"></div>
+<main>
+  <div class="crumbs-wrap"><nav class="g" aria-label="Navegação estrutural"><div class="crumbs c-wide">
+    <a class="back" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Voltar ao Blog</a>
+    <div class="trail"><a href="#">Início</a><span>/</span><a href="#">Blog</a><span>/</span><b><a href="#" data-fixture>Cases</a></b></div>
+  </div></nav></div>
+
+  <article data-sec="cabecalho">
+    <header class="g head">
+      <div class="c-text head-meta">
+        <p class="meta" data-focus="meta" data-fixture>Cases</p><span class="sep" aria-hidden="true">·</span>
+        <span class="small" data-fixture>1 de outubro de 2026</span><span class="sep" aria-hidden="true">·</span>
+        <span class="small"><span data-fixture>1</span> min de leitura</span>
+      </div>
+      <h1 class="title c-text" data-focus="title" data-fixture>Artigo de teste com um título longo o bastante para quebrar em duas linhas no destaque</h1>
+      <div class="excerpt c-text" data-focus="excerpt" data-fixture>Resumo fictício do artigo 1 para teste de layout. Este resumo é um pouco mais longo para o destaque, com duas ou três linhas de texto, só para ver a medida.</div>
+      <div class="byline c-text">
+        <div><span class="by-name" data-focus="author" data-fixture>Equipe Kalidash</span><small class="by-role">Kalidash</small></div>
+        <div class="share"><span class="meta">Compartilhar</span>
+          <button class="sbtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>Copiar link</button>
+          <button class="sbtn" type="button" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.9 7L4 20l1.5-4A8 8 0 1 1 20 11.5Z"/></svg></button>
+          <button class="sbtn" type="button" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 11v5M8 8v.01M12 16v-5M12 13a2.5 2.5 0 0 1 5 0v3"/></svg></button>
+          <button class="sbtn" type="button" aria-label="X"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+        </div>
+      </div>
+    </header>
+
+    <div class="g" data-st="com-capa" data-sec="capa">
+      <figure class="cover c-wide"><img data-focus="cover" src="../../../../apps/site/public/home/g21-cba-premio.jpg" alt="Artigo de teste com um título longo o bastante para quebrar em duas linhas no destaque" width="1600" height="900" style="object-position:50% 35%"></figure>
+    </div>
+
+    <div class="g body-wrap" data-sec="corpo">
+      <div class="c-text body" data-block="article-body" data-focus="body" data-fixture>
+        <p>Parágrafo de abertura do artigo de teste. Ele serve para medir a medida de leitura e o ritmo do corpo exportado pelo editor, com um trecho longo o bastante para quebrar em várias linhas em telas largas e em telas estreitas, sem depender de conteúdo real.</p>
+        <h2>Um título de seção (h2)</h2>
+        <p>Texto corrido com <strong>ênfase</strong>, <em>itálico</em> e um <a href="#">link no meio da frase</a>. O corpo continua por mais algumas linhas para que se veja a entrelinha e o espaço entre parágrafos.</p>
+        <p>Segundo parágrafo da seção, também de teste, para conferir o espaçamento vertical entre blocos de texto consecutivos.</p>
+        <h3>Um subtítulo (h3)</h3>
+        <ul><li>Primeiro item de lista de teste</li><li>Segundo item, um pouco mais longo para quebrar linha e mostrar o recuo e o marcador da lista</li><li>Terceiro item</li></ul>
+        <ol><li>Primeiro passo numerado de teste</li><li>Segundo passo numerado, também longo o suficiente para quebrar em duas linhas no desktop</li><li>Terceiro passo</li></ol>
+        <blockquote><p>Uma citação de teste em bloco, para ver como o corpo destaca uma frase de apoio.</p></blockquote>
+        <figure data-text-alignment="center"><img src="../../../../apps/site/public/home/front-2-comite.jpg" alt="Imagem de teste" width="1200" height="800"><figcaption>Legenda de teste da figura centralizada.</figcaption></figure>
+        <h2>Outra seção (h2)</h2>
+        <p>Mais texto de teste depois da figura, para ver o retorno ao ritmo de leitura.</p>
+        <figure data-text-alignment="left"><img src="../../../../apps/site/public/home/evento-mesa.jpg" alt="Imagem de teste em retrato" width="1200" height="800" style="max-height:60svh"><figcaption>Legenda de teste de uma figura à esquerda.</figcaption></figure>
+        <p>Último parágrafo de teste, depois da figura em retrato.</p>
+      </div>
+      <div class="c-text foot-share"><div class="share"><span class="meta">Compartilhar</span>
+        <button class="sbtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>Copiar link</button>
+        <button class="sbtn" type="button" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-11.9 7L4 20l1.5-4A8 8 0 1 1 20 11.5Z"/></svg></button>
+        <button class="sbtn" type="button" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 11v5M8 8v.01M12 16v-5M12 13a2.5 2.5 0 0 1 5 0v3"/></svg></button>
+        <button class="sbtn" type="button" aria-label="X"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+      </div></div>
+    </div>
+
+    <section class="cta" data-sec="conversao"><div class="g"><div class="c-wide cta-in">
+      <div><p class="meta">Consultoria e Educação em IA</p>
+        <h2>Prepare sua operação para trabalhar com agentes de IA.</h2>
+        <p class="d">Conectamos cultura, método e execução técnica à rotina real da sua empresa para gerar produtividade, previsibilidade e escala.</p></div>
+      <div class="cta-act"><a class="btn" href="#">Fazer diagnóstico gratuito ↗︎</a><a class="t" href="#">Conhecer a Kalidash</a></div>
+    </div></div></section>
+
+    <section class="rel g" data-sec="relacionados"><div class="c-wide">
+      <div class="caption" style="margin-bottom:0"><span class="meta">Leitura complementar</span></div>
+      <h2>Continue explorando</h2>
+      <div class="rel-grid">
+        <a class="rel-item" href="#"><img class="ph-img" src="../../../../apps/site/public/home/g03-imersao-claude.jpg" alt="Quarto artigo de teste"><span class="m" data-fixture>Cases · 04/10/2026</span><h3 data-fixture>Quarto artigo de teste</h3><p data-fixture>Resumo fictício do artigo 4 para teste de layout.</p><span class="go">Ler artigo ↗︎</span></a>
+        <a class="rel-item" href="#"><img class="ph-img" src="../../../../apps/site/public/home/evento-palestra.jpg" alt="Segundo artigo de teste"><span class="m" data-fixture>Posts · 02/10/2026</span><h3 data-fixture>Segundo artigo de teste</h3><p data-fixture>Resumo fictício do artigo 2 para teste de layout.</p><span class="go">Ler artigo ↗︎</span></a>
+      </div>
+    </div><div class="rel-foot c-wide"></div></section>
+  </article>
+</main>
+<div class="ph-foot" aria-hidden="true"></div>
+<script>
+  const S = (location.hash || '#com-capa').slice(1);
+  document.querySelectorAll('[data-st]').forEach((el) => { el.hidden = !el.dataset.st.split(' ').includes(S); });
+</script>
+</body></html>
