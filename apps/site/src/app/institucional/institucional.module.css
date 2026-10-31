@@ -210,9 +210,11 @@
 .ctaEyebrow { margin-bottom: 16px; color: #f0b39f !important; }
 
 @media (max-width: 1100px) {
-  .steps { grid-template-columns: repeat(2, 1fr); }
-  .steps li:nth-child(odd) { padding-left: 0; border-left: 0; }
-  .steps li:nth-child(n + 3) { border-top: 1px solid var(--line); }
+  .steps,
+  .steps[data-count="4"],
+  .steps[data-count="3"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 900px) {
@@ -222,9 +224,18 @@
 }
 
 @media (max-width: 640px) {
-  .steps { grid-template-columns: 1fr; }
-  .steps li, .steps li + li { padding: 26px 0; border-left: 0; }
-  .steps li + li { border-top: 1px solid var(--line); }
+  .steps,
+  .steps[data-count],
+  .steps[data-count="4"],
+  .steps[data-count="3"] {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .steps li,
+  .steps li + li {
+    padding: 24px 20px;
+    border: 1px solid #e9e5e2;
+  }
   .card { padding: 24px; }
   .cta { flex-direction: column; align-items: flex-start; }
 }
@@ -431,7 +442,7 @@
   .showcase { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
-  .steps[data-count="3"], .chips { grid-template-columns: 1fr; }
+  .steps[data-count], .steps[data-count="4"], .steps[data-count="3"], .chips { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) {
   .chips li, .cardsMotion .card, .showcase > * { transition: none !important; transform: none !important; }
@@ -441,6 +452,113 @@
 .section[data-timeline] .head {
   position: sticky; top: 108px; align-self: start; gap: 28px;
 }
+
+/* Disposição espacial editorial com respiro e poucas fotos */
+.spatialMosaicWrap {
+  margin: 0;
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.spatialMosaic {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: 135px;
+  gap: 12px;
+  width: 100%;
+}
+
+.spatialItem {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #eae6e0;
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  box-shadow: 0 4px 16px -4px rgba(25, 23, 27, 0.08);
+}
+
+/* César na operação: retrato vertical autêntico ocupando 2 linhas */
+.spatialItem[data-index="0"] {
+  grid-column: 1 / 2;
+  grid-row: 1 / 3;
+}
+
+/* Formação de executivos em sala de aula */
+.spatialItem[data-index="1"] {
+  grid-column: 2 / 3;
+  grid-row: 1 / 2;
+}
+
+/* Palestra executiva no palco */
+.spatialItem[data-index="2"] {
+  grid-column: 2 / 3;
+  grid-row: 2 / 3;
+}
+
+/* Aula executiva na FDC Tech Week */
+.spatialItem[data-index="3"] {
+  grid-column: 1 / 2;
+  grid-row: 3 / 4;
+}
+
+/* Treinamento prático corporativo com computadores */
+.spatialItem[data-index="4"] {
+  grid-column: 2 / 3;
+  grid-row: 3 / 4;
+}
+
+/* Time Kalidash na Cooxupé */
+.spatialItem[data-index="5"] {
+  grid-column: 1 / 2;
+  grid-row: 4 / 5;
+}
+
+/* Reconhecimento CBA Prêmio Inovativos */
+.spatialItem[data-index="6"] {
+  grid-column: 2 / 3;
+  grid-row: 4 / 5;
+}
+
+.spatialItem img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  filter: saturate(0.95) contrast(1.02);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
+}
+
+.spatialItem:hover img {
+  transform: scale(1.04);
+  filter: saturate(1.02) contrast(1.04);
+}
+
+@media (max-width: 900px) {
+  .spatialMosaicWrap {
+    max-width: 100%;
+  }
+  .spatialMosaic {
+    grid-auto-rows: 150px;
+  }
+}
+
+@media (max-width: 640px) {
+  .spatialMosaic {
+    grid-auto-rows: 110px;
+    gap: 8px;
+  }
+}
+
+.timelineCaption {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6b6670;
+}
 .timelinePhotos {
   display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 460px;
 }
@@ -448,6 +566,35 @@
 .timelinePhotoFrame {
   overflow: hidden; border-radius: 8px; background: #ececec; border: 1px solid var(--line);
   aspect-ratio: 3 / 4;
+}
+.timelinePhotoGridFrame {
+  border-color: rgba(0, 0, 0, 0.12);
+  background: #f0ede8;
+}
+.timelineMiniGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 3px;
+  width: 100%;
+  height: 100%;
+  background: var(--line, #e2ded8);
+}
+.timelineMiniGridItem {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  background: #eae6e0;
+}
+.timelineMiniGridItem img {
+  display: block; width: 100%; height: 100%; object-fit: cover; object-position: center;
+  filter: saturate(0.92) contrast(1.02);
+  transition: transform 0.35s ease, filter 0.35s ease;
+}
+.timelineMiniGridItem:hover img {
+  transform: scale(1.05);
+  filter: saturate(1) contrast(1.04);
 }
 .timelinePhotoFrame img {
   display: block; width: 100%; height: 100%; object-fit: cover; object-position: center top;
@@ -556,18 +703,17 @@
   .heroMedia[data-aspect="landscape"] { grid-template-columns: 1fr; }
   .heroImage[data-aspect="landscape"] { max-height: 440px; aspect-ratio: 3 / 2; }
   .section[data-timeline] .head { position: static; }
-  .timelinePhotos { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: none; }
+  .timelinePhotos { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 520px; }
   .timelinePhoto[data-index="0"] { grid-row: auto; }
   .timelinePhoto[data-index="0"] .timelinePhotoFrame,
-  .timelinePhoto[data-index="1"] .timelinePhotoFrame,
-  .timelinePhoto[data-index="2"] .timelinePhotoFrame { aspect-ratio: 4 / 3; }
+  .timelinePhoto[data-index="1"] .timelinePhotoFrame { aspect-ratio: 3 / 4; }
   .teamHeader { grid-template-columns: 1fr; align-items: start; }
 }
 
 @media (max-width: 640px) {
-  .timelinePhotos { grid-template-columns: 1fr 1fr; }
-  .timelinePhoto[data-index="2"] { grid-column: span 2; }
-  .timelinePhoto[data-index="2"] .timelinePhotoFrame { aspect-ratio: 16 / 9; }
+  .timelinePhotos { grid-template-columns: 1fr 1fr; max-width: 100%; gap: 12px; }
+  .timelinePhoto[data-index="0"] .timelinePhotoFrame,
+  .timelinePhoto[data-index="1"] .timelinePhotoFrame { aspect-ratio: 3 / 4; }
   .beliefItem { grid-template-columns: 1fr; gap: 6px; }
   .proofCredentials { grid-template-columns: 1fr; gap: 18px; }
   .proofCredentials li, .proofCredentials li + li, .proofCredentials li:nth-child(n + 3) {
@@ -578,4 +724,298 @@
 
 @media (prefers-reduced-motion: reduce) {
   .timeline .timelineItem, .beliefs .beliefItem { transition: none !important; transform: none !important; }
+}
+
+/* Refinos de navegação e hierarquia nas páginas internas, com foco em toque. */
+.page[data-page="sobre-nos"] .heroMedia {
+  grid-template-columns: minmax(0, 1fr);
+  padding-bottom: clamp(32px, 4vw, 56px);
+}
+.page[data-page="sobre-nos"] .heroImage { display: none; }
+.page[data-page="sobre-nos"] .heroCopy { max-width: 880px; }
+.page[data-page="sobre-nos"] .heroCopy .lead { max-width: 720px; }
+
+.hero h1,
+.heroCopy h1 { text-wrap: balance; }
+.section,
+.offer,
+.teamSection { scroll-margin-top: 96px; }
+.section[data-wide] > .head { max-width: 780px; }
+.section[data-wide] > .head h2 { text-wrap: balance; }
+.cards .card,
+.steps li,
+.formatCard,
+.featuredCase { border-radius: 4px; }
+.cardIndex { min-width: 38px; min-height: 32px; padding-inline: 10px; }
+.featuredCase { overflow: hidden; }
+.featuredCaseMedia img { transition: transform 500ms cubic-bezier(0.2, 0.7, 0.2, 1); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .featuredCase:hover .featuredCaseMedia img { transform: scale(1.025); }
+}
+
+@media (max-width: 640px) {
+  .page { --pad-y: 52px; }
+  .hero,
+  .heroMedia { width: calc(100% - 36px); }
+  .hero { padding-top: 44px; }
+  .hero h1 { max-width: 14ch; font-size: clamp(38px, 10vw, 48px); line-height: 1; }
+  .lead { gap: 14px; margin-top: 22px; }
+  .lead p,
+  .heroCopy .lead p { font-size: 16px; line-height: 1.52; }
+  .hero > a,
+  .heroCopy > a { width: 100%; min-height: 50px; justify-content: center; margin-top: 26px; }
+
+  .section,
+  .offer,
+  .teamSection {
+    width: calc(100% - 36px);
+    gap: 24px;
+    padding: var(--pad-y) 0;
+  }
+  .head { gap: 12px; }
+  .head h2,
+  .formatsHead h2 { font-size: clamp(30px, 8vw, 38px); line-height: 1.02; text-wrap: balance; }
+  .head > p:not(:first-child):not(h2),
+  .body > p,
+  .timelineBody p { font-size: 16px; line-height: 1.55; }
+  .body { gap: 16px; }
+
+  .cards[data-columns],
+  .cards[data-columns="2"],
+  .cards[data-columns="3"],
+  .formatCards,
+  .features {
+    display: flex;
+    width: calc(100% + 18px);
+    margin-right: -18px;
+    padding: 0 18px 8px 0;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    gap: 12px;
+  }
+  .cards::-webkit-scrollbar,
+  .formatCards::-webkit-scrollbar,
+  .features::-webkit-scrollbar { display: none; }
+  .cards[data-columns] > li,
+  .formatCard { flex: 0 0 min(82vw, 360px); scroll-snap-align: start; }
+  .features { margin-top: 8px; }
+  .features li { flex: 0 0 min(76vw, 300px); scroll-snap-align: start; }
+  .card,
+  .formatCard { padding: 22px 20px; }
+  .card h3,
+  .steps h3 { font-size: 20px; }
+  .card p,
+  .formatCard p { font-size: 15px; line-height: 1.5; }
+  .card > a:last-child,
+  .inlineCta a { min-height: 44px; }
+
+  .steps,
+  .steps[data-count],
+  .steps[data-count="3"],
+  .steps[data-count="4"] { gap: 10px; }
+  .steps li,
+  .steps li + li { padding: 20px; }
+  .steps p,
+  .checks li { font-size: 15px; line-height: 1.5; }
+  .stepsClosing { margin-top: 18px; }
+  .stepsClosing p { font-size: 16px; line-height: 1.5; }
+
+  .proof { padding: 48px 0; }
+  .proofCredentials,
+  .proofCols,
+  .proofLinks,
+  .proofClosing { width: calc(100% - 36px); }
+  .proofCredentials { gap: 0; margin-bottom: 34px; }
+  .proofCredentials li,
+  .proofCredentials li + li,
+  .proofCredentials li:nth-child(n + 3) { padding: 16px 0; }
+  .proofCols { gap: 24px; }
+  .proofCols p:not(:first-child) { font-size: 22px; line-height: 1.25; }
+  .proofLinks ul { display: grid; gap: 0; }
+  .proofLinks li { border-bottom: 1px solid rgba(255, 255, 255, 0.14); }
+  .proofLinks a { width: 100%; min-height: 52px; justify-content: space-between; border: 0; }
+  .proofClosing { font-size: clamp(26px, 7vw, 34px); }
+
+  .formatsInner { width: calc(100% - 36px); padding: var(--pad-y) 0; }
+  .formatsHead { gap: 12px; margin-bottom: 24px; }
+  .formatCards { gap: 12px; }
+  .formatCard { gap: 12px; }
+  .formatFeatures li { font-size: 14px; }
+
+  .timeline { padding-left: 22px; }
+  .timelineItem { gap: 12px; padding-bottom: 36px; }
+  .timelineItem + .timelineItem { padding-top: 36px; }
+  .timelineItem::before { left: -26px; }
+  .timelineItem + .timelineItem::before { top: 43px; }
+  .timelineLead { font-size: 22px; }
+  .timelineQuote { font-size: 27px; }
+  .spatialMosaicWrap { margin-top: 8px; }
+  .spatialMosaic { grid-auto-rows: clamp(88px, 26vw, 112px); }
+  .teamHeader { gap: 14px; }
+  .teamIntro { font-size: 16px; line-height: 1.52; }
+  .teamPhoto { border-radius: 4px; }
+
+  .showcaseMetrics { display: flex; flex-wrap: nowrap; gap: 20px; overflow-x: auto; }
+  .showcaseMetrics li { flex: 0 0 auto; display: grid; gap: 3px; }
+  .featuredCase { gap: 20px; padding: 22px 20px; }
+  .featuredCaseMedia { min-height: 0; aspect-ratio: 16 / 10; }
+  .smallCases { gap: 12px; }
+  .faq summary { min-height: 60px; padding: 18px 38px 18px 0; font-size: 18px; line-height: 1.3; }
+  .faq summary::after { top: 15px; }
+  .faq details p { padding-bottom: 18px; font-size: 15px; line-height: 1.55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .featuredCaseMedia img { transition: none !important; }
+}
+
+/* AI Culture: separar visualmente prova, proposta e metodologia sem tocar na copy. */
+.page[data-page="treinamento-corporativo-ia"] .heroMedia {
+  align-items: center;
+  gap: clamp(36px, 6vw, 88px);
+  padding-top: clamp(52px, 7vw, 88px);
+  padding-bottom: clamp(48px, 6vw, 76px);
+}
+.page[data-page="treinamento-corporativo-ia"] .heroCopy h1 { max-width: 12ch; }
+.page[data-page="treinamento-corporativo-ia"] .heroCopy .meta {
+  padding-left: 14px;
+  border-left: 2px solid var(--accent);
+  line-height: 1.5;
+}
+.page[data-page="treinamento-corporativo-ia"] .heroImage {
+  aspect-ratio: 4 / 3;
+  max-height: none;
+  border-radius: 4px 72px 4px 4px;
+  box-shadow: 0 20px 48px rgba(40, 24, 59, 0.13);
+}
+.page[data-page="treinamento-corporativo-ia"] .proofBar .metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  padding: 22px 0;
+}
+.page[data-page="treinamento-corporativo-ia"] .proofBar .metrics li {
+  min-height: 86px;
+  align-items: center;
+  padding: 12px 24px;
+  border-left: 1px solid var(--line);
+}
+.page[data-page="treinamento-corporativo-ia"] .proofBar .metrics li:first-child { border-left: 0; padding-left: 0; }
+.page[data-page="treinamento-corporativo-ia"] main > section:nth-child(3) {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: clamp(48px, 7vw, 88px) max(18px, calc((100vw - 1200px) / 2));
+  background: #f7f4f1;
+  border: 0;
+}
+.page[data-page="treinamento-corporativo-ia"] main > section:nth-child(3) .highlight {
+  margin-top: 0;
+  padding: clamp(24px, 3.2vw, 40px);
+  background: var(--ink);
+  border: 0;
+  border-radius: 4px 28px 4px 4px;
+  color: #fff;
+  font-size: clamp(24px, 3vw, 36px);
+}
+.page[data-page="treinamento-corporativo-ia"] main > section:nth-child(3) .highlight strong { color: #fff; }
+.page[data-page="treinamento-corporativo-ia"] .steps li {
+  border-radius: 4px;
+  background: #f7f4f1;
+  box-shadow: none;
+}
+.page[data-page="treinamento-corporativo-ia"] .steps span {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--accent);
+  border: 1px solid rgba(182, 100, 77, 0.3);
+}
+.page[data-page="treinamento-corporativo-ia"] .steps li + li { border-left: 0; }
+.page[data-page="treinamento-corporativo-ia"] .formatCard:first-child {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+.page[data-page="treinamento-corporativo-ia"] .formatCard:first-child h3,
+.page[data-page="treinamento-corporativo-ia"] .formatCard:first-child .formatAudience,
+.page[data-page="treinamento-corporativo-ia"] .formatCard:first-child > p,
+.page[data-page="treinamento-corporativo-ia"] .formatCard:first-child .formatFeatures li,
+.page[data-page="treinamento-corporativo-ia"] .formatCard:first-child .formatSupport { color: rgba(255, 255, 255, 0.86); }
+.page[data-page="treinamento-corporativo-ia"] .formatCard:first-child h3 { color: #fff; }
+.page[data-page="treinamento-corporativo-ia"] .formatCard:first-child .formatAudience strong { color: #fff; }
+.page[data-page="treinamento-corporativo-ia"] .formatCard:first-child .formatFeatures,
+.page[data-page="treinamento-corporativo-ia"] .formatCard:first-child .formatSupport { border-color: rgba(255, 255, 255, 0.2); }
+.page[data-page="treinamento-corporativo-ia"] .formatCard:first-child .formatFeatures li { background: transparent; border-color: rgba(255, 255, 255, 0.14); }
+.page[data-page="treinamento-corporativo-ia"] .formatCard:first-child .formatFeatures strong { color: #fff; }
+
+@media (max-width: 640px) {
+  .page[data-page="treinamento-corporativo-ia"] :global(header[data-block="home-header"][data-scrolled="true"]) {
+    background: #fff !important;
+    border-bottom: 1px solid rgba(40, 24, 59, 0.08) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .page[data-page="treinamento-corporativo-ia"] :global(a[aria-label="Falar pelo WhatsApp"]) {
+    width: 44px;
+    height: 44px;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+  .page[data-page="treinamento-corporativo-ia"] .heroMedia {
+    width: 100%;
+    gap: 24px;
+    padding: 38px 18px 34px;
+    background: #f7f4f1;
+  }
+  .page[data-page="treinamento-corporativo-ia"] .heroCopy h1 { max-width: 13ch; }
+  .page[data-page="treinamento-corporativo-ia"] .heroCopy .lead { margin-top: 18px; }
+  .page[data-page="treinamento-corporativo-ia"] .heroCopy .meta { margin-top: 18px; font-size: 14px; }
+  .page[data-page="treinamento-corporativo-ia"] .heroImage {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    max-height: 300px;
+    border-radius: 4px 40px 4px 4px;
+  }
+  .page[data-page="treinamento-corporativo-ia"] .proofBar .metrics { grid-template-columns: 1fr 1fr; padding: 14px 0; }
+  .page[data-page="treinamento-corporativo-ia"] .proofBar .metrics li {
+    display: grid;
+    align-content: center;
+    justify-items: start;
+    gap: 4px;
+    min-height: 78px;
+    padding: 12px 10px;
+  }
+  .page[data-page="treinamento-corporativo-ia"] .proofBar .metrics li:nth-child(2) { border-left: 1px solid var(--line); }
+  .page[data-page="treinamento-corporativo-ia"] main > section:nth-child(3) {
+    width: 100%;
+    padding: 48px 18px;
+  }
+  .page[data-page="treinamento-corporativo-ia"] main > section:nth-child(3) .highlight {
+    padding: 24px 20px;
+    border-top-right-radius: 22px;
+    font-size: 24px;
+  }
+  .page[data-page="treinamento-corporativo-ia"] .steps {
+    gap: 0;
+    margin-left: 20px;
+    padding-left: 28px;
+    border-left: 1px solid #d9d2cc;
+  }
+  .page[data-page="treinamento-corporativo-ia"] .steps li,
+  .page[data-page="treinamento-corporativo-ia"] .steps li + li {
+    position: relative;
+    padding: 0 0 28px !important;
+    border: 0 !important;
+    background: transparent;
+    box-shadow: none;
+  }
+  .page[data-page="treinamento-corporativo-ia"] .steps li:last-child { padding-bottom: 0 !important; }
+  .page[data-page="treinamento-corporativo-ia"] .steps span { position: absolute; left: -48px; top: 0; }
+  .page[data-page="treinamento-corporativo-ia"] .formatCards { padding-right: 18px; }
+  .page[data-page="treinamento-corporativo-ia"] .formatCard:first-child { flex-basis: min(84vw, 360px); }
 }

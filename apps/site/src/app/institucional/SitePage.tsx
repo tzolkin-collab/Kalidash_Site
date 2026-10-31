@@ -112,19 +112,57 @@ function BlockView({ block }: { block: Block }) {
         <section className={styles.section} data-timeline>
           <header className={styles.head}>
             <Eyebrow>{block.eyebrow}</Eyebrow>
-            {block.photos && (
+            {block.mosaic ? (
+              <figure className={styles.spatialMosaicWrap}>
+                <div className={styles.spatialMosaic} role="group" aria-label={block.mosaic.caption || "Mosaico da nossa história"}>
+                  {block.mosaic.items.map((item, idx) => (
+                    <div key={item.src} className={styles.spatialItem} data-index={idx}>
+                      <Image
+                        src={item.src}
+                        alt={item.alt}
+                        fill
+                        sizes="(max-width: 640px) 46vw, (max-width: 900px) 48vw, 240px"
+                        loading={idx < 2 ? "eager" : "lazy"}
+                      />
+                    </div>
+                  ))}
+                </div>
+                {block.mosaic.caption && (
+                  <figcaption className={styles.timelineCaption}>
+                    {block.mosaic.caption}
+                  </figcaption>
+                )}
+              </figure>
+            ) : block.photos && (
               <div className={styles.timelinePhotos}>
                 {block.photos.map((photo, index) => (
-                  <figure key={photo.src} className={styles.timelinePhoto} data-index={index}>
-                    <div className={styles.timelinePhotoFrame}>
-                      <Image
-                        src={photo.src}
-                        alt={photo.alt}
-                        width={photo.width}
-                        height={photo.height}
-                        sizes="(max-width: 900px) 48vw, 240px"
-                        loading="lazy"
-                      />
+                  <figure key={photo.src || photo.caption} className={styles.timelinePhoto} data-index={index}>
+                    <div className={`${styles.timelinePhotoFrame} ${photo.grid ? styles.timelinePhotoGridFrame : ""}`}>
+                      {photo.grid ? (
+                        <div className={styles.timelineMiniGrid} role="group" aria-label={photo.caption}>
+                          {photo.grid.map((item, gIdx) => (
+                            <div key={item.src} className={styles.timelineMiniGridItem} data-grid-pos={gIdx}>
+                              <Image
+                                src={item.src}
+                                alt={item.alt}
+                                width={item.width || 400}
+                                height={item.height || 300}
+                                sizes="(max-width: 900px) 24vw, 120px"
+                                loading="lazy"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <Image
+                          src={photo.src}
+                          alt={photo.alt}
+                          width={photo.width}
+                          height={photo.height}
+                          sizes="(max-width: 900px) 48vw, 240px"
+                          loading="lazy"
+                        />
+                      )}
                     </div>
                     <figcaption>{photo.caption}</figcaption>
                   </figure>
@@ -134,9 +172,14 @@ function BlockView({ block }: { block: Block }) {
           </header>
           <Reveal as="ol" className={styles.timeline}>
             {block.items.map((item, index) => (
-              <li key={item.marker} className={styles.timelineItem} style={{ "--i": index } as React.CSSProperties}>
+              <li key={item.marker || item.title} className={styles.timelineItem} style={{ "--i": index } as React.CSSProperties}>
                 <p className={styles.timelineMarker}>
-                  <span>{item.marker}</span> · {item.title}
+                  {item.marker ? (
+                    <>
+                      <span>{item.marker}</span> ·{" "}
+                    </>
+                  ) : null}
+                  {item.title}
                 </p>
                 <h3 className={styles.timelineLead}>{item.lead}</h3>
                 <div className={styles.timelineBody}>

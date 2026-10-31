@@ -55,9 +55,10 @@ export type Block =
   | {
       type: "timeline";
       eyebrow: string;
-      photos?: Array<Media & { caption: string }>;
+      photos?: Array<Media & { caption: string; grid?: Media[] }>;
+      mosaic?: { caption?: string; items: Media[] };
       items: Array<{
-        marker: string;
+        marker?: string;
         title: string;
         lead: string;
         paragraphs: string[];
@@ -168,25 +169,57 @@ export const sobreNos: PageContent = {
     {
       type: "timeline",
       eyebrow: "Nossa história",
-      photos: [
-        {
-          src: "/sobre-nos/ato-01-operacao.jpg",
-          alt: "César Germano no chão de operação usando equipamento de proteção",
-          width: 893,
-          height: 1600,
-          caption: "01 · Chão de operação",
-        },
-        {
-          src: "/sobre-nos/ato-04-ensino.jpg",
-          alt: "Formação de executivos e líderes em sala de aula",
-          width: 830,
-          height: 554,
-          caption: "02 · Sala de aula e formação executiva",
-        },
-      ],
+      mosaic: {
+        caption: "Do chão de operação à formação executiva",
+        items: [
+          {
+            src: "/sobre-nos/ato-01-operacao.jpg",
+            alt: "César Germano no chão de operação usando equipamento de proteção",
+            width: 893,
+            height: 1600,
+          },
+          {
+            src: "/sobre-nos/ato-04-ensino.jpg",
+            alt: "Formação de executivos e líderes em sala de aula",
+            width: 830,
+            height: 554,
+          },
+          {
+            src: "/home/evento-palestra.jpg",
+            alt: "Palestra executiva para lideranças",
+            width: 1200,
+            height: 800,
+          },
+          {
+            src: "/home/g17-fdc-tech-week-1.jpg",
+            alt: "Aula executiva na Fundação Dom Cabral",
+            width: 1000,
+            height: 750,
+          },
+          {
+            src: "/home/evento-sala.jpg",
+            alt: "Treinamento corporativo com foco em aplicação de IA",
+            width: 1200,
+            height: 800,
+          },
+          {
+            src: "/home/cooxupe.jpg",
+            alt: "Equipe Kalidash na Cooxupé",
+            width: 1200,
+            height: 800,
+          },
+          {
+            src: "/home/g21-cba-premio.jpg",
+            alt: "CBA e Kalidash no Prêmio Inovativos",
+            width: 1000,
+            height: 750,
+          },
+        ],
+      },
+      
       items: [
         {
-          marker: "01",
+
           title: "O chão da operação",
           lead: "Começamos como estagiários e técnicos na economia real: operações grandes, complexas e manuais.",
           paragraphs: [
@@ -195,7 +228,7 @@ export const sobreNos: PageContent = {
           ],
         },
         {
-          marker: "02",
+
           title: "A Kalidash",
           lead: "Fundamos a Kalidash para levar inteligência e tecnologia ao trabalho real da economia real.",
           paragraphs: [
@@ -204,7 +237,7 @@ export const sobreNos: PageContent = {
           ],
         },
         {
-          marker: "03",
+
           title: "Hoje",
           lead: "Levamos cultura de IA e eficiência para operações como ArcelorMittal, CBA, Sicoob, Cooxupé e outras.",
           paragraphs: [
@@ -385,8 +418,8 @@ export const aiCulture: PageContent = {
       // Itens "pending" só aparecem em `next dev`, como espaço reservado.
       items: [
         // Daniel e Larissa estão autorizados (22/10). Faltam cargo, empresa, URL do MP4 no R2 e o poster.
-        { nome: "Daniel", cargo: "", empresa: "", embedUrl: "", posterUrl: "", status: "pending" },
-        { nome: "Larissa", cargo: "", empresa: "", embedUrl: "", posterUrl: "", status: "pending" },
+        { nome: "Daniel Alves", cargo: "Projetos Logísticos", empresa: "DHL Supply Chain", embedUrl: "", posterUrl: "", status: "pending" },
+        { nome: "Larissa Gomes", cargo: "CEO", empresa: "Aliança Representações", embedUrl: "", posterUrl: "", status: "pending" },
       ],
     },
   ],
