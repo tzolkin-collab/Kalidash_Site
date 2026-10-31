@@ -165,3 +165,4 @@ Base: apêndice A do prompt de PO, adaptada.
 - **D7 (31/10)** Ordem do conteúdo é intocável: sem fundir seções (ex.: Advisory). Tokens aprovados: raio 4/12, sombra só na foto-herói, texto `#a4533c` escopado ao CSS institucional. CTA novo proibido; só reuso de CTA existente com o mesmo rótulo. Hero de /execucao mantém a imagem.
 - **D8 (31/10)** Kognis/Spectra: sem tela de produto inventada. Aguardando prints reais do dono.
 - **D9 (31/10)** D0/D1 aceito com 9,0: reproduzi `copy-check.mjs` (0 extras nos 6 protótipos) e `overflow-check.mjs` (sem excesso). Espaços K1-K3 e S1 reservados para prints reais. Próximo: D2 (Diagnóstico) e D3 (Blog); código só após o dono commitar o trabalho aberto e aprovar a direção.
+- **D10 (31/10)** D2/D3 aceito (9,0). Lista do blog é exceção justificada à regra de grade. Próximo: dono commita o trabalho aberto e aprova a direção; então B0 (fundação).
