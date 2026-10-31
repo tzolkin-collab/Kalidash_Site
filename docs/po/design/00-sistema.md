@@ -102,3 +102,10 @@ Cada tipo de `SitePage` ganha **um** tratamento. Nenhum texto muda; só estrutur
 - Verifiquei o sistema por capturas do estado atual, não por implementação: tokens e proporções são propostos, não testados em código.
 - Valores de contraste são cálculo (fórmula WCAG), não medição com ferramenta.
 - Fontes: assumo Inter + Source Sans 3 como já carregadas pelo `layout.tsx` (conferido no arquivo, linhas 13–15).
+
+## 9. Decisões do PO aplicadas (31/10)
+
+- Raio 4/12, sombra só na foto-herói e texto de marca `#a4533c`: **aprovados**, **escopados ao CSS institucional** (`institucional.module.css`). `home.module.css` e a Home não mudam; `--c-brand-text` e os demais tokens novos nascem em `.page`, não em `.home`.
+- Ordem do conteúdo é intocável: nenhum tratamento de bloco pode reordenar ou fundir seções.
+- Sem CTA novo: o bloco `cta` (hoje só existe como tipo, nenhuma página o usa) só pode reaproveitar CTA e rótulo que a página já tem.
+

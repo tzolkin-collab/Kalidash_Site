@@ -15,6 +15,7 @@
   .figs li { padding: var(--s-5) var(--s-3) var(--s-5) 0; }
   .figs li + li { padding-left: var(--s-3); border-left: 1px solid var(--c-rule); }
   .figs .small { margin-top: var(--s-2); max-width: 22ch; color: var(--c-text-2); }
+  .figs li { min-width: 0; }
 
   .tbl > li { grid-template-columns: 56px minmax(0,3fr) minmax(0,5fr) minmax(0,3fr); align-items: start; }
   .tbl h3 { font-size: var(--t-h3); line-height: 1.2; letter-spacing: var(--ls-h3); }
@@ -41,7 +42,7 @@
   details[open] summary::after { content: "–"; }
   details p { padding: 0 0 var(--s-3); max-width: var(--measure); color: var(--c-text-2); }
   .head { margin-bottom: var(--head-gap); }
-  @media (max-width: 760px) { .hero, .after, .faq { grid-template-columns: 1fr; } .figs { grid-template-columns: 1fr 1fr; } .figs li:nth-child(3) { border-left: 0; padding-left: 0; } .tbl > li { grid-template-columns: 40px 1fr; } .tbl > li > :nth-child(n+3) { grid-column: 2; } .seq { grid-template-columns: 1fr; } .faq h2 { position: static; } }
+  @media (max-width: 760px) { .hero, .after, .faq { grid-template-columns: 1fr; } .figs { grid-template-columns: 1fr 1fr; } .figs .fig { font-size: clamp(36px, 11vw, 48px); white-space: nowrap; } .figs li { padding-right: var(--s-2); } .figs li:nth-child(3) { border-left: 0; padding-left: 0; } .tbl > li { grid-template-columns: 40px 1fr; } .tbl > li > :nth-child(n+3) { grid-column: 2; } .seq { grid-template-columns: 1fr; padding-top: 0; padding-left: var(--s-4); gap: var(--s-5); } .seq::before { right: auto; top: 6px; bottom: 6px; width: 1px; height: auto; left: 5px; } .seq li { padding-top: 0; } .seq li::before { top: 6px; left: calc(-1 * var(--s-4)); } .faq h2 { position: static; } }
 </style></head>
 <body>
 <span class="tag">proto · kognis</span>

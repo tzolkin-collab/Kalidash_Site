@@ -1,69 +1,85 @@
-# Relatório D0 + D1: direção das páginas institucionais
+# Relatório D0 + D1: direção das páginas institucionais (v2, após revisão do PO)
 
-> Designer. Entregue 31/10/2026. Nada em `apps/site` foi editado. Direção e protótipo para aprovação do PO (nota >= 9 antes de código).
+> Designer. v1 entregue 31/10 (nota do PO 8,0); esta v2 fecha as correções a–e. Nada em `apps/site` foi editado; só `docs/po/design/` e `docs/po/relatorios/`.
 
 ## 1. Checklist
 
 | Item | Estado | Evidência |
 |---|---|---|
-| Capturas reais "antes" das 7 rotas em 1440 e 390 | ✅ | 14 PNGs de página inteira em `docs/po/design/antes/` (`shot.mjs` adaptado: rolagem gradual + clip da página). Vi todas em 1440 e uma em 390 (execucao, sobre-nos); as outras 390 **não** abri |
-| Diagnóstico do "chapado" + auditoria de tells | ✅ | `01-institucionais.md` §1 (tabela de tells com onde aparece cada um) |
-| Hipótese das faixas brancas em `/kognis` | ⚠️ parcial | Reproduzi o vazio só **sem rolar** (4 faixas de ~500px, `antes/kognis-1440-semscroll.png`); causa lida em `Motion.tsx` (`Reveal` fica opacity 0 até o `IntersectionObserver`). Com rolagem gradual tudo aparece (`antes/kognis-1440.png`). Não testei salto de rolagem nem impressão. Vazio real que sobra: ~150px título→conteúdo |
-| Abrir referências da seção 5 e escrever 4 linhas | ⚠️ parcial | Vi 6: Linear about, Linear features, Anthropic Academy, Stripe about, Thoughtworks, BCG (§2 do doc). **Não vi** McKinsey, Vercel (voltaram só 900px), Cohere, Stripe payments, Palantir (capturados, não analisados; PNGs apagados). Não usei esses como âncora |
-| Âncora por página | ⚠️ | Definida para 5 de 7; Soluções sem âncora vista; Kognis/Spectra só pelo princípio de "artefato real" e não há artefato (§3 do doc) |
-| D0: `00-sistema.md` + `tokens.css` | ✅ | escala tipográfica, 8pt, raio 4/12, sombra só na foto-herói, papéis de cor, ritmo (paper/warm/band/foto), grade, movimento; tabela dos 17 tipos de bloco (hero, heroMedia, proofBar, text, cards, steps, list, faq, offers, proof, timeline, beliefs, team, formats, testimonials, showcase, cta) |
-| D1: `01-institucionais.md` por página e seção | ✅ | 7 páginas, cada seção com papel, objeto, domina, próximo |
-| Protótipos HTML estáticos vistos em tamanho real | ⚠️ | 5 arquivos em `proto/` + 16 capturas em `proto/shots/`. Vi em 1440: hero e timeline (Sobre nós), hero/tabela/passos (Kognis), showcase e offer-1 (Execução/Soluções), rituais e lista (Advisory), hero e formatos (AI Culture). Em 390 só `cards-1` do Kognis |
-| Copy idêntica nos protótipos | ⚠️ | Copiei de `pages.ts`; **sem diff automático**. FAQ do Advisory tem 4 de 6 perguntas no protótipo. O lead de `/solucoes` foi copiado da captura (arquivo lido só em parte) |
-| Restrições (sem métrica/depoimento novos, sem cartão em cartão, só opacity/transform) | ✅ | auditoria §7 do doc; protótipos sem JS e sem animação |
-| Console limpo / Web Vitals / 1024 e 768 | ❌ não feito | fora do escopo D0/D1; não medi |
+| Capturas reais "antes" das 7 rotas em 1440 e 390 | ✅ | 14 PNGs de página inteira em `docs/po/design/antes/` (`shot.mjs` adaptado: rolagem gradual). Vi as 7 em 1440; em 390 vi só Execução e Sobre nós |
+| Diagnóstico do "chapado" + auditoria de tells | ✅ | `01-institucionais.md` §1 |
+| Hipótese das faixas brancas em `/kognis` | ⚠️ parcial | Reproduzi o vazio só **sem rolar** (`antes/kognis-1440-semscroll.png`); causa em `Motion.tsx` (`Reveal` opacity 0 até o `IntersectionObserver`). Com rolagem gradual tudo aparece (`antes/kognis-1440.png`). Salto de rolagem e impressão não testados. Vazio real: ~150px título→conteúdo (lido na captura) |
+| **(a) Âncora vista e escrita para Soluções e Spectra** | ⚠️ parcial | **Soluções: ✅ Mistral /products** (vi a primeira dobra; 4 linhas + herdo/recuso em `01-institucionais.md` §2.7; Cohere /north como contraexemplo, §2.8). **Spectra: Linear /about** (vista), mas **nenhuma referência de visão por câmera abriu**: Samsara devolveu 404 em 3 URLs, Landing AI é de documentos (§2.9). Escrevi isso em vez de fingir âncora |
+| Referências da seção 5 do checklist | ⚠️ | Vi 8: Linear about, Linear features, Anthropic Academy, Stripe about, Thoughtworks, BCG, Mistral, Cohere. Não vi McKinsey, Vercel, Palantir, Stripe /payments |
+| D0: `00-sistema.md` + `tokens.css` | ✅ | + §9 com as decisões do PO (tokens escopados ao CSS institucional) |
+| D1: `01-institucionais.md` por página e seção | ✅ | **Ordem do conteúdo respeitada**: Advisory sem fusão de seções (§4.3) |
+| **(b) FAQ do Advisory com as 6 perguntas** | ✅ | `proto/03-advisory.html`; `copy-check` confirma as 6 respostas contra `pages.ts` |
+| **(c) Diff de copy automático dos protótipos** | ✅ | `proto/copy-check.mjs` (modelo: `copy-diff.mjs`); saída em §2 abaixo: 0 extras nos 5 protótipos. Teste negativo feito (uma palavra trocada → reprovou) |
+| **(d) Protótipos em 390 + overflow do Kognis** | ✅ / ⚠️ | `proto/overflow-check.mjs`: **20/20 sem overflow** (5 protótipos × 390/768/1024/1440). Overflow de 9px do Kognis achado e corrigido (numeral 56px em 2 colunas). Vi em 390: timeline, showcase, offer-2, passos e formatos do AI Culture, rituais, tabela do Kognis. Passos do AI Culture em 390 estavam com pontos soltos: refeitos com trilho vertical e revistos. **Não vi em 390:** proof, régua do Kognis, FAQ, hero dos 5 |
+| **(e) Abrir beliefs, team, proof, offer-2 em tamanho real** | ✅ | `proto/shots/01-beliefs-1440.png`, `01-team-1440.png`, `01-proof-1440.png`, `04-offer-2-1440.png`. A `offer-2` tinha a coluna da foto trocada ao alternar (corrigido e revisto) |
+| Telas do Kognis | ⏳ aguardando | O dono disse que existem prints, **sem caminho**. Busca no repositório: só `kognis-logo.png` e `kognis-heroes.png`. Nada inventado |
+| Decisões do PO aplicadas | ✅ | ordem intocável; raio 4/12, sombra única e `#a4533c` só no CSS institucional; sem CTA novo (`/kognis` sem CTA no fim; nenhuma página usa o bloco `cta`, conferido por grep); hero de `/execucao` mantém a foto |
+| Console limpo / Web Vitals / 1024 e 768 como imagem | ❌ não feito | fora do escopo; 768/1024 só medi overflow |
 
-## 2. Arquivos alterados (todos novos, só em `docs/po/`)
+## 2. Saídas dos testes automáticos
 
-- `docs/po/design/00-sistema.md`, `docs/po/design/tokens.css`
-- `docs/po/design/01-institucionais.md`
-- `docs/po/design/proto/{proto.css, 01-sobre-nos, 02-kognis, 03-advisory, 04-execucao-solucoes, 05-ai-culture}.html` e `proto/shots/*.png`
-- `docs/po/design/antes/*.png` (14), `docs/po/design/refs/*.png` (8)
+`node docs/po/design/proto/copy-check.mjs` (exit 0):
+
+```
+OK  01-sobre-nos.html: 45 linhas, extras=0, só-em-pages.ts=0, cobertura da baseline=45/45 (100%)
+OK  02-kognis.html: 59 linhas, extras=0, só-em-pages.ts=1, cobertura da baseline=58/58 (100%)
+OK  03-advisory.html: 52 linhas, extras=0, só-em-pages.ts=1, cobertura da baseline=50/50 (100%)
+OK  04-execucao-solucoes.html: 42 linhas, extras=0, só-em-pages.ts=0, cobertura da baseline=40/80 (50%)
+OK  05-ai-culture.html: 42 linhas, extras=0, só-em-pages.ts=0, cobertura da baseline=41/41 (100%)
+```
+
+Como ler: "extras" = linha do protótipo que não existe nem na baseline nem literalmente em `pages.ts`. "só-em-pages.ts" = resposta de `<details>` recolhido (a baseline não a captura); no Kognis e no Advisory é a 1ª resposta, aberta no protótipo. Comparação sem distinção de caixa (eyebrows são `text-transform` de CSS); seta decorativa `→` e numeral solto de 2 dígitos ignorados. A cobertura de `04` é 50% porque ele traz só o showcase de Execução e a página Soluções. **Teste negativo:** trocar "desafios" por "metas" em `05` gerou `DIF ... EXTRA: mapeamos áreas, processos e metas do time...`; revertido.
+
+`node docs/po/design/proto/overflow-check.mjs`: 20 linhas `ok`, 0 `OVERFLOW`. O `clientWidth` do 390 sai 375 porque o Chrome headless reserva 15px de barra de rolagem; a checagem compara `scrollWidth` com `clientWidth`, então o 9px antigo apareceu como `scrollWidth=399`.
+
+**O que esses testes não provam:** que `SitePage.tsx` implementado mantém a copy (aceite 3.1 é do dev, com `copy-diff.mjs`), nem a aparência.
+
+## 3. Arquivos alterados
+
+- `docs/po/design/00-sistema.md`, `tokens.css`, `01-institucionais.md`
+- `docs/po/design/proto/`: `proto.css`, `01…05-*.html`, `copy-check.mjs`, `overflow-check.mjs`, `shots/*.png`
+- `docs/po/design/antes/` (14 PNG), `docs/po/design/refs/` (Linear x2, Anthropic x2, Stripe about, Thoughtworks, BCG, Mistral, Cohere)
 - este relatório
 
-## 3. Commits
+## 4. Commits
 
-- `65a4952` docs(po): D0 sistema e tokens das paginas internas
-- `09b1805` docs(po): D1 direcao das institucionais, prototipos e capturas
-- (este relatório num terceiro commit, `docs(po): relatorio d0-d1`)
+- `65a4952` D0 sistema e tokens · `09b1805` D1 direção, protótipos e capturas · `21e78bc` relatório v1
+- v2 (esta revisão): commit `docs(po): D0/D1 v2 ...` logo após este arquivo (hash no resumo da sessão).
 
-`git add` só dos meus caminhos; não toquei em `docs/ambientes/` nem em `docs/po/relatorios/copy-baseline/` (de outra sessão).
+Não toquei em `docs/ambientes/` nem em `docs/po/relatorios/copy-baseline/` e `copy-diff.mjs` (de outra sessão; só li).
 
-## 4. O que ficou de fora e por quê
+## 5. O que ficou de fora
 
-- **Protótipos das seções `beliefs`, `team`, `proof`, FAQ, `offer-2`, `testimonials`** foram escritos (menos `testimonials`, que hoje não renderiza) mas não olhados em tamanho real, por limite de contexto.
-- **Mobile dos protótipos**: um bloco visto; o resto só tem CSS responsivo escrito. Indício de ~9px de overflow no `02-kognis` em 390 (largura de captura 399), não investigado.
-- **Diff de copy automatizado**: ficou para quem implementa (aceite 3.1 do checklist).
-- **Protótipo de `/spectra`**: sem objeto real, não desenhei tela; a direção está no doc.
-- D2 (Diagnóstico) e D3 (Blog) não eram deste pacote.
+- Seções do Kognis com tela real (aguarda o caminho dos prints).
+- Spectra sem imagem de câmera/dado: direção "fotográfica e curta".
+- Ver em 390: `proof`, régua do Kognis, FAQ e heros; ver 768/1024 como imagem.
+- Protótipo de `testimonials` (não renderiza hoje) e de `/spectra` (sem objeto real, não desenhei tela).
+- D2 (Diagnóstico) e D3 (Blog): outros pacotes.
 
-## 5. Riscos
+## 6. Riscos
 
-1. **Kognis e Spectra não passam de "limpas" sem artefato real.** O dono vai pedir "mais vida"; com texto e número só vamos até aqui. Desenhar uma tela falsa seria inventar produto.
-2. **Mudança de impacto alto e baixo risco:** tirar `Reveal` dos blocos de leitura (some a faixa branca, o pisca e o escalonamento). Vale ser o primeiro commit do B0.
-3. Advisory continua com 7 seções do mesmo peso; o doc propõe fundir duas, mas isso é decisão de ordem/produto.
-4. O `--accent #b6644d` dá ~4,3:1 sobre branco (cálculo meu): reprova AA em texto pequeno. Proposta `#a4533c`. Aprovação do PO muda o contraste do eyebrow e dos links em todo o site (a Home usa o mesmo token e não deve mudar: definir o novo token só no CSS institucional).
-5. A direção foi feita com o trabalho **não commitado** de outra sessão como base (servidor da porta 3000); se esse trabalho mudar, as capturas "antes" mudam.
+1. Kognis e Spectra só passam de "limpas" com imagem real do produto.
+2. Tirar `Reveal` dos blocos de leitura é o maior ganho por menor risco (some a faixa branca, o pisca e o escalonamento): sugiro como primeiro commit do B0.
+3. Advisory fica com 7 seções do mesmo tipo de peso; a ordem não pode mudar, então o ritmo depende de paper/warm, modos de cabeçalho e objeto por seção (§4.3 do doc). Se o PO achar ainda repetitivo, a alavanca é visual (escala/fundo), não estrutural.
+4. As capturas "antes" incluem o trabalho não commitado de outra sessão; se ele mudar, mudam.
+5. O `copy-check` aceita texto que aparece literalmente em `pages.ts` mesmo que não esteja nessa página (ex.: resposta de FAQ); limite aceito, mas um texto movido de página não seria pego por ele.
 
-## 6. O que o dono do projeto precisa fazer
+## 7. O que o dono do projeto precisa fazer
 
-- Commitar o trabalho aberto em `institucional/`, `diagnostico/` e `blog/` (pendência D1 do checklist) antes de qualquer B.
-- Pedir à Carol prints reais do Kognis (atendimento, financeiro, BI) e imagem/dado do Spectra, se existirem.
-- Ver os protótipos no navegador (abrir `docs/po/design/proto/*.html`) e dizer se a direção "régua + objeto" é a que ele quer, antes do dev começar.
+- Informar o caminho dos prints do Kognis (e, se houver, imagem de câmera/dado do Spectra), confirmando que não expõem dado real de cliente.
+- Abrir `docs/po/design/proto/*.html` no navegador e dizer se a direção "régua + objeto" é a desejada antes do dev começar.
+- Commitar o trabalho aberto em `institucional/`, `diagnostico/` e `blog/` (pendência D1 do checklist).
 
-## 7. Perguntas de produto para o PO
+## 8. Perguntas de produto para o PO
 
-1. Existem telas reais de Kognis/Spectra? Se não, aceita páginas "limpas" sem protagonista visual do produto?
-2. Repetir o CTA "Agendar demonstração" no fim de `/kognis` (hoje só no hero)?
-3. Manter `front-3-entrega.jpg` no hero de `/execucao` (marcada "confirmar" em `pages.ts`)?
-4. Aprova só uma sombra (foto-herói) e dois raios (4/12), e o token de texto `#a4533c`?
-5. Fundir "O que fazemos" e "Rituais" no Advisory, ou manter a ordem original?
+1. Pode eu seguir sem o Kognis real e entregar o protótipo atual como direção final do Kognis, trocando só quando os prints chegarem?
+2. Spectra: aceita página fotográfica e curta como direção final, ou espera imagem real?
 
-## 8. Auto-nota (para o PO desmentir)
+## 9. Auto-avaliação
 
-Não me dou nota. Pontos fortes: capturas reais vistas, protótipos renderizados e olhados, hipótese testada nos dois estados. Fracos: referências verificadas só em 6 de ~11, Soluções sem âncora, mobile e copy-diff incompletos.
+Sem nota. Melhor que na v1: copy e overflow agora medidos por script (com teste negativo), todos os protótipos vistos em 1440 e a maioria das seções-chave em 390, âncora de Soluções vista. Pior ou aberto: nenhuma referência de visão por câmera abriu; Mistral/Cohere só primeira dobra; hero e FAQ não revistos em 390; Kognis sem tela real.

@@ -37,7 +37,7 @@ a { color: inherit; }
 .small { font-size: var(--t-small); line-height: 1.55; color: var(--c-text-3); }
 
 /* frase-chave: substitui highlight/closing com barra */
-.keyline { margin-top: var(--s-5); padding-top: var(--s-4); border-top: 1px solid var(--c-rule-strong); max-width: none !important; display: block; font-family: var(--f-title); font-weight: 500; font-size: var(--t-h2); line-height: var(--lh-title); letter-spacing: var(--ls-title); color: var(--c-title); max-width: 18ch; }
+.keyline { margin-top: var(--s-5); padding-top: var(--s-4); border-top: 1px solid var(--c-rule-strong); max-width: none !important; display: block; text-wrap: balance; font-family: var(--f-title); font-weight: 500; font-size: var(--t-h2); line-height: var(--lh-title); letter-spacing: var(--ls-title); color: var(--c-title); max-width: 18ch; }
 
 /* tabela ruled */
 .ruled > li { display: grid; gap: var(--gutter-col); padding: var(--row-pad) 0; border-top: 1px solid var(--c-rule); }

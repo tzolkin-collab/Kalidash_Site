@@ -84,8 +84,27 @@ Abri com Chrome headless (`shot.mjs`, 1440) e **vi** as capturas. Nem tudo abriu
 - Grade de tiles de foto de stock (3 por linha, ~20 tiles) e filtros. Um banner de cookies cobriu o topo; a página é de catálogo, não de narrativa.
 - **Herdo:** nada. **Recuso:** o tile de foto de banco de imagens e a grade. Útil como contraexemplo: é o que o dono chamaria de "cara de template".
 
-### 2.7 Não consegui ver (e por isso não uso como âncora)
-McKinsey (/capabilities) e Vercel (/solutions) devolveram só a primeira dobra (900px), sem conteúdo útil (provável bloqueio/consentimento); Cohere (/north), Stripe (/payments) e Palantir (/platforms/aip) capturaram em página inteira, mas **eu não os abri** por limite de contexto. Apaguei esses PNGs de `refs/` para não deixar arquivo não analisado no repositório. As referências "McKinsey, Vercel, Palantir, Cohere/Mistral, Stripe payments" do checklist seguem **não verificadas**; não as cito como âncora.
+### 2.7 Mistral — /products ([refs/mistral-vp.png](refs/mistral-vp.png), só a primeira dobra)
+- **Composição:** faixa de abertura dividida por um filete vertical: h1 embaixo à esquerda, uma frase de apoio embaixo à direita, na mesma linha de base; abaixo, **dois produtos lado a lado com o mesmo peso**, cada um num painel com a tela do produto.
+- **Tipo:** um sans grotesco, h1 ~64px peso 500, frase de apoio ~20px; rótulo "PRODUCTS" em caixa-alta pequena e cinza.
+- **Ar:** abertura alta (~450px), painéis colados por hairline, sem folga entre eles.
+- **Detalhe:** fundo escuro, hairlines de 1px, painéis laranja e azul saturados com um mock de UI, raio pequeno, mascote em pixel.
+- **Herdo:** a abertura "h1 embaixo à esquerda + uma frase embaixo à direita" para o hero de Soluções, e **dois produtos de peso igual** (aqui: duas ofertas de largura total, alternadas).
+- **Recuso:** fundo escuro, cores saturadas por produto, mascote e a UI simulada (a Kalidash não tem a tela do produto no repositório; não invento).
+- **Limite:** só vi a primeira dobra; não sei como o resto da página trata cada produto.
+
+### 2.8 Cohere — /north ([refs/cohere-north-vp.png](refs/cohere-north-vp.png), primeira dobra)
+- **Composição:** tudo centrado: eyebrow, h1 em 2 linhas, parágrafo, vídeo de lançamento largo logo abaixo.
+- **Tipo:** grotesco display de largura estendida, branco sobre preto.
+- **Ar:** muito, mas o banner de cookies e a barra de anúncio disputam a dobra.
+- **Detalhe:** botões em pílula branca, vídeo com render 3D abstrato.
+- **Herdo:** nada. **Recuso:** hero centralizado com h1 curto e botões (tell "centered hero") e render abstrato no lugar de produto. Serve de contraexemplo.
+
+### 2.9 O que tentei abrir e não serviu
+- McKinsey (/capabilities) e Vercel (/solutions): voltaram só a primeira dobra (900px), sem conteúdo útil.
+- **Samsara** (para Spectra, visão por câmera em operação): `/products/video-based-safety`, `/products/cameras-and-video` e `/products/video-safety` devolveram a página 404 ("Oops. Out of service") nas três tentativas. **Não consegui ver nenhuma página de produto de visão computacional.** PNGs apagados.
+- **Landing AI** (landing.ai): abriu, mas vende leitura de documentos, não câmera; não serve para Spectra e não está salvo.
+- Stripe /payments e Palantir /platforms/aip foram capturados e **não analisados**; PNGs apagados.
 
 ## 3. Âncora por página
 
@@ -95,8 +114,9 @@ McKinsey (/capabilities) e Vercel (/solutions) devolveram só a primeira dobra (
 | AI Culture | **Anthropic Academy** (hero editorial) + Stripe (lista ruled) | texto-primeiro, formatos em linhas, "amostra real" | foto de sala já existe |
 | Advisory | **Thoughtworks** (afirmação e lista vertical) + Linear about | frase única, rituais em lista | sem foto de produto: o objeto é o texto |
 | Execução | **Linear /features** (artefato real + legenda), adaptado a **um** caso | foto do caso CBA como protagonista | números reais da página viram a régua |
-| Soluções | **Sem âncora externa vista** (candidata Cohere/Mistral não aberta) | — | solução própria: dois painéis alternados com o produto de cada lado |
-| Kognis / Spectra | **Linear /features** só no princípio (artefato real) | produto como herói | **hoje não há artefato do produto** (ver §6) |
+| Soluções | **Mistral /products** (vista, só primeira dobra); Cohere vista como contraexemplo | abertura h1 à esquerda + 1 frase à direita; dois produtos de peso igual | adaptado: sem UI simulada, sem fundo escuro |
+| Kognis | **Linear /features** (artefato real + legenda) e **Mistral /products** (produto com a própria tela) | o produto como herói | **hoje não há tela do produto no repositório**; o dono disse que há prints do Kognis, sem caminho informado (ver §6) |
+| Spectra | **Linear /about** (uma foto real grande + texto 5/7) | página enxuta conduzida por uma foto real | nenhuma referência de visão por câmera abriu (Samsara 404 nas 3 URLs); a página fica fotográfica e curta até haver imagem de câmera ou dado |
 
 ## 4. Direção por página e por seção
 
@@ -144,8 +164,8 @@ Ritmo: paper (hero) → warm (a estratégia foi definida) → paper (o que fazem
 | 6 | Para quem (`list`) | autoqualificar | lista de critérios ruled | as 5 frases a 24px | `noteLink` para o AI Culture |
 | 7 | FAQ (`faq`) | tirar dúvida | tipo | as perguntas | falar com sócio |
 
-Protótipo: [proto/03-advisory.html](proto/03-advisory.html) (`hero`, `text`, `chips`, `rituais`, `steps`, `list`, `faq`). Captura: [rituais](proto/shots/03-rituais-1440.png), [list](proto/shots/03-list-1440.png). **O FAQ do protótipo mostra 4 das 6 perguntas** (corte meu para o desenho; as 6 entram no código).
-Risco da página: sete seções de tipo parecem muitas; o ritmo depende de alternar paper/warm e de variar os modos de cabeçalho (afirmação, legenda, tabela). Se ainda parecer repetitivo, a recomendação é fundir "O que fazemos" e "Rituais" (decisão de produto sobre a ordem, **não** de copy).
+Protótipo: [proto/03-advisory.html](proto/03-advisory.html) (`hero`, `text`, `chips`, `rituais`, `steps`, `list`, `faq`). Captura: [rituais](proto/shots/03-rituais-1440.png), [list](proto/shots/03-list-1440.png). O FAQ do protótipo tem as 6 perguntas.
+**Ordem intocável (decisão do PO, 31/10):** as 7 seções ficam na ordem de `pages.ts`; **não fundir** nenhuma. Risco da página: sete seções de tipo parecem muitas. O ritmo vem de (a) alternar `paper`/`warm` (seções 2, 5 e 7 em warm), (b) variar o modo de cabeçalho: afirmação (2), legenda (3, 4, 5), tabela com título sticky (6, 7), e (c) variar o objeto: foto larga (1), frase-chave (2), lista numerada (3), linhas largas (4), linha de sequência (5), critérios com tique (6), perguntas (7). Nenhuma seção foi unida nem reordenada.
 
 ### 4.4 `/execucao` — âncora Linear features (artefato real), adaptado
 Ritmo: paper (hero) → warm (problema) → paper (o que construímos) → paper (como entregamos) → paper (showcase).
@@ -161,12 +181,12 @@ Ritmo: paper (hero) → warm (problema) → paper (o que construímos) → paper
 Protótipo: [proto/04-execucao-solucoes.html](proto/04-execucao-solucoes.html) (`showcase`), captura [showcase](proto/shots/04-showcase-1440.png). A seção 3 usa o mesmo desenho Tabela do protótipo do Kognis ([cards-1](proto/shots/02-cards-1-1440.png)).
 Observação: o card "Soluções sob medida" cita "captura inteligente de conhecimento na CBA": o showcase logo abaixo fecha o raciocínio. Boa costura; manter a ordem.
 
-### 4.5 `/solucoes` — sem âncora externa vista
+### 4.5 `/solucoes` — âncora Mistral /products (abertura dividida, dois produtos de peso igual)
 Ritmo: paper (manchete) → paper (Kognis) → warm (Spectra). Sem faixa escura.
 
 | # | Seção | Papel | Objeto | Domina | Próximo |
 |---|---|---|---|---|---|
-| 1 | Hero (`hero`, sem foto) | apresentar os dois produtos próprios | **tipo**: h1 `--t-display` em 2 linhas, ocupa 10 colunas | "Tecnologia que nasce de problemas reais." | CTA "Falar sobre o meu caso" |
+| 1 | Hero (`hero`, sem foto) | apresentar os dois produtos próprios | **tipo**: h1 `--t-display` em 2 linhas, ocupa 10 colunas; os dois parágrafos de apoio ficam à direita, abaixo (abertura à la Mistral) | "Tecnologia que nasce de problemas reais." | CTA "Falar sobre o meu caso" |
 | 2 | Oferta 01 Kognis (`offers`) | apresentar o produto | recorte `kognis-heroes.png` (já em uso no `/kognis`) | h2 da oferta + numeral 01 | "Conhecer Kognis" |
 | 3 | Oferta 02 Spectra (`offers`) | idem | `ato-01-operacao.jpg` (a mesma foto do hero do `/spectra`) | h2 + numeral 02 | "Conhecer Spectra AI" |
 
@@ -188,7 +208,7 @@ Ritmo: paper (hero + régua) → paper (tabela) → warm (índice) → paper (ta
 
 Três seções de `cards` seguidas é o ponto frágil: as variantes Tabela / Índice / Tabela evitam a repetição, mas **o ganho forte virá quando houver telas reais** (inbox do WhatsApp, painel financeiro, BI). Hoje o texto "Central de atendimento com histórico de conversas, filas e painel de performance" descreve uma tela que não temos; **não desenhei essa tela** (seria inventar produto).
 
-### 4.7 `/spectra` — mesma situação do Kognis
+### 4.7 `/spectra` — âncora Linear /about (foto real + texto 5/7); sem referência de visão por câmera
 Ritmo: paper (hero) → warm (o que faz). Duas seções; o rodapé fecha.
 
 | # | Seção | Papel | Objeto | Domina | Próximo |
@@ -207,13 +227,18 @@ Risco: o botão do hero diz "Conhecer Spectra AI" mas leva ao diagnóstico (mesm
 5. **B4** passada por rota; mobile: sem trilho horizontal, empilhar.
 Cada bloco novo mantém `data-*`/estrutura semântica (`h1` único, `ol` nos passos, `details` no FAQ) e o JSON-LD.
 
-## 6. Perguntas de produto para o PO
+## 6. Decisões do PO e perguntas em aberto
 
-1. **Telas reais do Kognis e do Spectra.** Sem screenshot/foto do produto, Kognis e Spectra ficam sem protagonista (só número e frase). A Carol tem prints do painel de atendimento, do financeiro e do BI do Kognis, e imagens de câmera/dado do Spectra? Sem isso, a elevação dessas duas páginas tem teto.
-2. `/kognis` não tem CTA no fim da página; as outras páginas têm CTA em mais de um ponto. Quer repetir "Agendar demonstração" depois do FAQ? (O bloco `cta` hoje retorna `null`.)
-3. `/execucao`: a foto do hero (`front-3-entrega.jpg`) está marcada "confirmar" em `pages.ts`. Mantém?
-4. O AI Culture tem o `testimonials` e o logo strip desligados. A direção vale quando ligarem; confirma que a seção pode sumir sem deixar buraco até lá?
-5. Sombra e raio: a proposta é uma sombra só (na foto-herói) e dois raios (4/12). Aprova tirar a sombra de todo o resto?
+Decididas pelo PO (31/10):
+1. **Ordem do conteúdo é intocável:** nenhuma fusão ou reordenação de seções (aplicado no Advisory, §4.3).
+2. **Raio 4/12, sombra só na foto-herói e texto `#a4533c`: aprovados**, escopados ao CSS institucional. A Home não muda (os tokens ficam em `institucional.module.css`, não em `home.module.css`).
+3. **Sem CTA novo.** Só reuso de CTA que já exista na página, com o mesmo rótulo, e só se a página já tiver bloco `cta`. Resultado: `/kognis` fica sem CTA no fim (nenhuma página tem bloco `cta` hoje, ele retorna `null`); retirei a sugestão anterior.
+4. **Hero de `/execucao` mantém `front-3-entrega.jpg`.**
+5. **Telas do Kognis:** usar só se o dono mandar; sem telas, nada de tela inventada.
+
+Em aberto:
+- O dono respondeu que **existem prints do Kognis**, mas **não informou o caminho**. Busquei no repositório (`**/*kognis*` em `Projetos/carol`): só há `kognis-logo.png` e `kognis-heroes.png` (o recorte dos advogados), nenhuma tela. Aguardando o caminho. Quando vier, refaço as seções 3 a 5 do Kognis com a tela como protagonista, confirmando antes que não expõem dado real de cliente.
+- Spectra segue sem imagem de câmera ou dado; o dono tem?
 
 ## 7. Auditoria dos protótipos contra os tells
 
@@ -229,11 +254,17 @@ Cada bloco novo mantém `data-*`/estrutura semântica (`h1` único, `ol` nos pas
 | Dois estilos de raio/sombra | só 4 e 12px; sombra só na foto-herói |
 | Métrica/depoimento inventado | nenhum; todos os números vêm de `pages.ts` (os `confirmed: true`; o NPS 97 e os logos continuam fora) |
 
-## 8. O que não verifiquei / limites
+## 8. Verificações e limites
 
-- **Copy:** conferi os protótipos contra as strings de `pages.ts` lendo o arquivo e copiando; **não rodei diff automático**. O FAQ do Advisory no protótipo tem 4 de 6 perguntas (declarado acima). Dois textos do hero de `/solucoes` e o `lead` de `/solucoes` foram copiados da captura (não do arquivo, que li só em parte).
-- **Referências:** não vi McKinsey, Vercel, Palantir, Cohere e Stripe /payments (ver §2.7). As análises das referências são de capturas de página inteira reduzidas a ~2000px de altura e de uma captura de viewport (Linear about, Anthropic); não rolei as páginas com olho humano.
-- **Protótipos:** vi em 1440 as seções-chave (hero e timeline do Sobre nós; hero, tabela e passos do Kognis; showcase e oferta 01; rituais e lista do Advisory; hero e formatos do AI Culture). **Não vi** em 1440: `beliefs`, `team`, `proof` (Sobre nós), FAQ, `steps` do Advisory/AI Culture, `offer-2`. Vi em 390 só as seções `hero` (não abri a imagem) e `cards-1` do Kognis. Não testei 1024 nem 768. Nenhum teste de overflow numérico: a captura de 390 saiu com largura 399 no cálculo do `clip`, indício de ~9px de excesso em algum bloco do protótipo `02-kognis`, **não investigado**.
-- **Estado atual:** medi o espaço título→conteúdo (~150px) olhando a captura, não por `getBoundingClientRect`. Console, Web Vitals e CLS **não** foram medidos (fora do escopo D0/D1).
-- **Contraste:** `--c-brand-text` (5,4:1) e o `--accent` (4,3:1) são cálculos meus pela fórmula WCAG, sem ferramenta.
-- **Servidor:** usei o `next dev` da porta 3000 de outra sessão; o conteúdo capturado inclui o trabalho não commitado dessa sessão.
+**Feitas na segunda rodada:**
+- **Diff de copy automático dos protótipos:** [proto/copy-check.mjs](proto/copy-check.mjs). Compara o texto visível de cada protótipo com `docs/po/relatorios/copy-baseline/<rota>.txt` (sem distinção de caixa, porque os eyebrows são `text-transform` de CSS) e, para texto de `<details>` recolhido (que não está na baseline), com o literal em `pages.ts`. Resultado: **0 linhas extras nos 5 protótipos** (saída no relatório). Teste negativo: troquei uma palavra ("desafios" por "metas") e o script reprovou apontando a linha; revertido.
+- **Overflow horizontal:** [proto/overflow-check.mjs](proto/overflow-check.mjs) mede `scrollWidth` em 390, 768, 1024 e 1440 nos 5 protótipos: **20 de 20 sem overflow**. O excesso de 9px do Kognis em 390 era o numeral de 56px nas duas colunas da régua de números; corrigido (36–48px no mobile).
+- **Olhei em 390** (`proto/shots/*-390.png`): timeline do Sobre nós, showcase de Execução, passos e formatos do AI Culture (passos refeitos com trilho vertical, o anterior ficava com pontos soltos), rituais do Advisory, tabela do Kognis. **Olhei em 1440** também `beliefs`, `team`, `proof` e `offer-2` (a oferta 02 saía com a coluna da foto errada ao alternar; corrigido).
+
+**Ainda não verifiquei:**
+- Em 390 não abri `proof` (Sobre nós), a régua de números do Kognis (medida por script, não vista), FAQ nem o hero de nenhum protótipo. 768 e 1024: só medi overflow, não vi imagem.
+- Referências: não vi página de produto de visão computacional. Mistral e Cohere: só a primeira dobra.
+- O `copy-check` cobre o texto dos protótipos; **não prova** que a implementação em `SitePage.tsx` mantém a copy (isso é o `copy-diff.mjs` do aceite 3.1, rodado pelo dev). A cobertura de `04-execucao-solucoes.html` contra a baseline é 50% porque o protótipo traz só o showcase de Execução e a página Soluções.
+- O espaço título→conteúdo (~150px) foi lido na captura, não medido por `getBoundingClientRect`. Console, Web Vitals e CLS não foram medidos (fora do escopo D0/D1).
+- Contraste: `--c-brand-text` (5,4:1) e `--accent` (4,3:1) são cálculo meu pela fórmula WCAG, sem ferramenta.
+- Servidor: usei o `next dev` da porta 3000 de outra sessão; as capturas "antes" incluem o trabalho não commitado dela.

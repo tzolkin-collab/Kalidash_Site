@@ -27,6 +27,7 @@
   .hero .row > div { grid-column: 2; display: grid; gap: var(--s-2); justify-items: start; }
   .offer { padding: var(--pad-y) 0; border-top: 1px solid var(--c-rule); }
   .offer .grid { display: grid; grid-template-columns: minmax(0,5fr) minmax(0,7fr); gap: clamp(32px,6vw,96px); align-items: center; }
+  .offer.flip .grid { grid-template-columns: minmax(0,7fr) minmax(0,5fr); }
   .offer.flip .grid > :first-child { order: 2; }
   .offer .obj { aspect-ratio: 4/5; max-height: 600px; }
   .offer .obj.cut { background: transparent; border-radius: 0; aspect-ratio: auto; }
@@ -37,7 +38,7 @@
   .offer .feat > li { grid-template-columns: minmax(0,3fr) minmax(0,5fr); }
   .offer .feat h3 { font-size: 20px; letter-spacing: -0.015em; }
   .offer .feat p { color: var(--c-text-2); font-size: 17px; }
-  @media (max-width: 760px) { .two, .case, .offer .grid, .idx > li, .offer .feat > li { grid-template-columns: 1fr; } .hero .row > div { grid-column: 1; } .figs { grid-template-columns: 1fr; } .figs li + li { border-left: 0; padding-left: 0; border-top: 1px solid var(--c-rule); } .offer.flip .grid > :first-child { order: 0; } }
+  @media (max-width: 760px) { .two, .case, .offer .grid, .idx > li, .offer .feat > li { grid-template-columns: 1fr; } .hero .row > div { grid-column: 1; } .figs { grid-template-columns: 1fr; } .figs li + li { border-left: 0; padding-left: 0; border-top: 1px solid var(--c-rule); } .offer.flip .grid { grid-template-columns: 1fr; } .offer.flip .grid > :first-child { order: 0; } }
 </style></head>
 <body>
 <span class="tag">proto · execução + soluções</span>
