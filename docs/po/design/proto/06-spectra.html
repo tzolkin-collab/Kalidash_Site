@@ -13,7 +13,7 @@
   .hero .btn { margin-top: var(--s-4); }
   .hero .meta { color: var(--c-on-band-brand); }
   .hero .bleed-img { border-radius: 0; min-height: 520px; }
-  .hero .bleed-img img { object-position: 50% 25%; }
+  .hero .bleed-img img { object-position: 30% 88%; }
 
   /* três capacidades em escala de cartaz; ao passar/focar, as outras recuam (opacity 160ms) */
   .poster-list li { padding: var(--s-3) 0; display: grid; grid-template-columns: minmax(0,7fr) minmax(0,5fr); gap: var(--gutter-col); align-items: end; border-top: 2px solid var(--c-title); transition: opacity 160ms ease; }
@@ -22,6 +22,7 @@
   .poster-list:hover li:not(:hover), .poster-list:focus-within li:not(:focus-within) { opacity: .45; }
   .poster-list li { outline: none; }
   .head { margin-bottom: var(--head-gap); }
+  .opt-slot.w169 { aspect-ratio: 16/9; }
   @media (max-width: 760px) { .hero, .poster-list li { grid-template-columns: minmax(0,1fr); } .hero .copy { padding: var(--s-6) 24px; } .hero .bleed-img { min-height: 420px; } }
 </style></head>
 <body>
@@ -35,17 +36,18 @@
     <p class="sup">Leitura visual em tempo real sem interromper o time e sem alterar o fluxo de trabalho.</p>
     <a class="btn" href="#">Conhecer Spectra AI →</a>
   </div>
-  <figure class="bleed-img"><img src="../../../../apps/site/public/sobre-nos/ato-01-operacao.jpg" alt="Spectra AI visão computacional na operação"></figure>
+  <figure class="bleed-img"><img src="../../../../apps/site/public/home/g10-agir.jpg" alt="Spectra AI visão computacional na operação"></figure>
 </section>
 
 <section class="section wrap" data-sec="cards">
   <div class="caption"><span class="meta">O que faz</span></div>
   <h2 class="h3 head" style="font-size:var(--t-h3);max-width:34ch">Transforme o que acontece na operação em dados objetivos.</h2>
-  <div class="slot w169 lift" data-slot="S1" data-label="S1 · imagem real do Spectra: frame de câmera com a leitura sobreposta OU painel de produtividade. 16:9" style="margin-bottom:var(--head-gap)"></div>
+  <div class="opt-slot w169 lift" data-slot="S1" data-label="S1 · encaixe opcional: imagem real do Spectra (frame de câmera com a leitura, ou painel), 16:9" style="margin-bottom:var(--head-gap)"></div>
   <ul class="poster-list">
     <li tabindex="0"><h3>Leitura em tempo real</h3><p>Câmeras conectadas ao ambiente físico traduzem a rotina sem interromper o time.</p></li>
     <li tabindex="0"><h3>Dados de produtividade</h3><p>O que antes dependia de observação manual vira histórico estruturado.</p></li>
     <li tabindex="0"><h3>Oportunidades claras</h3><p>Identificação objetiva de gargalos e pontos de melhoria na operação.</p></li>
   </ul>
 </section>
+<script>if(location.hash==="#com-tela")document.body.classList.add("com-tela")</script>
 </body></html>

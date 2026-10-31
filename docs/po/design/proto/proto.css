@@ -62,3 +62,8 @@ a { color: inherit; }
 .slot { position: relative; display: grid; place-items: center; border: 1px dashed var(--c-rule-strong); border-radius: var(--r-surface); background: repeating-linear-gradient(135deg, #fff 0 12px, var(--c-warm) 12px 24px); color: var(--c-text-3); font: 600 13px/1.4 var(--f-title); text-align: center; padding: var(--s-3); }
 .slot::after { content: attr(data-label); max-width: 36ch; }
 .slot.w169 { aspect-ratio: 16/9; } .slot.w1610 { aspect-ratio: 16/10; } .slot.p45 { aspect-ratio: 4/5; }
+
+/* slot opcional: escondido por padrão ("sem tela"); com #com-tela mostra um bloco NEUTRO de encaixe (não é tela real) */
+.opt-slot { display: none; }
+body.com-tela .opt-slot { display: grid; border: 1px solid var(--c-rule-strong); background: #e9e6e3; border-radius: var(--r-surface); place-items: center; color: var(--c-text-3); font: 600 13px/1.4 var(--f-title); text-align: center; padding: var(--s-3); }
+body.com-tela .opt-slot::after { content: attr(data-label); max-width: 34ch; }

@@ -12,7 +12,11 @@
   .hero .sup { margin-top: var(--s-3); }
   .hero .btn { margin-top: var(--s-4); }
   .hero .cut { display: block; width: 118%; max-width: none; margin-left: -8%; margin-bottom: -1px; height: min(78vh, 760px); object-fit: contain; object-position: 60% 100%; }
-  .nums { padding: var(--s-7) 0; }
+  .nums { padding: var(--s-7) 0; position: relative; overflow: hidden; }
+  .nums .bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 78% 40%; opacity: .6; }
+  .nums::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, #0e0e0e 38%, rgba(14,14,14,.15) 100%); }
+  .nums .wrap { position: relative; z-index: 1; }
+  .opt-slot.w169 { aspect-ratio: 16/9; } .opt-slot.p45 { aspect-ratio: 4/5; }
   .nums ul { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-6) var(--s-6); }
   .nums .fig2 { font-family: var(--f-title); font-weight: 500; font-size: var(--t-poster); line-height: 1; letter-spacing: -0.06em; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .nums .small { margin-top: var(--s-2); font-size: 18px; max-width: 28ch; }
@@ -71,7 +75,7 @@
   <img class="cut" src="../../../../apps/site/public/kognis-heroes.png" alt="Kognis — Escritório de Advocacia Inteligente">
 </section>
 
-<section class="band-ink nums" data-sec="proofbar"><div class="wrap">
+<section class="band-ink nums" data-sec="proofbar"><img class="bg" src="../../../../apps/site/public/kalidash-motion-statue.jpg" alt="" aria-hidden="true"><div class="wrap">
   <ul aria-label="Resultados">
     <li><p class="fig2">8 horas</p><p class="small">semanais a menos em tarefas operacionais</p></li>
     <li><p class="fig2">3x</p><p class="small">mais rápido na resposta ao cliente no WhatsApp</p></li>
@@ -82,8 +86,8 @@
 
 <section class="section wrap" data-sec="cards-1">
   <div class="caption"><span class="meta">Soluções para escritórios de advocacia</span></div>
-  <h2 class="h2 head" style="max-width:24ch">Três problemas resolvidos. Uma plataforma.</h2>
-  <div class="slot w169 lift" data-slot="K1" data-label="K1 · tela real da plataforma (visão geral com indicadores). 16:9" style="margin-bottom:var(--head-gap)"></div>
+  <h2 class="poster-sm head" style="max-width:14ch;color:var(--c-title)">Três problemas resolvidos. Uma plataforma.</h2>
+  <div class="opt-slot w169 lift" data-slot="K1" data-label="K1 · encaixe opcional: tela real da plataforma, 16:9" style="margin-bottom:var(--head-gap)"></div>
   <ul class="ruled tbl">
     <li><span class="num">01</span><h3>Agentes de IA</h3><p>Agentes que vendem e atendem pelo WhatsApp, 24 horas por dia. Qualificam leads, agendam reuniões e respondem seus clientes sobre o andamento dos processos na hora.</p><p class="ex">Central de atendimento com histórico de conversas, filas e painel de performance.</p></li>
     <li><span class="num">02</span><h3>Conciliação Bancária</h3><p>Conecta direto nos seus bancos. Contas a pagar e receber se conciliam sozinhas, e a divisão de honorários entre sócios sai sem discussão e sem erro.</p><p class="ex">Você abre o painel e o financeiro já está fechado.</p></li>
@@ -93,7 +97,7 @@
 
 <section class="section warm" data-sec="cards-2"><div class="wrap sticky2">
   <div class="left"><div class="caption"><span class="meta">Atendimento Inteligente 24h</span></div><h2 class="h2">Seu escritório atendendo 24h. Sem contratar ninguém.</h2>
-    <div class="slot p45" data-slot="K2" data-label="K2 · tela real do atendimento no WhatsApp (fila + conversa). 4:5" style="margin-top:var(--s-5);max-width:300px"></div></div>
+    <div class="opt-slot p45" data-slot="K2" data-label="K2 · encaixe opcional: tela real do atendimento, 4:5" style="margin-top:var(--s-5);max-width:300px"></div></div>
   <div>
     <div class="item"><h3>Venda e pré-atendimento</h3><p class="body-2">Qualifica quem chega pelo WhatsApp e já agenda a reunião diretamente pra você.</p></div>
     <div class="item"><h3>Atendimento ao cliente</h3><p class="body-2">O cliente pergunta do processo dele e recebe a resposta com dados reais na hora.</p></div>
@@ -104,7 +108,7 @@
 <section class="section wrap" data-sec="cards-3">
   <div class="caption"><span class="meta">Controle Financeiro</span></div>
   <h2 class="h3 head" style="max-width:32ch;font-size:var(--t-h3)">Seu financeiro fechando sozinho. Sem erro, sem retrabalho.</h2>
-  <div class="slot w169" data-slot="K3" data-label="K3 · tela real do painel financeiro (conciliação e honorários). 16:9" style="margin-bottom:var(--head-gap)"></div>
+  <div class="opt-slot w169" data-slot="K3" data-label="K3 · encaixe opcional: tela real do painel financeiro, 16:9" style="margin-bottom:var(--head-gap)"></div>
   <div class="idx">
     <h3>Conciliação automática</h3><p>Conecta com os principais bancos do Brasil. Lançamentos batem com o sistema sem você precisar fazer nada.</p>
     <h3>Divisão de honorários</h3><p>Define as regras uma vez. A divisão entre sócios sai certinha e sem discussão, caso a caso.</p>
@@ -133,4 +137,5 @@
     <details><summary>Preciso entender de tecnologia para usar?</summary><p>Não. A plataforma foi feita pra quem quer resultado, não pra quem entende de TI. Se você usa WhatsApp, sabe usar o que a gente entrega.</p></details>
   </div>
 </div></section>
+<script>if(location.hash==="#com-tela")document.body.classList.add("com-tela")</script>
 </body></html>

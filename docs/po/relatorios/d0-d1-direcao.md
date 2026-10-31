@@ -1,6 +1,36 @@
-# Relatório D0 + D1: direção das páginas institucionais (v3, rodada 2: vida)
+# Relatório D0 + D1: direção das páginas institucionais (v4, rodada 2.1)
 
 > Designer. v1 entregue 31/10 (nota do PO 8,0); esta v2 fecha as correções a–e. Nada em `apps/site` foi editado; só `docs/po/design/` e `docs/po/relatorios/`.
+
+## Rodada 2.1 (PO 8,5 → 9): o que mudou
+
+| Pedido | Estado | Evidência |
+|---|---|---|
+| (1) Kognis e Spectra: layout principal **sem tela**; tela como slot opcional; mostrar os dois estados | ✅ | Slots viraram `opt-slot`: `display: none` por padrão, só aparecem com `#com-tela`. PNGs dos dois estados: `design/comparativo/estados-kognis.png` e `estados-spectra.png` (+ páginas inteiras em `design/depois/*-sem-tela-1440.png`, `*-com-tela-1440.png`). Sem caixas tracejadas em nenhum estado. O bloco cinza do estado "com tela" é só exemplo de encaixe e está rotulado assim. Contrato (`image?`, sem buraco quando ausente) em `01-institucionais.md` §4.8 |
+| (1b) A página sem tela carrega sozinha | ⚠️ | Kognis: advogados em escala grande sobre a faixa de números, **busto em preto e branco da marca atrás dos números** (`kalidash-motion-statue.jpg`, já em `public/`), título de seção em escala de cartaz. Spectra: hero dividido com foto real + lista em cartaz. A nota de vida sobe pouco (Kognis 6→6,5; Spectra 6,5): sem tela, essas duas páginas continuam as mais fracas |
+| (2) Spectra reutilizava o retrato do operário | ✅ proposta, 🟡 depende do PO | Proposta: **`home/g10-agir.jpg`** (sala de operação com estações e painel grande, já na Home), mesmo `alt` ("Spectra AI visão computacional na operação"). Fallback: manter `ato-01-operacao.jpg` com recorte fechado no capacete e no quadro de EPI. Trocar `src` editorial exige decisão do PO (checklist 3.1). Soluções acompanhou a troca no protótipo; em `pages.ts` as ofertas de Soluções **não têm imagem**, então as duas fotos de lá são mídia nova e precisam de `alt` (sugiro reusar os existentes) |
+| (3) Sobre nós: "Nossa história" | ✅ | Três layouts: ato 1 retrato 5/12 + texto; ato 2 tese em cartaz sobre warm, sem foto; ato 3 mosaico grande e irregular (6 fotos, a do prêmio em 7×4 colunas) + lema de 128px. Nenhuma régua restante. Capturas `design/depois/01-historia-1440.png` e `01-historia-390.png` (vistas) |
+| Copy idêntica, `copy-check` | ✅ | 0 linhas extras nos 7 protótipos, 100% de cobertura (saída abaixo) |
+| `overflow-check` | ✅ | 28 de 28 sem overflow |
+| Relatório e commit | ✅ | este arquivo; commit no resumo da sessão |
+
+`node docs/po/design/proto/copy-check.mjs` (exit 0):
+
+```
+OK  01-sobre-nos.html: 45 linhas, extras=0, só-no-código=0, cobertura da baseline=45/45 (100%)
+OK  02-kognis.html: 59 linhas, extras=0, só-no-código=1, cobertura da baseline=58/58 (100%)
+OK  03-advisory.html: 52 linhas, extras=0, só-no-código=1, cobertura da baseline=50/50 (100%)
+OK  04-execucao.html: 56 linhas, extras=0, só-no-código=0, cobertura da baseline=55/55 (100%)
+OK  10-solucoes.html: 25 linhas, extras=0, só-no-código=0, cobertura da baseline=25/25 (100%)
+OK  05-ai-culture.html: 42 linhas, extras=0, só-no-código=0, cobertura da baseline=41/41 (100%)
+OK  06-spectra.html: 13 linhas, extras=0, só-no-código=0, cobertura da baseline=13/13 (100%)
+```
+
+`overflow-check`: 28 linhas `ok` para 01–06 e 10 (390/768/1024/1440), nenhuma `OVERFLOW`.
+
+**Não verifiquei:** o estado "com tela" em 390 só foi capturado (`06-spectra-com-tela-390.png`), não aberto; o Kognis em 390 vi só o hero (rodada 2); nenhum movimento foi visto em ação; o corte do `g10-agir` na oferta de Soluções mostra bastante forro (ajuste fino de `object-position` fica para o B4). **Riscos novos:** (a) o busto do Kognis é arte da marca da Home, reaproveitada: o PO deve confirmar que isso não conta como "segundo visual"; (b) `g10-agir` mostra parte do logotipo de um cliente (Agir) ao fundo, já público na Home, mas vale conferir a autorização de uso na página do Spectra.
+
+---
 
 ## Rodada 2 (vida): o que foi feito
 

@@ -20,6 +20,27 @@
   .act .p { display: grid; gap: var(--s-2); align-content: start; }
   .lema { margin-top: var(--s-5); padding-top: var(--s-4); border-top: 1px solid var(--c-rule-strong); text-wrap: balance; }
 
+
+  /* história r2.1: três atos com três layouts diferentes + mosaico grande e irregular */
+  .a1 { display: grid; grid-template-columns: minmax(0,5fr) minmax(0,7fr); gap: clamp(32px,6vw,96px); align-items: center; padding-top: var(--s-5); padding-bottom: var(--pad-y); }
+  .a1-photo { aspect-ratio: 4/5.6; max-height: 760px; box-shadow: var(--shadow-lift); }
+  .a1-copy { display: grid; gap: var(--s-2); }
+  .a1-copy h3 { font-size: clamp(30px,3.4vw,48px); line-height: 1.08; letter-spacing: var(--ls-title); margin-top: var(--s-1); }
+  .a2 { background: var(--c-warm); padding: var(--pad-y) 0; }
+  .a2 h3 { margin-top: var(--s-3); max-width: 20ch; text-wrap: balance; }
+  .a2-cols { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: var(--s-6); margin-top: var(--s-6); max-width: 960px; }
+  .a3 { padding-top: var(--pad-y); }
+  .a3-copy { display: grid; grid-template-columns: minmax(0,4fr) minmax(0,8fr); gap: var(--s-2) var(--gutter-col); }
+  .a3-copy .meta { grid-column: 1 / -1; }
+  .a3-copy h3 { font-size: clamp(28px,3vw,42px); line-height: 1.1; letter-spacing: var(--ls-title); grid-column: 2; }
+  .a3-copy .body-2 { grid-column: 2; }
+  .mosaic { display: grid; grid-template-columns: repeat(12, 1fr); grid-auto-rows: clamp(70px, 9vw, 130px); gap: 14px; margin-top: var(--s-6); }
+  .m1 { grid-column: 1 / 8; grid-row: 1 / 5; } .m2 { grid-column: 8 / 13; grid-row: 1 / 3; } .m3 { grid-column: 8 / 13; grid-row: 3 / 7; }
+  .m4 { grid-column: 1 / 5; grid-row: 5 / 9; } .m5 { grid-column: 5 / 8; grid-row: 5 / 7; } .m6 { grid-column: 5 / 13; grid-row: 7 / 9; }
+  .cap-fig { margin-top: var(--s-2); }
+  .lema-poster { font-family: var(--f-title); font-weight: 500; font-size: var(--t-poster); line-height: .98; letter-spacing: -0.055em; color: var(--c-title); max-width: 14ch; text-wrap: balance; padding: var(--pad-y) 0; }
+  @media (max-width: 760px) { .a1, .a3-copy, .a2-cols { grid-template-columns: minmax(0,1fr); } .a3-copy h3, .a3-copy .body-2 { grid-column: 1; } .a1-photo { aspect-ratio: 4/5; } .mosaic { grid-auto-rows: 54px; gap: 8px; } }
+
   /* credo: números gigantes, sem hairline */
   .credo { display: grid; grid-template-columns: minmax(0,3fr) minmax(0,9fr); gap: 0 var(--gutter-col); align-items: baseline; margin-top: var(--s-6); }
   .credo .n { font-family: var(--f-title); font-size: var(--t-poster); line-height: 1; letter-spacing: -0.06em; color: var(--c-brand-text); font-variant-numeric: tabular-nums; }
@@ -54,25 +75,44 @@
 </section>
 <section class="wrap intro" data-sec="intro"><p class="lead">Antes de fundar a Kalidash, passamos 10 anos dentro de operações grandes, manuais e de margem apertada. Sabemos o que é ter que entregar resultado com o time e as ferramentas que se tem.</p></section>
 
-<section class="wrap" style="padding-bottom:var(--pad-y)" data-sec="timeline">
-  <div class="caption"><span class="meta">Nossa história</span></div>
-  <div class="collage" role="group">
-    <figure class="photo c1"><img src="../../../../apps/site/public/sobre-nos/ato-01-operacao.jpg" alt="César Germano no chão de operação usando equipamento de proteção"></figure>
-    <figure class="photo c2"><img src="../../../../apps/site/public/sobre-nos/ato-04-ensino.jpg" alt="Formação de executivos e líderes em sala de aula"></figure>
-    <figure class="photo c3"><img src="../../../../apps/site/public/home/evento-palestra.jpg" alt="Palestra executiva para lideranças"></figure>
-    <figure class="photo c4"><img src="../../../../apps/site/public/home/g17-fdc-tech-week-1.jpg" alt="Aula executiva na Fundação Dom Cabral"></figure>
-    <figure class="photo c5"><img src="../../../../apps/site/public/home/evento-sala.jpg" alt="Treinamento corporativo com foco em aplicação de IA"></figure>
-    <figure class="photo c6"><img src="../../../../apps/site/public/home/cooxupe.jpg" alt="Equipe Kalidash na Cooxupé"></figure>
-    <figure class="photo c7"><img src="../../../../apps/site/public/home/g21-cba-premio.jpg" alt="CBA e Kalidash no Prêmio Inovativos"></figure>
-  </div>
-  <p class="small" style="margin-top:var(--s-2)">Do chão de operação à formação executiva</p>
-  <div style="margin-top:var(--s-6)">
-    <article class="act"><div><p class="meta">O chão da operação</p></div><div class="p"><h3>Começamos como estagiários e técnicos na economia real: operações grandes, complexas e manuais.</h3><p class="body-2">Grandes empresas da economia real não são construídas em PowerPoint. São construídas por pessoas, processos complexos e decisões que precisam funcionar todos os dias.</p><p class="body-2">Foi ali que aprendemos que a transformação real não acontece em relatório de consultoria, acontece com quem opera o negócio.</p></div></article>
-    <article class="act"><div><p class="meta">A Kalidash</p></div><div class="p"><h3>Fundamos a Kalidash para levar inteligência e tecnologia ao trabalho real da economia real.</h3><p class="body-2">Conhecemos a dor de tentar implementar tecnologia onde ela mais atrapalha do que ajuda. A única mudança que funciona é a que o time de fato abraça e faz rodar.</p><p class="body-2"><strong>Não para substituir pessoas, mas para devolver a elas o tempo de pensar e produzir.</strong></p></div></article>
-    <article class="act"><div><p class="meta">Hoje</p></div><div class="p"><h3>Levamos cultura de IA e eficiência para operações como ArcelorMittal, CBA, Sicoob, Cooxupé e outras.</h3><p class="body-2">E ensinamos o que aplicamos nas maiores escolas de negócios e tecnologia do país.</p></div></article>
-    <p class="poster-sm lema" style="color:var(--c-title)">Nós ensinamos o que vivemos. E vivemos o que ensinamos.</p>
-  </div>
+<section data-sec="timeline">
+  <div class="wrap"><div class="caption"><span class="meta">Nossa história</span></div></div>
+
+  <!-- ato 1: foto de operação em retrato, escala grande, texto ao lado -->
+  <article class="wrap a1">
+    <figure class="photo a1-photo"><img src="../../../../apps/site/public/sobre-nos/ato-01-operacao.jpg" alt="César Germano no chão de operação usando equipamento de proteção"></figure>
+    <div class="a1-copy"><p class="meta">O chão da operação</p>
+      <h3>Começamos como estagiários e técnicos na economia real: operações grandes, complexas e manuais.</h3>
+      <p class="body-2">Grandes empresas da economia real não são construídas em PowerPoint. São construídas por pessoas, processos complexos e decisões que precisam funcionar todos os dias.</p>
+      <p class="body-2">Foi ali que aprendemos que a transformação real não acontece em relatório de consultoria, acontece com quem opera o negócio.</p></div>
+  </article>
+
+  <!-- ato 2: sem foto; a tese em escala de cartaz, parágrafos em duas colunas -->
+  <article class="a2"><div class="wrap">
+    <p class="meta">A Kalidash</p>
+    <h3 class="poster-sm">Fundamos a Kalidash para levar inteligência e tecnologia ao trabalho real da economia real.</h3>
+    <div class="a2-cols"><p class="body-2">Conhecemos a dor de tentar implementar tecnologia onde ela mais atrapalha do que ajuda. A única mudança que funciona é a que o time de fato abraça e faz rodar.</p>
+      <p class="body-2"><strong>Não para substituir pessoas, mas para devolver a elas o tempo de pensar e produzir.</strong></p></div>
+  </div></article>
+
+  <!-- ato 3: texto curto + mosaico grande e irregular -->
+  <article class="wrap a3">
+    <div class="a3-copy"><p class="meta">Hoje</p>
+      <h3>Levamos cultura de IA e eficiência para operações como ArcelorMittal, CBA, Sicoob, Cooxupé e outras.</h3>
+      <p class="body-2">E ensinamos o que aplicamos nas maiores escolas de negócios e tecnologia do país.</p></div>
+    <div class="mosaic" role="group">
+      <figure class="photo m1"><img src="../../../../apps/site/public/home/g21-cba-premio.jpg" alt="CBA e Kalidash no Prêmio Inovativos"></figure>
+      <figure class="photo m2"><img src="../../../../apps/site/public/sobre-nos/ato-04-ensino.jpg" alt="Formação de executivos e líderes em sala de aula"></figure>
+      <figure class="photo m3"><img src="../../../../apps/site/public/home/evento-palestra.jpg" alt="Palestra executiva para lideranças"></figure>
+      <figure class="photo m4"><img src="../../../../apps/site/public/home/g17-fdc-tech-week-1.jpg" alt="Aula executiva na Fundação Dom Cabral"></figure>
+      <figure class="photo m5"><img src="../../../../apps/site/public/home/evento-sala.jpg" alt="Treinamento corporativo com foco em aplicação de IA"></figure>
+      <figure class="photo m6"><img src="../../../../apps/site/public/home/cooxupe.jpg" alt="Equipe Kalidash na Cooxupé"></figure>
+    </div>
+    <p class="small cap-fig">Do chão de operação à formação executiva</p>
+  </article>
+  <div class="wrap"><p class="lema-poster">Nós ensinamos o que vivemos. E vivemos o que ensinamos.</p></div>
 </section>
+
 
 <section class="section warm" data-sec="beliefs"><div class="wrap">
   <div class="caption"><span class="meta">No que acreditamos</span></div>
