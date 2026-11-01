@@ -26,7 +26,7 @@
   --muted-light: #857e8e;
   --font-title: var(--font-inter), system-ui, -apple-system, sans-serif;
   --font-body: var(--font-source-sans), system-ui, sans-serif;
-  --gutter: max(24px, calc((100vw - 1280px) / 2));
+  --gutter: max(24px, calc((100% - 1280px) / 2));
 
   min-height: 100vh;
   background: var(--bg);
@@ -637,3 +637,113 @@
     padding: 0 16px;
   }
 }
+
+/* ==========================================================================
+ * Camada editorial (mesma linguagem de /solucoes, /kognis, /sobre-nos…).
+ * Só CSS: tags e atributos do contrato (docs/blog-design-contrato.md) continuam os mesmos.
+ * Lista = destaque 7/5 + dois médios + índice em linhas separadas por hairline; sem caixas nem hover que sobe.
+ * ========================================================================== */
+.page { --ink: #0a0a0a; --rule: #dcdcdc; --brand-text: #a4533c; }
+
+/* Abertura (HTML do editor): manchete grande, sem molde "eyebrow + cinza". */
+.page .hero { border-bottom: 0; padding: clamp(40px, 6vw, 88px) 0 clamp(24px, 3vw, 40px); }
+.page .hero h1 { font-weight: 500; font-size: clamp(44px, 6.6vw, 100px); line-height: 0.96; letter-spacing: -0.055em; color: var(--ink); text-wrap: balance; }
+
+/* Filtro: texto + numeral, sem pílula. */
+.page .filterBadge { background: transparent; padding: 0; border-radius: 0; font-size: 0.78rem; }
+.page .filters { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+
+.page .posts {
+  max-width: 1328px; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0 32px;
+  padding: clamp(24px, 3vw, 40px) 24px clamp(72px, 9vw, 128px);
+}
+.page .posts[data-count] { max-width: 1328px; grid-template-columns: repeat(6, minmax(0, 1fr)); margin: 0 auto; }
+
+/* Linha do índice (padrão de todo cartão): meta + autor | título + resumo + link | miniatura. */
+.page .posts article {
+  position: relative; grid-column: 1 / -1;
+  display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 6fr) minmax(0, 3fr); column-gap: 32px; align-items: start; align-content: start;
+  padding: 28px 0; background: transparent; border: 0; border-top: 1px solid var(--rule); border-radius: 0; box-shadow: none; margin: 0;
+  transition: none;
+}
+.page .posts article:hover { transform: none; box-shadow: none; border-color: var(--rule); }
+.page .posts article:not(:has([data-role="cover"])) { grid-template-columns: minmax(0, 3fr) minmax(0, 9fr); }
+.page .posts article > p { grid-column: 1; grid-row: 1; margin: 6px 0 0; color: var(--brand-text) !important; }
+.page .posts article > span { grid-column: 1; grid-row: 2; margin: 10px 0 0; padding: 0; width: auto; }
+.page .posts article > h2 { grid-column: 2; grid-row: 1; margin: 0; font-weight: 500; font-size: clamp(22px, 2.2vw, 32px); line-height: 1.1; letter-spacing: -0.04em; color: var(--ink); }
+.page .posts article > div { grid-column: 2; grid-row: 2; margin: 12px 0 0; -webkit-line-clamp: 2; max-width: 60ch; }
+.page .posts article > [data-role="read-more"] { grid-column: 2; grid-row: 3; justify-self: start; margin-top: 14px; position: relative; z-index: 1; border-bottom: 1px solid currentColor; padding-bottom: 6px; }
+.page .posts article > h2 a::after { content: ""; position: absolute; inset: 0; }
+.page .posts article > [data-role="cover"] { grid-column: 3; grid-row: 1 / span 4; width: 100%; height: auto; aspect-ratio: 4 / 3; margin: 0; border-radius: 12px; }
+@media (hover: hover) { .page .posts article:hover > h2 a { color: var(--brand-text); } .page .posts article > h2 a { transition: color 160ms ease; } }
+
+/* Destaque: 7/5, a única sombra é a da capa. */
+.page .posts [data-variant="featured"] { border-top: 0; padding: 8px 0 clamp(40px, 5vw, 72px); margin: 0; }
+.page .posts [data-variant="featured"]:has([data-role="cover"]) {
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); grid-template-rows: repeat(5, auto) 1fr; column-gap: clamp(32px, 5vw, 72px);
+}
+.page .posts [data-variant="featured"]:has([data-role="cover"]) > [data-role="cover"] {
+  grid-column: 1; grid-row: 1 / span 6; min-height: 0; height: auto; aspect-ratio: 16 / 10; border-radius: 12px; box-shadow: 0 18px 44px rgba(0, 0, 0, 0.14);
+}
+.page .posts [data-variant="featured"]:has([data-role="cover"]) > :not([data-role="cover"]) { grid-column: 2; grid-row: auto; }
+.page .posts [data-variant="featured"] > p { margin: clamp(0px, 2vw, 24px) 0 0; }
+.page .posts [data-variant="featured"] > h2 { margin-top: 14px; font-size: clamp(32px, 3.8vw, 56px); line-height: 1.02; letter-spacing: -0.05em; }
+.page .posts [data-variant="featured"] > div { margin-top: 18px; font-size: 1.12rem; line-height: 1.6; -webkit-line-clamp: 4; max-width: none; }
+.page .posts [data-variant="featured"] > span { margin-top: 20px; }
+.page .posts [data-variant="featured"] > [data-role="read-more"] { margin-top: 18px; }
+
+/* Médios: 2º e 3º lado a lado, só quando há 4+ artigos. */
+.page .posts article:nth-child(2):nth-last-child(n + 3),
+.page .posts article:nth-child(3):nth-last-child(n + 2) {
+  grid-column: span 3; display: flex; flex-direction: column; align-items: flex-start; padding: 28px 0 40px;
+}
+.page .posts article:nth-child(2):nth-last-child(n + 3) > [data-role="cover"],
+.page .posts article:nth-child(3):nth-last-child(n + 2) > [data-role="cover"] { flex: none; align-self: stretch; aspect-ratio: 3 / 2; margin: 0 0 20px; }
+.page .posts article:nth-child(2):nth-last-child(n + 3) > p,
+.page .posts article:nth-child(3):nth-last-child(n + 2) > p { margin: 0 0 8px; }
+.page .posts article:nth-child(2):nth-last-child(n + 3) > h2,
+.page .posts article:nth-child(3):nth-last-child(n + 2) > h2 { font-size: clamp(26px, 2.6vw, 38px); }
+.page .posts article:nth-child(2):nth-last-child(n + 3) > div,
+.page .posts article:nth-child(3):nth-last-child(n + 2) > div { margin-top: 12px; }
+.page .posts article:nth-child(2):nth-last-child(n + 3) > span,
+.page .posts article:nth-child(3):nth-last-child(n + 2) > span { margin-top: 14px; }
+
+/* Capa que chega: sobe uma vez, só transform (e só se o navegador souber ligar à rolagem). */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .page .posts article > [data-role="cover"] { animation: coverRise linear both; animation-timeline: view(); animation-range: entry 0% entry 70%; }
+  }
+}
+@keyframes coverRise { from { transform: translateY(24px) scale(1.03); } to { transform: none; } }
+
+@media (max-width: 900px) {
+  .page .posts { gap: 0; }
+  .page .posts article,
+  .page .posts article:not(:has([data-role="cover"])),
+  .page .posts [data-variant="featured"]:has([data-role="cover"]) { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; row-gap: 0; }
+  .page .posts article > *,
+  .page .posts [data-variant="featured"]:has([data-role="cover"]) > :not([data-role="cover"]) { grid-column: 1; grid-row: auto; }
+  .page .posts article > [data-role="cover"],
+  .page .posts [data-variant="featured"]:has([data-role="cover"]) > [data-role="cover"] { grid-column: 1; grid-row: auto; margin: 0 0 18px; aspect-ratio: 16 / 10; }
+  .page .posts article > p { margin: 0 0 8px; }
+  .page .posts article > div { margin-top: 10px; }
+  .page .posts article > span { margin-top: 12px; }
+  .page .posts article:nth-child(2):nth-last-child(n + 3),
+  .page .posts article:nth-child(3):nth-last-child(n + 2) { grid-column: 1 / -1; display: grid; }
+}
+
+/* Celular: uma coluna de verdade. Os seletores abaixo precisam empatar com os de cada filho do cartão
+ * (`> p`, `> h2`…), por isso usam :is() com atributo, e vêm por último para ganhar. */
+@media (max-width: 900px) {
+  .page .posts article > :is(p, h2, div, span, [data-role]),
+  .page .posts [data-variant="featured"]:has([data-role="cover"]) > :is(p, h2, div, span, [data-role="read-more"]) { grid-column: 1 / -1; grid-row: auto; }
+  .page .posts article > [data-role="cover"] { grid-column: 1 / -1; grid-row: auto; }
+  .page .posts article > p { white-space: normal; }
+  .page .posts article > h2 { font-size: clamp(24px, 6.4vw, 32px); }
+  .page .posts [data-variant="featured"] > h2 { font-size: clamp(30px, 8.4vw, 44px); }
+}
+
+/* Leitura no celular: nada abaixo de 12px e alvo de toque de 44px (a área extra é invisível, via ::before). */
+.page .posts article > p { font-size: 0.75rem; }
+.page .hero > :first-child { font-size: 12px; }
+.page .posts article > [data-role="read-more"]::before { content: ""; position: absolute; inset: -14px -8px; }

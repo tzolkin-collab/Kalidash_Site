@@ -4,7 +4,9 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./home.module.css";
+import heroStyles from "./HomeHero.module.css";
 import HomeHeader from "./HomeHeader";
+import LogoIntro from "../components/LogoIntro";
 import SiteFooter from "./SiteFooter";
 import ExperienceSyncGallery from "./ExperienceSyncGallery";
 import ProblemHologram from "./ProblemHologram";
@@ -60,6 +62,7 @@ export default function HomePage() {
 
   return (
     <div className={styles.home}>
+      <LogoIntro />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -78,6 +81,8 @@ export default function HomePage() {
 
       <main>
         <section className={styles.hero} data-block="home-hero">
+          <div className={heroStyles.main}>
+          <div className={heroStyles.text}>
           <Eyebrow>{hero.eyebrow}</Eyebrow>
           <h1>{hero.title}</h1>
           <div className={styles.heroCopy}>
@@ -105,6 +110,11 @@ export default function HomePage() {
               isHovered={isBadgeHovered}
               onHoverChange={setIsBadgeHovered}
             />
+          </div>
+          </div>
+          <div className={heroStyles.bust} aria-hidden="true">
+            <Image src="/kalidash-hero-sculpture.png" alt="" width={1122} height={1402} priority sizes="(max-width: 1023px) 70vw, 36vw" />
+          </div>
           </div>
 
           <div className={styles.heroProof} aria-label="Experiência da Kalidash">

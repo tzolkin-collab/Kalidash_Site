@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import SitePage from "../institucional/SitePage";
+import SobreNosPage from "./SobreNosPage";
 import { sobreNos } from "../institucional/pages";
 import { SITE_URL } from "@/lib/siteUrl";
 
@@ -79,7 +79,7 @@ export default function Page() {
           __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
         }}
       />
-      <SitePage page={sobreNos} />
+      <SobreNosPage page={sobreNos} />
     </>
   );
 }

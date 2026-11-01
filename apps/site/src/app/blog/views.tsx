@@ -161,11 +161,16 @@ export function BlogGalleryView({
         setScrolled(false);
         return;
       }
-      // Posição do topo do filtro na página em relação ao viewport
+      // O filtro só sobe para o header depois que a faixa original saiu COMPLETAMENTE da vista:
+      // a base dela passou da borda de baixo do header (desktop: header branco de ~56px cobre a faixa;
+      // tablet e celular: o header é transparente, então só vale quando a base passa do topo da tela).
+      // Antes, o limiar era o TOPO da faixa encostar no header: ela ainda estava inteira na tela, sumia
+      // da página (deixando um buraco) e a cópia no header aparecia ao mesmo tempo.
       const rect = el.getBoundingClientRect();
-      // O header fixo tem altura de ~56px.
-      // Quando o topo do filtro chega no header, ele ancora no header e some da página abaixo
-      const isDocked = rect.top <= 58;
+      const header = document.querySelector("header");
+      const solidHeader = window.matchMedia("(min-width: 1101px)").matches;
+      const headerBottom = solidHeader && header ? header.getBoundingClientRect().bottom : 0;
+      const isDocked = rect.bottom <= headerBottom;
       setScrolled((prev) => (prev !== isDocked ? isDocked : prev));
     };
 

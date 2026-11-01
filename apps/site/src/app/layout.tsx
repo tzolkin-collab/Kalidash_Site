@@ -59,6 +59,10 @@ export const viewport: Viewport = {
 
 const PRE_PAINT_HEADER_SCRIPT = `(function(){try{var nav=performance.getEntriesByType("navigation")[0];var isReload=nav&&nav.type==="reload";var saved=sessionStorage.getItem("kalidash:header-collapsed")==="1";var samePath=sessionStorage.getItem("kalidash:header-path")===location.pathname;var collapsed=window.scrollY>15||(isReload&&samePath&&saved);document.documentElement.setAttribute("data-header-collapsed",collapsed?"true":"false");}catch(e){}})();`;
 
+/* Abertura com o logo (components/LogoIntro): decide antes da pintura se ela roda nesta visita.
+ * Roda uma vez por sessão, nunca em reload e nunca com movimento reduzido; sem a marca no <html> o overlay é display:none. */
+const LOGO_INTRO_SCRIPT = `try{var n=performance.getEntriesByType("navigation")[0];if(!sessionStorage.getItem("kalidash:intro-played")&&!(n&&n.type==="reload")&&!matchMedia("(prefers-reduced-motion: reduce)").matches){document.documentElement.setAttribute("data-intro","1")}}catch(e){}`;
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -72,6 +76,7 @@ export default function RootLayout({
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: PRE_PAINT_HEADER_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: LOGO_INTRO_SCRIPT }} />
       </head>
       <body>
         <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID} />

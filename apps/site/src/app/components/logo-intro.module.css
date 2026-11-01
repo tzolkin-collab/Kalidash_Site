@@ -1,0 +1,41 @@
+/* Abertura com o logo. Sequência (2,4s): símbolo entra (0 a 0,5s) -> letras saem de trás dele (0,45 a 1,45s)
+ * -> pausa curta -> a cortina sobe (1,75 a 2,4s). Só transform e opacity. */
+.overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 9999;
+  place-items: center;
+  background: #fff;
+  pointer-events: auto;
+  animation: lift 0.65s cubic-bezier(0.76, 0, 0.24, 1) 1.75s both;
+}
+:global(html[data-intro]) .overlay { display: grid; }
+
+.logo { width: min(72vw, 560px); height: auto; overflow: visible; }
+
+/* Faixa grega na borda inferior: sobe junto com a cortina e liga a abertura à Home. */
+.edge {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 34px;
+  background: url("/home/pattern-greek.png") repeat-x center / auto 34px; opacity: 0.25;
+}
+
+.letter { fill: #28183b; opacity: 0; animation: letterIn 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(0.45s + var(--i) * 0.06s); }
+.letter path { fill: #28183b; }
+
+.mark { transform-box: view-box; }
+.gold { fill: #a88a58; opacity: 0; }
+.goldTop { animation: slideIn 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) 0.05s both; --from: -10px; }
+.goldBottom { animation: slideIn 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) 0.15s both; --from: -10px; }
+.chevron { fill: #28183b; opacity: 0; transform-box: fill-box; transform-origin: 20% 50%; animation: chevronIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s both; }
+
+@keyframes slideIn { from { opacity: 0; transform: translateX(var(--from)); } to { opacity: 1; transform: none; } }
+@keyframes chevronIn { from { opacity: 0; transform: scale(0.55) translateX(-6px); } to { opacity: 1; transform: none; } }
+@keyframes letterIn { from { opacity: 1; transform: translateX(var(--shift-x)); } to { opacity: 1; transform: none; } }
+@keyframes lift {
+  0% { transform: none; visibility: visible; }
+  99% { visibility: visible; }
+  100% { transform: translateY(-100%); visibility: hidden; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay { display: none !important; }
+}

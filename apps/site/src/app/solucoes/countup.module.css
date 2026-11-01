@@ -1,0 +1,4 @@
+.count { display: inline-grid; }
+.sizer, .live { grid-area: 1 / 1; white-space: nowrap; }
+.sizer { visibility: hidden; }
+.sizer::after { content: attr(data-value); }

@@ -1,0 +1,74 @@
+/* Blocos de leitura do KitPage (afirmação, linhas numeradas, critérios). Base em product.module.css. */
+.assert { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(24px, 6vw, 96px); align-items: start; }
+.assert h2 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: clamp(34px, 4.6vw, 68px); line-height: 1; letter-spacing: -0.05em; text-wrap: balance; }
+.paragraphs { display: grid; gap: 20px; max-width: 62ch; }
+.paragraphs p { margin: 0; font-size: clamp(18px, 1.6vw, 21px); line-height: 1.6; color: #3c373f; }
+.paragraphs strong { font-weight: 600; color: var(--ink-text); }
+
+.ruled { list-style: none; margin: clamp(40px, 6vw, 72px) 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(24px, 6vw, 96px); }
+.ruled li { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 16px; padding: 22px 0; border-top: 1px solid #dcdcdc; font-family: var(--font-title); font-weight: 500; font-size: clamp(20px, 2vw, 28px); line-height: 1.2; letter-spacing: -0.03em; align-items: baseline; }
+.ruled li:nth-last-child(-n + 2) { border-bottom: 1px solid #dcdcdc; }
+.ruled li:nth-child(odd):last-child { grid-column: 1 / -1; }
+
+.criteria { list-style: none; margin: 0; padding: 0; }
+.criteria li { position: relative; padding: 24px 0 24px 40px; border-top: 1px solid #dcdcdc; font-size: clamp(19px, 1.8vw, 24px); line-height: 1.4; color: var(--ink-text); }
+.criteria li:last-child { border-bottom: 1px solid #dcdcdc; }
+.criteria li::before { content: ""; position: absolute; left: 4px; top: 32px; width: 14px; height: 8px; border-left: 2px solid #a4533c; border-bottom: 2px solid #a4533c; transform: rotate(-45deg); }
+.note { margin-top: 32px; display: grid; gap: 14px; justify-items: start; }
+.note p { margin: 0; font-size: 18px; line-height: 1.55; color: #3c373f; }
+
+@media (max-width: 900px) {
+  .assert { grid-template-columns: minmax(0, 1fr); }
+  .ruled { grid-template-columns: minmax(0, 1fr); }
+  .ruled li:nth-last-child(-n + 2) { border-bottom: 0; }
+  .ruled li:last-child { border-bottom: 1px solid #dcdcdc; }
+}
+
+/* Manchetes longas (Advisory): um passo abaixo da escala de cartaz para caber em 3 linhas. */
+header.long h1 { font-size: clamp(40px, 6vw, 88px); }
+
+/* Formatos */
+.formats { list-style: none; margin: clamp(40px, 6vw, 72px) 0 0; padding: 0; }
+.formats > li { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 5fr) minmax(0, 3fr); gap: clamp(24px, 4vw, 64px); padding: clamp(32px, 4vw, 56px) 0; border-top: 1px solid #dcdcdc; align-items: start; }
+.formats > li:last-child { border-bottom: 1px solid #dcdcdc; }
+.formatHead h3 { margin: 0 0 14px; font-family: var(--font-title); font-weight: 500; font-size: clamp(26px, 3vw, 44px); line-height: 1.02; letter-spacing: -0.045em; }
+.formatHead p, .formatBody > p, .formatAside p { margin: 0; font-size: 17px; line-height: 1.55; color: #3c373f; }
+.formatHead strong { font-weight: 600; color: var(--ink-text); }
+.formatBody { display: grid; gap: 18px; }
+.formatBody ul { list-style: none; margin: 0; padding: 0; }
+.formatBody ul li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 16px; padding: 12px 0; border-top: 1px solid #dcdcdc; font-size: 16px; line-height: 1.4; }
+.formatBody ul li strong { font-weight: 500; color: var(--ink-text); }
+.formatBody ul li span { color: #514c53; }
+.formatBody .extra { font-size: 15px; color: #6b6670; }
+.formatAside { display: grid; gap: 20px; justify-items: start; }
+.formatAside p { font-size: 15px; color: #6b6670; }
+
+/* Prova (Execução) */
+.numbers { list-style: none; margin: clamp(40px, 6vw, 72px) 0 0; padding: 0; display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 32px; }
+.numbers li { display: grid; gap: 12px; align-content: start; padding-left: 20px; border-left: 1px solid #dcdcdc; }
+.numbers strong { font-family: var(--font-title); font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: clamp(36px, 5.4vw, 84px); line-height: 0.95; letter-spacing: -0.05em; }
+.numbers li > span { font-size: 16px; line-height: 1.45; color: #3c373f; max-width: 24ch; }
+.case { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(24px, 5vw, 80px); margin-top: clamp(56px, 8vw, 104px); align-items: center; }
+.casePhoto { overflow: hidden; border-radius: 12px; }
+.casePhoto img { display: block; width: 100%; height: auto; }
+.caseText { display: grid; gap: 16px; justify-items: start; }
+.caseText h3 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: clamp(28px, 3.4vw, 50px); line-height: 1.02; letter-spacing: -0.045em; }
+.caseText p { margin: 0; font-size: 18px; line-height: 1.55; color: #3c373f; }
+.caseText .badge { font-size: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #a4533c; }
+.caseText .stat { color: var(--ink-text); }
+.products { list-style: none; margin: clamp(56px, 8vw, 104px) 0 0; padding: 0; }
+.products li { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 5fr) minmax(0, 3fr); gap: clamp(16px, 3vw, 48px); padding: 28px 0; border-top: 1px solid #dcdcdc; align-items: baseline; }
+.products li:last-child { border-bottom: 1px solid #dcdcdc; }
+.products h3 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: clamp(28px, 3.6vw, 52px); line-height: 1; letter-spacing: -0.05em; }
+.products p { margin: 0; font-size: 17px; line-height: 1.5; color: #3c373f; }
+
+@media (max-width: 900px) {
+  .formats > li, .case, .products li { grid-template-columns: minmax(0, 1fr); }
+  .numbers { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 20px; }
+}
+
+/* Em larguras médias o terceiro bloco do formato desce para baixo do texto, para o botão não quebrar. */
+@media (max-width: 1180px) and (min-width: 901px) {
+  .formats > li { grid-template-columns: minmax(0, 4fr) minmax(0, 6fr); }
+  .formatAside { grid-column: 2; grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+}
