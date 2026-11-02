@@ -30,7 +30,7 @@ Data: 02/11/2026. Brief: PO, 02/11 (substitui o B0 de `institucional.module.css`
 - `1eaac95` fix(site): estatua do hero da Home alinhada ao topo do bloco de texto
 
 ## 4. O que ficou de fora e por quê
-- Meu trabalho anterior em `institucional/institucional.module.css` e `Motion.tsx` (brief antigo) foi **descartado** com `git checkout` (nunca commitado): esses arquivos hoje só servem `/solucoes` via `SitePage`... na prática o `/solucoes` usa `solucoes/page.tsx`, e `institucional/` ficou sem rota ativa além de tipos/`pages.ts`.
+- Meu trabalho anterior em `institucional/institucional.module.css` e `Motion.tsx` (brief antigo) foi descartado com `git checkout` (nunca commitado). Não verifiquei quais rotas ainda usam `SitePage`; segundo o PO, só `/solucoes`.
 - A baseline de copy do repositório (C1) já divergia do HEAD (caixa-alta e quebra de itens, vindos do commit `30a18cb`). Gerei uma baseline nova do HEAD **fora do repositório** e comparei com ela; a do repo não foi alterada. O PO deve regenerar `copy-baseline/` com `copy-diff.mjs --save` num commit consciente.
 - Blog: o servidor falso que usei não é o mesmo da C1, então o diff de blog só vale contra a minha baseline.
 - Não toquei `Reveal`/`Motion.tsx`: as páginas novas não usam mais `Reveal` (movimento é CSS `animation-timeline`).
