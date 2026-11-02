@@ -673,7 +673,7 @@ export const kognis: PageContent = {
         "Conectamos direto no seu sistema jurídico e nos seus bancos, sem precisar trocar nada do que você já usa.",
       ],
       support: "Sem trocar de ERP · Sem migrar dados · Atendimento 24h no WhatsApp",
-      cta: { label: "Agendar demonstração", href: diagnostico },
+      cta: { label: "Agendar demonstração", href: "https://kognis.com.br" },
       image: { src: "/kognis-heroes.png", alt: "Kognis — Escritório de Advocacia Inteligente", width: 1000, height: 1000 },
       frame: "none",
     },

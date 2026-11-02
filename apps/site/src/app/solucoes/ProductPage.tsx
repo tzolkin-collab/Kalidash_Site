@@ -22,6 +22,14 @@ function Rich({ text }: { text: string }) {
 type Hero = Extract<Block, { type: "heroMedia" }>;
 type Cards = Extract<Block, { type: "cards" }>;
 
+/* Destino externo (http...) abre em nova aba; interno segue como Link. */
+function CtaLink({ href, className, children }: { href: string; className: string; children: React.ReactNode }) {
+  if (/^https?:\/\//.test(href)) {
+    return <a className={className} href={href} target="_blank" rel="noopener noreferrer">{children}</a>;
+  }
+  return <Link className={className} href={href}>{children}</Link>;
+}
+
 export function HeroView({ hero, kind }: { hero: Hero; kind: "cutout" | "photo" }) {
   const [lead, ...rest] = hero.lead;
   return (
@@ -40,6 +48,7 @@ export function HeroView({ hero, kind }: { hero: Hero; kind: "cutout" | "photo" 
             width={hero.image.width}
             height={hero.image.height}
             priority
+            fetchPriority="high"
             sizes="(max-width: 900px) 90vw, 44vw"
           />
         </div>
@@ -49,11 +58,7 @@ export function HeroView({ hero, kind }: { hero: Hero; kind: "cutout" | "photo" 
             <p key={p}><Rich text={p} /></p>
           ))}
           {hero.support && <p className={styles.support}>{hero.support}</p>}
-          {hero.cta && (
-            <Link className={home.primaryButton} href={hero.cta.href}>
-              {hero.cta.label} <ArrowRight />
-            </Link>
-          )}
+          {hero.cta && <CtaLink className={home.primaryButton} href={hero.cta.href}>{hero.cta.label} <ArrowRight /></CtaLink>}
         </div>
       </div>
       <div className={sol.meander} aria-hidden="true" />
@@ -222,7 +227,8 @@ export function BlockView({ block, cardsIndex, poster, soft }: { block: Block; c
   }
 }
 
-export default function ProductPage({ page, kind, closing }: { page: PageContent; kind: "cutout" | "photo"; closing: string }) {
+/* heroOnly: a página mostra só o hero (Kognis, decisão D23); os demais blocos continuam em pages.ts, sem renderizar. */
+export default function ProductPage({ page, kind, closing, heroOnly = false }: { page: PageContent; kind: "cutout" | "photo"; closing: string; heroOnly?: boolean }) {
   const hero = page.blocks.find((b): b is Hero => b.type === "heroMedia");
   if (!hero) return null;
   let cardsSeen = 0;
@@ -232,21 +238,19 @@ export default function ProductPage({ page, kind, closing }: { page: PageContent
       <HomeHeader />
       <main>
         <HeroView hero={hero} kind={kind} />
-        {page.blocks.map((block, index) => {
+        {!heroOnly && page.blocks.map((block, index) => {
           if (block.type === "heroMedia") return null;
           const i = block.type === "cards" ? cardsSeen++ : 0;
           return <BlockView key={`${block.type}-${index}`} block={block} cardsIndex={i} poster={kind === "photo"} soft={tones[index]} />;
         })}
-        <section className={sol.closing}>
-          <div className={sol.closingInner}>
-            <p>{closing}</p>
-            {hero.cta && (
-              <Link className={sol.closingCta} href={hero.cta.href}>
-                {hero.cta.label} <ArrowRight />
-              </Link>
-            )}
-          </div>
-        </section>
+        {!heroOnly && (
+          <section className={sol.closing}>
+            <div className={sol.closingInner}>
+              <p>{closing}</p>
+              {hero.cta && <CtaLink className={sol.closingCta} href={hero.cta.href}>{hero.cta.label} <ArrowRight /></CtaLink>}
+            </div>
+          </section>
+        )}
       </main>
       <SiteFooter />
       {config.whatsappUrl && (
