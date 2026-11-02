@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 /* Liga a rolagem a duas variáveis CSS do próprio elemento, sem estado React (nada re-renderiza):
  *  --p  progresso 0..1 da seção fixada;
  *  --w  progresso da cortina entre os dois produtos (0 = Kognis, 1 = Spectra AI).
- * Sem JS, com prefers-reduced-motion ou em celular baixo, `data-live` não é ligado e as duas telas ficam empilhadas. */
+ * Sem JS, com prefers-reduced-motion ou no celular, `data-live` não é ligado e as duas telas ficam empilhadas. */
 const clamp = (v: number) => Math.min(1, Math.max(0, v));
 const ease = (t: number) => t * t * (3 - 2 * t);
 
@@ -17,8 +17,8 @@ export default function SolucoesStory({ className, children }: { className: stri
     if (!el) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
     if (reduce.matches) return;
-    /* Celular baixo não comporta a seção fixada com as descrições visíveis: fica empilhada, com todo o texto. */
-    const short = window.matchMedia("(max-width: 900px) and (max-height: 760px)");
+    /* No celular a seção fixada não comporta imagem, texto e as três descrições: fica empilhada, com todo o texto. */
+    const short = window.matchMedia("(max-width: 900px)");
     const sync = () => {
       if (short.matches) delete el.dataset.live;
       else el.dataset.live = "";
