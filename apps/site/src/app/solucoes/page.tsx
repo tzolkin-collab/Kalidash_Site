@@ -46,7 +46,7 @@ export default function Page() {
               <span>Tecnologia que</span> <span>nasce de</span> <span>problemas reais.</span>
             </h1>
             <div className={styles.bust} aria-hidden="true">
-              <Image src="/kalidash-hero-sculpture.png" alt="" width={1122} height={1402} priority sizes="(max-width: 900px) 70vw, 42vw" />
+              <Image src="/kalidash-hero-sculpture.png" alt="" width={1122} height={1402} priority fetchPriority="high" sizes="(max-width: 900px) 70vw, 42vw" />
             </div>
             <div className={styles.heroLead}>
               <p>{lead1}</p>
