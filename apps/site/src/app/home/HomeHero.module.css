@@ -1,7 +1,7 @@
 /* Hero da Home em duas colunas: texto à esquerda, busto da marca sobre um arco à direita.
  * Só reorganiza a abertura; faixa de logos, números e botões seguem os de home.module.css.
  * Seletores com .main ganham das regras antigas do hero centralizado (`.hero h1`, `.hero .eyebrow`). */
-.main { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(24px, 4vw, 64px); align-items: end; }
+.main { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(24px, 4vw, 64px); align-items: start; }
 .text { text-align: left; }
 .main .text > p:first-child { text-align: left; }
 .main .text h1 { max-width: none; margin: 20px 0 0; text-align: left; text-wrap: balance; font-size: clamp(44px, 6.4vw, 96px); line-height: 0.96; letter-spacing: -0.055em; }
