@@ -183,3 +183,33 @@ Base: apêndice A do prompt de PO, adaptada.
 - **D25 (02/11)** Baseline de copy: só regenero depois que o dono responder os numerais 01/02/03 e os depoimentos da Home; Kognis (só hero) entra nessa regeneração. C3 (auditoria final) espera isso.
 - **D26 (02/11)** Frente de marca (B9, `docs/po/briefs/b9-marca.md`) **PAUSADA** por decisão do dono: ele já aprovou a Home e o escopo do brief (marca em tudo, inclusive Home) foi grande demais. B9 foi iniciado e o que ele deixou sem commit em `apps/site` foi revertido pela sessão que atende o dono (backup fora do repo: `b9-backup.patch` e `b9-home-marca.module.css`). **A Home não é mais tocada.** Proibido: iniciar novos devs de visual e espalhar tokens globais (um `--color-limestone` global mudaria todas as páginas). Se o dono retomar, será por pedido dele, **uma página interna por vez**, com antes/depois mostrado a ele **antes** de commitar. `apps/admin` e `apps/api` são de outra frente: não tocar. Fica valendo D23-D25 e o restante do plano (cookies, Blog, C3) sem novo código de visual até ele pedir.
 - **D27 (02/11)** Dono decidiu, sem mais perguntas a ele: numerais 01/02/03 ficam **removidos** (marcadores vieram da Carol, D17); depoimentos novos da Home **ficam** (tudo veio da Carol, commit `1a7a31c`); CTAs repetidos ficam. C3 (baseline regenerada + auditoria final) em andamento na sessão de baseline. Servidores locais 3000/5173/8080 não reiniciar; API local aponta ao banco remoto: só leitura.
+
+## 11. Triagem da revisão externa e do Brand Guide (02/11)
+
+Fontes: `docs/po/design/marca/revisao-site.txt` e `brand-guide.txt`. Critério: só design/UI, copy intocável. Estado conferido por `grep` nos CSS e nos relatórios (não por captura nova): 🟡 onde só li o código. **Frente de marca pausada (D26): nada daqui entra sem o dono pedir, uma página interna por vez, antes/depois a ele antes do commit.**
+
+| Item da revisão | Estado hoje | Classe |
+|---|---|---|
+| Tokens Imperial `#28183B`, Ink `#19171B`, Aubergine `#46304F` | já são variáveis do site (14, 8 e 1 usos nos CSS) | já feito |
+| Hellenic Gold `#A88A58` pontual | 4 usos soltos nos CSS, sem papel de token | a fazer (pequeno) |
+| Terracota `#B7654D` só como apoio | cor primária de botão, eyebrow e links (~25 usos de `#b6644d`; é a mesma cor da Home aprovada) | precisa de decisão do dono (ligada a D20, contraste do botão 4,27:1) |
+| Fundo Limestone `#F1ECE4` no lugar do branco | não usado; páginas internas em branco/`#f9f8f7` | precisa de decisão do dono (token global mudaria todas as páginas; D26 proíbe espalhar) |
+| Seções escuras em Imperial em vez de preto (rodapé, faixas, linha do tempo) | faixas e rodapé em preto `#111` | a fazer por página; **conflito**: dono elogiou "os detalhes em preto" no Advisory (D12). Perguntar antes de trocar |
+| Fonte Kepler Std + Acumin | `globals.css` já declara `--font-display` Fraunces (provisória) atrás de variável; Kepler é Adobe Fonts | decisão do dono: licença/acesso Adobe Fonts para trocar; Fraunces fica provisória |
+| Numerais em ouro serifa (i. ii. iii.) | D27: ficam removidos (dono) | decidido: não fazer; se voltarem, voltam assim |
+| Advisory: itens 01-05 não são sequência, usar lista com filete | marcadores já ocultos (D27); lista em filete já no Kit | já feito 🟡 |
+| Remover esfera de partículas, texto fantasma, textura pontilhada, faísca no botão, bolha de WhatsApp | estão na Home (`ProblemHologram`, botão do hero, bolha em todas as páginas) | **Home fora (D26)**; bolha do WhatsApp nas internas: precisa de decisão (muda o canal de contato visível) |
+| Greca em faixa cinza de largura total (faixa grega no fim do hero) | presente (ex.: `/kognis` hero) | a fazer por página, pequena e em ouro; precisa do dono |
+| Ritmo claro/escuro alternado | feito nas internas (faixa preta/branca/warm) | já feito |
+| Bloco de fechamento terracota 100% | existe (ex.: Advisory) | precisa de decisão do dono (D12: gostou dos detalhes escuros; o terracota inteiro é outra coisa) |
+| Frases-manifesto em serifa itálica | teto de tamanho feito (B0, D24); serifa itálica não | a fazer por página, depois da decisão de fonte |
+| Advisory: foto de banco → foto real do Comitê de IA | usa `metodo-reuniao.jpg`; `home/front-2-comite.jpg` existe no repo | a fazer, **trocar `src`/mídia editorial = decisão do dono** (regra 3.1 do checklist) |
+| Sobre nós: foto do capacete grande abrindo "O chão da operação" | é parte de um mosaico (D17: veio da Carol) | a fazer por página, sob pedido do dono |
+| "Parceira" e "Finalista" como selos, não números | `AnthropicPartnerBadge` existe na Home; na faixa de números do Sobre nós ainda aparecem como palavra grande 🟡 | a fazer, sob pedido do dono |
+| Diagnóstico: painel Imperial em vez de preto | B5 (9,0) já usa moldura warm/paper; sem painel escuro | já feito diferente; sem ação |
+| Diagnóstico: inverter a ordem dos passos | mexe em fluxo e em validação | **só sugerir ao dono**; não implementar |
+| Faixa de prova na 1ª dobra (Onde aplicamos / ensinamos) | já no painel do Diagnóstico; na Home não (fora) | Home fora; nas internas, sob pedido |
+
+**Mexem na copy da Carol (não aplicar; decisão do dono/Carol):** novo H1 e eyebrow do hero da Home; unificar CTAs (D22c: dono manteve os repetidos); trocar números ("10 mil / 64 / 500+" vs "170"); frase-assinatura invertida entre Home e Sobre nós; cards "DEPOIMENTO REAL" vazios e foto do André (D27: depoimentos novos ficam); dois nomes para o Diagnóstico ("Sessão de Diagnóstico Estratégico" na aba, "Diagnóstico operacional" no eyebrow).
+
+**Pendente do dono:** os dois áudios que a sessão que o atende não conseguiu ouvir; aviso de cookies (D18); cor do botão (D20); prints do Spectra.
