@@ -1,0 +1,29 @@
+--- ordem de Tab no passo 1
+A | outline:solid 2px
+Prefere falar direto? Iniciar  | outline:solid 2px
+Voltar ao site | outline:solid 2px
+name | outline:solid 2px
+email | outline:solid 2px
+--- Continuar por teclado com campos vazios
+foco: Continuar | outline:solid 2px
+erros: Informe seu nome e sobrenome. / Informe um e-mail corporativo válido. / Informe o WhatsApp com DDD (mínimo 10 dígitos).
+name aria-invalid: true | describedby: name-error
+foco: Continuar | outline:solid 2px
+passo 2: Sobre a sua operação | progressbar: 67
+foco: Voltar | outline:solid 2px
+voltar -> Seus dados de contato
+foco: Continuar | outline:solid 2px
+-> Sobre a sua operação
+foco: Continuar | outline:solid 2px
+passo 3: O que sua empresa busca hoje?
+--- objetivos por teclado
+Capacitar meu time em IA | outline:solid 2px
+pressed[0] após Space: true
+Acompanhar uma transformação e | outline:solid 2px
+selecionados: 2
+challenge | outline:solid 2px
+foco: Solicitar diagnóstico | outline:solid 2px
+sucesso h2: Solicitação enviada com sucesso!
+dataLayer: [{"event":"lead_form_submitted","form_name":"diagnostico","lead_source":"site-pagina-diagnostico","goals":["Capacitar meu time em IA","Acompanhar uma transformação em andamento"],"team_size":"80"}]
+--- reduced motion
+animationName do passo: none

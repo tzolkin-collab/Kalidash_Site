@@ -1,0 +1,28 @@
+{
+ "mobile /diagnostico": {
+  "perf": 92,
+  "lcp": 3184,
+  "cls": 0,
+  "tbt": 119,
+  "fcp": 1061,
+  "ttfb": 3,
+  "js": 181,
+  "img": 0,
+  "font": 110,
+  "total": 346,
+  "lcpEl": "<p class=\"diagnostico-module__IW2j8a__stepDesc\">"
+ },
+ "desktop /diagnostico": {
+  "perf": 100,
+  "lcp": 580,
+  "cls": 0,
+  "tbt": 0,
+  "fcp": 291,
+  "ttfb": 3,
+  "js": 181,
+  "img": 0,
+  "font": 110,
+  "total": 346,
+  "lcpEl": "<h1 class=\"diagnostico-module__IW2j8a__editorialTitle\">"
+ }
+}
