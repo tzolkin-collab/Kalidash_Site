@@ -1,0 +1,41 @@
+{
+ "mobile /solucoes": {
+  "perf": 88,
+  "lcp": 3840,
+  "cls": 0,
+  "tbt": 64,
+  "fcp": 1213,
+  "ttfb": 4,
+  "js": 192,
+  "img": 283,
+  "font": 110,
+  "total": 688,
+  "lcpEl": "<img alt=\"\" fetchpriority=\"high\" width=\"1122\" height=\"1402\" decoding=\"async\" dat"
+ },
+ "mobile /spectra": {
+  "perf": 88,
+  "lcp": 3837,
+  "cls": 0,
+  "tbt": 33,
+  "fcp": 1209,
+  "ttfb": 3,
+  "js": 191,
+  "img": 150,
+  "font": 110,
+  "total": 553,
+  "lcpEl": "<img alt=\"Spectra AI visão computacional na operação\" fetchpriority=\"high\" width"
+ },
+ "mobile /kognis": {
+  "perf": 90,
+  "lcp": 3546,
+  "cls": 0,
+  "tbt": 54,
+  "fcp": 1215,
+  "ttfb": 4,
+  "js": 191,
+  "img": 64,
+  "font": 110,
+  "total": 467,
+  "lcpEl": "<img alt=\"\" fetchpriority=\"high\" width=\"1000\" height=\"1000\" decoding=\"async\" dat"
+ }
+}

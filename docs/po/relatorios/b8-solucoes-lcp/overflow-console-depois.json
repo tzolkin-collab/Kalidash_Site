@@ -1,0 +1,122 @@
+[
+ {
+  "w": 1440,
+  "route": "/solucoes",
+  "scrollWidth": 1430,
+  "clientWidth": 1430,
+  "overflow": false,
+  "wideEls": "div.SidebarMenu-module__lp7Inq__sheetInner | div.SidebarMenu-module__lp7Inq__topBar | a.SidebarMenu-module__lp7Inq__brandLink",
+  "h1Count": 1,
+  "console": []
+ },
+ {
+  "w": 1440,
+  "route": "/kognis",
+  "scrollWidth": 1430,
+  "clientWidth": 1430,
+  "overflow": false,
+  "wideEls": "div.SidebarMenu-module__lp7Inq__sheetInner | div.SidebarMenu-module__lp7Inq__topBar | a.SidebarMenu-module__lp7Inq__brandLink",
+  "h1Count": 1,
+  "console": []
+ },
+ {
+  "w": 1440,
+  "route": "/spectra",
+  "scrollWidth": 1430,
+  "clientWidth": 1430,
+  "overflow": false,
+  "wideEls": "div.SidebarMenu-module__lp7Inq__sheetInner | div.SidebarMenu-module__lp7Inq__topBar | a.SidebarMenu-module__lp7Inq__brandLink",
+  "h1Count": 1,
+  "console": []
+ },
+ {
+  "w": 1024,
+  "route": "/solucoes",
+  "scrollWidth": 1014,
+  "clientWidth": 1014,
+  "overflow": false,
+  "wideEls": "img.solucoes-module__XNDpcG__photo | div.SidebarMenu-module__lp7Inq__sheetInner | div.SidebarMenu-module__lp7Inq__topBar",
+  "h1Count": 1,
+  "console": []
+ },
+ {
+  "w": 1024,
+  "route": "/kognis",
+  "scrollWidth": 1014,
+  "clientWidth": 1014,
+  "overflow": false,
+  "wideEls": "div.SidebarMenu-module__lp7Inq__sheetInner | div.SidebarMenu-module__lp7Inq__topBar | a.SidebarMenu-module__lp7Inq__brandLink",
+  "h1Count": 1,
+  "console": []
+ },
+ {
+  "w": 1024,
+  "route": "/spectra",
+  "scrollWidth": 1014,
+  "clientWidth": 1014,
+  "overflow": false,
+  "wideEls": "div.SidebarMenu-module__lp7Inq__sheetInner | div.SidebarMenu-module__lp7Inq__topBar | a.SidebarMenu-module__lp7Inq__brandLink",
+  "h1Count": 1,
+  "console": []
+ },
+ {
+  "w": 768,
+  "route": "/solucoes",
+  "scrollWidth": 758,
+  "clientWidth": 758,
+  "overflow": false,
+  "wideEls": "div.SidebarMenu-module__lp7Inq__sheetInner | div.SidebarMenu-module__lp7Inq__topBar | a.SidebarMenu-module__lp7Inq__brandLink",
+  "h1Count": 1,
+  "console": []
+ },
+ {
+  "w": 768,
+  "route": "/kognis",
+  "scrollWidth": 758,
+  "clientWidth": 758,
+  "overflow": false,
+  "wideEls": "div.SidebarMenu-module__lp7Inq__sheetInner | div.SidebarMenu-module__lp7Inq__topBar | a.SidebarMenu-module__lp7Inq__brandLink",
+  "h1Count": 1,
+  "console": []
+ },
+ {
+  "w": 768,
+  "route": "/spectra",
+  "scrollWidth": 758,
+  "clientWidth": 758,
+  "overflow": false,
+  "wideEls": "div.SidebarMenu-module__lp7Inq__sheetInner | div.SidebarMenu-module__lp7Inq__topBar | a.SidebarMenu-module__lp7Inq__brandLink",
+  "h1Count": 1,
+  "console": []
+ },
+ {
+  "w": 390,
+  "route": "/solucoes",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "overflow": false,
+  "wideEls": "div.SidebarMenu-module__lp7Inq__sheetInner | div.SidebarMenu-module__lp7Inq__topBar | a.SidebarMenu-module__lp7Inq__brandLink",
+  "h1Count": 1,
+  "console": []
+ },
+ {
+  "w": 390,
+  "route": "/kognis",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "overflow": false,
+  "wideEls": "div.SidebarMenu-module__lp7Inq__sheetInner | div.SidebarMenu-module__lp7Inq__topBar | a.SidebarMenu-module__lp7Inq__brandLink",
+  "h1Count": 1,
+  "console": []
+ },
+ {
+  "w": 390,
+  "route": "/spectra",
+  "scrollWidth": 390,
+  "clientWidth": 390,
+  "overflow": false,
+  "wideEls": "div.SidebarMenu-module__lp7Inq__sheetInner | div.SidebarMenu-module__lp7Inq__topBar | a.SidebarMenu-module__lp7Inq__brandLink",
+  "h1Count": 1,
+  "console": []
+ }
+]

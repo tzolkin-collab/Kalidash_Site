@@ -1,0 +1,80 @@
+{
+ "mobile /solucoes": {
+  "perf": 89,
+  "lcp": 3691,
+  "cls": 0,
+  "tbt": 81,
+  "fcp": 1225,
+  "ttfb": 8,
+  "js": 191,
+  "img": 283,
+  "font": 110,
+  "total": 690,
+  "lcpEl": "<img alt=\"\" width=\"1122\" height=\"1402\" decoding=\"async\" data-nimg=\"1\" style=\"col"
+ },
+ "mobile /spectra": {
+  "perf": 90,
+  "lcp": 3535,
+  "cls": 0,
+  "tbt": 89,
+  "fcp": 1218,
+  "ttfb": 6,
+  "js": 190,
+  "img": 150,
+  "font": 110,
+  "total": 555,
+  "lcpEl": "<img alt=\"Spectra AI visão computacional na operação\" width=\"893\" height=\"1600\" "
+ },
+ "mobile /kognis": {
+  "perf": 91,
+  "lcp": 3478,
+  "cls": 0,
+  "tbt": 91,
+  "fcp": 1219,
+  "ttfb": 5,
+  "js": 190,
+  "img": 60,
+  "font": 110,
+  "total": 471,
+  "lcpEl": "<img alt=\"\" width=\"1000\" height=\"1000\" decoding=\"async\" data-nimg=\"1\" style=\"col"
+ },
+ "desktop /solucoes": {
+  "perf": 100,
+  "lcp": 784,
+  "cls": 0,
+  "tbt": 3,
+  "fcp": 341,
+  "ttfb": 7,
+  "js": 191,
+  "img": 248,
+  "font": 110,
+  "total": 693,
+  "lcpEl": "<img alt=\"\" width=\"1122\" height=\"1402\" decoding=\"async\" data-nimg=\"1\" style=\"col"
+ },
+ "desktop /spectra": {
+  "perf": 100,
+  "lcp": 737,
+  "cls": 0,
+  "tbt": 4,
+  "fcp": 337,
+  "ttfb": 5,
+  "js": 191,
+  "img": 124,
+  "font": 110,
+  "total": 568,
+  "lcpEl": "<img alt=\"Spectra AI visão computacional na operação\" width=\"893\" height=\"1600\" "
+ },
+ "desktop /kognis": {
+  "perf": 100,
+  "lcp": 716,
+  "cls": 0,
+  "tbt": 2,
+  "fcp": 339,
+  "ttfb": 6,
+  "js": 191,
+  "img": 52,
+  "font": 110,
+  "total": 501,
+  "lcpEl": "<img alt=\"\" width=\"1000\" height=\"1000\" decoding=\"async\" data-nimg=\"1\" style=\"col"
+ }
+}
