@@ -1,0 +1,257 @@
+Identidade Visual                                                                                                                        2026
+
+                   Brand guide
+Identidade Visual  2026
+
+Introdução         Este manual reúne os principais aspectos da personalidade da marca
+                   Kalidash, apresentando diretrizes essenciais sobre sua identidade visual e
+                   orientações para a correta aplicação da marca. Ao longo do material, são
+                   demonstrados princípios, usos recomendados e exemplos de aplicação em
+                   diferentes superfícies e materiais gráficos.
+
+
+
+                   O objetivo deste documento é garantir a consistência da comunicação da
+                   marca e alinhar o entendimento entre todos os profissionais envolvidos em
+                   sua utilização.
+
+
+
+                   Observação: o arquivo em PDF foi desenvolvido para visualização em tela,
+                   podendo apresentar variações de cor e proporção quando impresso. Toda e
+                   qualquer peça desenvolvida a partir deste manual deve ser previamente
+                   aprovada pelos responsáveis pela marca.
+Identidade Visual                                                                                                                   2026
+
+ Inteligência      A Kalidash acredita que tecnologia, sozinha, não transforma uma
+ humana
+           operação. É preciso pensamento para entender, método para
+ transformada      direcionar e capacidade para fazer acontecer.
+
+
+ em ação.
+                   Por isso, sua identidade nasce do encontro entre conhecimento e
+                   execução. O universo clássico representa repertório, reflexão e
+                   pensamento crítico; a geometria traduz método, estrutura e precisão;
+                   e a tecnologia aparece como ferramenta, nunca como protagonista.
+
+
+
+                   A Kalidash não celebra a IA pela IA.
+                   Ela celebra a inteligência de saber o que fazer com ela.
+Identidade Visual                          2026
+
+O logotipo         1.0
+Identidade Visual                      2026
+
+Logo principal
+
+Sempre priorize a versão principal da
+Logo, em todos os pontos de contato.
+Identidade Visual                                                          2026
+
+    Fundos de cor
+
+                  Para aplicar a marca sobre fundos coloridos, dê
+                  preferência aos fundos roxos e ao gold institucional.
+                  Ao aplicar a marca nas outras cores da paleta, priorize
+                  sempre os contrastes recomendados.
+Identidade Visual                                               2026
+
+    Fundos
+    fotográficos
+
+                  Identifique as áreas com menos ruído para
+                  posicionar a Marca. Selecione a versão mais
+                  apropriada para obter o melhor contraste com
+                  a fotografia, garantindo a legibilidade.
+                  Quando o fundo não oferece legibilidade
+                  suficiente para a Marca, utilize o gradiente
+                  com opacidade entre 10% (mínimo) e 40%
+                  (máximo), como no exemplo ao lado.
+Identidade Visual                                                                                                                                                              2026
+
+Área de                                                                                                                                  X
+proteção                                                                                                                                                  X
+
+Para assegurar a legibilidade e a integridade  X                                                                                         X
+
+da Logo, devemos sempre manter um
+
+espaçamento mínimo ao seu redor,
+
+conhecido como área de arejamento.
+
+Nenhum elemento gráfico deve invadir esse
+espaço, representado por "X". Esse arejamento
+se aplica a todas as versões da Logo.
+
+                                                                                                                                      X
+Identidade Visual                                        2026
+
+    ícone
+
+                  Em meios digitais, recomendamos
+                  manter a área de arejamento para
+                  proteger a legibilidade em avatares e
+                  ícones de aplicativos.
+                  Nenhum elemento gráfico deve
+                  invadir esse espaço.
+Identidade Visual                                          100px                                                2026
+                                                                  1,5cm
+    Tamanho
+    mínimo
+
+                  Para manter a legibilidade da Logo, é
+                  essencial respeitar seu tamanho
+                  mínimo. Fatores como processo de
+                  impressão, suporte, matriz, cobertura
+                  de tinta e impressão em CMYK ou
+                  Pantone® influenciam o resultado final.
+
+                  A seguir, sugerimos as dimensões
+                  mínimas para cada processo de
+                  reprodução:
+
+                                                                  Atenção: as imagens acima não correspondem ao tamanho real.
+Identidade Visual                                                                                                                                                             2026
+
+    Usos                                                                                                   Não aplique degradês na marca    Não aplique outra cor na marca
+    incorretos
+                                                                                                           Não aplique a marca na diagonal  Kalidash
+                  É crucial que a Logo seja aplicada de
+                  forma consistente para garantir sua                                                                                       Não altere a tipografia da marca
+                  personalidade, força e visibilidade na
+                  comunicação. Alguns exemplos de
+                  aplicações incorretas:
+
+                                                                                     Não distorça a marca
+
+                                                                                 Não usar sombra na marca
+Identidade Visual                                                                                                                                           2026
+
+   Paleta                                                                                                               PRIMARY BRAND COLOR
+
+              Kalidash Imperial
+
+                                                                                       KALIDASH IMPERIAL
+
+              Cor principal da marca e base da identidade visual. Deve ser priorizada em fundos, capas e peças          #28183B
+              institucionais, criando reconhecimento, profundidade e consistência.
+
+
+              Limestone
+                                                                                                Primary Surface
+
+    CORE NEUTRAL
+              Principal fundo claro da Kalidash. Deve substituir o branco sempre que possível, trazendo leveza e
+              sofisticação para apresentações, documentos, site e materiais editoriais.
+
+                               LIMESTONE            INK
+              Ink
+                                                                                                      #F1ECE4
+              Neutro escuro da marca. Deve ser utilizado principalmente em textos, informações, interfaces e                                 #19171B
+              elementos que exigem alto contraste e legibilidade.
+
+
+              Aubergine                                                                                                 SECONDARY            SIGNATURE      Human /
+              Cor secundária do universo roxo. Deve ser utilizada em cards, áreas de apoio, gráficos e superfícies                           ACCENT
+
+       Praxis
+              secundárias, sempre complementando o Imperial sem competir com ele.
+
+                                     AUBERGINE                           Accent
+
+
+              Hellenic Gold
+
+                                                                                           #46304F              HELLENIC GOLD
+              Cor de assinatura da Kalidash. Deve aparecer de forma pontual em números, detalhes, linhas,                                    #A88A58        TERRACOTTA
+              símbolos e informações de destaque. Seu uso deve ser restrito para preservar seu valor e sofisticação.
+
+                                      #B7654D
+              Terracotta
+              Cor de apoio ligada à ação, ao humano e à transformação. Deve ser utilizada em destaques editoriais,
+              processos, conteúdos sobre pessoas, workshops e elementos relacionados à execução.
+Identidade Visual                                                        Aa  Aa                                       2026
+
+    Acessibilidade                                                               Aa
+
+                  É importante garantir a legibilidade dos textos sobre
+                  cada uma das cores da paleta. Veja abaixo quais
+                  combinações funcionam e quais devem ser evitadas.
+
+                      Aa
+
+Aa Aa Aa Aa
+Identidade Visual                                                                                                                                                                                      2026
+
+    Tipografia                                                          Kepler Std
+
+                  A fonte "Kepler" é ideal para títulos por seu design  abcdefghijklmnopqrstuvxyz
+
+                  limpo, moderno e altamente legível. Suas formas       0123456789
+                  geométricas transmitem profissionalismo e
+                  confiança, garantindo que as mensagens sejam          Kepler Italic
+                  destacadas de forma clara e impactante.
+                                                                        abcdefghijklmnopqrstuvxyz
+
+                  Além disso, sua versatilidade permite que ela se      0123456789
+                  adapte a diferentes contextos, reforçando a
+                  identidade visual e posicionando a marca como         Kepler Semi Bold
+                  inovadora e à frente das tendências. 
+
+                  Os pesos usados para contraste são Light e Semi
+                  Bold, a fim de realçar o texto mantendo a
+                  elegância e leveza
+Identidade Visual                                                                                                                                                                                           2026
+
+    Tipografia                                                          Acumin
+
+                  A fonte Acumin é a tipografia secundária da           abcdefghijklmnopqrstuvxyz
+
+                  marca para materiais digitais. De estilo sans-serif,  0123456789
+                  apresenta um desenho limpo, contemporâneo e
+                  elegante, garantindo excelente legibilidade em        Acumin Italic
+                  diferentes tamanhos e resoluções de tela.
+
+                  Sua estrutura geométrica e proporções                 abcdefghijklmnopqrstuvxyz
+
+                  equilibradas contribuem para uma comunicação          0123456789
+                  clara, moderna e sofisticada, refletindo os valores
+                  da marca e reforçando sua personalidade visual.       Acumin Semi Bold
+
+                  A utilização consistente da Acumin fortalece o
+                  reconhecimento da identidade e assegura
+                  unidade estética em todos os pontos de contato
+                  digitais da marca.
+Identidade Visual                          2026
+
+elementos          2.0
+Identidade Visual  2026
+
+Ícones
+Identidade Visual    2026
+
+Elementos culturais
+Identidade Visual    2026
+
+Elementos culturais
+Identidade Visual                                                                                                                                2026
+
+                   A IA executa.
+                   A inteligência decide.
+Identidade Visual                                            2026
+
+Sócrates           Ainda assim,     Automação sem
+                          fazia as  estratégia só
+não tinha                           acelera o caos.
+ChatGPT.              perguntas
+                          certas.   Estrutura, inteligência
+                                    e transformação para
+                                    operações reais.
+Identidade Visual  2026
+Identidade Visual                                                                                                                        2026
+
+                   Brand guide
+

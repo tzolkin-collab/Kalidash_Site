@@ -1,0 +1,318 @@
+
+Revisão do site Kalidash
+Kalidash · revisão de UX, identidade e copy · nov 2026
+O site tem a estrutura certa e a roupa errada.
+Leitura crítica de kalidash-site-one.vercel.app contra o Brand Guide 2026 e o Guia de Estratégia de Marca, com mockups de como cada seção ficaria vestida com a identidade de verdade.
+    Vocês estão no caminho certo na 
+arquitetura
+ e na 
+voz
+. O que está errado é a pele: hoje o site parece uma startup de SaaS em 2024, e o brand guide descreve uma casa de consultoria com repertório clássico.
+A ordem das seções (problema → três frentes → quem somos → prova → case → depoimentos → diagnóstico) é correta para B2B consultivo. Frases como "A gente vive o que ensina. E ensina o que vive." e "Não aprendemos a transformar operações olhando de fora" são exatamente o tom do posicionamento. O problema é que a tipografia, a cor, os fundos e os ornamentos contradizem tudo isso.
+Por que parece startup
+Quatro decisões visuais, somadas, geram essa leitura. Nenhuma delas vem do brand guide.
+1
+O título é Inter, não Kepler 
+alta
+O H1 está em 
+Inter Medium, 74px, preto sobre branco
+. Essa é literalmente a combinação padrão de Linear, Vercel, Notion e de 80% dos sites de IA. O guia define 
+Kepler Std
+ para títulos (serif, versaletes, pesos Light e Semi Bold) e 
+Acumin
+ para texto. A única serifa que aparece na página é o logotipo, que por isso parece colado de outro site.
+Há ainda três famílias misturadas: Inter nos títulos, Archivo na navegação e uma terceira sans no corpo. Uma marca de consultoria com pretensão editorial pede duas vozes claras: serif para pensar, sans para informar.
+2
+A hierarquia de cores está invertida 
+alta
+O guia é explícito: 
+Kalidash Imperial
+ (#28183B) é a cor principal e "deve ser priorizada em fundos, capas e peças institucionais"; 
+Limestone
+ (#F1ECE4) "deve substituir o branco sempre que possível"; 
+Hellenic Gold
+ é a assinatura, usada com restrição; 
+Terracotta
+ é cor de apoio para o humano e a execução.
+No site: o fundo é branco puro, o roxo aparece só no blob atrás da estátua e o Terracotta virou a cor de tudo (botão principal, eyebrows, links, o bloco inteiro de "O problema"). O ouro, que é a assinatura da marca, não aparece uma vez sequer. O rodapé é preto, não Imperial.
+Cor
+O que o guide pede
+O que o site faz
+Imperial
+Fundos, capas, institucional
+Um blob decorativo
+Limestone
+Substituir o branco
+Ausente; fundo #FFFFFF
+Hellenic Gold
+Números, linhas, detalhes de destaque
+Ausente
+Terracotta
+Apoio pontual: pessoas, workshops, execução
+Cor primária de CTA e seção
+Ink
+Texto e interface
+Rodapé preto chapado
+3
+Ornamentos de IA genérica 
+média
+Esfera de partículas roxa, texto fantasma "Inteligência Empresarial" atrás dos cards, textura pontilhada nos cards, ícone de faísca ✳ no botão "Preparar minha operação", bolha verde do WhatsApp flutuando sobre tudo. São os clichês visuais que o próprio guia de posicionamento chama de inimigos: "hype da IA", "conteúdo raso", "gurus". A marca se diferencia justamente por não parecer isso.
+As gregas (meandro e chevrons) estão certas como elemento cultural, mas aplicadas como faixa cinza de largura total parecem clip-art. No guide elas aparecem pequenas, em ouro, como detalhe de canto.
+Hoje: bloco terracota, esfera de partículas e texto fantasma. Três linguagens visuais na mesma dobra.
+4
+O hero não entrega a tese 
+alta
+"Prepare sua operação para a era dos agentes de IA" poderia ser o título de qualquer fornecedor de automação. Fala de tecnologia, não de inteligência humana. A PUV da marca é o oposto do mercado: "enquanto vendem IA pra substituir gente, a Kalidash devolve às pessoas a capacidade de pensar". Essa tensão não aparece na primeira dobra. O eyebrow "Aceleradora de eficiência operacional" ainda reforça vocabulário de startup (aceleradora).
+A estátua do guide foi desenhada para fundos escuros. Recortada sobre branco com um blob roxo atrás, ela vira adesivo. No guide ela é atmosfera; aqui é ilustração.
+Hoje: Inter 74px preto, fundo branco, estátua recortada. Nada aqui é Kalidash além do logo.
+Hierarquia e conversão
+Separando do visual, o fluxo de persuasão tem três falhas que custam conversão para o ICP (diretor de indústria, gerente de operação, TI).
+5
+A prova mais forte está escondida 
+alta
+Logo abaixo do hero aparece uma faixa de logos com Control iD, 3DLAB, NEON, Arquiteto de Bolso, Spark. São empresas menores que contradizem a promessa "operações com mais de 500 pessoas". 
+ArcelorMittal, CBA, Sicoob e Cooxupé
+, os cases que o guia chama de "anos de entrega validada", aparecem só em texto, na metade da página, em tamanho 20px.
+Para um diretor desconfiado de fornecedor, esses quatro nomes são o argumento. Eles precisam estar na primeira dobra, ao lado das escolas onde vocês ensinam (Conquer, Xperiun, Rocketseat). A "autoridade dupla" é o diferencial número 1 do guia e o site não a mostra junta em lugar nenhum.
+Hoje: a primeira prova social que o visitante vê são logos cinzas de empresas pequenas entre duas gregas de largura total.
+6
+Cinco CTAs com cinco verbos 
+média
+"Diagnóstico →" no menu, "Preparar minha operação ✳" no hero, "Fale com a Kalidash" no meio, "Solicitar diagnóstico" e "Conversar no WhatsApp" no fim. Cada um pede uma ação diferente. O guia diz que Capacitação & Cultura é a porta de entrada e que o diagnóstico tem "valor imediato". Então a ação é uma só: 
+pedir o diagnóstico
+. Tudo o mais é link secundário.
+As estatísticas também confundem: "170 operações atendidas" e "64 projetos executados" parecem se contradizer. Melhor: 10 mil pessoas capacitadas · 64 projetos entregues · operações de 500 a 10 mil pessoas.
+7
+Sem ritmo de página 
+média
+Toda seção é branca, com título grande à esquerda e texto à direita. Depois de três dobras o olho para de distinguir o que importa. O guide tem dois mundos (Imperial escuro e Limestone claro) e eles precisam alternar: a página escurece quando fala da tese e da convicção, clareia quando fala de método e prova. Cards com "DEPOIMENTO REAL" vazios e uma foto de depoimento que parece banco de imagem (André) tiram credibilidade justamente na seção de prova.
+Como ficaria
+Mockups das cinco seções que mais mudam. Fraunces substitui Kepler aqui porque Kepler é fonte Adobe; em produção use a própria Kepler via Adobe Fonts. Os quadros tracejados marcam onde entra a fotografia da estátua já existente no guide.
+Hero · hoje
+Hero · proposta
+K
+Kalidash
+Para empresas
+Método
+Cases
+Sobre
+Pedir diagnóstico
+Inteligência aplicada à operação
+A IA executa.
+A inteligência 
+decide.
+Capacitamos o time, estruturamos a governança e executamos projetos de IA em operações com mais de 500 pessoas. O resultado fica na empresa, não no fornecedor.
+Pedir um diagnóstico
+Ver como trabalhamos
+Onde aplicamos 
+ArcelorMittal · CBA · Sicoob · Cooxupé
+foto da estátua
+sobre Imperial
+(já existe no guide)
+O que mudou:
+ fundo Imperial em vez de branco; serif no título com uma palavra em itálico dourado (a assinatura "decide."); a tese da marca em vez de uma promessa de tecnologia; um único CTA em Hellenic Gold; os quatro cases pesados já na primeira dobra; geometria em linha fina ouro no lugar de blob e partículas.
+Faixa de prova · hoje
+Logos cinzas de empresas pequenas, gregas de largura total, números sem contexto.
+Faixa de prova · proposta
+Onde aplicamos
+ArcelorMittal
+·
+CBA
+·
+Sicoob
+·
+Cooxupé
+Onde ensinamos
+Conquer
+·
+Xperiun
+·
+Rocketseat
+·
+Tera
+10 mil
+pessoas capacitadas
+64
+projetos entregues
+500+
+pessoas por operação
+A "autoridade dupla" (quem executa e quem ensina) lado a lado, em serif, sobre Limestone. Os logos pequenos vão para a página de cases.
+O problema · hoje
+Bloco terracota, esfera de partículas, texto fantasma e três cards com textura.
+O problema · proposta
+O diagnóstico
+Ferramenta nova não resolve. O que trava é o 
+jeito de trabalhar.
+Quando pessoas, processos e tecnologia andam em ritmos diferentes, a execução trava e as decisões demoram. Reconhece algum destes sintomas?
+Trabalho manual
+Tarefas repetitivas que consomem tempo e capacidade do time que mais entende da operação.
+IA superficial
+Ferramentas liberadas, contas pessoais, pouca conexão com os processos que realmente pesam.
+Operação desconectada
+TI apagando incêndio, áreas pedindo agilidade, diretoria cobrando resultado.
+Limestone, serif, três colunas separadas por filetes em vez de cards. O Terracotta sobrevive só na palavra que importa. Sem textura, sem partícula, sem placeholder vazio.
+Três frentes · hoje
+O QUE FAZEMOS
+Treinamento, governança e execução em IA. Três frentes, um mesmo objetivo.
+AI CULTURE
+Prepare seu time para uma nova forma de trabalhar.
+Programa de treinamento corporativo…
+Conheça os treinamentos →
+Três blocos brancos idênticos e longos (foto + texto), sem indicar que são uma sequência e que a porta de entrada é a capacitação.
+Três frentes · proposta
+Como trabalhamos
+Três frentes, na ordem em que a transformação acontece.
+Porta de entrada
+i.
+Capacitação & Cultura
+O time aprende a lógica por trás da IA e passa a enxergar melhorias por conta própria. O diagnóstico do processo já sai daqui.
+Para quem liberou ferramentas e a rotina não mudou.
+Ver treinamentos
+ii.
+Advisory
+Acompanhamos a liderança para priorizar, decidir onde investir, medir e manter a IA conectada ao negócio, com governança.
+Para lideranças com muitas ideias e pouca clareza do que vem primeiro.
+Ver advisory
+iii.
+Execução
+Quando falta braço interno, entramos na arquitetura da TI e entregamos o projeto pronto para rodar, no prazo.
+Para quem já sabe o que fazer e precisa de quem faça.
+Ver execução
+Seção escura (a página precisa alternar). Numeração romana porque aqui a ordem é informação: a jornada do cliente. A primeira frente é destacada como porta de entrada, exatamente como o guia de posicionamento define.
+Diagnóstico · hoje
+DIAGNÓSTICO
+Existe uma oportunidade de eficiência na sua operação.
+Conte um pouco sobre o momento da sua empresa…
+Solicitar diagnóstico
+Conversar no WhatsApp →
+Dois botões do mesmo peso, verbos diferentes, mais a bolha verde flutuante. Três saídas competindo.
+Diagnóstico · proposta
+Diagnóstico
+Antes de automatizar, 
+é preciso entender.
+Conte o momento da sua operação. Em uma conversa de 45 minutos com um dos sócios, mapeamos onde está o ganho de eficiência e se faz sentido seguir. Sem proposta antes de entender o problema.
+Nome e empresa
+E-mail corporativo
+Tamanho da operação
+Pedir o diagnóstico
+Prefere falar agora? 
+WhatsApp comercial
+Um botão só, em Imperial. WhatsApp vira link de texto. O título usa uma frase que já existe no guide ("antes de automatizar, é preciso entender") e o texto promete o que o guia valoriza: acesso direto aos sócios.
+Páginas internas
+AI Culture, Advisory, Execução, Sobre nós e o formulário de Diagnóstico. O quadro geral: a copy das internas é melhor que a da home, e algumas das provas mais fortes do site estão escondidas aqui dentro. Visualmente, as cinco páginas repetem o mesmo molde da home, com os mesmos problemas de tipografia e cor, mais dois padrões próprios que vale corrigir.
+8
+O molde repetido: arco, frase gigante, linha do tempo preta, bloco terracota 
+média
+Toda página de serviço segue a mesma sequência: hero com foto em arco → frase gigante em Inter a 70px → seção preta com linha do tempo "01 02 03 04" em números salmão → bloco terracota de fechamento. Consistência é boa, mas aqui ela vira template de SaaS: a linha do tempo com bolinhas é o "How it works" de qualquer landing page de produto.
+O arco na foto é um aceno classicista correto e pode ficar. A seção escura deve ser 
+Imperial
+, não preto, e os números devem ser 
+Hellenic Gold em serif
+ (i. ii. iii.), que é como o guide trata numeração. O bloco de fechamento terracota é a pior aplicação de cor do site: 100% da tela na cor que o guide define como apoio pontual.
+Execução: a mesma linha do tempo aparece em AI Culture (4 passos), Advisory (3 passos) e Execução (4 passos). Preto em vez de Imperial, salmão em vez de ouro.
+9
+As frases gigantes são o lugar da serifa 
+alta
+Cada interna tem um "manifesto" de uma frase em tamanho enorme: "Nosso objetivo é criar capacidade dentro da empresa, não ensinar mais uma ferramenta." · "Não entregamos um plano. Acompanhamos o que acontece depois dele." · "É aí que a Kalidash entra." · "Nós ensinamos o que vivemos. E vivemos o que ensinamos." São os melhores momentos de marca do site inteiro, e em Inter leem como keynote da Apple. Em Kepler itálico sobre Limestone, leem como convicção de quem tem repertório. É a troca de maior retorno por esforço nas internas.
+Detalhe: a frase-assinatura aparece invertida. Na home é "A gente vive o que ensina. E ensina o que vive."; em Sobre nós é "Nós ensinamos o que vivemos. E vivemos o que ensinamos." Escolham uma e usem em todo lugar; é slogan, não parágrafo.
+AI Culture
+A página mais bem estruturada do site: especificações concretas já no hero (turmas a partir de 12, online ou presencial), método em 4 passos, dois formatos, fechamento.
+Funciona:
+ "Não basta aprender IA. Seu time precisa saber o que fazer com ela." é o melhor H1 do site e deveria inspirar o da home. "O treinamento termina. A capacidade fica." e "O resultado não aparece no certificado. Aparece no trabalho." são a PUV em uma linha. Os dois formatos (In Company e Experiências) com ficha técnica em tabela é o formato certo para gerente que precisa defender orçamento internamente.
+Falta:
+ a página fala do método e não mostra o resultado. Um depoimento de aluno (o do Daniel Alves, da DHL, que está na home) e uma foto de turma dentro de empresa resolvem. A seção "Por que capacitar?" cita ChatGPT, Copilot e Gemini pelo nome; bom, concreto, mantenham.
+Advisory
+A única foto de banco de imagens em um site que tem fotos reais. Ela quebra a credibilidade que o resto da página constrói.
+Funciona:
+ é a melhor copy do site. "A estratégia foi definida. E agora?" nomeia a dor do diretor com precisão. "Três rituais que mantêm a IA na agenda da diretoria" e "Comitê de IA" transformam consultoria em algo tangível, com entregáveis listados (painel, relatório mensal, roadmap trimestral). Tem "Para quem é", FAQ e link cruzado para AI Culture ("Ainda está começando?"). E o CTA 
+"Conversar com um sócio"
+ é o melhor do site: entrega o diferencial nº 5 do guia (acesso direto aos sócios) na própria ação.
+Falta:
+ trocar a foto de banco por uma foto real do Comitê de IA (a do quadro "Comitê de IA" que está na home serve). Os cinco itens "Questionamos prioridades / Estruturamos decisões…" estão numerados 01–05 sem serem sequência; aqui a numeração não informa nada, basta uma lista com filete.
+Execução
+Funciona:
+ "Escopo, prazo e métricas definidos antes de começar" é o diferencial nº 6 do guia (prazo definido e cumprido) escrito para quem já se queimou com fornecedor. A lista "O que construímos" com exemplo concreto em cada item (agente que faz triagem de solicitações) é exatamente o que TI quer ler.
+A prova mais forte do site está só aqui:
+ o case CBA com 
+1.681 problemas registrados em 3 meses de piloto, 97% com encaminhamento definido, finalista do Prêmio Inovativos 2026
+. Esse número é mais persuasivo que "170 operações atendidas" e não aparece na home, que mostra o case sem o número. Promovam o número para a home e para a faixa de prova.
+Sobre nós
+A foto de capacete no chão de fábrica é o diferencial nº 3 do guia (ponte entre chão de fábrica e diretoria) em uma imagem. Está no meio de uma grade, com o mesmo peso de oito outras.
+Funciona:
+ "Já estivemos do seu lado da mesa." é um H1 excelente para o diretor desconfiado. A história em três capítulos (chão da operação → a Kalidash → hoje) está certa e curta. A seção "No que acreditamos" replica os valores do guia quase literalmente. A foto do time é real e boa.
+Falta:
+ é a página onde o universo clássico da marca mais caberia (é sobre repertório, formação, pensamento) e não há um elemento dele. Os fundadores aparecem em uma linha: "Fundada por César Germano (CEO) e Iago Braz (COO)". O guia diz que as marcas pessoais são o motor de aquisição; cada sócio merece um bloco com foto, trajetória em duas linhas (estagiário → liderança → sócio → fundador) e link para o LinkedIn, porque é lá que o diretor vai checar antes de responder. A foto de capacete deveria abrir o capítulo "O chão da operação" em tamanho grande, não dividir uma grade.
+"Parceira" e "Finalista" como se fossem números. A animação do contador também mostra valores intermediários diferentes dos da home.
+A faixa de números mistura quantidade com palavra: "+10 mil · 170 · Parceira · Finalista". Parceira Anthropic e Finalista Prêmio Inovativos são selos; mostrem como selos (logo pequeno + legenda), não como estatística. E confiram a consistência: a home diz 170 operações e 64 projetos, Sobre nós diz 170 operações; o Advisory não cita número nenhum.
+Diagnóstico
+A página mais próxima da marca em todo o site: painel escuro, logotipo em serif, prova social ao lado do formulário.
+Funciona:
+ fundo escuro, prova (onde aplicamos / onde ensinamos) ao lado do formulário, três passos curtos, saída alternativa para WhatsApp como link discreto em vez de bolha verde. É o modelo visual que as outras páginas deveriam seguir.
+Ajustes:
+ o painel é quase preto; deveria ser Imperial. O título ainda é Inter. Há dois nomes para a mesma coisa: "Sessão de Diagnóstico Estratégico" no título da aba e "Diagnóstico operacional" no eyebrow. E vale testar inverter a ordem dos passos: perguntar primeiro sobre a operação (setor, tamanho, momento) e só no fim pedir contato. Para o diretor desconfiado, dar contexto antes de dar o telefone é menos atrito; e as respostas já qualificam o lead antes da conversa.
+Os CTAs, página a página
+Página
+CTA hoje
+Proposta
+Home
+Preparar minha operação ✳ / Solicitar diagnóstico / Conversar no WhatsApp
+Pedir um diagnóstico
+AI Culture
+Solicitar proposta / Consultar disponibilidade
+Pedir uma proposta (In Company) · Consultar agenda (Experiências)
+Advisory
+Conversar com um sócio
+Manter. É o melhor do site.
+Execução
+Falar sobre o meu projeto
+Conversar com um sócio
+Sobre nós
+nenhum (só links para as frentes)
+Conversar com um sócio
+Menu
+Diagnóstico →
+Pedir um diagnóstico
+Regra simples: 
+a home e o menu vendem o diagnóstico
+ (porta de entrada de baixo risco); 
+as páginas de serviço vendem a conversa com o sócio
+ (o diferencial). Dois verbos no site inteiro, em vez de seis.
+Copy: o que manter e o que trocar
+Manter como está.
+ "A gente vive o que ensina. E ensina o que vive." · "Não aprendemos a transformar operações olhando de fora." · "Ferramenta nova não resolve. O que resolve é mudar o jeito de trabalhar." · "Primeiro entendemos. Depois construímos juntos." Essas frases são a marca falando. Promova-as para títulos.
+Hero · hoje
+Prepare sua operação para a era dos agentes de IA.
+Promessa de tecnologia. Qualquer fornecedor de automação assinaria. "Era dos agentes" é vocabulário de hype, o inimigo nº 1 do guia.
+Hero · opções
+A IA executa. A inteligência 
+decide.
+Já é o slogan do cartão de visita e do LinkedIn. Alternativas no mesmo tom: "Sua operação não precisa de mais gente. Precisa de gente trabalhando de forma inteligente." ou "IA que fica na empresa, não no fornecedor."
+Eyebrow · hoje
+ACELERADORA DE EFICIÊNCIA OPERACIONAL
+"Aceleradora" é palavra de ecossistema de startup.
+Eyebrow · proposta
+INTELIGÊNCIA APLICADA À OPERAÇÃO
+Ou "Capacitação, advisory e execução em IA para a economia real". Nomeia as três frentes e o público.
+CTA · hoje
+Preparar minha operação ✳
+Verbo vago, faísca de IA.
+CTA · proposta
+Pedir um diagnóstico
+O mesmo verbo no menu, no hero e no fim. Concreto, baixo risco para o diretor desconfiado, e é a porta de entrada que o guia define.
+Por onde começar
+Nada aqui exige refazer o site. É troca de tokens e reordenação de seções. Em ordem de impacto por esforço:
+Trocar as fontes e o fundo
+Kepler (Adobe Fonts) nos H1–H3, Acumin ou Archivo no corpo; fundo Limestone no lugar do branco; rodapé Imperial no lugar do preto. Um dia de trabalho e o site muda de categoria.
+Reescrever o hero com a tese
+Fundo Imperial, "A IA executa. A inteligência decide.", um CTA em ouro, os quatro cases pesados abaixo do botão. Estátua como fotografia atmosférica, não recorte.
+Reordenar a prova
+Faixa "Onde aplicamos / Onde ensinamos" logo após o hero. Logos pequenos migram para a página de cases. Corrigir as três estatísticas.
+Rebaixar o Terracotta e introduzir o ouro
+Terracotta só em destaques ligados a pessoas e execução. Hellenic Gold em números, filetes, eyebrows e no CTA principal do hero.
+Remover os ornamentos
+Esfera de partículas, texto fantasma, textura dos cards, faísca do botão, gregas de largura total. Manter uma grega pequena em ouro como assinatura de canto, como no guide.
+Um único CTA
+"Pedir um diagnóstico" em todos os pontos. WhatsApp vira link secundário dentro do formulário; a bolha verde some.
+Alternar claro e escuro
+Hero e Três Frentes em Imperial; Problema, Prova, Case e Diagnóstico em Limestone; "Quem somos" pode ser a seção com a fotografia grande dos sócios sobre Imperial.
+Fontes desta revisão: Brand Guide Kalidash 2026 (paleta, tipografia, fundos fotográficos, elementos culturais, aplicações), Guia de Estratégia de Marca e Posicionamento (PUV, diferenciais, inimigos da marca, ICP e personas, arquitetura de marca) e inspeção do site publicado em 2 de novembro de 2026.
