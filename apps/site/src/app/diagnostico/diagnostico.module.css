@@ -1,209 +1,255 @@
 /* ============================================================
-   KALIDASH — DIAGNÓSTICO (TELA PARTIDA & MULTI-STEP)
-   Layout dividido 50/50:
-   - Esquerda: Painel institucional/editorial com identidade forte (oculto no mobile).
-   - Direita: Fluxo direto de diagnóstico em 3 etapas com foco total na conversão.
+   KALIDASH — DIAGNÓSTICO
+   Moldura de duas colunas (warm | paper) separada por um filete.
+   Esquerda: confiança como tipo e tabela. Direita: um passo por vez.
+   Direção: docs/po/design/02-diagnostico.md. Tokens do sistema
+   (00-sistema.md) + os 2 acréscimos de campo/erro (tokens-d2d3.css).
+   Sem sombra, sem pílula, raio 4. Movimento só em opacity/transform.
    ============================================================ */
 
 .splitLayout {
-  position: relative;
-  display: flex;
-  min-height: 100vh;
-  width: 100%;
-  background: #ffffff;
-  color: #1a1622;
-  font-family: var(--font-source-sans), system-ui, -apple-system, sans-serif;
   --font-title: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --f-title: var(--font-title);
+  --f-body: var(--font-source-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --ink: #28183b;
   --accent: #b6644d;
   --accent-hover: #a1543e;
-  --ink: #28183b;
-  --ink-deep: #1a1025;
-  --surface-border: #e6e2dc;
-  --input-bg: #ffffff;
+
+  --c-paper: #fff;
+  --c-warm: #faf8f7;
+  --c-text-1: #0a0a0a;
+  --c-text-2: #3c373f;
+  --c-text-3: #6b6670;
+  --c-title: var(--ink);
+  --c-rule: #ececec;
+  --c-rule-strong: #d9d4d0;
+  --c-brand-text: #a4533c;
+  --c-error: #b42318;
+  --c-field-line: #8a8490;
+
+  --s-1: 8px;
+  --s-2: 16px;
+  --s-3: 24px;
+  --s-4: 32px;
+  --s-5: 48px;
+  --s-6: 64px;
+  --r-control: 4px;
+  --ease: cubic-bezier(0.33, 1, 0.68, 1);
+  --pad-x: clamp(24px, 5vw, 72px);
+
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  min-height: 100svh;
+  width: 100%;
+  background: var(--c-paper);
+  color: var(--c-text-1);
+  font-family: var(--f-body);
+  font-size: 18px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.splitLayout :where(h1, h2, p) {
+  margin: 0;
+}
+
+.splitLayout :where(button) {
+  font: inherit;
+}
+
+/* ---------- foco visível em todos os controles ---------- */
+.textInput:focus-visible,
+.textareaInput:focus-visible,
+.goalItem:focus-visible,
+.nextButton:focus-visible,
+.submitButton:focus-visible,
+.exitButton:focus-visible,
+.prevButton:focus-visible,
+.successHomeButton:focus-visible,
+.whatsappDirect:focus-visible,
+.editorialLogoLink:focus-visible,
+.mobileLogo:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
 }
 
 /* ============================================================
-   LADO ESQUERDO: Painel Editorial Institucional
+   COLUNA ESQUERDA — contexto (dar confiança antes de pedir dado)
    ============================================================ */
 
 .editorialPane {
-  flex: 0 0 44%;
-  width: 44%;
-  min-height: 100vh;
-  background: var(--ink-deep);
-  color: #ffffff;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  display: flex;
-  flex-direction: column;
-}
-
-.editorialContent {
-  width: 100%;
-  max-width: 540px;
-  margin: 0 auto;
-  padding: 48px 48px 40px;
+  background: var(--c-warm);
+  border-right: 1px solid var(--c-rule);
+  padding: clamp(32px, 4vw, 56px) clamp(32px, 5vw, 72px);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 100vh;
-  box-sizing: border-box;
+  gap: var(--s-6);
+  min-width: 0;
+}
+
+.editorialContent {
+  display: contents;
 }
 
 .brandRow {
   display: flex;
-  align-items: center;
 }
 
 .editorialLogoLink {
   display: inline-flex;
   align-items: center;
+  min-height: 44px;
   text-decoration: none;
-  opacity: 0.95;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.editorialLogoLink:hover {
-  opacity: 1;
-  transform: translateY(-1px);
 }
 
 .editorialBody {
-  margin: 40px 0;
+  max-width: 30rem;
 }
 
 .eyebrow {
-  display: inline-block;
-  font-family: var(--font-title);
-  font-size: 11px;
+  display: block;
+  font-family: var(--f-title);
+  font-size: 13px;
+  line-height: 18px;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #d97d64;
-  margin-bottom: 16px;
+  color: var(--c-brand-text);
 }
 
 .editorialTitle {
-  font-family: var(--font-title);
-  font-size: 34px;
-  line-height: 1.18;
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  color: #ffffff;
-  margin: 0 0 16px;
+  margin-top: var(--s-1);
+  font-family: var(--f-title);
+  font-size: clamp(30px, 3vw, 46px);
+  line-height: 1.06;
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  color: var(--c-title);
+  text-wrap: balance;
 }
 
 .editorialLead {
-  font-size: 16px;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.72);
-  margin: 0 0 32px;
+  margin-top: var(--s-3);
+  max-width: 40ch;
+  font-size: clamp(19px, 1.6vw, 22px);
+  line-height: 1.55;
+  color: var(--c-text-2);
 }
 
+/* frase-chave: hairline + tipo (sem barra lateral) */
 .quoteCard {
-  border-left: 3px solid var(--accent);
-  padding: 4px 0 4px 20px;
+  margin-top: var(--s-5);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--c-rule-strong);
 }
 
 .quoteText {
   display: block;
-  font-family: var(--font-title);
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1.35;
-  letter-spacing: -0.02em;
-  color: #ffffff;
-  margin-bottom: 6px;
+  font-family: var(--f-title);
+  font-size: clamp(20px, 1.7vw, 24px);
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  color: var(--c-title);
+  text-wrap: balance;
 }
 
 .quoteSub {
-  font-size: 14.5px;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.68);
-  margin: 0;
+  margin-top: var(--s-1);
+  max-width: 40ch;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--c-text-2);
 }
 
+/* prova como tabela ruled */
 .editorialFooter {
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  padding-top: 24px;
+  display: grid;
+  gap: var(--s-3);
 }
 
 .proofColumns {
   display: grid;
-  gap: 16px;
-  margin-bottom: 24px;
+  border-top: 1px solid var(--c-rule-strong);
+}
+
+.proofColumns > div {
+  display: grid;
+  gap: 4px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--c-rule);
 }
 
 .proofLabel {
   display: block;
-  font-family: var(--font-title);
-  font-size: 11px;
+  font-family: var(--f-title);
+  font-size: 13px;
+  line-height: 18px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #f0b39f;
-  margin-bottom: 4px;
+  color: var(--c-brand-text);
 }
 
 .proofNames {
-  margin: 0;
-  font-family: var(--font-title);
-  font-size: 15px;
+  font-family: var(--f-title);
+  font-size: 16px;
   font-weight: 500;
   line-height: 1.4;
-  letter-spacing: -0.01em;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--c-text-1);
 }
 
 .whatsappDirect {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 13.5px;
+  gap: 10px;
+  width: fit-content;
+  min-height: 44px;
+  font-family: var(--f-title);
+  font-size: 16px;
   font-weight: 600;
+  color: var(--c-brand-text);
   text-decoration: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.28);
-  padding-bottom: 3px;
-  transition: color 0.2s ease, border-color 0.2s ease;
+  border-bottom: 1px solid currentColor;
+  transition: color 160ms var(--ease);
 }
 
 .whatsappDirect:hover {
-  color: #f0b39f;
-  border-color: #f0b39f;
+  color: var(--accent-hover);
 }
 
 .whatsappDirect svg {
-  width: 17px;
-  height: 17px;
+  width: 18px;
+  height: 18px;
+  flex: none;
 }
 
 /* ============================================================
-   LADO DIREITO: Painel do Formulário por Etapas
+   COLUNA DIREITA — formulário (um passo por vez)
    ============================================================ */
 
 .formPane {
-  flex: 1;
-  min-height: 100vh;
-  background: #ffffff;
   display: flex;
   flex-direction: column;
-  position: relative;
+  min-width: 0;
+  background: var(--c-paper);
 }
 
 .stepHeader {
-  height: 72px;
-  padding: 0 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #f3efea;
-  background: #ffffff;
+  gap: var(--s-2);
+  min-height: 72px;
+  padding: 0 var(--pad-x);
 }
 
 .headerLeft {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--s-2);
 }
 
 .mobileLogo {
@@ -211,78 +257,77 @@
 }
 
 .stepBadge {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--font-title);
-  font-size: 12px;
+  font-family: var(--f-title);
+  font-size: 13px;
+  line-height: 18px;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--c-brand-text);
 }
 
 .exitButton {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  height: 36px;
-  padding: 0 14px;
-  border-radius: 6px;
-  background: #ffffff;
-  border: 1px solid var(--surface-border);
-  color: #4b4553;
-  font-family: var(--font-title);
-  font-size: 12.5px;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--c-field-line);
+  border-radius: var(--r-control);
+  background: transparent;
+  font-family: var(--f-title);
+  font-size: 14px;
   font-weight: 600;
+  line-height: 1;
+  color: var(--c-text-1);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: border-color 160ms var(--ease), color 160ms var(--ease);
 }
 
 .exitButton:hover {
-  background: #ffffff;
-  border-color: var(--accent);
-  color: var(--accent);
-  transform: translateX(-2px);
+  border-color: var(--ink);
+  color: var(--ink);
 }
 
 .exitButton svg {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
 }
 
-/* Barra de progresso linear */
+/* régua de três segmentos */
 .progressBarTrack {
-  width: 100%;
-  height: 3px;
-  background: #f3efea;
-  overflow: hidden;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding: 0 var(--pad-x);
 }
 
-.progressBarFill {
-  height: 100%;
-  background: linear-gradient(90deg, #b6644d 0%, #c86d54 100%);
-  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+.progressSeg {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--c-rule-strong);
 }
 
-/* Área de Rolagem do Formulário */
+.progressSegOn {
+  background: var(--accent);
+}
+
 .formScrollArea {
   flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 48px 48px 64px;
-  box-sizing: border-box;
+  display: grid;
+  align-content: start;
+  padding: clamp(48px, 7vh, 88px) var(--pad-x) var(--s-6);
 }
 
 .formContainer {
   width: 100%;
-  max-width: 520px;
-  margin: 0 auto;
+  max-width: 34rem;
+  margin-left: clamp(0px, 4vw, 56px);
 }
 
-/* Títulos da Etapa */
+/* entrada do passo: só opacity/transform */
 .stepBlock {
-  animation: fadeInStep 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: fadeInStep 240ms var(--ease);
 }
 
 @keyframes fadeInStep {
@@ -296,214 +341,221 @@
   }
 }
 
-.stepTitleArea {
-  margin-bottom: 28px;
-}
-
 .stepSubtitle {
   display: block;
-  font-family: var(--font-title);
-  font-size: 12px;
+  font-family: var(--f-title);
+  font-size: 13px;
+  line-height: 18px;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 8px;
+  color: var(--c-brand-text);
 }
 
 .stepHeading {
-  font-family: var(--font-title);
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-  margin: 0 0 10px;
+  margin-top: var(--s-1);
+  font-family: var(--f-title);
+  font-size: clamp(30px, 3vw, 44px);
+  line-height: 1.08;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  color: var(--c-title);
+  text-wrap: balance;
 }
 
 .stepDesc {
-  font-size: 15px;
-  line-height: 1.5;
-  color: #615a6b;
-  margin: 0;
+  margin-top: var(--s-2);
+  max-width: 44ch;
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--c-text-2);
 }
 
-/* Pills de Seleção de Objetivos */
-.pillGroup {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 14px;
-}
-
-.pillItem {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  height: 42px;
-  padding: 0 16px;
-  border-radius: 6px;
-  background: #ffffff;
-  border: 1px solid var(--surface-border);
-  color: #2b2535;
-  font-family: var(--font-title);
-  font-size: 13.5px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.pillItem:hover {
-  background: #f8f6f4;
-  border-color: #c7bfb3;
-}
-
-.pillCheck {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--accent);
-  transition: color 0.2s ease;
-}
-
-.pillSelected {
-  background: var(--ink) !important;
-  border-color: var(--ink) !important;
-  color: #ffffff !important;
-}
-
-.pillSelected .pillCheck {
-  color: #f0b39f;
-}
-
-/* Campos de Texto e Stack */
+/* ---------- campos ---------- */
 .fieldsStack {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  display: grid;
+  gap: var(--s-3);
+  margin-top: var(--s-5);
 }
 
 .fieldWrap {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
+  min-width: 0;
 }
 
 .fieldLabel {
-  font-family: var(--font-title);
-  font-size: 13px;
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--f-title);
+  font-size: 15px;
+  line-height: 1.3;
   font-weight: 600;
-  color: #28183b;
+  color: var(--c-text-1);
 }
 
 .requiredMark {
-  color: #c94436;
+  color: var(--c-brand-text);
 }
 
 .optionalTag {
   font-weight: 400;
-  color: #8a8292;
-  font-size: 12px;
+  color: var(--c-text-3);
 }
 
-.textInput {
+.textInput,
+.textareaInput {
+  display: block;
   width: 100%;
-  height: 48px;
+  min-height: 56px;
   padding: 0 16px;
-  background: var(--input-bg);
-  border: 1px solid var(--surface-border);
-  border-radius: 6px;
-  font-family: var(--font-source-sans), inherit;
-  font-size: 15px;
-  color: #1a1622;
+  border: 1px solid var(--c-field-line);
+  border-radius: var(--r-control);
+  background: #fff;
+  font-family: var(--f-body);
+  font-size: 17px;
+  line-height: 1.4;
+  color: var(--c-text-1);
   box-sizing: border-box;
-  transition: all 0.2s ease;
-}
-
-.textInput::placeholder {
-  color: #9e97a6;
-}
-
-.textInput:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(182, 100, 77, 0.14);
-}
-
-.inputError {
-  border-color: #d94132 !important;
-  background: #fffafa;
 }
 
 .textareaInput {
-  width: 100%;
+  min-height: 112px;
   padding: 14px 16px;
-  background: var(--input-bg);
-  border: 1px solid var(--surface-border);
-  border-radius: 6px;
-  font-family: var(--font-source-sans), inherit;
-  font-size: 14.5px;
-  color: #1a1622;
-  box-sizing: border-box;
   resize: vertical;
-  min-height: 85px;
-  transition: all 0.2s ease;
 }
 
-.textareaInput:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(182, 100, 77, 0.14);
+.textInput::placeholder,
+.textareaInput::placeholder {
+  color: var(--c-text-3);
+  opacity: 1;
+}
+
+.inputError {
+  border-color: var(--c-error);
+  box-shadow: 0 0 0 1px var(--c-error);
 }
 
 .fieldError {
-  margin: 2px 0 0;
-  font-size: 12.5px;
-  color: #c94436;
+  margin-top: 8px;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--c-error);
+}
+
+/* ---------- objetivos: lista ruled selecionável ---------- */
+.goalsList {
+  margin-top: var(--s-5);
+  border-top: 1px solid var(--c-rule-strong);
+}
+
+.goalsListError {
+  border-top-color: var(--c-error);
+}
+
+.goalItem {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  width: 100%;
+  min-height: 60px;
+  padding: 12px 0;
+  border: 0;
+  border-bottom: 1px solid var(--c-rule);
+  background: none;
+  text-align: left;
+  font-family: var(--f-title);
+  font-size: 17px;
+  line-height: 1.35;
   font-weight: 500;
+  color: var(--c-text-1);
+  cursor: pointer;
 }
 
-/* Alertas gerais */
+.goalBox {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--c-field-line);
+  border-radius: var(--r-control);
+}
+
+.goalSelected {
+  font-weight: 600;
+  color: var(--c-title);
+}
+
+.goalSelected .goalBox {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+.goalSelected .goalBox::after {
+  content: "";
+  width: 10px;
+  height: 5px;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: translateY(-1px) rotate(-45deg);
+}
+
+.goalsFieldError {
+  margin-top: 10px;
+}
+
+.challengeField {
+  margin-top: var(--s-4);
+}
+
+/* ---------- avisos gerais ---------- */
 .alertMessage {
-  margin-top: 18px;
-  padding: 12px 16px;
-  border-radius: 8px;
-  font-size: 13.5px;
-  background: #fff4f2;
-  border: 1px solid #fbdcd6;
-  color: #b03224;
+  margin-top: var(--s-3);
+  padding: 14px 16px;
+  border: 1px solid var(--c-error);
+  border-radius: var(--r-control);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--c-error);
 }
 
-/* Barra de Ações (Voltar e Avançar/Enviar) */
+.noteMessage {
+  margin-top: var(--s-3);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--c-text-2);
+}
+
+/* ---------- ações ---------- */
 .actionRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 36px;
-  padding-top: 24px;
-  border-top: 1px solid #f0ede8;
+  gap: var(--s-3);
+  margin-top: var(--s-5);
+}
+
+.actionRowEnd {
+  justify-content: flex-end;
 }
 
 .prevButton {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  height: 48px;
-  padding: 0 20px;
-  border-radius: 6px;
-  background: transparent;
-  border: 1px solid var(--surface-border);
-  color: #524b5d;
-  font-family: var(--font-title);
-  font-size: 14px;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  font-family: var(--f-title);
+  font-size: 16px;
   font-weight: 600;
+  line-height: 1;
+  color: var(--c-text-1);
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
 .prevButton:hover:not(:disabled) {
-  background: #fbf9f7;
-  border-color: #28183b;
-  color: #28183b;
+  color: var(--accent-hover);
 }
 
 .prevButton:disabled {
@@ -512,181 +564,206 @@
 }
 
 .prevButton svg {
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
 }
 
 .nextButton,
-.submitButton {
+.submitButton,
+.successHomeButton {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  height: 48px;
-  padding: 0 28px;
-  border-radius: 6px;
+  justify-content: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 0 24px;
+  border: 1px solid var(--accent);
+  border-radius: var(--r-control);
   background: var(--accent);
-  border: none;
-  color: #ffffff;
-  font-family: var(--font-title);
-  font-size: 15px;
+  color: #fff;
+  font-family: var(--f-title);
+  font-size: 16px;
   font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
   cursor: pointer;
-  transition: background 0.16s ease, transform 0.16s ease;
+  transition: background-color 160ms var(--ease), border-color 160ms var(--ease);
 }
 
 .nextButton:hover,
-.submitButton:hover:not(:disabled) {
+.submitButton:hover:not(:disabled),
+.successHomeButton:hover {
   background: var(--accent-hover);
-  transform: translateY(-1px);
+  border-color: var(--accent-hover);
 }
 
 .submitButton:disabled {
   opacity: 0.65;
   cursor: not-allowed;
-  transform: none;
 }
 
 .nextButton svg,
 .submitButton svg {
-  width: 15px;
-  height: 15px;
-}
-
-/* ============================================================
-   TELA DE SUCESSO
-   ============================================================ */
-
-.successScreen {
-  text-align: center;
-  padding: 30px 10px;
-  animation: fadeInStep 0.3s ease;
-}
-
-.successIconBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 6px;
-  background: rgba(37, 138, 45, 0.12);
-  color: #258a2d;
-  margin-bottom: 20px;
-}
-
-.successHeading {
-  font-family: var(--font-title);
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--ink);
-  margin: 0 0 12px;
-}
-
-.successBody {
-  font-size: 15.5px;
-  line-height: 1.55;
-  color: #5c5567;
-  max-width: 440px;
-  margin: 0 auto 32px;
-}
-
-.successActions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-width: 340px;
-  margin: 0 auto;
-}
-
-.successHomeButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 48px;
-  border-radius: 6px;
-  background: var(--ink);
-  color: #ffffff;
-  font-family: var(--font-title);
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: all 0.2s ease;
-}
-
-.successHomeButton:hover {
-  background: #190f25;
-  transform: translateY(-1px);
-}
-
-.successWhatsAppButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: 48px;
-  border-radius: 6px;
-  background: #edf8ee;
-  border: 1px solid #c7ebc9;
-  color: #1b7a24;
-  font-family: var(--font-title);
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: all 0.2s ease;
-}
-
-.successWhatsAppButton:hover {
-  background: #e2f4e3;
-  transform: translateY(-2px);
-}
-
-.successWhatsAppButton svg {
   width: 18px;
   height: 18px;
 }
 
 /* ============================================================
-   RESPONSIVIDADE: MOBILE DIRETO
-   No mobile, esconde a tela editorial inteira e exibe apenas o
-   formulário direto com navegação e progresso imediatos.
+   SUCESSO — tipo no lugar do selo
    ============================================================ */
 
-@media (max-width: 900px) {
-  .editorialPane {
-    display: none !important;
+.successScreen {
+  animation: fadeInStep 240ms var(--ease);
+}
+
+.successHeading {
+  max-width: 16ch;
+  font-family: var(--f-title);
+  font-size: clamp(32px, 3.8vw, 55px);
+  line-height: 1.08;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  color: var(--c-title);
+  text-wrap: balance;
+}
+
+.successBody {
+  margin-top: var(--s-3);
+  max-width: 36ch;
+  font-size: clamp(19px, 1.6vw, 22px);
+  line-height: 1.55;
+  color: var(--c-text-2);
+}
+
+.successBody strong {
+  font-weight: 600;
+  color: var(--c-text-1);
+}
+
+.successActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-4);
+  margin-top: var(--s-5);
+}
+
+.successWhatsAppButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-family: var(--f-title);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--c-brand-text);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  transition: color 160ms var(--ease);
+}
+
+.successWhatsAppButton:hover {
+  color: var(--accent-hover);
+}
+
+.successWhatsAppButton:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.successWhatsAppButton svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+/* ============================================================
+   RESPONSIVO — abaixo de 1024: uma coluna, formulário primeiro;
+   o contexto desce para depois do botão (só ordem visual).
+   ============================================================ */
+
+@media (max-width: 1023px) {
+  .splitLayout {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .formPane {
-    width: 100%;
-    min-height: 100vh;
+    order: 1;
+  }
+
+  .editorialPane {
+    order: 2;
+    border-right: 0;
+    border-top: 1px solid var(--c-rule);
+    padding: var(--s-5) 20px var(--s-6);
+  }
+
+  .brandRow {
+    display: none;
+  }
+
+  .editorialTitle {
+    font-size: clamp(30px, 8vw, 40px);
   }
 
   .stepHeader {
-    height: 64px;
+    min-height: 64px;
     padding: 0 20px;
   }
 
   .mobileLogo {
     display: inline-flex;
     align-items: center;
-    width: 28px;
-    height: 27px;
+    width: 44px;
+    height: 44px;
   }
 
   .exitSiteWord {
     display: none;
   }
 
+  .progressBarTrack {
+    padding: 0 20px;
+  }
+
   .formScrollArea {
-    padding: 28px 20px 48px;
-    align-items: flex-start;
+    padding: var(--s-5) 20px var(--s-6);
   }
 
-  .stepHeading {
-    font-size: 23px;
+  .formContainer {
+    max-width: none;
+    margin-left: 0;
   }
 
-  .actionRow {
-    margin-top: 28px;
+  .actionRow .nextButton,
+  .actionRow .submitButton {
+    flex: 1;
+  }
+
+  .successActions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--s-2);
+  }
+
+  .successWhatsAppButton {
+    justify-content: center;
+    align-self: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stepBlock,
+  .successScreen {
+    animation: none;
+  }
+
+  .nextButton,
+  .submitButton,
+  .successHomeButton,
+  .exitButton,
+  .whatsappDirect,
+  .successWhatsAppButton {
+    transition: none;
   }
 }

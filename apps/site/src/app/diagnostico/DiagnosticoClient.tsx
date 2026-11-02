@@ -220,6 +220,7 @@ export default function DiagnosticoClient() {
   }
 
   const progressPercent = Math.round((step / TOTAL_STEPS) * 100);
+  const progressSegments = Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1);
 
   return (
     <div className={styles.splitLayout}>
@@ -230,7 +231,7 @@ export default function DiagnosticoClient() {
         <div className={styles.editorialContent}>
           <div className={styles.brandRow}>
             <Link href="/" className={styles.editorialLogoLink} aria-label="Kalidash — Início">
-              <BrandLogo tone="light" />
+              <BrandLogo tone="dark" />
             </Link>
           </div>
 
@@ -315,10 +316,12 @@ export default function DiagnosticoClient() {
           aria-valuemin={0}
           aria-valuemax={100}
         >
-          <div
-            className={styles.progressBarFill}
-            style={{ width: `${progressPercent}%` }}
-          />
+          {progressSegments.map((n) => (
+            <i
+              key={n}
+              className={`${styles.progressSeg} ${n <= step ? styles.progressSegOn : ""}`}
+            />
+          ))}
         </div>
 
         {/* Container do Formulário */}
@@ -326,11 +329,6 @@ export default function DiagnosticoClient() {
           <div className={styles.formContainer}>
             {status === "sent" ? (
               <div className={styles.successScreen}>
-                <div className={styles.successIconBadge} aria-hidden="true">
-                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                </div>
                 <h2 className={styles.successHeading}>Solicitação enviada com sucesso!</h2>
                 <p className={styles.successBody}>
                   Nossa equipe de consultoria entrará em contato em até <strong>24 horas úteis</strong> para confirmar os detalhes e agendar a sessão de diagnóstico.
@@ -371,7 +369,7 @@ export default function DiagnosticoClient() {
                 {/* ---------------- ETAPA 1: DADOS DE CONTATO ---------------- */}
                 {step === 1 && (
                   <div className={styles.stepBlock}>
-                    <div className={styles.stepTitleArea}>
+                    <div>
                       <span className={styles.stepSubtitle}>Passo 1 de 3</span>
                       <h2 className={styles.stepHeading}>Seus dados de contato</h2>
                       <p className={styles.stepDesc}>
@@ -443,7 +441,7 @@ export default function DiagnosticoClient() {
                 {/* ---------------- ETAPA 2: DADOS DA EMPRESA ---------------- */}
                 {step === 2 && (
                   <div className={styles.stepBlock}>
-                    <div className={styles.stepTitleArea}>
+                    <div>
                       <span className={styles.stepSubtitle}>Passo 2 de 3</span>
                       <h2 className={styles.stepHeading}>Sobre a sua operação</h2>
                       <p className={styles.stepDesc}>
@@ -514,7 +512,7 @@ export default function DiagnosticoClient() {
                 {/* ---------------- ETAPA 3: OBJETIVOS & DESAFIO ---------------- */}
                 {step === 3 && (
                   <div className={styles.stepBlock}>
-                    <div className={styles.stepTitleArea}>
+                    <div>
                       <span className={styles.stepSubtitle}>Passo 3 de 3</span>
                       <h2 className={styles.stepHeading}>O que sua empresa busca hoje?</h2>
                       <p className={styles.stepDesc}>
@@ -522,7 +520,11 @@ export default function DiagnosticoClient() {
                       </p>
                     </div>
 
-                    <div className={styles.pillGroup} role="group" aria-label="Objetivos">
+                    <div
+                      className={`${styles.goalsList} ${errors.goals ? styles.goalsListError : ""}`}
+                      role="group"
+                      aria-label="Objetivos"
+                    >
                       {diagnostico.goals.map((goal) => {
                         const isSelected = formData.goals.includes(goal);
                         return (
@@ -530,20 +532,18 @@ export default function DiagnosticoClient() {
                             key={goal}
                             type="button"
                             onClick={() => handleGoalToggle(goal)}
-                            className={`${styles.pillItem} ${isSelected ? styles.pillSelected : ""}`}
+                            className={`${styles.goalItem} ${isSelected ? styles.goalSelected : ""}`}
                             aria-pressed={isSelected}
                           >
-                            <span className={styles.pillCheck} aria-hidden="true">
-                              {isSelected ? "✓" : "+"}
-                            </span>
+                            <span className={styles.goalBox} aria-hidden="true" />
                             <span>{goal}</span>
                           </button>
                         );
                       })}
                     </div>
-                    {errors.goals && <p className={styles.fieldError}>{errors.goals}</p>}
+                    {errors.goals && <p className={`${styles.fieldError} ${styles.goalsFieldError}`}>{errors.goals}</p>}
 
-                    <div className={styles.fieldWrap} style={{ marginTop: 28 }}>
+                    <div className={`${styles.fieldWrap} ${styles.challengeField}`}>
                       <label htmlFor="challenge" className={styles.fieldLabel}>
                         Conte um pouco sobre o momento ou principal desafio <span className={styles.optionalTag}>(opcional)</span>
                       </label>
@@ -567,13 +567,13 @@ export default function DiagnosticoClient() {
                   </div>
                 )}
                 {status === "unconfigured" && (
-                  <div className={styles.alertMessage} role="status">
+                  <div className={styles.noteMessage} role="status">
                     O formulário está operando em modo de demonstração técnica.
                   </div>
                 )}
 
                 {/* ---------------- BOTÕES DE AÇÃO E NAVEGAÇÃO ---------------- */}
-                <div className={styles.actionRow}>
+                <div className={`${styles.actionRow} ${step === 1 ? styles.actionRowEnd : ""}`}>
                   {step > 1 ? (
                     <button
                       type="button"
