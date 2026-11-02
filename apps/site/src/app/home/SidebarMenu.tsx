@@ -138,6 +138,17 @@ export default function SidebarMenu({
                           data-expanded={isExpanded}
                         >
                           <ul className={styles.subList}>
+                            {/* O grupo também tem página própria (ex.: Produtos -> /solucoes): sem este atalho ela não é alcançável no celular. */}
+                            {item.href.startsWith("/") && !item.href.includes("#") && (
+                              <li>
+                                <Link href={item.href} className={styles.subLink} onClick={onClose}>
+                                  <span className={styles.subTitle}>{item.label}</span>
+                                  <span className={styles.subArrow} aria-hidden="true">
+                                    <ArrowRight />
+                                  </span>
+                                </Link>
+                              </li>
+                            )}
                             {item.children?.map((child) => (
                               <li key={child.href}>
                                 <Link
