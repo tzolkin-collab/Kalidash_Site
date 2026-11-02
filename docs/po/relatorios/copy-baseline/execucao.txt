@@ -1,7 +1,7 @@
 EXECUÇÃO · IMPLEMENTAÇÃO DE IA E AUTOMAÇÃO
 Da ideia à solução de IA rodando na sua operação.
 Implementamos agentes de IA, automações, integrações e soluções de dados para resolver problemas reais da operação. Do mapeamento do processo à entrega, com o seu time treinado.
-Escopo, prazo e métricas definidos antes de começar.
+ESCOPO, PRAZO E MÉTRICAS DEFINIDOS ANTES DE COMEÇAR.
 Falar sobre o meu projeto
 Saber o que mudar não é o mesmo que conseguir implementar.
 Processos manuais, tarefas repetitivas, sistemas que não conversam. A maioria das empresas sabe onde estão os gargalos. O que falta é tempo, time técnico e método para resolver sem parar a operação.
@@ -54,14 +54,15 @@ operações atendidas
 economizadas por semana até a primeira entrega
 CBA · CAPTURA INTELIGENTE DO CONHECIMENTO
 Captura Inteligente do Conhecimento
-As reuniões diárias da operação viraram dado estruturado. 1.681 problemas registrados em 3 meses de piloto, com 97% de encaminhamento definido.
-Finalista Prêmio Inovativos 2026
+As reuniões diárias da operação viraram dado estruturado.
+1.681 problemas registrados em 3 meses de piloto, com 97% de encaminhamento definido.
+FINALISTA PRÊMIO INOVATIVOS 2026
 Ver o case
-01
 Kognis
 Plataforma de IA para advocacia trabalhista, desenvolvida pela Kalidash.
 Saiba mais
-02
 Spectra AI
 Visão computacional aplicada à operação.
 Saiba mais
+Escopo, prazo e métricas definidos antes de começar.
+Falar sobre o meu projeto

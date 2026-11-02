@@ -15,6 +15,7 @@ const BASE = process.env.BASE ?? 'http://localhost:3199';
 const SAVE = process.argv.includes('--save');
 const baselineDir = join(here, 'copy-baseline');
 const ROUTES = [
+  '/',
   '/sobre-nos',
   '/treinamento-corporativo-ia',
   '/advisory',
@@ -26,7 +27,7 @@ const ROUTES = [
   '/blog',
   '/blog/artigo-1',
 ];
-const fileName = (route) => route.slice(1).replace(/\//g, '-') + '.txt';
+const fileName = (route) => (route === '/' ? 'home' : route.slice(1).replace(/\//g, '-')) + '.txt';
 
 const chromePath = [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
