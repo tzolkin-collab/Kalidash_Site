@@ -9,6 +9,8 @@ import type { Block, PageContent } from "../institucional/pages";
 import CountUp from "./CountUp";
 import HeaderTone from "./HeaderTone";
 import { fraunces } from "./kit-font";
+import BuildStory from "./BuildStory";
+import StepsPin from "./StepsPin";
 import { BlockView, HeroView, Legend, toneMap } from "./ProductPage";
 import prod from "./product.module.css";
 import sol from "./solucoes.module.css";
@@ -260,8 +262,20 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
             /* Depoimentos só vão ao ar com vídeo aprovado e hospedado (ver pages.ts): sem isso, nada. */
             case "testimonials": return null;
             case "cards":
+              /* Execução, "O que construímos": índice em acordeão preso na rolagem, com a tela ilustrativa de cada frente. */
+              if (page.slug === "execucao" && block.items.some((it) => it.example)) {
+                const t = Array.isArray(block.title) ? block.title.join(" ") : block.title;
+                node = <BuildStory key={key} eyebrow={block.eyebrow} title={t ?? ""} items={block.items} />;
+                break;
+              }
               /* Com exemplo por item vira tabela de 4 colunas; sem exemplo, índice com título fixo. */
               node = <BlockView key={key} block={block} cardsIndex={block.items.some((it) => it.example) ? 0 : 1} poster={false} soft={soft} />;
+              break;
+            case "steps":
+              /* Execução, "Como entregamos": faixa presa na rolagem, com a linha esticando e os passos acendendo em sequência. */
+              node = page.slug === "execucao"
+                ? <StepsPin key={key}><BlockView block={block} cardsIndex={1} poster={false} soft={soft} /></StepsPin>
+                : <BlockView key={key} block={block} cardsIndex={1} poster={false} soft={soft} />;
               break;
             default:
               node = <BlockView key={key} block={block} cardsIndex={1} poster={false} soft={soft} />;

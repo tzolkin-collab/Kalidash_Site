@@ -1,0 +1,26 @@
+/* "Como entregamos" preso na rolagem (desktop). O progresso --p vem de StepsPin; a linha e os passos leem dele. */
+.pin { position: relative; }
+
+@media (min-width: 1024px) and (min-height: 700px) {
+  @media (prefers-reduced-motion: no-preference) {
+    .pin[data-live] { height: 240svh; }
+    .pin[data-live] .sticky { position: sticky; top: var(--header, 56px); height: calc(100svh - var(--header, 56px)); display: flex; flex-direction: column; justify-content: center; overflow: hidden; background: var(--night, var(--imperial, #28183b)); }
+    .pin[data-live] .sticky > section { padding-block: clamp(24px, 4vh, 56px); }
+
+    /* A linha estica de 0 a 1 entre p = 0,08 e 0,78. */
+    .pin[data-live] [class*="sequence"]::before {
+      animation: none; opacity: 0.9;
+      transform: scaleX(clamp(0, calc((var(--p, 0) - 0.08) / 0.7), 1));
+    }
+    /* Cada passo acende quando a linha chega nele; antes disso fica apagado, mas legível. */
+    .pin[data-live] [class*="sequence"] li {
+      --reveal: clamp(0, calc((var(--p, 0) - var(--t, 0.08)) * 7), 1);
+      opacity: calc(0.28 + 0.72 * var(--reveal));
+      transform: translate3d(0, calc((1 - var(--reveal)) * 20px), 0);
+    }
+    .pin[data-live] [class*="sequence"] li:nth-child(1) { --t: 0.08; }
+    .pin[data-live] [class*="sequence"] li:nth-child(2) { --t: 0.28; }
+    .pin[data-live] [class*="sequence"] li:nth-child(3) { --t: 0.48; }
+    .pin[data-live] [class*="sequence"] li:nth-child(4) { --t: 0.68; }
+  }
+}

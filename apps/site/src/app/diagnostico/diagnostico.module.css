@@ -319,6 +319,14 @@
   padding: clamp(48px, 7vh, 88px) var(--pad-x) var(--s-6);
 }
 
+/* Desktop: o bloco do formulário fica no centro vertical da coluna, com respiro igual em cima e embaixo. */
+@media (min-width: 1024px) {
+  .formScrollArea {
+    align-content: center;
+    padding-block: clamp(32px, 5vh, 64px);
+  }
+}
+
 .formContainer {
   width: 100%;
   max-width: 34rem;

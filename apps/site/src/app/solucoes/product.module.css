@@ -18,6 +18,11 @@
 .cutout img { position: relative; width: 100%; height: auto; }
 .photo { right: 0; top: clamp(28px, 6vh, 64px); bottom: 0; width: min(34%, 440px); }
 .photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; border-radius: 999px 999px 0 0; }
+/* Desktop: a foto não passa de 620px de altura e fica no centro vertical do hero, junto do bloco de texto. */
+@media (min-width: 901px) {
+  .heroInner { justify-content: center; }
+  .photo { top: 0; bottom: 0; margin-block: auto; height: min(620px, 84%); }
+}
 
 /* ---------- Seções ---------- */
 .wrap { width: var(--container); margin: 0 auto; }

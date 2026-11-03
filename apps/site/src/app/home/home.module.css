@@ -32,7 +32,11 @@
 .home *::before,
 .home *::after { box-sizing: border-box; }
 :where(.home) :is(h1, h2, h3, p, ul, blockquote, figure) { margin: 0; padding: 0; }
-:where(.home) :is(h1, h2, h3) { font-weight: 500; letter-spacing: -0.035em; }
+:where(.home) :is(h1, h2, h3) {
+  /* Serifa da marca só nos títulos; as classes que usam var(--font-title) herdam daqui. */
+  --font-title: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  font-family: var(--font-title); font-weight: 500; letter-spacing: -0.035em;
+}
 :where(.home) a { color: inherit; }
 :where(.home) img { display: block; }
 
@@ -614,9 +618,9 @@
 .whatsapp {
   position: fixed; z-index: 60; right: 40px; bottom: 40px;
   display: grid; place-items: center; width: 54px; height: 54px; border-radius: 50%;
-  background: #5fd568; color: #fff; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22); transition: transform 0.15s;
+  background: #28183b; color: #a88a58; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22); transition: transform 0.15s, color 0.15s;
 }
-.whatsapp:hover { transform: scale(1.06); }
+.whatsapp:hover { transform: scale(1.06); color: #c4a673; }
 .whatsapp svg { width: 30px; height: 30px; }
 
 /* ---- Tablet e celular ---- */

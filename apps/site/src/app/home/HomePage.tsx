@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./home.module.css";
+import { fraunces } from "../solucoes/kit-font";
 import heroStyles from "./HomeHero.module.css";
 import HomeHeader from "./HomeHeader";
 import LogoIntro from "../components/LogoIntro";
@@ -61,7 +62,7 @@ export default function HomePage() {
   const logoLoop = [...clients, ...clients];
 
   return (
-    <div className={styles.home}>
+    <div className={`${styles.home} ${fraunces.variable}`}>
       <LogoIntro />
       <script
         type="application/ld+json"

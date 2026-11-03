@@ -187,7 +187,7 @@
 }
 
 .laserDot {
-  fill: #c084fc;
+  fill: #28183b; /* roxo escuro da marca; o brilho continua roxo claro */
   filter: drop-shadow(0 0 6px #e9d5ff);
 }
 
