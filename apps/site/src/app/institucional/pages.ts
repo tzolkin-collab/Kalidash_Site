@@ -384,7 +384,7 @@ export const aiCulture: PageContent = {
       type: "formats",
       eyebrow: "Formatos",
       title: ["Dois formatos, conforme o seu objetivo."],
-      background: { src: "/home/metodo-reuniao.jpg", alt: "", width: 2000, height: 1334 },
+      background: { src: "/home/comite-reuniao.jpg", alt: "", width: 1600, height: 1200 },
       items: [
         {
           title: "AI Culture In Company",
@@ -444,7 +444,7 @@ export const advisory: PageContent = {
       ],
       support: "Ao lado da liderança. Dentro da execução.",
       cta: { label: "Conversar com um sócio", href: formHref("advisory") },
-      image: { src: "/home/metodo-reuniao.jpg", alt: "Reunião da Kalidash com a diretoria de uma empresa", width: 2000, height: 1334 },
+      image: { src: "/home/comite-reuniao.jpg", alt: "Comitê de IA reunido em torno da mesa com um sócio da Kalidash", width: 1600, height: 1200 },
       aspect: "landscape",
     },
     {

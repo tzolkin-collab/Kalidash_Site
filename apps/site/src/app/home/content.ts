@@ -249,7 +249,7 @@ export const people = {
     { src: "/home/evento-sala.jpg", alt: "Sala de treinamento com participantes e telas", title: "Treinamentos corporativos" },
     { src: "/home/evento-mesa.jpg", alt: "Equipe trabalhando em notebooks ao redor de uma mesa", title: "Workshops" },
     { src: "/home/cooxupe.jpg", alt: "Equipe reunida na escadaria da Cooxupé", title: "Clientes" },
-    { src: "/home/metodo-reuniao.jpg", alt: "Equipe da Kalidash em reunião", title: "Projetos" },
+    { src: "/home/comite-reuniao.jpg", alt: "Comitê de IA reunido em torno da mesa", title: "Projetos" },
   ],
 };
 

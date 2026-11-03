@@ -3,7 +3,7 @@ import HomePage from "./home/HomePage";
 import { SITE_URL } from "@/lib/siteUrl";
 
 const title = "Kalidash — Prepare sua operação para a era dos agentes";
-const ogImage = `${SITE_URL}/home/metodo-reuniao.jpg`; // absoluto: o layout commitado não define metadataBase
+const ogImage = `${SITE_URL}/home/comite-reuniao.jpg`; // absoluto: o layout commitado não define metadataBase
 const description =
   "A Kalidash prepara pessoas, processos e tecnologia para conectar agentes, automação e novas formas de trabalhar à operação real.";
 
