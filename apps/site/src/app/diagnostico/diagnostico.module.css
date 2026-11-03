@@ -775,3 +775,29 @@
     transition: none;
   }
 }
+
+/* Assunto vindo do CTA da página */
+.interestChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 6px 8px 6px 12px;
+  border-radius: 999px;
+  background: var(--c-paper-2, #f1ece4);
+  font-size: 13px;
+  color: #514c53;
+}
+.interestChip strong { color: #19171b; font-weight: 600; }
+.interestChip button {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  color: inherit;
+}
+.interestChip button:hover { background: rgba(0, 0, 0, 0.08); }

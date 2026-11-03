@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -8,6 +8,7 @@ import styles from "./diagnostico.module.css";
 import BrandLogo from "../components/BrandLogo";
 import { config, diagnostico } from "../home/content";
 import { ArrowLeft, ArrowRight, WhatsApp } from "../home/icons";
+import { INTERESTS } from "../institucional/interests";
 
 type Status = "idle" | "sending" | "sent" | "error" | "unconfigured";
 
@@ -64,6 +65,12 @@ export default function DiagnosticoClient() {
   const [step, setStep] = useState<number>(1);
   const [status, setStatus] = useState<Status>("idle");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  /* Assunto vindo do CTA da página (?interesse=spectra). Só chaves conhecidas; o resto é ignorado. */
+  const [interest, setInterest] = useState<string | null>(null);
+  useEffect(() => {
+    const key = new URLSearchParams(window.location.search).get("interesse");
+    if (key && key in INTERESTS) setInterest(key);
+  }, []);
 
   const [formData, setFormData] = useState<FormDataState>({
     goals: [],
@@ -171,11 +178,13 @@ export default function DiagnosticoClient() {
     }
 
     const attribution = getAttribution();
+    if (interest) attribution.interest = interest;
     const payload = {
       name: formData.name.trim(),
       email: formData.email.trim(),
       phone: formData.phone.trim(),
       challenge: [
+        interest ? `Assunto: ${INTERESTS[interest]}` : "",
         `Empresa: ${formData.company.trim()}`,
         `Cargo: ${formData.role.trim()}`,
         `Colaboradores na operação: ${formData.teamSize.trim()}`,
@@ -372,6 +381,12 @@ export default function DiagnosticoClient() {
                     <div>
                       <span className={styles.stepSubtitle}>Passo 1 de 3</span>
                       <h2 className={styles.stepHeading}>Seus dados de contato</h2>
+                      {interest && (
+                        <p className={styles.interestChip}>
+                          Assunto: <strong>{INTERESTS[interest]}</strong>
+                          <button type="button" onClick={() => setInterest(null)} aria-label="Remover assunto">×</button>
+                        </p>
+                      )}
                       <p className={styles.stepDesc}>
                         Informe onde podemos enviar o diagnóstico e alinhar os próximos passos da sua operação.
                       </p>

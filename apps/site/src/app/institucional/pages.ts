@@ -2,6 +2,8 @@
  * Cada página é uma lista de blocos; o visual de cada tipo está em SitePage.tsx e institucional.module.css.
  * Trechos entre **asteriscos duplos** saem em negrito. Todo CTA leva ao diagnóstico (regra "uma conversão só"). */
 
+import { formHref } from "./interests";
+
 export type Cta = { label: string; href: string };
 
 export type Block =
@@ -330,7 +332,7 @@ export const aiCulture: PageContent = {
         "Treinamento in company construído sobre a rotina, os processos e os casos reais da sua empresa. Trilhas por área e governança desde o primeiro dia.",
       ],
       support: "Turmas a partir de 12 pessoas · Online ou presencial · Carga horária personalizada",
-      cta: { label: "Solicitar proposta", href: diagnostico },
+      cta: { label: "Solicitar proposta", href: formHref("ai-culture") },
       image: { src: "/home/evento-sala.jpg", alt: "Turma em sala durante um treinamento da Kalidash", width: 633, height: 814 },
     },
     {
@@ -395,7 +397,7 @@ export const aiCulture: PageContent = {
             { title: "Mão na massa", text: "todos praticam na hora" },
           ],
           support: "A partir de 12 pessoas · Online ou presencial · Certificado e plano de aplicação por área inclusos",
-          cta: { label: "Solicitar proposta", href: diagnostico },
+          cta: { label: "Solicitar proposta", href: formHref("ai-culture-in-company") },
           ctaStyle: "primary",
         },
         {
@@ -405,7 +407,7 @@ export const aiCulture: PageContent = {
           extra: "Ideal para: eventos corporativos, encontros de liderança e semanas de inovação.",
           // "5 pessoas" e "Certificado..." podem ter sido copiados do Card 1 (pergunta 2 do brief): copy mantida como no doc.
           support: "A partir de 5 pessoas · Online ou presencial · Certificado e plano de aplicação por área inclusos",
-          cta: { label: "Consultar disponibilidade", href: diagnostico },
+          cta: { label: "Consultar disponibilidade", href: formHref("ai-culture-experiencias") },
           ctaStyle: "secondary",
         },
       ],
@@ -441,7 +443,7 @@ export const advisory: PageContent = {
         "Acompanhamos a liderança na implementação de iniciativas de IA e eficiência. Priorizamos, medimos e ajustamos a rota, para que o investimento se pague.",
       ],
       support: "Ao lado da liderança. Dentro da execução.",
-      cta: { label: "Conversar com um sócio", href: diagnostico },
+      cta: { label: "Conversar com um sócio", href: formHref("advisory") },
       image: { src: "/home/metodo-reuniao.jpg", alt: "Reunião da Kalidash com a diretoria de uma empresa", width: 2000, height: 1334 },
       aspect: "landscape",
     },
@@ -490,7 +492,7 @@ export const advisory: PageContent = {
         { title: "Desenho", text: "Definimos juntos a cadência, os rituais e os indicadores." },
         { title: "Acompanhamento", text: "Ciclos de 6 meses, com revisão ao fim de cada um." },
       ],
-      cta: { label: "Conversar com um sócio", href: diagnostico },
+      cta: { label: "Conversar com um sócio", href: formHref("advisory") },
     },
     {
       type: "list",
@@ -537,7 +539,7 @@ export const execucao: PageContent = {
         "Implementamos agentes de IA, automações, integrações e soluções de dados para resolver problemas reais da operação. Do mapeamento do processo à entrega, com o seu time treinado.",
       ],
       support: "Escopo, prazo e métricas definidos antes de começar.",
-      cta: { label: "Falar sobre o meu projeto", href: diagnostico },
+      cta: { label: "Falar sobre o meu projeto", href: formHref("execucao") },
       // A Carol não indicou a imagem: usei a da frente Execução da Home (confirmar).
       image: { src: "/home/front-3-entrega.jpg", alt: "Apresentação da entrega de um projeto de IA", width: 1086, height: 1448 },
     },
@@ -622,7 +624,7 @@ export const solucoes: PageContent = {
         "Às vezes encontramos um problema tão específico que nenhuma ferramenta de mercado resolve. Quando isso acontece, a gente constrói.",
         "São tecnologias desenvolvidas pela Kalidash, a partir de operações reais e usadas por empresas hoje.",
       ],
-      cta: { label: "Falar sobre o meu caso", href: diagnostico },
+      cta: { label: "Falar sobre o meu caso", href: formHref("solucoes") },
     },
     {
       type: "offers",
@@ -820,7 +822,7 @@ export const spectra: PageContent = {
         "A operação fala e o Spectra AI traduz. Câmeras transformam o que acontece na operação em dados de produtividade, identificando oportunidades em tempo real e apontando onde melhorar.",
       ],
       support: "Leitura visual em tempo real sem interromper o time e sem alterar o fluxo de trabalho.",
-      cta: { label: "Conhecer Spectra AI", href: diagnostico },
+      cta: { label: "Conhecer Spectra AI", href: formHref("spectra") },
       image: { src: "/sobre-nos/ato-01-operacao.jpg", alt: "Spectra AI visão computacional na operação", width: 893, height: 1600 },
       aspect: "portrait",
     },
