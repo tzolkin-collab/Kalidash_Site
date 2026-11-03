@@ -44,7 +44,7 @@
 .hero h1 {
   position: relative; z-index: 2; margin: clamp(20px, 3.4vh, 40px) 0 0;
   font-family: var(--font-title); font-weight: 500; color: var(--ink-text);
-  font-size: clamp(46px, 8.2vw, 118px); line-height: 0.94; letter-spacing: -0.055em;
+  font-size: clamp(46px, 8.2vw, 118px); line-height: 0.94; letter-spacing: calc(-0.055em * var(--tk, 1));
 }
 .hero h1 span { display: block; }
 .bust {
@@ -81,7 +81,7 @@
 
 .giant {
   position: absolute; left: var(--gutter); bottom: -0.16em; z-index: 0; margin: 0;
-  font-family: var(--font-title); font-weight: 600; letter-spacing: -0.06em; white-space: nowrap; line-height: 1;
+  font-family: var(--font-title); font-weight: 600; letter-spacing: calc(-0.06em * var(--tk, 1)); white-space: nowrap; line-height: 1;
   font-size: clamp(110px, 18vw, 290px); pointer-events: none; user-select: none;
 }
 .light .giant { color: rgba(0, 0, 0, 0.05); }
@@ -97,11 +97,11 @@
 
 .copy { position: relative; z-index: 2; align-self: center; display: grid; gap: 18px; }
 .marker { display: flex; align-items: baseline; gap: 14px; margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; }
-.marker span { font-family: var(--font-title); font-weight: 500; letter-spacing: -0.04em; font-size: clamp(44px, 4.6vw, 68px); line-height: 1; color: var(--accent); }
+.marker span { font-family: var(--font-title); font-weight: 500; letter-spacing: calc(-0.04em * var(--tk, 1)); font-size: clamp(44px, 4.6vw, 68px); line-height: 1; color: var(--accent); }
 .dark .marker span { color: var(--accent-soft); }
 .copy h2 {
   margin: 0; font-family: var(--font-title); font-weight: 500; text-wrap: balance;
-  font-size: clamp(30px, 3.5vw, 52px); line-height: 1.04; letter-spacing: -0.045em;
+  font-size: clamp(30px, 3.5vw, 52px); line-height: 1.04; letter-spacing: calc(-0.045em * var(--tk, 1));
 }
 .text { margin: 0; font-size: 18px; line-height: 1.55; max-width: 46ch; }
 .light .text { color: var(--text-2); }
@@ -158,7 +158,7 @@
 }
 .closing p {
   margin: 0; max-width: 20ch; font-family: var(--font-title); font-weight: 500;
-  font-size: var(--t-lema); line-height: 1.02; letter-spacing: -0.05em; text-wrap: balance;
+  font-size: var(--t-lema); line-height: 1.02; letter-spacing: calc(-0.05em * var(--tk, 1)); text-wrap: balance;
 }
 .closingCta {
   display: inline-flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 24px; border-radius: var(--r-control);
@@ -230,7 +230,7 @@
   --font-title: var(--font-fraunces), Georgia, "Times New Roman", serif;
   font-family: var(--font-title);
 }
-[data-page="solucoes"] .hero h1 { font-weight: 400; letter-spacing: -0.035em; font-size: clamp(42px, 5.6vw, 84px); line-height: 1; }
+[data-page="solucoes"] .hero h1 { font-weight: 400; letter-spacing: calc(-0.035em * var(--tk, 1)); font-size: clamp(42px, 5.6vw, 84px); line-height: 1; }
 @media (min-width: 901px) {
   [data-page="solucoes"] .heroInner { justify-content: center; }
   [data-page="solucoes"] .heroLead { margin-top: clamp(24px, 4vh, 44px); }

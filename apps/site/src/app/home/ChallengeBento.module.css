@@ -83,7 +83,7 @@
   font-size: 26px;
   font-weight: 600;
   line-height: 1.15;
-  letter-spacing: -0.03em;
+  letter-spacing: calc(-0.03em * var(--tk, 1));
   text-transform: uppercase;
   color: var(--black-2, #0a0a0a);
 }
@@ -127,7 +127,7 @@
   font-size: clamp(24px, 2.4vw, 32px);
   font-weight: 600;
   line-height: 1.14;
-  letter-spacing: -0.03em;
+  letter-spacing: calc(-0.03em * var(--tk, 1));
   color: #ffffff;
 }
 

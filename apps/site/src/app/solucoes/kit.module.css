@@ -1,12 +1,12 @@
 /* Blocos de leitura do KitPage (afirmação, linhas numeradas, critérios). Base em product.module.css. */
 .assert { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(24px, 6vw, 96px); align-items: start; }
-.assert h2 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: var(--t-claim); line-height: 1.1; letter-spacing: -0.04em; text-wrap: balance; max-width: 22ch; }
+.assert h2 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: var(--t-claim); line-height: 1.1; letter-spacing: calc(-0.04em * var(--tk, 1)); text-wrap: balance; max-width: 22ch; }
 .paragraphs { display: grid; gap: 20px; max-width: 62ch; }
 .paragraphs p { margin: 0; font-size: clamp(18px, 1.6vw, 21px); line-height: 1.6; color: var(--text-2); }
 .paragraphs strong { font-weight: 600; color: var(--ink-text); }
 
 .ruled { list-style: none; margin: clamp(40px, 6vw, 72px) 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(24px, 6vw, 96px); }
-.ruled li { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 16px; padding: 22px 0; border-top: 1px solid var(--rule); font-family: var(--font-title); font-weight: 500; font-size: clamp(20px, 2vw, 28px); line-height: 1.2; letter-spacing: -0.03em; align-items: baseline; }
+.ruled li { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 16px; padding: 22px 0; border-top: 1px solid var(--rule); font-family: var(--font-title); font-weight: 500; font-size: clamp(20px, 2vw, 28px); line-height: 1.2; letter-spacing: calc(-0.03em * var(--tk, 1)); align-items: baseline; }
 .ruled li:nth-last-child(-n + 2) { border-bottom: 1px solid var(--rule); }
 .ruled li:nth-child(odd):last-child { grid-column: 1 / -1; }
 
@@ -31,7 +31,7 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 .formats { list-style: none; margin: clamp(40px, 6vw, 72px) 0 0; padding: 0; }
 .formats > li { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 5fr) minmax(0, 3fr); gap: clamp(24px, 4vw, 64px); padding: clamp(32px, 4vw, 56px) 0; border-top: 1px solid var(--rule); align-items: start; }
 .formats > li:last-child { border-bottom: 1px solid var(--rule); }
-.formatHead h3 { margin: 0 0 14px; font-family: var(--font-title); font-weight: 500; font-size: clamp(26px, 3vw, 44px); line-height: 1.02; letter-spacing: -0.045em; }
+.formatHead h3 { margin: 0 0 14px; font-family: var(--font-title); font-weight: 500; font-size: clamp(26px, 3vw, 44px); line-height: 1.02; letter-spacing: calc(-0.045em * var(--tk, 1)); }
 .formatHead p, .formatBody > p, .formatAside p { margin: 0; font-size: 17px; line-height: 1.55; color: var(--text-2); }
 .formatHead strong { font-weight: 600; color: var(--ink-text); }
 .formatBody { display: grid; gap: 18px; }
@@ -46,20 +46,20 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 /* Prova (Execução) */
 .numbers { list-style: none; margin: clamp(40px, 6vw, 72px) 0 0; padding: 0; display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 32px; }
 .numbers li { display: grid; gap: 12px; align-content: start; padding-left: 20px; border-left: 1px solid var(--rule); }
-.numbers strong { font-family: var(--font-title); font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: clamp(36px, 5.4vw, 84px); line-height: 0.95; letter-spacing: -0.05em; }
+.numbers strong { font-family: var(--font-title); font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: clamp(36px, 5.4vw, 84px); line-height: 0.95; letter-spacing: calc(-0.05em * var(--tk, 1)); }
 .numbers li > span { font-size: 16px; line-height: 1.45; color: var(--text-2); max-width: 24ch; }
 .case { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(24px, 5vw, 80px); margin-top: clamp(56px, 8vw, 104px); align-items: center; }
 .casePhoto { overflow: hidden; border-radius: var(--r-surface); }
 .casePhoto img { display: block; width: 100%; height: auto; }
 .caseText { display: grid; gap: 16px; justify-items: start; }
-.caseText h3 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: clamp(28px, 3.4vw, 50px); line-height: 1.02; letter-spacing: -0.045em; }
+.caseText h3 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: clamp(28px, 3.4vw, 50px); line-height: 1.02; letter-spacing: calc(-0.045em * var(--tk, 1)); }
 .caseText p { margin: 0; font-size: 18px; line-height: 1.55; color: var(--text-2); }
 .caseText .badge { font-size: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--brand-text); }
 .caseText .stat { color: var(--ink-text); }
 .products { list-style: none; margin: clamp(56px, 8vw, 104px) 0 0; padding: 0; }
 .products li { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 5fr) minmax(0, 3fr); gap: clamp(16px, 3vw, 48px); padding: 28px 0; border-top: 1px solid var(--rule); align-items: baseline; }
 .products li:last-child { border-bottom: 1px solid var(--rule); }
-.products h3 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: clamp(28px, 3.6vw, 52px); line-height: 1; letter-spacing: -0.05em; }
+.products h3 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: clamp(28px, 3.6vw, 52px); line-height: 1; letter-spacing: calc(-0.05em * var(--tk, 1)); }
 .products p { margin: 0; font-size: 17px; line-height: 1.5; color: var(--text-2); }
 
 @media (max-width: 900px) {

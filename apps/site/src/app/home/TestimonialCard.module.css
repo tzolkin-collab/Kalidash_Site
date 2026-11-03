@@ -116,7 +116,7 @@
   font-size: 32px;
   line-height: 1.34;
   font-weight: 500;
-  letter-spacing: -0.03em;
+  letter-spacing: calc(-0.03em * var(--tk, 1));
   color: #fff;
   background: linear-gradient(180deg, #ffffff 30%, #f0c6b6 100%);
   -webkit-background-clip: text;

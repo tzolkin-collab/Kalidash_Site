@@ -182,3 +182,9 @@ body {
   html[data-header-tone="dark"] header[data-block="home-header"] [data-header-logo="true"] { --logo-body: #f8f9fa; }
   html[data-header-tone="light"] header[data-block="home-header"] [data-header-logo="true"] { --logo-body: #28183b; }
 }
+
+
+/* Espaçamento entre letras dos títulos: o desenho é apertado (negativo) para telas grandes; no celular as letras ficavam coladas,
+ * então todas as regras de título usam calc(valor * var(--tk)) e aqui a intensidade cai para um quarto. */
+:root { --tk: 1; }
+@media (max-width: 760px) { :root { --tk: 0.25; } }

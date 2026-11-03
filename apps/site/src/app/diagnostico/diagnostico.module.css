@@ -125,7 +125,7 @@
   font-size: clamp(30px, 3vw, 46px);
   line-height: 1.06;
   font-weight: 500;
-  letter-spacing: -0.05em;
+  letter-spacing: calc(-0.05em * var(--tk, 1));
   color: var(--c-title);
   text-wrap: balance;
 }
@@ -151,7 +151,7 @@
   font-size: clamp(20px, 1.7vw, 24px);
   font-weight: 500;
   line-height: 1.25;
-  letter-spacing: -0.025em;
+  letter-spacing: calc(-0.025em * var(--tk, 1));
   color: var(--c-title);
   text-wrap: balance;
 }
@@ -366,7 +366,7 @@
   font-size: clamp(30px, 3vw, 44px);
   line-height: 1.08;
   font-weight: 500;
-  letter-spacing: -0.04em;
+  letter-spacing: calc(-0.04em * var(--tk, 1));
   color: var(--c-title);
   text-wrap: balance;
 }
@@ -630,7 +630,7 @@
   font-size: clamp(32px, 3.8vw, 55px);
   line-height: 1.08;
   font-weight: 500;
-  letter-spacing: -0.04em;
+  letter-spacing: calc(-0.04em * var(--tk, 1));
   color: var(--c-title);
   text-wrap: balance;
 }

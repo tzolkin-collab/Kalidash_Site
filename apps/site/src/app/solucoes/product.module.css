@@ -34,14 +34,14 @@
 .legend::after { content: ""; flex: 1; height: 1px; background: currentColor; opacity: 0.35; }
 .split .legend { margin-bottom: 20px; }
 
-.section h2 { margin: 0; font-family: var(--font-title); font-weight: 500; letter-spacing: -0.05em; line-height: 1; text-wrap: balance; font-size: var(--t-title); }
+.section h2 { margin: 0; font-family: var(--font-title); font-weight: 500; letter-spacing: calc(-0.05em * var(--tk, 1)); line-height: 1; text-wrap: balance; font-size: var(--t-title); }
 .section .h2Wide { max-width: 22ch; font-size: var(--t-lema); }
 
 /* Régua de números */
 .rule { background: var(--soft); color: var(--ink-text); border-bottom: 1px solid var(--line); }
 .rule ul { list-style: none; margin: 0 auto; padding: clamp(40px, 6vw, 80px) 0; display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: 32px; }
 .rule li { display: grid; gap: 12px; align-content: start; padding-left: 20px; border-left: 1px solid var(--rule); }
-.rule strong { font-family: var(--font-title); font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: clamp(36px, 4.9vw, 76px); line-height: 0.95; letter-spacing: -0.05em; color: var(--ink-text); }
+.rule strong { font-family: var(--font-title); font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: clamp(36px, 4.9vw, 76px); line-height: 0.95; letter-spacing: calc(-0.05em * var(--tk, 1)); color: var(--ink-text); }
 .rule li > span { font-size: 16px; line-height: 1.45; color: var(--text-2); max-width: 22ch; }
 
 /* Tabela (3 problemas) */
@@ -52,7 +52,7 @@
 }
 .table li:last-child { border-bottom: 1px solid var(--rule); }
 .num { font-family: var(--font-title); font-variant-numeric: tabular-nums; font-size: 15px; font-weight: 600; letter-spacing: 0.08em; color: var(--brand-text); }
-.table h3 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: clamp(24px, 2.6vw, 38px); line-height: 1.05; letter-spacing: -0.04em; }
+.table h3 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: clamp(24px, 2.6vw, 38px); line-height: 1.05; letter-spacing: calc(-0.04em * var(--tk, 1)); }
 .table p { margin: 0; font-size: 17px; line-height: 1.55; color: var(--text-2); }
 .table .example { font-size: 15px; color: var(--text-3); }
 
@@ -62,20 +62,20 @@
 .index, .poster { list-style: none; margin: 0; padding: 0; }
 .index li { padding: 28px 0; border-top: 1px solid var(--rule); }
 .index li:last-child { border-bottom: 1px solid var(--rule); }
-.index h3 { margin: 0 0 10px; font-family: var(--font-title); font-weight: 500; font-size: clamp(24px, 2.6vw, 38px); line-height: 1.05; letter-spacing: -0.04em; }
+.index h3 { margin: 0 0 10px; font-family: var(--font-title); font-weight: 500; font-size: clamp(24px, 2.6vw, 38px); line-height: 1.05; letter-spacing: calc(-0.04em * var(--tk, 1)); }
 .index p { margin: 0; font-size: 18px; line-height: 1.55; color: var(--text-2); max-width: 52ch; }
 
 /* Índice em escala de cartaz (Spectra) */
 .poster li { padding: 32px 0; border-top: 1px solid var(--rule); display: grid; gap: 12px; }
 .poster li:last-child { border-bottom: 1px solid var(--rule); }
-.poster h3 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: var(--t-title); line-height: 1.02; letter-spacing: -0.05em; }
+.poster h3 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: var(--t-title); line-height: 1.02; letter-spacing: calc(-0.05em * var(--tk, 1)); }
 .poster p { margin: 0; font-size: 18px; line-height: 1.55; color: var(--text-2); max-width: 46ch; }
 @media (hover: hover) { .poster li h3 { transition: color 160ms ease; } .poster li:hover h3 { color: var(--brand-text); } }
 
 /* Sequência: a única faixa escura além da abertura */
 .steps { padding: clamp(56px, 6.4vw, 96px) 0; background: var(--night); color: var(--on-dark); }
 .steps .legend { color: var(--accent-soft); }
-.steps h2 { margin: 0; max-width: 22ch; font-family: var(--font-title); font-weight: 500; letter-spacing: -0.05em; line-height: 1; text-wrap: balance; font-size: var(--t-lema); }
+.steps h2 { margin: 0; max-width: 22ch; font-family: var(--font-title); font-weight: 500; letter-spacing: calc(-0.05em * var(--tk, 1)); line-height: 1; text-wrap: balance; font-size: var(--t-lema); }
 .sequence { list-style: none; margin: clamp(48px, 7vw, 96px) 0 0; padding: 0; display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: clamp(24px, 4vw, 56px); position: relative; }
 .sequence::before {
   content: ""; position: absolute; left: 0; right: 0; top: 7px; height: 1px; background: var(--accent-soft); opacity: 0.6;
@@ -83,13 +83,13 @@
 }
 .sequence li { position: relative; padding-top: 40px; display: grid; gap: 12px; align-content: start; }
 .sequence li::before { content: ""; position: absolute; left: 0; top: 0; width: 15px; height: 15px; border-radius: 50%; background: var(--accent-soft); }
-.stepNum { font-family: var(--font-title); font-variant-numeric: tabular-nums; font-size: clamp(56px, 7vw, 104px); line-height: 0.9; letter-spacing: -0.05em; font-weight: 500; color: var(--accent-soft); }
-.sequence h3 { margin: 8px 0 0; font-family: var(--font-title); font-weight: 500; font-size: clamp(26px, 2.8vw, 40px); line-height: 1.05; letter-spacing: -0.04em; }
+.stepNum { font-family: var(--font-title); font-variant-numeric: tabular-nums; font-size: clamp(56px, 7vw, 104px); line-height: 0.9; letter-spacing: calc(-0.05em * var(--tk, 1)); font-weight: 500; color: var(--accent-soft); }
+.sequence h3 { margin: 8px 0 0; font-family: var(--font-title); font-weight: 500; font-size: clamp(26px, 2.8vw, 40px); line-height: 1.05; letter-spacing: calc(-0.04em * var(--tk, 1)); }
 .sequence p { margin: 0; font-size: 17px; line-height: 1.55; color: rgba(255, 255, 255, 0.74); max-width: 34ch; }
 .stepsCta { margin-top: 40px; }
 .stepsNote { margin-top: clamp(48px, 7vw, 88px); padding-top: 28px; border-top: 1px solid rgba(255, 255, 255, 0.16); display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 32px; }
 .stepsNote p { margin: 0; }
-.stepsNote p:first-child { font-family: var(--font-title); font-weight: 500; font-size: var(--t-claim); line-height: 1.1; letter-spacing: -0.04em; color: var(--accent-soft); }
+.stepsNote p:first-child { font-family: var(--font-title); font-weight: 500; font-size: var(--t-claim); line-height: 1.1; letter-spacing: calc(-0.04em * var(--tk, 1)); color: var(--accent-soft); }
 .stepsNote p:last-child { font-size: 18px; line-height: 1.55; color: rgba(255, 255, 255, 0.74); max-width: 52ch; }
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
@@ -103,7 +103,7 @@
 .faq details:last-child { border-bottom: 1px solid var(--rule); }
 .faq summary {
   list-style: none; display: flex; justify-content: space-between; gap: 24px; align-items: center; cursor: pointer;
-  padding: 26px 0; font-family: var(--font-title); font-weight: 500; font-size: clamp(20px, 2vw, 28px); line-height: 1.2; letter-spacing: -0.03em;
+  padding: 26px 0; font-family: var(--font-title); font-weight: 500; font-size: clamp(20px, 2vw, 28px); line-height: 1.2; letter-spacing: calc(-0.03em * var(--tk, 1));
 }
 .faq summary::-webkit-details-marker { display: none; }
 .faq summary::after { content: "+"; flex: none; font-size: 32px; font-weight: 300; line-height: 1; transition: transform 200ms ease; }
@@ -160,4 +160,4 @@
 
 /* Serifa da marca (Fraunces) nos títulos, números e frases das páginas de produto (Kognis e Spectra AI); texto corrido na fonte de leitura. */
 .brandTitles { --font-title: var(--font-fraunces), Georgia, "Times New Roman", serif; }
-.brandTitles :is(h1, h2, h3) { font-weight: 400; letter-spacing: -0.03em; }
+.brandTitles :is(h1, h2, h3) { font-weight: 400; letter-spacing: calc(-0.03em * var(--tk, 1)); }

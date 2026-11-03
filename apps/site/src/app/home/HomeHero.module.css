@@ -4,7 +4,7 @@
 .main { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(24px, 4vw, 64px); align-items: start; }
 .text { text-align: left; }
 .main .text > p:first-child { text-align: left; }
-.main .text h1 { max-width: none; margin: 20px 0 0; text-align: left; text-wrap: balance; font-size: clamp(44px, 6.4vw, 96px); line-height: 0.96; letter-spacing: -0.055em; }
+.main .text h1 { max-width: none; margin: 20px 0 0; text-align: left; text-wrap: balance; font-size: clamp(44px, 6.4vw, 96px); line-height: 0.96; letter-spacing: calc(-0.055em * var(--tk, 1)); }
 .main .text > div:first-of-type { max-width: 540px; margin: 32px 0 0; }
 .main .text > div:nth-of-type(2) { justify-content: flex-start; }
 

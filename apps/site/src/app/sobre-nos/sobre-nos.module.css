@@ -4,7 +4,7 @@
 .hero { padding: clamp(28px, 5vh, 56px) 0 clamp(56px, 8vw, 112px); background: var(--paper); color: var(--ink-text); }
 .meta { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
 .heroTop { display: grid; grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); gap: clamp(24px, 5vw, 80px); align-items: end; margin-top: clamp(20px, 3.4vh, 40px); }
-.hero h1 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: clamp(46px, 8.2vw, 118px); line-height: 0.94; letter-spacing: -0.055em; text-wrap: balance; }
+.hero h1 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: clamp(46px, 8.2vw, 118px); line-height: 0.94; letter-spacing: calc(-0.055em * var(--tk, 1)); text-wrap: balance; }
 .hero h1 span { display: block; }
 .heroLead { display: grid; gap: 14px; padding-bottom: 12px; }
 .heroLead p { margin: 0; font-size: 18px; line-height: 1.55; color: var(--text-2); }
@@ -35,27 +35,27 @@
 .acts > li:last-child { border-bottom: 1px solid var(--rule); }
 .actMeta { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--brand-text); padding-top: 10px; }
 .actBody { display: grid; gap: 18px; max-width: 760px; }
-.actBody h2 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: clamp(28px, 3.6vw, 52px); line-height: 1.04; letter-spacing: -0.045em; text-wrap: balance; }
+.actBody h2 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: clamp(28px, 3.6vw, 52px); line-height: 1.04; letter-spacing: calc(-0.045em * var(--tk, 1)); text-wrap: balance; }
 .actBody p { margin: 0; font-size: 18px; line-height: 1.6; color: var(--text-2); }
 .actBody strong { font-weight: 600; color: var(--ink-text); }
 .actBody blockquote { margin: 0; font-size: 20px; line-height: 1.5; color: var(--ink-text); }
-.keyline { grid-column: 1 / -1; margin: clamp(40px, 6vw, 80px) 0 0; padding-top: clamp(24px, 4vw, 48px); border-top: 1px solid var(--rule); font-family: var(--font-title); font-weight: 500; font-size: var(--t-claim); line-height: 1.1; letter-spacing: -0.04em; text-wrap: balance; color: var(--ink-text); max-width: 24ch; }
+.keyline { grid-column: 1 / -1; margin: clamp(40px, 6vw, 80px) 0 0; padding-top: clamp(24px, 4vw, 48px); border-top: 1px solid var(--rule); font-family: var(--font-title); font-weight: 500; font-size: var(--t-claim); line-height: 1.1; letter-spacing: calc(-0.04em * var(--tk, 1)); text-wrap: balance; color: var(--ink-text); max-width: 24ch; }
 
 /* ---------- Credo ---------- */
 .beliefs { background: var(--paper); }
 .beliefHead { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(24px, 6vw, 96px); align-items: end; }
-.beliefHead h2 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: var(--t-title); line-height: 1; letter-spacing: -0.05em; text-wrap: balance; }
+.beliefHead h2 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: var(--t-title); line-height: 1; letter-spacing: calc(-0.05em * var(--tk, 1)); text-wrap: balance; }
 .beliefHead p { margin: 0; font-size: 18px; line-height: 1.6; color: var(--text-2); }
 .credo { list-style: none; margin: clamp(48px, 7vw, 96px) 0 0; padding: 0; }
 .credo li { display: grid; grid-template-columns: 64px minmax(0, 5fr) minmax(0, 6fr); gap: 24px; padding: 32px 0; border-top: 1px solid var(--rule); align-items: baseline; }
 .credo li:last-child { border-bottom: 1px solid var(--rule); }
-.credo h3 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: clamp(24px, 2.8vw, 40px); line-height: 1.05; letter-spacing: -0.04em; }
+.credo h3 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: clamp(24px, 2.8vw, 40px); line-height: 1.05; letter-spacing: calc(-0.04em * var(--tk, 1)); }
 .credo p { margin: 0; font-size: 18px; line-height: 1.55; color: var(--text-2); }
 
 /* ---------- Time ---------- */
 .team { background: var(--soft); }
 .teamHead { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(24px, 6vw, 96px); align-items: end; }
-.teamHead h2 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: var(--t-title); line-height: 1; letter-spacing: -0.05em; text-wrap: balance; }
+.teamHead h2 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: var(--t-title); line-height: 1; letter-spacing: calc(-0.05em * var(--tk, 1)); text-wrap: balance; }
 .teamHead p { margin: 0; font-size: 18px; line-height: 1.6; color: var(--text-2); }
 .teamFigure { margin: clamp(40px, 6vw, 80px) 0 0; }
 .teamFigure img { display: block; width: 100%; height: auto; border-radius: var(--r-surface); }
@@ -66,11 +66,11 @@
 .proof { padding: clamp(56px, 6.4vw, 96px) 0; background: var(--paper); color: var(--ink-text); }
 .credentials { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 32px; }
 .credentials li { display: grid; gap: 12px; align-content: start; padding-left: 20px; border-left: 1px solid var(--rule); }
-.credentials strong { font-family: var(--font-title); font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: clamp(34px, 4.6vw, 72px); line-height: 0.95; letter-spacing: -0.05em; }
+.credentials strong { font-family: var(--font-title); font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; font-size: clamp(34px, 4.6vw, 72px); line-height: 0.95; letter-spacing: calc(-0.05em * var(--tk, 1)); }
 .credentials li > span { font-size: 16px; line-height: 1.45; color: var(--text-2); }
 .where { margin: clamp(48px, 7vw, 96px) 0 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; border-top: 1px solid var(--rule); padding-top: 32px; }
 .where dt { font-size: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--brand-text); margin-bottom: 10px; }
-.where dd { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: clamp(22px, 2.4vw, 34px); line-height: 1.2; letter-spacing: -0.03em; }
+.where dd { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: clamp(22px, 2.4vw, 34px); line-height: 1.2; letter-spacing: calc(-0.03em * var(--tk, 1)); }
 .links { list-style: none; margin: clamp(40px, 6vw, 72px) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 20px 40px; }
 
 /* ---------- Mobile ---------- */
@@ -144,5 +144,5 @@
 /* Serifa da marca (Fraunces) nos títulos, nas frases do credo e nos números; o texto corrido continua na fonte de leitura.
  * A manchete segue o teto de tamanho das outras páginas (D24). */
 .sobre { --font-title: var(--font-fraunces), Georgia, "Times New Roman", serif; }
-.sobre :is(h1, h2, h3) { letter-spacing: -0.03em; }
-.sobre .hero h1 { font-weight: 400; font-size: clamp(42px, 5.6vw, 84px); line-height: 1; letter-spacing: -0.035em; }
+.sobre :is(h1, h2, h3) { letter-spacing: calc(-0.03em * var(--tk, 1)); }
+.sobre .hero h1 { font-weight: 400; font-size: clamp(42px, 5.6vw, 84px); line-height: 1; letter-spacing: calc(-0.035em * var(--tk, 1)); }

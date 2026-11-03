@@ -222,7 +222,7 @@
   font-family: var(--font-title, sans-serif);
   font-size: 20px;
   font-weight: 500;
-  letter-spacing: -0.025em;
+  letter-spacing: calc(-0.025em * var(--tk, 1));
   color: inherit;
   scale: 1 0;
   transform-origin: left bottom;
