@@ -5,8 +5,9 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import styles from "./SidebarMenu.module.css";
 import BrandLogo from "../components/BrandLogo";
+import { menuFont } from "./menu-font";
 import { config, nav, navCta } from "./content";
-import { ArrowRight, ChevronDown, Close, Facebook, Instagram, Linkedin, WhatsApp, Youtube } from "./icons";
+import { ArrowRight, ChevronDown, Facebook, Instagram, Linkedin, WhatsApp, Youtube } from "./icons";
 
 interface SidebarMenuProps {
   isOpen: boolean;
@@ -26,6 +27,16 @@ export default function SidebarMenu({
   );
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
+  /* A serifa do menu so e ligada em tempo ocioso depois do load: fica fora do caminho do LCP e ja esta pronta no 1o clique. */
+  const [fontArmed, setFontArmed] = useState(false);
+  useEffect(() => {
+    const arm = () => setFontArmed(true);
+    const idle = window.requestIdleCallback ?? ((cb: () => void) => window.setTimeout(cb, 1500));
+    const start = () => idle(arm);
+    if (document.readyState === "complete") start();
+    else window.addEventListener("load", start, { once: true });
+    return () => window.removeEventListener("load", start);
+  }, []);
 
   // Bloqueio de scroll do body e listener para ESC
   useEffect(() => {
@@ -70,13 +81,17 @@ export default function SidebarMenu({
 
       <aside
         id="sidebar-navigation"
-        className={styles.sheet}
+        className={`${styles.sheet} ${fontArmed ? menuFont.variable : ""}`}
         data-open={isOpen}
         role="dialog"
         aria-modal="true"
         aria-label="Menu principal"
       >
         <div className={styles.sheetInner}>
+          {/* Faixa vertical fixa do painel de tela cheia (celular): nome da marca, como a referencia. */}
+          <div className={styles.strip} aria-hidden="true">
+            <span>Kalidash</span>
+          </div>
           {/* Topo da Gaveta */}
           <div className={styles.topBar}>
             <Link
@@ -95,7 +110,9 @@ export default function SidebarMenu({
               onClick={onClose}
               aria-label="Fechar menu"
             >
-              <Close />
+              <span className={styles.bar} />
+              <span className={styles.bar} />
+              <span className={styles.bar} />
             </button>
           </div>
 

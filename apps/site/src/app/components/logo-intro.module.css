@@ -1,16 +1,69 @@
-/* Abertura com o logo. Sequência (2,4s): símbolo entra (0 a 0,5s) -> letras saem de trás dele (0,45 a 1,45s)
- * -> pausa curta -> a cortina sobe (1,75 a 2,4s). Só transform e opacity. */
+/* Abertura com o logo (referência de continuidade: asiaxp.co, o logo da abertura vira o logo do cabeçalho).
+ *  0 a 1,45s   a escrita: símbolo entra e as letras saem de trás dele
+ *  1,6 a 2,05s as letras voltam para trás do símbolo (vira o K)
+ *  2,2 a 3,0s  o K vai direto (sem desvio) para o lugar do K do cabeçalho (o JS mede e passa --tx, --ty e --s)
+ *  2,3 / 2,37 / 2,44s três camadas de fundo (branco, roxo, terracota) saem para a esquerda, sobrepostas (70 ms de defasagem),
+ *              JÁ enquanto o K sobe (2,2 a 3,0 s): a página vai sendo revelada junto com o movimento, sem espera
+ *  3,4 a 4,4s  o K da abertura some e o K real do cabeçalho (escondido até aqui) aparece, no mesmo quadro e no mesmo lugar
+ * Estrutura: UM só elemento K, numa camada acima de todas (.stage). Ele anima só transform, com destino medido uma vez
+ * antes de começar (FLIP); nada é medido durante a animação. As camadas sobem por baixo dele sem tocá-lo.
+ * Tudo o que está em tela cheia se esconde sozinho no fim (visibility), então nada fica preso se o JS falhar. */
+.overlay, .layer, .stage {
+  /* Curvas da abertura num lugar só: cortina = ease-in-out longa, sem arranque seco; assentar = ease-out macia. */
+  --ease-curtain: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
+}
 .overlay {
   display: none;
   position: fixed; inset: 0; z-index: 9999;
   place-items: center;
   background: #fff;
   pointer-events: auto;
-  animation: lift 0.65s cubic-bezier(0.76, 0, 0.24, 1) 1.75s both;
+  animation: lift 0.85s var(--ease-curtain) 2.3s both;
 }
 :global(html[data-intro]) .overlay { display: grid; }
 
-.logo { width: min(72vw, 560px); height: auto; overflow: visible; }
+/* Camadas de fundo que aparecem por baixo do branco quando ele sai. */
+.layer {
+  display: none;
+  position: fixed; inset: 0; pointer-events: none;
+  animation: lift 0.85s var(--ease-curtain) both;
+}
+:global(html[data-intro]) .layer { display: block; }
+.purple { z-index: 9998; background: #28183b; animation-delay: 2.37s; }
+.terra { z-index: 9997; background: #b6644d; animation-delay: 2.44s; }
+
+/* Camada do logo: acima das três camadas de fundo, que sobem por baixo dele. */
+.stage {
+  display: none;
+  position: fixed; inset: 0; z-index: 10000; place-items: center; pointer-events: none;
+  --w: min(72vw, 560px);
+  animation: stageEnd 50ms linear 3400ms both;
+}
+:global(html[data-intro]) .stage { display: grid; }
+
+/* O logo real do cabeçalho fica invisível até o instante em que o K da abertura some (mesmo relógio, 3,4 s). */
+:global(html[data-intro]) :global([data-header-logo]) { animation: headerHold 3400ms steps(1, end); }
+@keyframes headerHold { 0%, 99.99% { visibility: hidden; } }
+
+/* "Kalidash" nao aparece do nada: quando o K do cabecalho e revelado (3,4 s), as letras saem de tras dele em cascata, como na
+ * propria marca (translateX dos mesmos deslocamentos, recortadas na borda do K). Usa as variaveis --shift-x e --i que o
+ * BrandLogo ja poe em cada letra. */
+:global(html[data-intro]) :global([data-header-logo] [data-letter]) {
+  animation: wordIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(3.4s + var(--i) * 0.05s);
+}
+@keyframes wordIn { from { transform: translateX(var(--shift-x)); } to { transform: translateX(0); } }
+@keyframes stageEnd { 0%, 99% { opacity: 1; } 100% { opacity: 0; } }
+
+/* O símbolo fica à esquerda do SVG: translateX(0.4224 * largura) o leva ao centro (centro do K = 13,5 de 174).
+ * O K pousa no lugar do K do cabeçalho e fica parado ali, sempre em Imperial e dourado. */
+.logo {
+  width: var(--w); height: auto; overflow: visible;
+  color: #28183b; transform-origin: 7.76% 50%;
+  --tx: calc(var(--w) * 0.4224 - 62vw); --ty: 0px; --s: 1;
+  animation: kTravel 0.8s var(--ease-settle) 2.2s both;
+}
 
 /* Faixa grega na borda inferior: sobe junto com a cortina e liga a abertura à Home. */
 .edge {
@@ -18,24 +71,29 @@
   background: url("/home/pattern-greek.png") repeat-x center / auto 34px; opacity: 0.25;
 }
 
-.letter { fill: #28183b; opacity: 0; animation: letterIn 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(0.45s + var(--i) * 0.06s); }
-.letter path { fill: #28183b; }
+.letter { fill: currentColor; opacity: 0; animation: letterIn 0.9s var(--ease-settle) both, letterOut 0.45s var(--ease-curtain) both; animation-delay: calc(0.45s + var(--i) * 0.06s), calc(1.6s + (7 - var(--i)) * 0.02s); }
+.letter path { fill: currentColor; }
 
 .mark { transform-box: view-box; }
 .gold { fill: #a88a58; opacity: 0; }
-.goldTop { animation: slideIn 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) 0.05s both; --from: -10px; }
-.goldBottom { animation: slideIn 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) 0.15s both; --from: -10px; }
-.chevron { fill: #28183b; opacity: 0; transform-box: fill-box; transform-origin: 20% 50%; animation: chevronIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s both; }
+.goldTop { animation: slideIn 0.55s var(--ease-settle) 0.05s both; --from: -10px; }
+.goldBottom { animation: slideIn 0.55s var(--ease-settle) 0.15s both; --from: -10px; }
+.chevron { fill: currentColor; opacity: 0; transform-box: fill-box; transform-origin: 20% 50%; animation: chevronIn 0.6s var(--ease-settle) 0.2s both; }
 
 @keyframes slideIn { from { opacity: 0; transform: translateX(var(--from)); } to { opacity: 1; transform: none; } }
 @keyframes chevronIn { from { opacity: 0; transform: scale(0.55) translateX(-6px); } to { opacity: 1; transform: none; } }
 @keyframes letterIn { from { opacity: 1; transform: translateX(var(--shift-x)); } to { opacity: 1; transform: none; } }
+@keyframes letterOut { from { opacity: 1; transform: none; } to { opacity: 1; transform: translateX(var(--shift-x)); } }
+@keyframes kTravel {
+  from { transform: none; }
+  to { transform: translate(var(--tx), var(--ty)) scale(var(--s)); }
+}
 @keyframes lift {
   0% { transform: none; visibility: visible; }
   99% { visibility: visible; }
-  100% { transform: translateY(-100%); visibility: hidden; }
+  100% { transform: translateX(-100%); visibility: hidden; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .overlay { display: none !important; }
+  .overlay, .layer, .stage { display: none !important; }
 }

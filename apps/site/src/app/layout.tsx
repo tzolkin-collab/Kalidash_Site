@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, Inter, Source_Sans_3 } from "next/font/google";
 import GoogleTagManager from "./components/GoogleTagManager";
+import RouteTransition from "./components/RouteTransition";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -61,7 +62,7 @@ const PRE_PAINT_HEADER_SCRIPT = `(function(){try{var nav=performance.getEntriesB
 
 /* Abertura com o logo (components/LogoIntro): decide antes da pintura se ela roda nesta visita.
  * Roda uma vez por sessão, nunca em reload e nunca com movimento reduzido; sem a marca no <html> o overlay é display:none. */
-const LOGO_INTRO_SCRIPT = `try{var n=performance.getEntriesByType("navigation")[0];if(!sessionStorage.getItem("kalidash:intro-played")&&!(n&&n.type==="reload")&&!matchMedia("(prefers-reduced-motion: reduce)").matches){document.documentElement.setAttribute("data-intro","1")}}catch(e){}`;
+const LOGO_INTRO_SCRIPT = `try{var n=performance.getEntriesByType("navigation")[0];if(location.pathname==="/"&&!sessionStorage.getItem("kalidash:intro-played")&&!(n&&n.type==="reload")&&!matchMedia("(prefers-reduced-motion: reduce)").matches){document.documentElement.setAttribute("data-intro","1")}}catch(e){}`;
 
 export default function RootLayout({
   children,
@@ -81,6 +82,7 @@ export default function RootLayout({
       <body>
         <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID} />
         {children}
+        <RouteTransition />
       </body>
     </html>
   );

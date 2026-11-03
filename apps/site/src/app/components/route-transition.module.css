@@ -1,0 +1,33 @@
+/* Duas camadas sobrepostas, com defasagem curta (70 ms), e a borda de ataque curva, como uma maré.
+ * Parada: à direita e escondida. Cobrindo: entram da direita (dourado na frente, roxo 70 ms depois, por cima).
+ * Saindo: o roxo sai primeiro para a esquerda, o dourado 70 ms depois, e a página nova aparece.
+ * Cada camada tem 150vw e começa 50vw à esquerda da tela: a parte arredondada fica fora da tela quando cobre por inteiro.
+ * Só transform; a forma da borda é um clip-path estático (nada de layout). */
+.root {
+  --ease-out: cubic-bezier(0.215, 0.61, 0.355, 1); /* as mesmas duas curvas do menu */
+  --ease-inout: cubic-bezier(0.645, 0.045, 0.355, 1);
+  position: fixed; inset: 0; z-index: 9990; overflow: hidden; pointer-events: none; visibility: hidden;
+}
+.root[data-phase="cover"], .root[data-phase="leave"] { visibility: visible; pointer-events: auto; }
+
+/* 200vw de largura, começando 50vw à esquerda: a borda ESQUERDA (frente, ao cobrir) e a DIREITA (traseira, ao revelar a página)
+ * são curvas; cobrindo por inteiro, as duas ficam fora da tela. Antes só a esquerda era curva e a saída era uma lâmina reta. */
+.layer {
+  position: absolute; top: 0; bottom: 0; left: -50vw; width: 200vw;
+  /* Bordas com NO MÁXIMO duas ondas longas e esticadas (sem ondulação fina), diferentes em cada camada.
+   * Em % da própria camada (200vw x 100vh), então acompanham qualquer tela. Esquerda dentro de 0-25% e direita dentro de 75-100%:
+   * cobrindo por inteiro, as duas ondas ficam fora da tela. */
+  transform: translateX(100%); will-change: transform;
+}
+.second { background: #28183b; clip-path: polygon(7.34% 0.00%, 7.74% 2.08%, 8.19% 4.17%, 8.67% 6.25%, 9.19% 8.33%, 9.75% 10.42%, 10.33% 12.50%, 10.93% 14.58%, 11.55% 16.67%, 12.18% 18.75%, 12.82% 20.83%, 13.46% 22.92%, 14.10% 25.00%, 14.73% 27.08%, 15.34% 29.17%, 15.94% 31.25%, 16.51% 33.33%, 17.05% 35.42%, 17.55% 37.50%, 18.02% 39.58%, 18.44% 41.67%, 18.82% 43.75%, 19.15% 45.83%, 19.43% 47.92%, 19.66% 50.00%, 19.83% 52.08%, 19.94% 54.17%, 19.99% 56.25%, 19.99% 58.33%, 19.93% 60.42%, 19.81% 62.50%, 19.63% 64.58%, 19.39% 66.67%, 19.10% 68.75%, 18.77% 70.83%, 18.38% 72.92%, 17.95% 75.00%, 17.47% 77.08%, 16.96% 79.17%, 16.41% 81.25%, 15.84% 83.33%, 15.24% 85.42%, 14.63% 87.50%, 14.00% 89.58%, 13.36% 91.67%, 12.72% 93.75%, 12.08% 95.83%, 11.45% 97.92%, 10.83% 100.00%, 81.33% 100.00%, 80.85% 97.92%, 80.44% 95.83%, 80.09% 93.75%, 79.82% 91.67%, 79.64% 89.58%, 79.53% 87.50%, 79.50% 85.42%, 79.56% 83.33%, 79.69% 81.25%, 79.91% 79.17%, 80.21% 77.08%, 80.58% 75.00%, 81.02% 72.92%, 81.52% 70.83%, 82.09% 68.75%, 82.71% 66.67%, 83.37% 64.58%, 84.08% 62.50%, 84.82% 60.42%, 85.58% 58.33%, 86.36% 56.25%, 87.14% 54.17%, 87.92% 52.08%, 88.70% 50.00%, 89.45% 47.92%, 90.18% 45.83%, 90.87% 43.75%, 91.52% 41.67%, 92.12% 39.58%, 92.67% 37.50%, 93.15% 35.42%, 93.56% 33.33%, 93.91% 31.25%, 94.18% 29.17%, 94.36% 27.08%, 94.47% 25.00%, 94.50% 22.92%, 94.44% 20.83%, 94.31% 18.75%, 94.09% 16.67%, 93.79% 14.58%, 93.42% 12.50%, 92.98% 10.42%, 92.48% 8.33%, 91.91% 6.25%, 91.29% 4.17%, 90.63% 2.08%, 89.92% 0.00%); } /* roxo: chega 70 ms depois, por cima, e sai primeiro */
+.first { background: #a88a58; clip-path: polygon(8.92% 0.00%, 7.99% 2.08%, 7.13% 4.17%, 6.38% 6.25%, 5.74% 8.33%, 5.23% 10.42%, 4.84% 12.50%, 4.60% 14.58%, 4.50% 16.67%, 4.55% 18.75%, 4.74% 20.83%, 5.07% 22.92%, 5.54% 25.00%, 6.14% 27.08%, 6.85% 29.17%, 7.67% 31.25%, 8.58% 33.33%, 9.56% 35.42%, 10.61% 37.50%, 11.69% 39.58%, 12.80% 41.67%, 13.91% 43.75%, 15.01% 45.83%, 16.07% 47.92%, 17.08% 50.00%, 18.01% 52.08%, 18.87% 54.17%, 19.62% 56.25%, 20.26% 58.33%, 20.77% 60.42%, 21.16% 62.50%, 21.40% 64.58%, 21.50% 66.67%, 21.45% 68.75%, 21.26% 70.83%, 20.93% 72.92%, 20.46% 75.00%, 19.86% 77.08%, 19.15% 79.17%, 18.33% 81.25%, 17.42% 83.33%, 16.44% 85.42%, 15.39% 87.50%, 14.31% 89.58%, 13.20% 91.67%, 12.09% 93.75%, 10.99% 95.83%, 9.93% 97.92%, 8.92% 100.00%, 91.12% 100.00%, 91.98% 97.92%, 92.76% 95.83%, 93.43% 93.75%, 94.00% 91.67%, 94.44% 89.58%, 94.76% 87.50%, 94.95% 85.42%, 95.00% 83.33%, 94.91% 81.25%, 94.69% 79.17%, 94.33% 77.08%, 93.86% 75.00%, 93.26% 72.92%, 92.55% 70.83%, 91.76% 68.75%, 90.87% 66.67%, 89.93% 64.58%, 88.93% 62.50%, 87.90% 60.42%, 86.86% 58.33%, 85.81% 56.25%, 84.79% 54.17%, 83.81% 52.08%, 82.88% 50.00%, 82.02% 47.92%, 81.24% 45.83%, 80.57% 43.75%, 80.00% 41.67%, 79.56% 39.58%, 79.24% 37.50%, 79.05% 35.42%, 79.00% 33.33%, 79.09% 31.25%, 79.31% 29.17%, 79.67% 27.08%, 80.14% 25.00%, 80.74% 22.92%, 81.45% 20.83%, 82.24% 18.75%, 83.13% 16.67%, 84.07% 14.58%, 85.07% 12.50%, 86.10% 10.42%, 87.14% 8.33%, 88.19% 6.25%, 89.21% 4.17%, 90.19% 2.08%, 91.12% 0.00%); } /* dourado do símbolo: vai na frente ao cobrir e sai por último */ /* dourado do símbolo da marca */
+
+.root[data-phase="cover"] .layer { transform: none; transition: transform 0.5s var(--ease-out); }
+.root[data-phase="cover"] .second { transition-delay: 0.07s; }
+
+.root[data-phase="leave"] .layer { transform: translateX(-100%); transition: transform 0.75s var(--ease-inout); }
+.root[data-phase="leave"] .first { transition-delay: 0.07s; }
+
+@media (prefers-reduced-motion: reduce), (min-width: 901px) {
+  .root { display: none; }
+}
