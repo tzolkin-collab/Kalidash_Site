@@ -72,3 +72,141 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
   .formats > li { grid-template-columns: minmax(0, 4fr) minmax(0, 6fr); }
   .formatAside { grid-column: 2; grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
 }
+
+
+/* ---------- Marca (B10) ----------
+ * Escopado em .main (o <main> do KitPage): Fraunces nos títulos, Archivo no corpo, Limestone/champagne no fundo claro,
+ * Imperial nas faixas escuras, dourado só em detalhe (legendas, a palavra final dos manifestos, os botões sobre escuro).
+ * Cabeçalho e rodapé ficam como estão. */
+.main {
+  --font-title: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --gold: #a88a58;
+  --gold-text: #8f7248;    /* dourado legível sobre fundo claro */
+  --gold-light: #c4a673;   /* dourado sobre Imperial */
+  --accent: #7d6338;
+  --brand-text: #7d6338;
+  --accent-soft: #c4a673;
+  --rule: rgba(168, 138, 88, 0.45);
+  --soft: #f5f0e6;
+  --night: #28183b;
+  --imperial: #28183b;
+  --t-claim: clamp(24px, 2.4vw, 34px);
+  --t-lema: clamp(30px, 3.4vw, 46px);
+  --t-title: clamp(30px, 3.3vw, 46px);
+  font-family: var(--font-archivo), "Archivo", system-ui, sans-serif;
+}
+.main :is(strong, dt, button, [class*="Button"], [class*="eyebrow"], [class*="chip"]) { font-family: var(--font-archivo), "Archivo", system-ui, sans-serif; }
+.main :is(h1, h2, h3, summary, [class*="stepNum"], [class*="ruled"] li, [class*="criteria"] li) { letter-spacing: -0.015em; }
+.main :is(h1, h2, h3, summary) { font-weight: 400; }
+.main :is(h2, h3) { line-height: 1.12; }
+.main strong { font-weight: 600; }
+.main [class*="numbers"] strong, .main [class*="rule"] strong, .main [class*="stepsNote"] strong { font-family: var(--font-title); font-weight: 400; letter-spacing: -0.02em; }
+.gold { color: var(--gold-text); font-style: italic; }
+
+/* Botões em Imperial; sobre fundo escuro, dourados */
+.main a[class*="primaryButton"] { background: var(--imperial); border-color: var(--imperial); color: #f8f9fa; }
+.main a[class*="primaryButton"]:hover { background: #46304f; border-color: #46304f; }
+.main > section[class*="steps"] a[class*="primaryButton"], .main .heroLead a[class*="primaryButton"] { background: var(--gold); border-color: var(--gold); color: #19171b; }
+.main > section[class*="steps"] a[class*="primaryButton"]:hover, .main .heroLead a[class*="primaryButton"]:hover { background: var(--gold-light); border-color: var(--gold-light); }
+
+/* Faixa de passos: sem as bolinhas de "como funciona"; números em dourado */
+.main > section[class*="steps"] { border-top: 0; }
+.main > section[class*="steps"] [class*="sequence"] li::before { display: none; }
+.main > section[class*="steps"] [class*="sequence"] li { padding-top: 24px; }
+.main > section[class*="steps"] [class*="stepNum"] { color: var(--gold); opacity: 1; }
+.main [class*="stepsNote"] p:first-child { color: var(--gold-light); }
+
+/* Hero: Imperial, texto à esquerda e a pintura (Escola de Atenas) num arco à direita */
+.heroBrand { background: var(--imperial); color: #f8f9fa; padding-top: clamp(28px, 5vh, 56px); overflow: hidden; }
+.heroGrid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(24px, 5vw, 80px); align-items: end; }
+.heroCopy { align-self: center; padding-bottom: clamp(40px, 6vw, 80px); }
+.heroMeta { margin: 0 0 clamp(20px, 3vh, 36px); font-size: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-light); }
+.heroBrand h1 { margin: 0; font-family: var(--font-title); font-weight: 400; font-size: clamp(38px, 4.8vw, 68px); line-height: 1.05; letter-spacing: -0.02em; color: #f8f9fa; text-wrap: balance; }
+.line { display: block; }
+.heroBrand .gold { color: var(--gold-light); }
+.heroLead { display: grid; gap: 14px; max-width: 520px; margin-top: clamp(24px, 4vh, 40px); }
+.heroLead p { margin: 0; font-size: 18px; line-height: 1.55; color: rgba(248, 249, 250, 0.78); }
+.heroLead strong { color: #f8f9fa; }
+.main .heroLead a[class*="primaryButton"] { justify-self: start; margin-top: 10px; }
+.heroArch { justify-self: end; width: min(100%, 460px); aspect-ratio: 4 / 5; overflow: hidden; border-radius: 999px 999px 0 0; background: #46304f; }
+.heroArch img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%; }
+
+/* Manifesto: frase em serifa com a palavra final em dourado; na Advisory, Sócrates ao lado (fundo bege = Limestone) */
+.manifesto { margin-top: clamp(40px, 6vw, 72px); padding-top: clamp(24px, 3vw, 40px); border-top: 1px solid var(--gold); display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(24px, 5vw, 80px); align-items: center; }
+.manifesto p { margin: 0; max-width: 20ch; font-family: var(--font-title); font-weight: 400; font-size: var(--t-claim); line-height: 1.14; letter-spacing: -0.015em; text-wrap: balance; color: var(--ink-text); }
+.manifestoFig { justify-self: end; width: min(100%, 340px); aspect-ratio: 4 / 5; overflow: hidden; border-radius: var(--r-surface); background: #cdb490; }
+.manifestoFig img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; }
+.manifesto:not(:has(.manifestoFig)) { grid-template-columns: minmax(0, 1fr); }
+
+/* Fecho: Imperial; na Advisory, as nuvens douradas do guide ao fundo (só textura, sem tingir) */
+.main > section:last-child { background: var(--imperial); color: #f8f9fa; position: relative; overflow: hidden; }
+.main > section:last-child::after { display: none; }
+.main > section:last-child > div:last-child { position: relative; z-index: 1; }
+.main > section:last-child p { font-size: var(--t-lema); }
+.main > section:last-child .gold { color: var(--gold-light); }
+.main > section:last-child a { background: transparent; color: #f8f9fa; border: 1px solid var(--gold); }
+.main > section:last-child a:hover { background: var(--gold); color: #19171b; }
+.closingBg { position: absolute; z-index: 0; inset: 0; opacity: 0.55; }
+.closingBg img { object-fit: cover; object-position: 50% 50%; }
+.closingBg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to right, var(--imperial) 15%, rgba(40, 24, 59, 0.55) 70%, rgba(40, 24, 59, 0.35)); }
+
+@media (max-width: 900px) {
+  .heroGrid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .heroArch { justify-self: center; width: 78%; }
+  .manifesto { grid-template-columns: minmax(0, 1fr); }
+  .manifestoFig { justify-self: start; width: 70%; }
+  .closingBg::after { background: linear-gradient(to bottom, rgba(40, 24, 59, 0.55), var(--imperial) 90%); }
+}
+
+/* ---------- Movimento de rolagem da Advisory (referência: Studio Next Level / KYVO), só CSS ----------
+ * Conteúdo sempre visível. Cortina = cada capítulo tem o canto de cima arredondado e sobe sobre o anterior (alternando
+ * Imperial / Limestone / branco). O hero fica fixado e afunda enquanto é coberto; cada capítulo tem um cabeçalho fino
+ * (nº / total · título) que fica no topo, com um fio dourado que enche com a leitura. Só transform e opacity;
+ * no celular, em tela baixa e com movimento reduzido tudo fica empilhado e parado. */
+.chapter, .curtain { position: relative; z-index: 1; margin-top: -28px; border-radius: 28px 28px 0 0; overflow: clip; }
+.chapter[data-tone="soft"] { background: var(--soft); --lbl-bg: var(--soft); --lbl-fg: #6b5733; }
+.chapter[data-tone="paper"] { background: #fff; --lbl-bg: #fff; --lbl-fg: #6b5733; }
+.chapter[data-tone="dark"] { background: var(--imperial); --lbl-bg: var(--imperial); --lbl-fg: var(--gold-light); }
+.chapterLabel { display: none; }
+
+@media (min-width: 901px) {
+  .chapterLabel { display: flex; position: sticky; top: var(--header); z-index: 6; align-items: center; gap: 20px; height: 40px; padding: 0 var(--gutter); background: var(--lbl-bg); color: var(--lbl-fg); font-family: var(--font-archivo), "Archivo", system-ui, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; border-bottom: 1px solid rgba(168, 138, 88, 0.35); }
+  .chapterLabel::before { content: attr(data-text) / ""; flex: none; font-variant-numeric: tabular-nums; }
+  .chapterLabel i { position: relative; flex: 1; height: 1px; background: rgba(168, 138, 88, 0.3); }
+  .chapterLabel i::after { content: ""; position: absolute; inset: 0; background: var(--gold); transform: scaleX(0); transform-origin: left center; }
+}
+
+@media (min-width: 901px) and (min-height: 740px) and (prefers-reduced-motion: no-preference) {
+  .heroBrand { position: sticky; top: var(--header); z-index: 0; transform-origin: 50% 0; }
+}
+@supports (animation-timeline: scroll()) {
+  @media (min-width: 901px) and (min-height: 740px) and (prefers-reduced-motion: no-preference) {
+    .heroBrand { animation: heroSink linear both; animation-timeline: scroll(root block); animation-range: 0 640px; }
+    .chapter { view-timeline: --chapter block; animation: curtainRise ease-out both; animation-timeline: view(); animation-range: entry 0% entry 45%; }
+    .chapterLabel i::after { animation: chapterFill linear both; animation-timeline: --chapter; animation-range: cover 0% cover 100%; }
+  }
+}
+@keyframes heroSink { to { transform: translateY(-72px); } }
+@keyframes curtainRise { from { transform: translateY(56px); } to { transform: none; } }
+@keyframes chapterFill { to { transform: scaleX(1); } }
+
+/* ---------- Advisory: cabeçalho do site no celular/tablet (revisão do PO e do dono) ----------
+ * O cabeçalho da Home fica como está (flutuante e transparente, some ao rolar para baixo, volta ao subir, logo recolhe).
+ * Aqui só se corrige o que atrapalhava nesta página: a faixa branca de 76px acima do hero Imperial (o cabeçalho não
+ * ocupa mais espaço no fluxo, o hero sobe para baixo dele) e a cor da logo, que acompanha o fundo sob ela (HeaderTone). */
+@media (max-width: 1100px) {
+  .kitDark :global(header[data-block="home-header"]) { margin-bottom: -76px; }
+  .kitDark .heroBrand { padding-top: 92px; }
+  .kitDark :global(header[data-block="home-header"]) [data-header-logo="true"] { --logo-body: #f8f9fa; }
+  :global(html[data-header-tone="light"]) .kitDark :global(header[data-block="home-header"]) [data-header-logo="true"] { --logo-body: #28183b; }
+}
+@media (min-width: 901px) and (max-width: 1100px) {
+  .chapterLabel { top: 76px; }
+}
+/* Só o rótulo do capítulo atual fica no topo: o do capítulo que está saindo some antes de o próximo aparecer */
+@supports (animation-timeline: scroll()) {
+  @media (min-width: 901px) and (min-height: 740px) and (prefers-reduced-motion: no-preference) {
+    .chapterLabel { animation: labelOut linear both; animation-timeline: --chapter; animation-range: exit 70% exit 94%; }
+  }
+}
+@keyframes labelOut { to { opacity: 0; } }

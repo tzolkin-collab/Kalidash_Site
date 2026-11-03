@@ -28,8 +28,12 @@ var resendSend = func(to, subject, html string) error {
 	if key == "" {
 		return errors.New("RESEND_API_KEY não configurada")
 	}
+	from := os.Getenv("RESEND_FROM_EMAIL")
+	if from == "" {
+		from = "Kalidash CRM <onboarding@resend.dev>"
+	}
 	payload, _ := json.Marshal(map[string]any{
-		"from": "Kalidash CRM <onboarding@resend.dev>", "to": []string{to}, "subject": subject, "html": html,
+		"from": from, "to": []string{to}, "subject": subject, "html": html,
 	})
 	req, _ := http.NewRequest("POST", "https://api.resend.com/emails", bytes.NewReader(payload))
 	req.Header.Set("Authorization", "Bearer "+key)

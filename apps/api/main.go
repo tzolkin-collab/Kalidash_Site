@@ -383,8 +383,12 @@ func handleSendEmail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Enviar via Resend
+	fromEmail := os.Getenv("RESEND_FROM_EMAIL")
+	if fromEmail == "" {
+		fromEmail = "Kalidash CRM <onboarding@resend.dev>"
+	}
 	resendPayload := map[string]interface{}{
-		"from":    "Kalidash CRM <onboarding@resend.dev>",
+		"from":    fromEmail,
 		"to":      []string{toEmail.String},
 		"subject": req.Subject,
 		"html":    req.Body,

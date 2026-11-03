@@ -195,7 +195,12 @@ func firstOf(m map[string]any, keys ...string) string {
 	return ""
 }
 
-var attributionKeys = map[string]bool{"utm_source": true, "utm_medium": true, "utm_campaign": true, "utm_content": true, "utm_term": true, "referrer": true, "device": true, "page_url": true}
+var attributionKeys = map[string]bool{
+	"utm_source": true, "utm_medium": true, "utm_campaign": true, "utm_content": true, "utm_term": true,
+	"referrer": true, "device": true, "page_url": true,
+	"gclid": true, "fbclid": true, "gbraid": true, "wbraid": true,
+	"_fbp": true, "_fbc": true,
+}
 
 func handleConnectLead(w http.ResponseWriter, r *http.Request) {
 	if !connectEnabled() {

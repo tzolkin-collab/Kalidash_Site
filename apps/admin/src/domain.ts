@@ -354,6 +354,7 @@ export type TeamMember = {
   role: Role;
   status: 'ACTIVE' | 'INVITED' | 'DISABLED';
   lastAccess?: string;
+  avatarUrl?: string;
   /** Conta Admin raiz (AUTH_ROOT_ADMIN): não pode ser rebaixada nem desativada, e sempre tem todos os escopos. */
   root?: boolean;
   /** Escopos efetivos = (preset do perfil + extras) - removidos (apps/api/auth_scopes.go). Só com o login ligado. */

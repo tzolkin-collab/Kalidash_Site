@@ -58,9 +58,15 @@
 
   function attribution() {
     var q = new URLSearchParams(location.search), a = { page_url: location.href.split('#')[0] };
-    ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'].forEach(function (k) { if (q.get(k)) a[k] = q.get(k); });
+    ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'gclid', 'fbclid', 'gbraid', 'wbraid'].forEach(function (k) { if (q.get(k)) a[k] = q.get(k); });
     if (document.referrer) a.referrer = document.referrer;
     a.device = window.innerWidth < 768 ? 'mobile' : 'desktop';
+    try {
+      var matchFbp = document.cookie.match(/(^|;)\s*_fbp=([^;]+)/);
+      if (matchFbp) a._fbp = matchFbp[2];
+      var matchFbc = document.cookie.match(/(^|;)\s*_fbc=([^;]+)/);
+      if (matchFbc) a._fbc = matchFbc[2];
+    } catch (e) {}
     return a;
   }
 

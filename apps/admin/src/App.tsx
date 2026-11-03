@@ -29,6 +29,8 @@ import { initAuth, logout, useAuth } from './lib/auth';
 import { loadTeam } from './lib/teamSync';
 import { useCan } from './lib/permissions';
 import { initials } from './lib/people';
+import { CURRENT_USER_ID, teamStore } from './mocks/team';
+import { useStore } from './lib/store';
 
 // O editor de e-mail é pesado: só é baixado quando a página de E-mails é aberta.
 const Emails = lazy(() => import('./Emails'));
@@ -61,6 +63,8 @@ export default function App() {
   const { segments, path, navigate } = useHashRoute();
   const [isReady, setIsReady] = useState(false);
   const auth = useAuth();
+  const [team] = useStore(teamStore);
+  const currentUser = auth.status === 'in' && auth.user ? auth.user : team.find((m) => m.id === CURRENT_USER_ID);
   const can = useCan();
   useEffect(() => { void initAuth(); }, []);
   // Os dados só são pedidos à API depois de saber quem está logado (ou que a API não exige login).
@@ -170,21 +174,12 @@ export default function App() {
           <div className={`sidebar-backdrop ${isMobileMenuOpen ? 'show' : ''}`} onClick={() => setIsMobileMenuOpen(false)}></div>
 
           <aside className={`sidebar animate-sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
-            <div style={{ padding: '24px 20px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ padding: '16px 18px', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '12px' }}>
               <img src={isDarkMode ? '/kalidash-icon-white.svg' : '/kalidash-icon.svg'} alt="Kalidash Icon" style={{ width: '28px', height: 'auto' }} />
               <span className="font-bold text-base" style={{ letterSpacing: '-0.02em' }}>Kalidash</span>
             </div>
 
-            {auth.status === 'in' && auth.user && (
-              <div className="sidebar-user" data-testid="session-user">
-                <span className="avatar">{initials(auth.user.name || auth.user.email)}</span>
-                <div className="cell-stack">
-                  <span className="cell-primary">{auth.user.name || auth.user.email}</span>
-                  <span className="text-xs text-muted">{ROLE_NAME[auth.user.role]}</span>
-                </div>
-                <button type="button" className="icon-btn bare" onClick={() => void logout()} title="Sair" aria-label="Sair"><LogOut size={16} /></button>
-              </div>
-            )}
+            
 
             <nav style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
               {NAV_GROUPS.map((group, i) => (
@@ -201,16 +196,58 @@ export default function App() {
                 </div>
               ))}
 
-              <div style={{ marginTop: 'auto', paddingBottom: '24px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <div style={{ marginTop: 'auto', paddingBottom: '2px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 <NotificationBell onNavigate={() => setIsMobileMenuOpen(false)} />
                 <a href="#" className="nav-link" onClick={toggleTheme}>
                   {isDarkMode ? <><Sun size={18} className="nav-icon" strokeWidth={2} /> Light Mode</> : <><Moon size={18} className="nav-icon" strokeWidth={2} /> Dark Mode</>}
                 </a>
-                <a href="#/configuracoes" className={`nav-link ${isActive(path, '/configuracoes') ? 'active' : ''}`} onClick={() => setIsMobileMenuOpen(false)}>
-                  <Settings size={18} className="nav-icon" strokeWidth={2} /> Configurações
-                </a>
               </div>
             </nav>
+            {currentUser && (
+              <div
+                className="sidebar-user"
+                data-testid="session-user"
+                onClick={() => {
+                  navigate('/configuracoes');
+                  setIsMobileMenuOpen(false);
+                }}
+                title="Ver perfil nas configurações"
+              >
+                {currentUser.avatarUrl ? (
+                  <img src={currentUser.avatarUrl} alt={currentUser.name} className="avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
+                ) : (
+                  <span className="avatar">{initials(currentUser.name || currentUser.email)}</span>
+                )}
+                <div className="cell-stack">
+                  <span className="cell-primary">{currentUser.name || currentUser.email}</span>
+                  <span className="text-xs text-muted">{ROLE_NAME[currentUser.role] ?? currentUser.role}</span>
+                </div>
+                {auth.status === 'in' ? (
+                  <button
+                    type="button"
+                    className="icon-btn bare"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void logout();
+                    }}
+                    title="Sair"
+                    aria-label="Sair"
+                  >
+                    <LogOut size={16} />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="icon-btn bare"
+                    title="Configurações de perfil"
+                    aria-label="Configurações de perfil"
+                    tabIndex={-1}
+                  >
+                    <Settings size={14} />
+                  </button>
+                )}
+              </div>
+            )}
           </aside>
 
           <main className="main-content" style={{ background: 'var(--bg-app)' }}>

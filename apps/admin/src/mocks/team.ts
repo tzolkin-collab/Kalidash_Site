@@ -1,13 +1,20 @@
+const savedAvatar = (id: string, fallback?: string): string | undefined => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('kalidash_user_avatar_' + id) || fallback;
+  }
+  return fallback;
+};
+
 import { createStore } from '../lib/store';
 import type { AuditEntry, EmailLogEntry, TeamMember, Webhook } from '../domain';
 
 // Dados de exemplo (fase 5/6 do plano). Ver docs/system-core.md.
 
 export const teamStore = createStore<TeamMember[]>([
-  { id: 'u1', name: 'Carol Sales', email: 'carol@agenciatzolkin.com', role: 'ADMIN', status: 'ACTIVE', lastAccess: '2026-09-27T09:12:00Z' },
-  { id: 'u2', name: 'Marina Alves', email: 'marina@agenciatzolkin.com', role: 'MANAGER', status: 'ACTIVE', lastAccess: '2026-09-26T17:40:00Z' },
-  { id: 'u3', name: 'Diego Costa', email: 'diego@agenciatzolkin.com', role: 'SELLER', status: 'ACTIVE', lastAccess: '2026-09-27T08:05:00Z' },
-  { id: 'u4', name: 'Bianca Rocha', email: 'bianca@agenciatzolkin.com', role: 'SELLER', status: 'INVITED' },
+  { id: 'u1', name: 'Carol Sales', email: 'carol@agenciatzolkin.com', role: 'ADMIN', status: 'ACTIVE', lastAccess: '2026-09-27T09:12:00Z', avatarUrl: savedAvatar('u1', 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80') },
+  { id: 'u2', name: 'Marina Alves', email: 'marina@agenciatzolkin.com', role: 'MANAGER', status: 'ACTIVE', lastAccess: '2026-09-26T17:40:00Z', avatarUrl: savedAvatar('u2', 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80') },
+  { id: 'u3', name: 'Diego Costa', email: 'diego@agenciatzolkin.com', role: 'SELLER', status: 'ACTIVE', lastAccess: '2026-09-27T08:05:00Z', avatarUrl: savedAvatar('u3', 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80') },
+  { id: 'u4', name: 'Bianca Rocha', email: 'bianca@agenciatzolkin.com', role: 'SELLER', status: 'INVITED', avatarUrl: savedAvatar('u4', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80') },
 ]);
 
 export const CURRENT_USER_ID = 'u1';

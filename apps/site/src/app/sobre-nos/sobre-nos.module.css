@@ -113,3 +113,30 @@
 .credo li:last-child { border-bottom: 0; }
 .credentials li { border-left: 0; padding-left: 0; }
 .where { border-top: 0; padding-top: 0; }
+
+/* ---------- Tamanho e organização no desktop (B10) ----------
+ * Escopado em .sobre (o <main> desta página): o Kit (Advisory etc.) reaproveita .hero/.meta/.heroTop e não muda.
+ * Seções menores, abertura que cabe na tela e frases inteiras sem corte. */
+.sobre {
+  --t-claim: clamp(24px, 2.4vw, 34px);
+  --t-title: clamp(28px, 3vw, 42px);
+}
+.sobre > section { padding-block: clamp(40px, 4.4vw, 64px); }
+.sobre .hero { padding: clamp(20px, 3vh, 40px) 0 clamp(40px, 5vw, 72px); }
+.sobre .hero h1 { font-size: clamp(40px, 5.6vw, 80px); line-height: 1; }
+.sobre .heroPhoto { margin-top: clamp(28px, 4vw, 48px); aspect-ratio: 3 / 1; }
+.sobre .actBody h2 { font-size: clamp(24px, 2.7vw, 38px); }
+.sobre .acts > li { padding-block: clamp(20px, 2.6vw, 36px); }
+.sobre .actBody p { font-size: 17px; }
+.sobre .credo h3 { font-size: clamp(22px, 2.3vw, 32px); }
+.sobre .credo p, .sobre .beliefHead p, .sobre .teamHead p { font-size: 17px; }
+.sobre .credo { margin-top: clamp(32px, 4vw, 56px); }
+.sobre .keyline { max-width: 32ch; }
+.sobre .teamFigure { margin-top: clamp(28px, 4vw, 48px); }
+.sobre .teamFigure img { max-height: 560px; object-fit: cover; }
+.sobre .mosaicWrap { margin-bottom: clamp(32px, 4vw, 64px); }
+.sobre .where { margin-top: clamp(32px, 4vw, 56px); }
+@media (max-width: 900px) {
+  .sobre .heroPhoto { aspect-ratio: 4 / 3; }
+  .sobre .hero h1 { font-size: clamp(40px, 11vw, 56px); }
+}

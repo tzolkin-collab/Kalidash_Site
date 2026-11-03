@@ -72,7 +72,7 @@ type qualifyOut struct {
 func TestIntegrationCicloDoLeadQualificar(t *testing.T) {
 	lifecycleDB(t, func(t *testing.T) {
 		v := 0.0
-		l := newLead(t, LeadDTO{ID: "lq1", Name: "Renata", Email: "renata@x.co", PersonID: "cont1", CompanyID: "comp1", PipelineID: "ql", StageID: "ql:novos", Tags: []string{"Quente"}, Message: "Quero um diagnóstico", EstimatedValue: &v})
+		_ = newLead(t, LeadDTO{ID: "lq1", Name: "Renata", Email: "renata@x.co", PersonID: "cont1", CompanyID: "comp1", PipelineID: "ql", StageID: "ql:novos", Tags: []string{"Quente"}, Message: "Quero um diagnóstico", EstimatedValue: &v})
 		if _, err := db.Exec(`INSERT INTO Task (id, title, tag, source, entityKind, entityId, entityName, done, createdAt) VALUES ('tk-manual', 'Ligar', 'Comercial', 'manual', 'lead', 'lq1', 'Renata', 0, NOW())`); err != nil {
 			t.Fatal(err)
 		}

@@ -202,7 +202,7 @@ export default function SobreNosPage({ page }: { page: PageContent }) {
   return (
     <div className={`${home.home} ${sol.page}`} data-page={page.slug}>
       <HomeHeader />
-      <main>
+      <main className={styles.sobre}>
         {page.blocks.map((block, i) => (
           <BlockView key={`${block.type}-${i}`} block={block} />
         ))}

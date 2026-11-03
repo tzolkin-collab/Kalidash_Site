@@ -6,8 +6,9 @@ import SiteFooter from "../home/SiteFooter";
 import { ArrowRight, WhatsApp } from "../home/icons";
 import { config } from "../home/content";
 import type { Block, PageContent } from "../institucional/pages";
-import sn from "../sobre-nos/sobre-nos.module.css";
 import CountUp from "./CountUp";
+import HeaderTone from "./HeaderTone";
+import { fraunces } from "./kit-font";
 import { BlockView, HeroView, Legend, toneMap } from "./ProductPage";
 import prod from "./product.module.css";
 import sol from "./solucoes.module.css";
@@ -15,7 +16,7 @@ import styles from "./kit.module.css";
 
 /* Página institucional de leitura (Advisory, AI Culture, Execução) na linguagem da /solucoes:
  * manchete em cartaz, foto como objeto, afirmação + frase-chave, listas em linhas, faixa escura
- * para a sequência e fecho quente. Texto e ordem vêm de pages.ts; dado `confirmed: false` não é publicado. */
+ * para a sequência e fecho. Texto e ordem vêm de pages.ts; dado `confirmed: false` não é publicado. */
 
 type Of<T extends Block["type"]> = Extract<Block, { type: T }>;
 
@@ -23,18 +24,27 @@ function Rich({ text }: { text: string }) {
   return <>{text.split(/\*\*(.+?)\*\*/g).map((part, i) => (i % 2 ? <strong key={i}>{part}</strong> : part))}</>;
 }
 
+/* Última palavra da frase-manifesto em dourado itálico: só um span, o texto não muda. */
+function LastWord({ text }: { text: string }) {
+  const i = text.lastIndexOf(" ");
+  if (i < 0) return <>{text}</>;
+  return <>{text.slice(0, i + 1)}<span className={styles.gold}>{text.slice(i + 1)}</span></>;
+}
+
+/* Abertura da Advisory: Imperial, texto à esquerda e a Escola de Atenas (comitê de pensadores) num arco à direita. */
 function HeroWide({ block }: { block: Of<"heroMedia"> }) {
+  const last = block.title.length - 1;
   return (
-    <header className={`${sn.hero} ${styles.long}`}>
-      <div className={prod.wrap}>
-        <p className={sn.meta}>{block.eyebrow}</p>
-        <div className={sn.heroTop}>
+    <header className={styles.heroBrand} data-tone="dark">
+      <div className={`${prod.wrap} ${styles.heroGrid}`}>
+        <div className={styles.heroCopy}>
+          <p className={styles.heroMeta}>{block.eyebrow}</p>
           <h1>
-            {block.title.map((line) => (
-              <span key={line}>{line}</span>
+            {block.title.map((line, i) => (
+              <span key={line} className={styles.line}>{i === last ? <LastWord text={line} /> : line}</span>
             ))}
           </h1>
-          <div className={sn.heroLead}>
+          <div className={styles.heroLead}>
             {block.lead.map((p) => (
               <p key={p}><Rich text={p} /></p>
             ))}
@@ -45,15 +55,15 @@ function HeroWide({ block }: { block: Of<"heroMedia"> }) {
             )}
           </div>
         </div>
-        <div className={sn.heroPhoto}>
-          <Image src={block.image.src} alt={block.image.alt} width={block.image.width} height={block.image.height} priority sizes="(max-width: 900px) 100vw, 1280px" />
+        <div className={styles.heroArch}>
+          <Image src="/marca/escola-de-atenas.jpg" alt="A Escola de Atenas, de Rafael" width={1448} height={1086} priority sizes="(max-width: 900px) 78vw, 460px" />
         </div>
       </div>
     </header>
   );
 }
 
-function TextView({ block, soft }: { block: Of<"text">; soft: boolean }) {
+function TextView({ block, soft, figure }: { block: Of<"text">; soft: boolean; figure: boolean }) {
   return (
     <section className={`${prod.section}${soft ? ` ${prod.soft}` : ""}`}>
       <div className={prod.wrap}>
@@ -78,7 +88,16 @@ function TextView({ block, soft }: { block: Of<"text">; soft: boolean }) {
             ))}
           </ol>
         )}
-        {block.highlight && <p className={sn.keyline}>{block.highlight.join(" ")}</p>}
+        {block.highlight && (
+          <div className={styles.manifesto}>
+            <p><LastWord text={block.highlight.join(" ")} /></p>
+            {figure && (
+              <div className={styles.manifestoFig}>
+                <Image src="/marca/socrates.jpg" alt="Busto de Sócrates sobre um pedestal" width={1122} height={1402} sizes="(max-width: 900px) 70vw, 340px" loading="lazy" />
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -219,32 +238,58 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
   if (!hero) return null;
   const portrait = hero.image.height > hero.image.width;
   const tones = toneMap(page.blocks, LIGHT);
+  /* Advisory: movimento de rolagem em CSS (hero fixado, capítulos em cortina). Sem JS; só vale no desktop alto e sem movimento reduzido. */
+  const chaptered = page.slug === "advisory";
+  const chapterBlocks = page.blocks.filter((b) => b.type !== "heroMedia" && b.type !== "testimonials");
   return (
-    <div className={`${home.home} ${sol.page}`} data-page={page.slug}>
+    <div className={`${home.home} ${sol.page} ${fraunces.variable}${chaptered ? ` ${styles.kitDark}` : ""}`} data-page={page.slug}>
       <HomeHeader />
-      <main>
+      {chaptered && <HeaderTone />}
+      <main className={styles.main}>
         {portrait ? <HeroView hero={hero} kind="photo" /> : <HeroWide block={hero} />}
         {page.blocks.map((block, index) => {
           if (block.type === "heroMedia") return null;
           const key = `${block.type}-${index}`;
           const soft = tones[index];
+          let node: React.ReactNode;
           switch (block.type) {
-            case "text": return <TextView key={key} block={block} soft={soft} />;
-            case "list": return <ListView key={key} block={block} soft={soft} />;
-            case "formats": return <FormatsView key={key} block={block} soft={soft} />;
-            case "showcase": return <ShowcaseView key={key} block={block} soft={soft} />;
+            case "text": node = <TextView key={key} block={block} soft={soft} figure={page.slug === "advisory"} />; break;
+            case "list": node = <ListView key={key} block={block} soft={soft} />; break;
+            case "formats": node = <FormatsView key={key} block={block} soft={soft} />; break;
+            case "showcase": node = <ShowcaseView key={key} block={block} soft={soft} />; break;
             /* Depoimentos só vão ao ar com vídeo aprovado e hospedado (ver pages.ts): sem isso, nada. */
             case "testimonials": return null;
             case "cards":
               /* Com exemplo por item vira tabela de 4 colunas; sem exemplo, índice com título fixo. */
-              return <BlockView key={key} block={block} cardsIndex={block.items.some((it) => it.example) ? 0 : 1} poster={false} soft={soft} />;
+              node = <BlockView key={key} block={block} cardsIndex={block.items.some((it) => it.example) ? 0 : 1} poster={false} soft={soft} />;
+              break;
             default:
-              return <BlockView key={key} block={block} cardsIndex={1} poster={false} soft={soft} />;
+              node = <BlockView key={key} block={block} cardsIndex={1} poster={false} soft={soft} />;
           }
+          if (!chaptered) return node;
+          /* Capítulo: cortina que sobe sobre o anterior + cabeçalho fino (número / total · título) que acompanha a leitura.
+           * O rótulo vem de data-text (CSS), então não entra no texto da página. */
+          const n = chapterBlocks.indexOf(block) + 2;
+          const meta = block as { eyebrow?: string; title?: string | string[] };
+          const label = (meta.eyebrow || (Array.isArray(meta.title) ? meta.title.join(" ") : meta.title) || "").toUpperCase();
+          const tone = LIGHT.includes(block.type) ? (soft ? "soft" : "paper") : "dark";
+          return (
+            <div key={key} className={styles.chapter} data-tone={tone}>
+              <div className={styles.chapterLabel} aria-hidden="true" data-text={`${String(n).padStart(2, "0")} / ${String(chapterBlocks.length + 1).padStart(2, "0")} · ${label}`}>
+                <i />
+              </div>
+              {node}
+            </div>
+          );
         })}
-        <section className={sol.closing}>
+        <section className={`${sol.closing}${chaptered ? ` ${styles.curtain}` : ""}`} data-tone={chaptered ? "dark" : undefined}>
+          {page.slug === "advisory" && (
+            <div className={styles.closingBg} aria-hidden="true">
+              <Image src="/marca/nuvens-douradas.jpg" alt="" fill sizes="100vw" loading="lazy" />
+            </div>
+          )}
           <div className={sol.closingInner}>
-            <p>{closing}</p>
+            <p><LastWord text={closing} /></p>
             {hero.cta && (
               <Link className={sol.closingCta} href={hero.cta.href}>
                 {hero.cta.label} <ArrowRight />

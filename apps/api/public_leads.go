@@ -31,12 +31,13 @@ const (
 var emailRe = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
 
 type leadInput struct {
-	Name      string `json:"name"`
-	Email     string `json:"email"`
-	Phone     string `json:"phone"`
-	Challenge string `json:"challenge"`
-	Source    string `json:"source"`
-	Website   string `json:"website"` // honeypot: humano nunca preenche
+	Name        string         `json:"name"`
+	Email       string         `json:"email"`
+	Phone       string         `json:"phone"`
+	Challenge   string         `json:"challenge"`
+	Source      string         `json:"source"`
+	Website     string         `json:"website"` // honeypot: humano nunca preenche
+	Attribution map[string]any `json:"attribution,omitempty"`
 }
 
 // clean tira caracteres de controle e espaços das pontas e corta no limite (em runes).
@@ -276,11 +277,15 @@ func saveLeadV2(in leadInput, ip string) error {
 	if in.Challenge != "" {
 		message += "\n\nDesafio informado:\n" + in.Challenge
 	}
+	custom := map[string]any{"via": "formulário do site", "formSource": in.Source}
+	if len(in.Attribution) > 0 {
+		custom["attribution"] = in.Attribution
+	}
 	_, err = connectDB.IngestLead(inboundLead{
 		Project: Project{PipelineID: nullableID(pipelineID), StageID: nullableID(stageID), SourceName: sourceName},
 		Name:    in.Name, Email: in.Email, Phone: in.Phone, Message: message,
 		Tags:   []string{"Inbound", "Site"},
-		Custom: map[string]any{"via": "formulário do site", "formSource": in.Source},
+		Custom: custom,
 		Actor:  "Site", ClientIP: ip,
 	})
 	return err
