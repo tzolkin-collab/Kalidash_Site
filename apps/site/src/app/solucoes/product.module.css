@@ -157,3 +157,7 @@
 }
 @keyframes stepLight { from { opacity: 0.28; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 @keyframes dotGrow { from { transform: scale(0.4); } to { transform: scale(1); } }
+
+/* Serifa da marca (Fraunces) nos títulos, números e frases das páginas de produto (Kognis e Spectra AI); texto corrido na fonte de leitura. */
+.brandTitles { --font-title: var(--font-fraunces), Georgia, "Times New Roman", serif; }
+.brandTitles :is(h1, h2, h3) { font-weight: 400; letter-spacing: -0.03em; }

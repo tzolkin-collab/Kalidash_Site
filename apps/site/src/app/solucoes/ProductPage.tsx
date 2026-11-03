@@ -10,6 +10,7 @@ import CountUp from "./CountUp";
 import { HeroParallax } from "./SolucoesStory";
 import sol from "./solucoes.module.css";
 import styles from "./product.module.css";
+import { fraunces } from "./kit-font";
 
 /* Página de produto (Kognis, Spectra AI): mesma linguagem da /solucoes — abertura escura em cartaz,
  * régua de números, seções em tabela/índice, faixa escura única para a sequência e fecho quente.
@@ -234,7 +235,7 @@ export default function ProductPage({ page, kind, closing, heroOnly = false }: {
   let cardsSeen = 0;
   const tones = toneMap(page.blocks, ["cards", "faq"]);
   return (
-    <div className={`${home.home} ${sol.page}`} data-page={page.slug}>
+    <div className={`${home.home} ${sol.page} ${styles.brandTitles} ${fraunces.variable}`} data-page={page.slug}>
       <HomeHeader />
       <main>
         <HeroView hero={hero} kind={kind} />

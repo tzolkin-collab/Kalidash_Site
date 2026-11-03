@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./diagnostico.module.css";
 import BrandLogo from "../components/BrandLogo";
+import { fraunces } from "../solucoes/kit-font";
 import { config, diagnostico } from "../home/content";
 import { ArrowLeft, ArrowRight, WhatsApp } from "../home/icons";
 import { INTERESTS } from "../institucional/interests";
@@ -232,7 +233,7 @@ export default function DiagnosticoClient() {
   const progressSegments = Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1);
 
   return (
-    <div className={styles.splitLayout}>
+    <div className={`${styles.splitLayout} ${fraunces.variable}`}>
       {/* ========================================================
           LADO ESQUERDO: Painel Editorial Institucional (Oculto no Mobile)
           ======================================================== */}

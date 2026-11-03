@@ -8,7 +8,7 @@
    ============================================================ */
 
 .splitLayout {
-  --font-title: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-title: var(--font-fraunces), Georgia, "Times New Roman", serif; /* serifa da marca nos títulos */
   --f-title: var(--font-title);
   --f-body: var(--font-source-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
 
