@@ -9,6 +9,7 @@ import type { Block, PageContent } from "../institucional/pages";
 import CountUp from "../solucoes/CountUp";
 import prod from "../solucoes/product.module.css";
 import sol from "../solucoes/solucoes.module.css";
+import { fraunces } from "../solucoes/kit-font";
 import styles from "./sobre-nos.module.css";
 
 /* /sobre-nos na linguagem da /solucoes: manchete em cartaz, fotos reais como objeto,
@@ -200,7 +201,7 @@ function BlockView({ block }: { block: Block }) {
 
 export default function SobreNosPage({ page }: { page: PageContent }) {
   return (
-    <div className={`${home.home} ${sol.page}`} data-page={page.slug}>
+    <div className={`${home.home} ${sol.page} ${fraunces.variable}`} data-page={page.slug}>
       <HomeHeader />
       <main className={styles.sobre}>
         {page.blocks.map((block, i) => (

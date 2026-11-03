@@ -140,3 +140,9 @@
   .sobre .heroPhoto { aspect-ratio: 4 / 3; }
   .sobre .hero h1 { font-size: clamp(40px, 11vw, 56px); }
 }
+
+/* Serifa da marca (Fraunces) nos títulos, nas frases do credo e nos números; o texto corrido continua na fonte de leitura.
+ * A manchete segue o teto de tamanho das outras páginas (D24). */
+.sobre { --font-title: var(--font-fraunces), Georgia, "Times New Roman", serif; }
+.sobre :is(h1, h2, h3) { letter-spacing: -0.03em; }
+.sobre .hero h1 { font-weight: 400; font-size: clamp(42px, 5.6vw, 84px); line-height: 1; letter-spacing: -0.035em; }
