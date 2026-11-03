@@ -224,3 +224,14 @@
 }
 /* Âncoras não escondem o título atrás do cabeçalho (56px) */
 .page :global([id]) { scroll-margin-top: calc(var(--header) + 24px); }
+
+/* /solucoes: serifa da marca nos títulos e hero desktop com texto e busto no mesmo centro vertical. */
+[data-page="solucoes"] :is(h1, h2, h3) {
+  --font-title: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  font-family: var(--font-title);
+}
+[data-page="solucoes"] .hero h1 { font-weight: 400; letter-spacing: -0.035em; font-size: clamp(42px, 5.6vw, 84px); line-height: 1; }
+@media (min-width: 901px) {
+  [data-page="solucoes"] .heroInner { justify-content: center; }
+  [data-page="solucoes"] .heroLead { margin-top: clamp(24px, 4vh, 44px); }
+}

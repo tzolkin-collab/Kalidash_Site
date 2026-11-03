@@ -210,3 +210,25 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
   }
 }
 @keyframes labelOut { to { opacity: 0; } }
+
+/* Advisory: menos linhas e nada repetido. O rótulo de cada seção já aparece na faixa fina do capítulo ("03 / 07 · O QUE FAZEMOS"),
+ * então a legenda dentro da seção sai da tela (continua no HTML, para leitor de tela e busca). As réguas ficam só ENTRE os itens. */
+:global([data-page="advisory"]) .main [class*="legend"] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+:global([data-page="advisory"]) .main [class*="manifesto"] { border-top: 0; }
+:global([data-page="advisory"]) .main [class*="footnote"] { border-top: 0; }
+:global([data-page="advisory"]) .main li:first-child { border-top: 0; }
+:global([data-page="advisory"]) .main li:last-child { border-bottom: 0; }
+:global([data-page="advisory"]) .main details:first-child { border-top: 0; }
+:global([data-page="advisory"]) .main details:last-child { border-bottom: 0; }
+
+/* "Surge": títulos, linhas de lista, fotos e perguntas sobem e firmam ao entrar na tela, ligados à rolagem (CSS puro, sem JS).
+ * Só em capítulos que ainda não têm outra animação (sem história presa, passos presos, contador ou revelação própria).
+ * Nunca nasce escondido: parte de 30% de opacidade e 28px abaixo. Sem suporte ou com movimento reduzido, fica parado e legível. */
+@keyframes surge { from { opacity: 0.3; transform: translate3d(0, 28px, 0); } to { opacity: 1; transform: none; } }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .chapter:not(:has([class*="story"], [class*="pin"], [class*="countup"], [data-state], [data-live])) :is(h2, figure, details, [class*="ruled"] li, [class*="table"] li) {
+      animation: surge ease-out both; animation-timeline: view(); animation-range: entry 0% cover 28%;
+    }
+  }
+}

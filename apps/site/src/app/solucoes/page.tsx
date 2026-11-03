@@ -8,6 +8,7 @@ import { ArrowRight, WhatsApp } from "../home/icons";
 import { config } from "../home/content";
 import { solucoes } from "../institucional/pages";
 import SolucoesStory, { HeroParallax } from "./SolucoesStory";
+import { fraunces } from "./kit-font";
 import styles from "./solucoes.module.css";
 
 export const metadata: Metadata = {
@@ -35,7 +36,7 @@ export default function Page() {
   const closing = "Quando isso acontece, a gente constrói.";
 
   return (
-    <div className={`${home.home} ${styles.page}`} data-page="solucoes">
+    <div className={`${home.home} ${styles.page} ${fraunces.variable}`} data-page="solucoes">
       <HomeHeader />
       <main>
         {/* 1. Abertura: manchete em escala de cartaz, o busto da marca como único objeto */}
