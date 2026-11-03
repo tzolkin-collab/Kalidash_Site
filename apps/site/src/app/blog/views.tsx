@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./blog.module.css";
 import articleStyles from "./[slug]/article.module.css";
 import HomeHeader from "../home/HomeHeader";
+import { fraunces } from "../solucoes/kit-font";
 import SiteFooter from "../home/SiteFooter";
 import ReadingProgressBar from "./ReadingProgressBar";
 import ShareButtons from "./ShareButtons";
@@ -229,7 +230,7 @@ export function BlogGalleryView({
   );
 
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} ${fraunces.variable}`}>
       <HomeHeader
         bg="white"
         filterSlot={categories.length > 0 ? renderFilterButtons(true) : undefined}
@@ -379,7 +380,7 @@ export function ArticleView({
   const primaryCategory = article.categories?.[0] || "AI Culture";
 
   return (
-    <div className={articleStyles.page}>
+    <div className={`${articleStyles.page} ${fraunces.variable}`}>
       <ReadingProgressBar />
       <HomeHeader bg="white" />
 

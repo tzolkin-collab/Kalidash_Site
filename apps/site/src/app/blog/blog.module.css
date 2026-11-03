@@ -24,7 +24,7 @@
   --text: #191421;
   --muted: #575060;
   --muted-light: #857e8e;
-  --font-title: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-title: var(--font-fraunces), Georgia, "Times New Roman", serif; /* serifa da marca nos títulos */
   --font-body: var(--font-source-sans), system-ui, sans-serif;
   --gutter: max(24px, calc((100% - 1280px) / 2));
 
