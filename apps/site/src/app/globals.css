@@ -175,3 +175,10 @@ body {
     background-clip: content-box;
   }
 }
+
+
+/* Cabeçalho no celular/tablet: a logo acompanha o fundo que está sob ela (html[data-header-tone], definido pelo HeaderTone, em todas as páginas). */
+@media (max-width: 1100px) {
+  html[data-header-tone="dark"] header[data-block="home-header"] [data-header-logo="true"] { --logo-body: #f8f9fa; }
+  html[data-header-tone="light"] header[data-block="home-header"] [data-header-logo="true"] { --logo-body: #28183b; }
+}

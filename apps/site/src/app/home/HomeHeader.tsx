@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import styles from "./home.module.css";
 import BrandLogo from "../components/BrandLogo";
+import HeaderTone from "../solucoes/HeaderTone";
 import SidebarMenu from "./SidebarMenu";
 import { nav, navCta } from "./content";
 import { ArrowRight, Close, Menu } from "./icons";
@@ -186,6 +187,7 @@ export default function HomeHeader({
 
   return (
     <>
+      <HeaderTone />
       <header
         className={styles.header}
         data-block="home-header"

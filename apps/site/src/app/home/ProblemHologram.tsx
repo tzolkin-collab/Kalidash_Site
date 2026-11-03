@@ -140,15 +140,15 @@ export default function ProblemHologram({
       scene.add(pointLightFrontCrystal);
 
       // Tons de roxo desenhados para escultura tridimensional e relevo do cérebro
-      const pointLightRoyal = new THREE.PointLight(0x9d4edd, 22, 12);
+      const pointLightRoyal = new THREE.PointLight(0xc9a45c, 22, 12);
       pointLightRoyal.position.set(-3.2, -1, 3);
       scene.add(pointLightRoyal);
 
-      const pointLightPurpura = new THREE.PointLight(0xc084fc, 18, 11);
+      const pointLightPurpura = new THREE.PointLight(0xdcc08a, 18, 11);
       pointLightPurpura.position.set(3, -1.8, 2);
       scene.add(pointLightPurpura);
 
-      const pointLightDeepViolet = new THREE.PointLight(0x6b21a8, 16, 9);
+      const pointLightDeepViolet = new THREE.PointLight(0x8f7248, 16, 9);
       pointLightDeepViolet.position.set(0, -3.5, 2);
       scene.add(pointLightDeepViolet);
 
@@ -358,7 +358,7 @@ export default function ProblemHologram({
         <defs>
           <linearGradient id="problem-hologram-link" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="100" y2="100">
             <stop offset="0%" stopColor="rgba(255, 255, 255, 0.98)" />
-            <stop offset="100%" stopColor="rgba(216, 180, 254, 0.95)" />
+            <stop offset="100%" stopColor="rgba(196, 166, 115, 0.95)" />
           </linearGradient>
         </defs>
         {tags.map((tag) => (

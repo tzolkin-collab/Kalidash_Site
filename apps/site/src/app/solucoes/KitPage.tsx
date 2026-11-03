@@ -7,7 +7,6 @@ import { ArrowRight, WhatsApp } from "../home/icons";
 import { config } from "../home/content";
 import type { Block, PageContent } from "../institucional/pages";
 import CountUp from "./CountUp";
-import HeaderTone from "./HeaderTone";
 import { fraunces } from "./kit-font";
 import BuildStory from "./BuildStory";
 import StepsPin from "./StepsPin";
@@ -246,7 +245,6 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
   return (
     <div className={`${home.home} ${sol.page} ${fraunces.variable}${chaptered ? ` ${styles.kitDark}` : ""}`} data-page={page.slug}>
       <HomeHeader />
-      {chaptered && <HeaderTone />}
       <main className={styles.main}>
         {portrait ? <HeroView hero={hero} kind="photo" /> : <HeroWide block={hero} />}
         {page.blocks.map((block, index) => {
