@@ -232,3 +232,19 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
     }
   }
 }
+
+/* ---------- CTAs: terracota sobre fundo claro, dourado sobre Imperial (pedido do dono) ----------
+ * Vale para todas as páginas do Kit (Advisory, Execução, AI Culture). Substitui o botão Imperial no claro e o fecho só com
+ * contorno. No Imperial o botão é dourado sólido com texto escuro (contraste), como o do hero da Advisory. */
+.main a[class*="primaryButton"] { background: #b6644d; border-color: #b6644d; color: #fff; }
+.main a[class*="primaryButton"]:hover { background: #a35643; border-color: #a35643; }
+.main a[class*="secondaryButton"] { border-color: #b6644d; color: var(--ink-text); }
+.main a[class*="secondaryButton"]:hover { background: #b6644d; border-color: #b6644d; color: #fff; }
+.main :is([data-tone="dark"], section[class*="steps"], .heroBrand, .heroLead) a[class*="primaryButton"],
+.main > section:last-child a,
+.main .curtain a {
+  background: var(--gold); border: 1px solid var(--gold); color: #19171b !important; /* o .primaryButton da Home força branco com !important */
+}
+.main :is([data-tone="dark"], section[class*="steps"], .heroBrand, .heroLead) a[class*="primaryButton"]:hover,
+.main > section:last-child a:hover,
+.main .curtain a:hover { background: var(--gold-light); border-color: var(--gold-light); color: #19171b !important; }
