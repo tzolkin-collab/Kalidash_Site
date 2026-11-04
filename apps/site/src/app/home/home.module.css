@@ -1529,3 +1529,14 @@
   :global(html:not([data-header-tone])) .homeDark .header:not([data-filters-active="true"]):not([data-bg="white"]) .navCta { color: #c4a673 !important; border-bottom-color: #c4a673; }
   :global(html:not([data-header-tone])) .homeDark .header:not([data-filters-active="true"]):not([data-bg="white"]) [data-header-logo="true"] { --logo-body: #f8f9fa; }
 }
+
+/* ====================== Rodada 4: Problema alinhado ======================
+ * Cartões alinhados à grade do holograma (sem o recuo de 80px), mesmo espaçamento entre linhas e colunas, respiro sob o
+ * hero e sem a marca d'água, que ficava meio coberta pelos cartões e cortada na borda. */
+@media (min-width: 1101px) {
+  .v3 .problem { padding-top: clamp(56px, 5.5vw, 88px); padding-bottom: clamp(72px, 7vw, 112px); }
+  .v3 .problemCardsRow { margin-left: 0; gap: 20px; min-height: 0; }
+  .v3 .quoteCard { margin: 0 -10px; }
+  .v3 .quoteCard[data-active="true"] { margin: 0; margin-bottom: -40px; }
+}
+.v3 .watermark { display: none; }
