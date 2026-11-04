@@ -245,16 +245,55 @@
 @keyframes heroLineIn { from { transform: translate3d(0, 22px, 0); } to { transform: none; } }
 @media (prefers-reduced-motion: no-preference) {
   .page main:not([class]) .hero h1 span,
-  .page main:not([class]) .hero h1:not(:has(span)) { animation: heroLineIn 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-  .page main:not([class]) .hero h1 span:nth-child(2) { animation-delay: 90ms; }
-  .page main:not([class]) .hero h1 span:nth-child(3) { animation-delay: 180ms; }
+  .page main:not([class]) .hero h1:not(:has(span)) { animation: heroLineIn 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: var(--enter-delay); }
+  .page main:not([class]) .hero h1 span:nth-child(2) { animation-delay: calc(var(--enter-delay) + 90ms); }
+  .page main:not([class]) .hero h1 span:nth-child(3) { animation-delay: calc(var(--enter-delay) + 180ms); }
   .page main:not([class]) .heroLead,
-  .page main:not([class]) .hero [class*="lead"] { animation: heroLineIn 900ms 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  .page main:not([class]) .hero [class*="lead"] { animation: heroLineIn 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(var(--enter-delay) + 220ms); }
+  .page main:not([class]) .hero .bust { animation: enterLift 1200ms cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(var(--enter-delay) + 150ms); }
 }
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
-    .page main:not([class]) > section:not(:first-child):not(:has([class*="pin"], [class*="story"], [class*="stage"], [class*="countup"], [data-state], [data-live])) :is(h2, h3, figure, li, details) {
+    .page main:not([class]) > section:not(:first-child):not(:has([class*="pin"], [class*="story"], [class*="stage"], [class*="countup"], [data-state], [data-live])) :is(h2, h3, p, li, figure, details, img):not(li *, figure *, details *) {
       animation: productSurge ease-out both; animation-timeline: view(); animation-range: entry 0% cover 28%;
     }
+  }
+}
+
+/* Abertura de Soluções: fundo branco, texto à esquerda e, à direita, um arco Imperial com a peça do guia da marca (mão de
+ * mármore montando blocos). Por cima do arco vai só a mão recortada (mao-blocos-dedos.png, recorte por luminância), com o
+ * mesmo tamanho e zoom da peça: dentro do arco ela coincide com a imagem, fora dele os dedos vazam pela esquerda, em direção
+ * ao texto (efeito 3D). Paralaxe (--h) no conjunto. CTA terracota (fundo claro); "problemas reais." em dourado itálico. */
+.heroHand h1 { font-weight: 400; letter-spacing: -0.02em; font-size: clamp(44px, 6.2vw, 96px); line-height: 1; }
+.heroHand h1 span:last-child { color: #8f7248; font-style: italic; }
+.heroHand .meta { color: #8f7248; }
+.heroHand h1, .heroHand .meta, .heroHand .heroLead { position: relative; z-index: 3; max-width: 54%; }
+.heroHand .bustArch {
+  position: absolute; z-index: 2; right: 0; bottom: 0; width: min(36%, 470px); aspect-ratio: 1122 / 1402;
+  overflow: visible; border-radius: 0; background: transparent;
+}
+.heroHand .bustArch::before { display: none; }
+.archClip { position: absolute; inset: 0; overflow: hidden; border-radius: 999px 999px 0 0; background: #28183b; }
+.heroHand .bustArch img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(2.4); transform-origin: 100% 66%; }
+.handPop { pointer-events: none; filter: drop-shadow(-14px 22px 22px rgba(40, 24, 59, 0.28)); }
+@media (max-width: 900px) {
+  .heroHand h1, .heroHand .meta, .heroHand .heroLead { max-width: none; }
+  .heroHand .bustArch { position: relative; right: auto; bottom: auto; width: 66%; margin: 28px 0 0 auto; }
+}
+
+/* Abertura de Soluções no desktop: grade de duas colunas (texto 7 / arco 5), o arco centralizado na altura do texto e alinhado
+ * à borda do container, em vez de preso ao canto de baixo da tela. Os dedos vazam para o vão entre as colunas. */
+@media (min-width: 901px) {
+  .heroHand .heroInner {
+    display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); grid-template-rows: auto auto auto;
+    column-gap: clamp(48px, 7vw, 120px); align-content: center;
+  }
+  .heroHand .meta { grid-column: 1; grid-row: 1; }
+  .heroHand h1 { grid-column: 1; grid-row: 2; }
+  .heroHand .heroLead { grid-column: 1; grid-row: 3; margin-top: clamp(28px, 4vh, 44px); padding-top: 0; }
+  .heroHand h1, .heroHand .meta, .heroHand .heroLead { max-width: none; }
+  .heroHand .bustArch {
+    position: relative; right: auto; bottom: auto; grid-column: 2; grid-row: 1 / 4;
+    align-self: center; justify-self: end; width: min(100%, 440px);
   }
 }

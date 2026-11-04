@@ -1297,7 +1297,7 @@
 .page .articleHead .authorRole { color: rgba(248, 249, 250, 0.58); }
 .page .articleHead .shareLabel { color: rgba(248, 249, 250, 0.62); }
 .page .articleHead :is(.shareCopyBtn, .shareIconBtn) { color: #f8f9fa; border-color: rgba(196, 166, 115, 0.45); background: transparent; }
-.page .articleHead :is(.shareCopyBtn, .shareIconBtn):hover { color: #19171b; background: var(--gold); border-color: var(--gold); }
+.page .articleHead :is(.shareCopyBtn, .shareIconBtn):hover { color: #fff; background: var(--gold); border-color: var(--gold); }
 
 /* Celular/tablet: o cabeçalho flutua sobre a abertura (sem faixa branca acima) e a logo clareia sobre o Imperial */
 @media (max-width: 1100px) {
@@ -1315,18 +1315,18 @@
 .page .conversionCta { background: var(--imperial); box-shadow: 0 0 0 100vmax var(--imperial); }
 .page .ctaEyebrow { color: var(--gold-light); }
 .page .ctaTitle { font-weight: 400; letter-spacing: -0.02em; }
-.page .ctaPrimaryBtn { background: var(--gold) !important; border-color: var(--gold) !important; color: #19171b !important; }
-.page .ctaPrimaryBtn:hover { background: var(--gold-light) !important; border-color: var(--gold-light) !important; }
+.page .ctaPrimaryBtn { background: var(--gold) !important; border-color: var(--gold) !important; color: #fff !important; }
+.page .ctaPrimaryBtn:hover { background: #8a6f45 !important; border-color: #8a6f45 !important; }
 .page .ctaSecondaryBtn { border-bottom-color: var(--gold); }
 
 /* Movimento */
 @keyframes articleLineIn { from { transform: translate3d(0, 22px, 0); } to { transform: none; } }
 @keyframes articleSurge { from { opacity: 0.3; transform: translate3d(0, 28px, 0); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: no-preference) {
-  .page .articleHead > :is(.headerMeta, .title, .excerpt, .authorBar) { animation: articleLineIn 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-  .page .articleHead > .title { animation-delay: 80ms; }
-  .page .articleHead > .excerpt { animation-delay: 160ms; }
-  .page .articleHead > .authorBar { animation-delay: 240ms; }
+  .page .articleHead > :is(.headerMeta, .title, .excerpt, .authorBar) { animation: articleLineIn 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: var(--enter-delay); }
+  .page .articleHead > .title { animation-delay: calc(var(--enter-delay) + 80ms); }
+  .page .articleHead > .excerpt { animation-delay: calc(var(--enter-delay) + 160ms); }
+  .page .articleHead > .authorBar { animation-delay: calc(var(--enter-delay) + 240ms); }
 }
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {

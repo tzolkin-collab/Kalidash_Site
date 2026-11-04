@@ -106,8 +106,8 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 /* Botões em Imperial; sobre fundo escuro, dourados */
 .main a[class*="primaryButton"] { background: var(--imperial); border-color: var(--imperial); color: #f8f9fa; }
 .main a[class*="primaryButton"]:hover { background: #46304f; border-color: #46304f; }
-.main > section[class*="steps"] a[class*="primaryButton"], .main .heroLead a[class*="primaryButton"] { background: var(--gold); border-color: var(--gold); color: #19171b; }
-.main > section[class*="steps"] a[class*="primaryButton"]:hover, .main .heroLead a[class*="primaryButton"]:hover { background: var(--gold-light); border-color: var(--gold-light); }
+.main > section[class*="steps"] a[class*="primaryButton"], .main .heroLead a[class*="primaryButton"] { background: var(--gold); border-color: var(--gold); color: #fff; }
+.main > section[class*="steps"] a[class*="primaryButton"]:hover, .main .heroLead a[class*="primaryButton"]:hover { background: #8a6f45; border-color: #8a6f45; }
 
 /* Faixa de passos: sem as bolinhas de "como funciona"; números em dourado */
 .main > section[class*="steps"] { border-top: 0; }
@@ -145,7 +145,7 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 .main > section:last-child p { font-size: var(--t-lema); }
 .main > section:last-child .gold { color: var(--gold-light); }
 .main > section:last-child a { background: transparent; color: #f8f9fa; border: 1px solid var(--gold); }
-.main > section:last-child a:hover { background: var(--gold); color: #19171b; }
+.main > section:last-child a:hover { background: var(--gold); color: #fff; }
 .closingBg { position: absolute; z-index: 0; inset: 0; opacity: 0.55; }
 .closingBg img { object-fit: cover; object-position: 50% 50%; }
 .closingBg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to right, var(--imperial) 15%, rgba(40, 24, 59, 0.55) 70%, rgba(40, 24, 59, 0.35)); }
@@ -227,7 +227,7 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 @keyframes surge { from { opacity: 0.3; transform: translate3d(0, 28px, 0); } to { opacity: 1; transform: none; } }
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
-    .chapter:not(:has([class*="story"], [class*="pin"], [class*="countup"], [data-state], [data-live])) :is(h2, figure, details, [class*="ruled"] li, [class*="table"] li) {
+    .chapter:not(:has([class*="story"], [class*="pin"], [class*="countup"], [data-state], [data-live])) :is(h2, h3, p, li, figure, details, img):not(li *, figure *, details *, [class*="tile"] *, [class*="chapterLabel"]) {
       animation: surge ease-out both; animation-timeline: view(); animation-range: entry 0% cover 28%;
     }
   }
@@ -243,11 +243,11 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 .main :is([data-tone="dark"], section[class*="steps"], .heroBrand, .heroLead) a[class*="primaryButton"],
 .main > section:last-child a,
 .main .curtain a {
-  background: var(--gold); border: 1px solid var(--gold); color: #19171b !important; /* o .primaryButton da Home força branco com !important */
+  background: var(--gold); border: 1px solid var(--gold); color: #fff !important; /* texto branco no botão dourado (pedido do dono) */
 }
 .main :is([data-tone="dark"], section[class*="steps"], .heroBrand, .heroLead) a[class*="primaryButton"]:hover,
 .main > section:last-child a:hover,
-.main .curtain a:hover { background: var(--gold-light); border-color: var(--gold-light); color: #19171b !important; }
+.main .curtain a:hover { background: #8a6f45; border-color: #8a6f45; color: #fff !important; } /* hover escurece: texto branco segue legível */
 
 /* ---------- Movimento de rolagem no celular e onde o CSS de rolagem não serve (ScrollMotion.tsx) ----------
  * O CSS de rolagem (animation-timeline) não tem suporte completo no Safari do iOS, onde a cortina e o paralaxe do celular não
@@ -278,3 +278,19 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 /* Barra de provas (AI Culture) fora dos capítulos: sem cortina, cantos ou sobreposição. Fica acima da abertura no empilhamento
  * e ganha 36px no pé, que o capítulo seguinte cobre ao subir (64px de sobreposição, como entre capítulos). */
 .flatBar { position: relative; z-index: 1; padding-bottom: 36px; background: var(--soft); }
+
+/* Entrada da abertura Imperial (Advisory, Sobre nós), depois do carregamento (--enter-delay em globals.css). Só nas peças de
+ * dentro (texto e arco), para não brigar com o paralaxe/afundar aplicado ao bloco inteiro. */
+@media (prefers-reduced-motion: no-preference) {
+  .heroBrand .heroCopy > * { animation: enterRise 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: var(--enter-delay); }
+  .heroBrand .heroCopy > h1 { animation-name: enterLift; animation-delay: calc(var(--enter-delay) + 90ms); }
+  .heroBrand .heroCopy > :nth-child(3) { animation-delay: calc(var(--enter-delay) + 200ms); }
+  .heroBrand .heroArch img { animation: enterLift 1200ms cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(var(--enter-delay) + 150ms); }
+}
+/* Entrada da abertura clara (Execução, AI Culture: HeroView, com foto em arco), depois do carregamento (--enter-delay). */
+@media (prefers-reduced-motion: no-preference) {
+  .main > header:first-child:not(.heroBrand) :is([class*="meta"], [class*="lead"]) { animation: enterRise 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: var(--enter-delay); }
+  .main > header:first-child:not(.heroBrand) h1 { animation: enterLift 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(var(--enter-delay) + 90ms); }
+  .main > header:first-child:not(.heroBrand) [class*="lead"] { animation-delay: calc(var(--enter-delay) + 220ms); }
+  .main > header:first-child:not(.heroBrand) :is([class*="photo"], [class*="cutout"]) { animation: enterLift 1200ms cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(var(--enter-delay) + 150ms); }
+}

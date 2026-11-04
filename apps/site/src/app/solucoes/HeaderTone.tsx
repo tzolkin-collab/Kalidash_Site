@@ -48,8 +48,8 @@ export default function HeaderTone() {
         /* O último elemento visível na faixa do topo (ordem do documento) é o que está sob o cabeçalho. */
         let tone = "";
         for (const el of marked) if (seen.get(el)) tone = el.dataset.tone === "dark" ? "dark" : "light";
-        /* Nenhum bloco marcado sob o cabeçalho (ex.: o blog, que só marca a abertura, depois que ela sai): fundo claro. */
-        root.dataset.headerTone = tone || "light";
+        /* Nenhum bloco marcado sob o cabeçalho (ex.: páginas que só marcam a abertura, depois que ela sai): mede o fundo real. */
+        root.dataset.headerTone = tone || toneUnderHeader();
       };
       io = new IntersectionObserver(
         (entries) => {
@@ -59,6 +59,19 @@ export default function HeaderTone() {
         { rootMargin: "0px 0px -92% 0px", threshold: 0 },
       );
       marked.forEach((el) => io!.observe(el));
+      /* Fora dos blocos marcados a medição precisa acompanhar a rolagem (o observador só avisa ao entrar/sair deles). */
+      const onScroll = () => {
+        if (!frame)
+          frame = requestAnimationFrame(() => {
+            frame = 0;
+            if (![...seen.values()].some(Boolean)) apply();
+          });
+      };
+      window.addEventListener("scroll", onScroll, { passive: true });
+      cleanup.push(() => {
+        window.removeEventListener("scroll", onScroll);
+        if (frame) cancelAnimationFrame(frame);
+      });
     } else {
       const update = () => {
         frame = 0;

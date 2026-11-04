@@ -118,7 +118,7 @@ export default function HomePage() {
           </div>
           </div>
 
-          <div className={styles.heroProof} aria-label="Experiência da Kalidash">
+          <div className={styles.heroProof} aria-label="Experiência da Kalidash" data-enter="proof">
             <div className={styles.heroStripTop} aria-hidden="true" />
             <div className={styles.logoMarquee} aria-label="Clientes atendidos">
               <ul className={styles.logoTrack}>

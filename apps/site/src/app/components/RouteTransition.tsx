@@ -25,7 +25,12 @@ export default function RouteTransition() {
   const later = (fn: () => void, ms: number) => {
     timers.current.push(window.setTimeout(fn, ms));
   };
-  const setPhase = (phase: "idle" | "cover" | "leave") => rootRef.current?.setAttribute("data-phase", phase);
+  const setPhase = (phase: "idle" | "cover" | "leave") => {
+    rootRef.current?.setAttribute("data-phase", phase);
+    /* Enquanto a página nova monta coberta, as entradas dela esperam (globals.css: --enter-delay). */
+    if (phase === "cover") document.documentElement.setAttribute("data-route-cover", "");
+    if (phase === "idle") document.documentElement.removeAttribute("data-route-cover");
+  };
   const clear = () => {
     timers.current.forEach((t) => window.clearTimeout(t));
     timers.current = [];

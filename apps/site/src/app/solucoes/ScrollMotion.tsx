@@ -25,7 +25,8 @@ export default function ScrollMotion() {
     const chapters = [...document.querySelectorAll<HTMLElement>('[data-motion="curtain"]')];
     const surge = chapters
       .filter((c) => !c.querySelector(own))
-      .flatMap((c) => [...c.querySelectorAll<HTMLElement>("h2, figure, details")])
+      /* Textos e imagens do capítulo; sem repetir o que está dentro de uma peça que já surge (li, figure, details) ou do mosaico. */
+      .flatMap((c) => [...c.querySelectorAll<HTMLElement>(":is(h2, h3, p, li, figure, details, img):not(li *, figure *, details *, [class*='tile'] *)")])
       /* Peças soltas fora de capítulos (ex.: cartões do blog) marcadas para surgir. */
       .concat([...document.querySelectorAll<HTMLElement>('[data-motion="surge"]')])
       /* Blocos de texto vindos do editor (corpo do artigo): títulos, citações e imagens surgem. */

@@ -58,7 +58,7 @@ export default function SolucoesStory({ className, children }: { className: stri
 }
 
 /* Paralaxe do hero: o busto sobe mais devagar que a página. Só transform. */
-export function HeroParallax({ className, children }: { className: string; children: React.ReactNode }) {
+export function HeroParallax({ className, children, tone }: { className: string; children: React.ReactNode; tone?: "dark" | "soft" | "paper" }) {
   const ref = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -82,7 +82,7 @@ export function HeroParallax({ className, children }: { className: string; child
   }, []);
 
   return (
-    <header ref={ref} className={className}>
+    <header ref={ref} className={className} data-tone={tone}>
       {children}
     </header>
   );

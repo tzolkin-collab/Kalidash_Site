@@ -39,15 +39,21 @@ export default function Page() {
     <div className={`${home.home} ${styles.page} ${fraunces.variable}`} data-page="solucoes">
       <HomeHeader />
       <main>
-        {/* 1. Abertura: manchete em escala de cartaz, o busto da marca como único objeto */}
-        <HeroParallax className={styles.hero}>
+        {/* 1. Abertura: manchete em escala de cartaz e um único objeto da marca em arco */}
+        <HeroParallax className={`${styles.hero} ${styles.heroHand}`}>
           <div className={styles.heroInner}>
             <p className={styles.meta}>{hero.eyebrow}</p>
             <h1>
               <span>Tecnologia que</span> <span>nasce de</span> <span>problemas reais.</span>
             </h1>
-            <div className={styles.bust} aria-hidden="true">
-              <Image src="/kalidash-hero-sculpture.png" alt="" width={1122} height={1402} priority fetchPriority="high" sizes="(max-width: 900px) 70vw, 42vw" />
+            {/* Imagem própria de produtos (guia da marca): mão de mármore montando blocos, "construir" — não repete o busto da Home. */}
+            <div className={`${styles.bust} ${styles.bustArch}`} aria-hidden="true">
+              {/* Arco Imperial com a peça inteira; por cima, só a mão recortada (PNG), sem o limite do arco: os dedos vazam pela
+               * esquerda, em direção ao texto (efeito 3D). As duas camadas têm o mesmo tamanho e o mesmo zoom, então se alinham. */}
+              <div className={styles.archClip}>
+                <Image src="/marca/mao-blocos.jpg" alt="" width={1122} height={1402} priority fetchPriority="high" sizes="(max-width: 900px) 78vw, 40vw" />
+              </div>
+              <Image className={styles.handPop} src="/marca/mao-blocos-dedos.png" alt="" width={1122} height={1402} priority sizes="(max-width: 900px) 78vw, 40vw" />
             </div>
             <div className={styles.heroLead}>
               <p>{lead1}</p>
