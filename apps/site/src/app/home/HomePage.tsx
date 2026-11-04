@@ -63,6 +63,8 @@ export default function HomePage() {
 
   return (
     <div className={`${styles.home} ${fraunces.variable}`}>
+      {/* Kit Adobe (Kepler e Acumin) só na Home; React 19 move o <link> para o <head>. As famílias valem só dentro do <main>. */}
+      <link rel="stylesheet" href="https://use.typekit.net/krs4uwp.css" precedence="default" />
       <LogoIntro />
       <script
         type="application/ld+json"
@@ -80,12 +82,12 @@ export default function HomePage() {
       />
       <HomeHeader />
 
-      <main>
-        <section className={styles.hero} data-block="home-hero">
+      <main className={styles.v3}>
+        <section className={`${styles.hero} ${styles.heroV3}`} data-block="home-hero">
           <div className={heroStyles.main}>
           <div className={heroStyles.text}>
           <Eyebrow>{hero.eyebrow}</Eyebrow>
-          <h1>{hero.title}</h1>
+          <h1>{hero.title.before}<span className={heroStyles.keep}><em className={styles.gold}>{hero.title.accent}</em>{hero.title.after}</span></h1>
           <div className={styles.heroCopy}>
             {hero.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
           </div>
@@ -114,7 +116,8 @@ export default function HomePage() {
           </div>
           </div>
           <div className={heroStyles.bust} aria-hidden="true">
-            <Image src="/kalidash-hero-sculpture.png" alt="" width={1122} height={1402} priority sizes="(max-width: 1023px) 70vw, 36vw" />
+            <Image src="/home/hero-pensador.jpg" alt="" width={1000} height={1200} priority sizes="(max-width: 1023px) 72vw, 36vw" />
+            <p className={heroStyles.caption}>{hero.caption.before}<em>{hero.caption.accent}</em>{hero.caption.after}</p>
           </div>
           </div>
 
@@ -153,7 +156,7 @@ export default function HomePage() {
               <FlickeringGrid
                 squareSize={4}
                 gridGap={6}
-                color="rgb(255, 235, 228)"
+                color="rgb(196, 166, 115)"
                 maxOpacity={0.16}
                 flickerChance={0.2}
               />
@@ -413,10 +416,13 @@ export default function HomePage() {
             </div>
             <div className={styles.caseBody}>
               <p>{caseCba.text}</p>
-              <p className={styles.caseBadge}>{caseCba.badge}</p>
-              {caseCba.pageReady && (
-                <TextLink href={caseCba.cta.href}>{caseCba.cta.label}</TextLink>
-              )}
+              <p className={styles.caseKey}>{caseCba.keyPhrase}</p>
+              <div className={styles.caseActions}>
+                <p className={styles.caseBadge}>{caseCba.badge}</p>
+                {caseCba.pageReady && (
+                  <TextLink href={caseCba.cta.href}>{caseCba.cta.label}</TextLink>
+                )}
+              </div>
             </div>
           </div>
           {caseCba.image && (
@@ -465,20 +471,21 @@ export default function HomePage() {
         </section>
 
         <section id="diagnostico" className={styles.diagnostico} data-block="home-diagnostico">
+          <Image className={styles.diagTexture} src="/marca/nuvens-douradas.jpg" alt="" fill sizes="100vw" loading="lazy" aria-hidden="true" />
           <div className={styles.diagnosticoText}>
             <Eyebrow>Diagnóstico</Eyebrow>
-            <h2>{diagnostico.title}</h2>
+            <h2>{diagnostico.title.before}<em className={styles.gold}>{diagnostico.title.accent}</em></h2>
           </div>
           <div className={styles.diagnosticoCtaBox}>
             <p>{diagnostico.text}</p>
             <strong>{diagnostico.microcopy}</strong>
             <div className={styles.diagnosticoActions}>
-              <Link className={styles.primaryButton} href="/diagnostico">
+              <Link className={styles.diagPrimary} href="/diagnostico">
                 {diagnostico.fields.submit} <ArrowRight />
               </Link>
               {config.whatsappUrl && (
                 <a
-                  className={styles.secondaryButton}
+                  className={styles.diagSecondary}
                   href={config.whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"

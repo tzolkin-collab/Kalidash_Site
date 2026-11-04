@@ -4,20 +4,21 @@
 .main { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(24px, 4vw, 64px); align-items: start; }
 .text { text-align: left; }
 .main .text > p:first-child { text-align: left; }
-.main .text h1 { max-width: none; margin: 20px 0 0; text-align: left; text-wrap: balance; font-size: clamp(44px, 6.4vw, 96px); line-height: 0.96; letter-spacing: calc(-0.055em * var(--tk, 1)); }
+.main .text h1 { max-width: none; margin: 20px 0 0; text-align: left; text-wrap: wrap; font-size: clamp(44px, 5.8vw, 86px); line-height: 1.02; letter-spacing: -0.015em; }
 .main .text > div:first-of-type { max-width: 540px; margin: 32px 0 0; }
 .main .text > div:nth-of-type(2) { justify-content: flex-start; }
 
-.bust { position: relative; justify-self: end; width: min(100%, 460px); line-height: 0; }
-.bust::before {
-  content: ""; position: absolute; z-index: 0; left: 6%; right: 6%; bottom: 0; height: 74%;
-  background: #28183b; border-radius: 999px 999px 0 0;
-}
-.bust img { position: relative; z-index: 1; width: 100%; height: auto; }
+.main { align-items: center; }
+.keep { white-space: nowrap; }
+.bust { position: relative; justify-self: end; width: min(100%, 470px); line-height: 0; }
+/* O pensador ja vem com o fundo escuro: o arco e o proprio recorte da foto, com filete dourado. */
+.bust img { position: relative; width: 100%; height: auto; border-radius: 999px 999px 4px 4px; border: 1px solid rgba(168, 138, 88, 0.55); }
+.main .bust .caption { max-width: none; margin: 18px 0 0; text-wrap: balance; text-align: center; font-size: 14px; line-height: 1.5; letter-spacing: 0.01em; color: rgba(241, 236, 228, 0.66); }
+.caption em { font-family: var(--font-display); font-size: 1.12em; font-style: italic; color: #a88a58; }
 
 @media (max-width: 1023px) {
   .main { grid-template-columns: minmax(0, 1fr); gap: 32px; }
-  .main .text h1 { font-size: clamp(40px, 9vw, 72px); }
+  .main .text h1 { font-size: clamp(40px, 9vw, 68px); }
   .bust { justify-self: center; width: min(72%, 360px); }
 }
 

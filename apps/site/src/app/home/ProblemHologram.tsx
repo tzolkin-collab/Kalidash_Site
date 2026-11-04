@@ -181,9 +181,9 @@ export default function ProblemHologram({
       }
 
       const model = gltf.scene;
-      const purpleTint = new THREE.Color(0x7d3826);
-      const purpleDeep = new THREE.Color(0x592414);
-      const purpleEmissive = new THREE.Color(0x3d1a10);
+      const purpleTint = new THREE.Color(0x7a5a2e);
+      const purpleDeep = new THREE.Color(0x5a4220);
+      const purpleEmissive = new THREE.Color(0x2e200c);
 
       // Pontos do cérebro em terracota escuro da marca (escurecido a pedido do dono), com brilho especular branco cristalino
       model.traverse((child) => {
