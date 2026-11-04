@@ -1351,6 +1351,7 @@
   /* Até o kit Adobe carregar (data-fonts="ready", posto em HomePage.tsx) valem as fontes de reserva com métrica ajustada. */
   --kepler: "kalidash-kepler-reserva", Georgia, "Times New Roman", serif;
   --acumin: "kalidash-acumin-reserva", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --kepler-sub: "kalidash-kepler-reserva", Georgia, "Times New Roman", serif; /* Kepler Subhead: serifa para tamanhos pequenos, sem tracking negativo */
   --imperial: #28183b;
   --aubergine: #46304f;
   --limestone: #f1ece4;
@@ -1476,7 +1477,36 @@
 .v3[data-fonts="ready"] {
   --kepler: "kepler-std-display", Georgia, "Times New Roman", serif;
   --acumin: "acumin-pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --kepler-sub: "kepler-std-subhead", Georgia, "Times New Roman", serif;
 }
 /* Reservas com ajuste de tamanho para a troca de fonte não empurrar o layout (valores medidos na tela, ver relatório). */
 @font-face { font-family: "kalidash-kepler-reserva"; src: local("Georgia"), local("Times New Roman"); size-adjust: 88%; ascent-override: 98%; descent-override: 26%; line-gap-override: 0%; }
 @font-face { font-family: "kalidash-acumin-reserva"; src: local("Segoe UI"), local("Arial"); size-adjust: 100%; }
+
+/* ====================== Rodada 2 (revisão do PO) ====================== */
+/* Botões da Home: mesma forma do CTA do hero (retângulo, raio 4px). */
+.v3 .caseActions .textLink, .v3 .diagPrimary, .v3 .diagSecondary { border-radius: 4px; }
+
+/* Serifa pequena: abaixo de ~30px a Display fica apertada e fina; usa a Subhead com tracking 0. Títulos grandes seguem em Display. */
+.v3 .problemCard h3 { font-family: var(--kepler-sub); font-weight: var(--w-title); letter-spacing: 0; font-size: 22px; }
+.v3 .expAuthItems { font-family: var(--kepler-sub); letter-spacing: 0; }
+.v3 .caseKey { font-family: var(--kepler-sub); letter-spacing: 0; }
+.v3 .diagnosticoCtaBox > strong { font-family: var(--kepler-sub); letter-spacing: 0; }
+.v3 .problemTop h2 em { font-family: var(--kepler-sub); letter-spacing: 0; }
+.v3 .resultMetric strong { font-family: var(--kepler-sub); letter-spacing: 0; }
+@media (max-width: 1000px) {
+  .v3 .frontText h3, .v3 .caseFeature h2, .v3 .resultsHead h2, .v3 .expIntroLeft h2 { font-family: var(--kepler-sub); letter-spacing: 0; }
+}
+@media (max-width: 640px) {
+  .v3 .heroV3 .stats dt { font-family: var(--kepler-sub); letter-spacing: 0; }
+}
+
+/* Problema: o holograma ganha painel Imperial (o ouro tem presença) e o texto do cartão se distribui no meio da altura. */
+.v3 .hologramCol {
+  background: linear-gradient(160deg, #28183b 0%, #31204a 60%, #46304f 100%);
+  border: 1px solid rgba(168, 138, 88, 0.5); border-radius: 20px; box-shadow: 0 18px 44px rgba(40, 24, 59, 0.28);
+}
+@media (min-width: 1101px) { .v3 .problemTop { display: flex; align-items: center; } } /* abaixo disso o cartão fica oculto, como antes */
+.v3 .problemTopContent { max-width: 700px; }
+.v3 .problemTopContent::before { content: ""; display: block; width: 48px; height: 1px; margin-bottom: 28px; background: var(--gold); }
+.v3 .problemTop p { font-size: 20px; line-height: 31px; }

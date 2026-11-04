@@ -67,7 +67,7 @@ export default function HomePage() {
     link.rel = "stylesheet";
     link.href = TYPEKIT_KIT;
     document.head.appendChild(link);
-    const faces = ['400 1em "kepler-std-display"', 'italic 400 1em "kepler-std-display"', '400 1em "acumin-pro"', '700 1em "acumin-pro"'];
+    const faces = ['400 1em "kepler-std-display"', 'italic 400 1em "kepler-std-display"', '400 1em "kepler-std-subhead"', 'italic 400 1em "kepler-std-subhead"', '400 1em "acumin-pro"', '700 1em "acumin-pro"'];
     let done = false;
     const finish = () => { if (!done) { done = true; main.setAttribute("data-fonts", "ready"); } };
     link.addEventListener("load", () => {

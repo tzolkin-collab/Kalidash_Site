@@ -17,11 +17,10 @@
   border-radius: 50%;
   background: radial-gradient(
     ellipse 58% 54% at 50% 48%,
-    rgba(255, 255, 255, 1) 0%,
-    rgba(255, 255, 255, 0.94) 22%,
-    rgba(250, 243, 228, 0.65) 42%,
-    rgba(232, 214, 178, 0.32) 60%,
-    rgba(196, 166, 115, 0.1) 76%,
+    rgba(120, 88, 150, 0.55) 0%,
+    rgba(96, 70, 120, 0.42) 26%,
+    rgba(168, 138, 88, 0.16) 52%,
+    rgba(168, 138, 88, 0.05) 70%,
     transparent 100%
   );
   filter: blur(44px);
@@ -187,7 +186,7 @@
 }
 
 .laserDot {
-  fill: #28183b; /* roxo escuro da marca; o brilho agora é dourado */
+  fill: #c4a673; /* ouro claro: o holograma agora fica sobre o painel Imperial */
   filter: drop-shadow(0 0 6px #d9c08a);
 }
 

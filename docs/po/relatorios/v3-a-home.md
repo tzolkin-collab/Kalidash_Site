@@ -60,3 +60,41 @@ O kit como `<link rel="stylesheet">` bloqueante levou o LCP móvel de 5,4 s para
 ## Commits
 
 Ver `git log claude/v3-home-64510c` (código da Home; relatório e capturas).
+
+---
+
+# Rodada 2 (revisão do PO, nota 8,0)
+
+Capturas em `v3-a-home/r2/` (JPG). Commits no branch, sem push nem merge.
+
+## Correções
+
+1. **Mancha clara sob "10 mil"**: era o halo do holograma (`.hologramWrapper::before`, branco) vazando sobre o hero Imperial. Corrigido com `overflow: clip` em `.v3 .problem` (já na rodada 1 depois das capturas) e o halo agora é roxo/ouro, não branco. Conferido em `seam-depois-clip.jpg`.
+2. **Holograma**: o painel do holograma virou um cartão Imperial com filete dourado (mesma linguagem do cartão de texto); cérebro em ouro claro (`#D2B27A`/`#A88A58`), pontos de ancoragem em ouro claro, halo em roxo. Só cores e container: animação, luzes e camadas intactas. Presença bem melhor (`r2-home-problem-1440.png`).
+3. **Vazio no cartão Imperial**: o conteúdo ficou centralizado na altura do cartão, com um filete dourado acima do título e texto em 20 px. Só no desktop (≥1101 px); abaixo disso o cartão continua oculto como antes (e o painel do holograma também), e o empilhamento dos cartões não mudou.
+4. **Botões**: CTA do case e os dois do Diagnóstico agora são retângulos de raio 4 px, como o do hero; cores e contorno do secundário mantidos.
+5. **Serifa pequena**: `kepler-std-subhead` com `letter-spacing: 0` nos títulos dos cartões do problema, frase-chave do case, itens "Onde aplicamos/ensinamos", microcopy do Diagnóstico, subtítulo do problema, métricas dos depoimentos, legenda do hero e, abaixo de 1000 px, nos títulos de seção e dos cartões "O que fazemos". Títulos grandes seguem em Display. Subhead entra na lista de fontes aguardadas antes da troca (`data-fonts="ready"`).
+6. **Case × `doc-05.png`**: mesma estrutura (eyebrow, título, texto, imagem à direita); a nossa acrescenta frase-chave e CTA e troca o selo pílula por legenda; nenhum ajuste a mais.
+
+## Entregas que faltavam
+
+- **Cabeçalho na Home** (`r2/cabecalho-*`): topo real em 1440 e 390 (barra branca sobre o hero Imperial, logo e menu escuros, legíveis), submenu aberto em 1440 (`cabecalho-1440-submenu`), menu do celular, e depois de rolar sobre hero/problema/diagnóstico/fronts. Sobre Imperial a barra vira Imperial com logo e menu claros (`tone=dark`); sobre claro, branca (`tone=light`) (`r2/cabecalho-log.txt`). No topo da página a barra é branca porque o cabeçalho é sticky e ocupa 57 px acima do hero; é o comportamento existente, não mexi. No celular o logo recolhido fica sobre texto ao rolar, como nas outras páginas.
+- **1024 e 768** (`r2/home-1024-*`, `r2/home-768-*`): sem rolagem horizontal, sem erro de console. No tablet o bloco do problema mostra só os cartões empilhados, como no original. Achado no caminho: o `display: none` do cartão Imperial abaixo de 1100 px que eu havia anulado sem querer (cartão gigante a 768) foi corrigido.
+- **iOS (UA de iPhone, 390, DPR 3, toque)** (`r2/ios-*`): sem erro, sem rolagem horizontal, hero, problema, case e diagnóstico renderizam como no celular. É Chromium com UA de iPhone, **não WebKit/iOS real**.
+- **`/advisory` e `/sobre-nos`, antes (`240a2bb`) × depois, pixel a pixel** (página inteira, 1440 e 390, movimento reduzido): **0 pixels diferentes** nas quatro comparações (`r2/pixel-*-antes/depois.jpg`, `r2/log.txt`). `home.module.css` não vazou.
+
+## Números (Lighthouse 12, mediana de 3, `/`, build de produção, mesma máquina)
+
+| | LCP | CLS | TBT | FCP |
+|---|---|---|---|---|
+| Móvel antes (`240a2bb`) | 5236 ms | 0 | 44 ms | 1,8 s |
+| Móvel depois (r2) | 5144 ms | 0,001 | 48 ms | 2,0 s |
+| Desktop antes | 1025 ms | 0 | 0 | 459 ms |
+| Desktop depois (r2) | 1047 ms | 0,001 | 0 | 496 ms |
+
+Fontes transferidas: 323 KB → 876 KB (Kepler Display + Subhead + Acumin). LCP móvel não piorou; o elemento passou de imagem a `<p>` (texto com fonte de reserva).
+
+## Ainda não verificado / riscos
+
+- Safari/iOS real; troca de fonte pós-carregamento em conexão lenta real.
+- O cartão de texto do problema continua oculto abaixo de 1100 px (comportamento anterior); a leitura "Reconhece algum destes sintomas?" só existe no desktop.
