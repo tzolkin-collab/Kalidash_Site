@@ -249,17 +249,20 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 .main > section:last-child a:hover,
 .main .curtain a:hover { background: var(--gold-light); border-color: var(--gold-light); color: #19171b !important; }
 
-/* ---------- Movimento de rolagem também no celular/tela baixa (pedido do dono) ----------
- * Cortina: cada capítulo sobe sobre o anterior, como no desktop (só transform).
- * Abertura Imperial (Advisory, Sobre nós): não fica presa (no celular ela é mais alta que a tela e o fim ficaria
- * inalcançável); em vez disso o texto e a foto descem um pouco mais devagar que a página, um paralaxe leve.
- * O rótulo fixo "nº / total" segue só no desktop (40px de topo pesam numa tela pequena). Parado com movimento reduzido. */
-@supports (animation-timeline: scroll()) {
-  @media (max-width: 900px) and (prefers-reduced-motion: no-preference), (max-height: 739px) and (prefers-reduced-motion: no-preference) {
-    .chapter { animation: curtainRise ease-out both; animation-timeline: view(); animation-range: entry 0% entry 40%; }
-    .heroBrand .heroCopy { animation: heroDriftCopy linear both; animation-timeline: scroll(root block); animation-range: 0 520px; }
-    .heroBrand .heroArch { animation: heroDriftArt linear both; animation-timeline: scroll(root block); animation-range: 0 900px; }
-  }
-}
-@keyframes heroDriftCopy { to { transform: translate3d(0, 64px, 0); opacity: 0.55; } }
-@keyframes heroDriftArt { to { transform: translate3d(0, 90px, 0); } }
+/* ---------- Movimento de rolagem no celular e onde o CSS de rolagem não serve (ScrollMotion.tsx) ----------
+ * O CSS de rolagem (animation-timeline) não tem suporte completo no Safari do iOS, onde a cortina e o paralaxe do celular não
+ * apareciam. No celular/tela baixa, e em navegadores sem suporte, o ScrollMotion marca html[data-motion="js"] e move as peças:
+ * capítulo em cortina e surge ao entrar na tela (IntersectionObserver), paralaxe da abertura por --drift (rolagem).
+ * Nesse modo as animações por rolagem do CSS ficam desligadas para não brigar com o script. Sem o script, nada fica escondido. */
+:global(html[data-motion="js"]) [data-motion="curtain"],
+:global(html[data-motion="js"]) [data-motion="curtain"] [data-surge],
+:global(html[data-motion="js"]) [data-motion="hero"],
+:global(html[data-motion="js"]) [data-motion="hero"] .heroCopy,
+:global(html[data-motion="js"]) [data-motion="hero"] .heroArch,
+:global(html[data-motion="js"]) [data-motion="curtain"] .chapterLabel { animation: none !important; }
+:global(html[data-motion="js"]) [data-motion="curtain"] { transform: translate3d(0, 56px, 0); transition: transform 900ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+:global(html[data-motion="js"]) [data-motion="curtain"][data-in] { transform: none; }
+:global(html[data-motion="js"]) [data-surge] { opacity: 0.3; transform: translate3d(0, 28px, 0); transition: opacity 700ms ease-out, transform 800ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+:global(html[data-motion="js"]) [data-surge][data-in] { opacity: 1; transform: none; }
+:global(html[data-motion="js"]) [data-motion="hero"] .heroCopy { transform: translate3d(0, calc(var(--drift, 0) * 64px), 0); opacity: calc(1 - var(--drift, 0) * 0.45); will-change: transform; }
+:global(html[data-motion="js"]) [data-motion="hero"] .heroArch { transform: translate3d(0, calc(var(--drift, 0) * 90px), 0); will-change: transform; }

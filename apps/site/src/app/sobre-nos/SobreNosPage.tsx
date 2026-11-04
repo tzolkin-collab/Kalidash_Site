@@ -11,6 +11,7 @@ import prod from "../solucoes/product.module.css";
 import sol from "../solucoes/solucoes.module.css";
 import { fraunces } from "../solucoes/kit-font";
 import kit from "../solucoes/kit.module.css";
+import ScrollMotion from "../solucoes/ScrollMotion";
 import styles from "./sobre-nos.module.css";
 
 /* /sobre-nos no sistema da marca (o mesmo da Advisory, kit.module.css): abertura em Imperial com a palavra final em
@@ -38,7 +39,7 @@ function Legend({ children }: { children: React.ReactNode }) {
 function Hero({ block }: { block: Of<"heroMedia"> }) {
   const last = block.title.length - 1;
   return (
-    <header className={`${kit.heroBrand} ${styles.hero}`} data-tone="dark">
+    <header className={`${kit.heroBrand} ${styles.hero}`} data-tone="dark" data-motion="hero">
       <div className={`${prod.wrap} ${kit.heroGrid}`}>
         <div className={kit.heroCopy}>
           <p className={kit.heroMeta}>{block.eyebrow}</p>
@@ -230,7 +231,7 @@ export default function SobreNosPage({ page }: { page: PageContent }) {
           if (block.type === "heroMedia") return <BlockView key={key} block={block} />;
           const n = chapters.indexOf(block) + 2;
           return (
-            <div key={key} className={kit.chapter} data-tone={TONE[block.type] ?? "paper"}>
+            <div key={key} className={kit.chapter} data-tone={TONE[block.type] ?? "paper"} data-motion="curtain">
               <div className={kit.chapterLabel} aria-hidden="true" data-text={`${String(n).padStart(2, "0")} / ${String(chapters.length + 1).padStart(2, "0")} · ${label(block)}`}>
                 <i />
               </div>
@@ -239,6 +240,7 @@ export default function SobreNosPage({ page }: { page: PageContent }) {
           );
         })}
       </main>
+      <ScrollMotion />
       <SiteFooter />
       {config.whatsappUrl && (
         <a href={config.whatsappUrl} className={home.whatsapp} aria-label="Falar pelo WhatsApp" target="_blank" rel="noopener noreferrer">

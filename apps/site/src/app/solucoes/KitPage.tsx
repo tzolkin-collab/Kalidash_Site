@@ -10,6 +10,7 @@ import CountUp from "./CountUp";
 import { fraunces } from "./kit-font";
 import BuildStory from "./BuildStory";
 import StepsPin from "./StepsPin";
+import ScrollMotion from "./ScrollMotion";
 import { BlockView, HeroView, Legend, toneMap } from "./ProductPage";
 import prod from "./product.module.css";
 import sol from "./solucoes.module.css";
@@ -36,7 +37,7 @@ function LastWord({ text }: { text: string }) {
 function HeroWide({ block }: { block: Of<"heroMedia"> }) {
   const last = block.title.length - 1;
   return (
-    <header className={styles.heroBrand} data-tone="dark">
+    <header className={styles.heroBrand} data-tone="dark" data-motion="hero">
       <div className={`${prod.wrap} ${styles.heroGrid}`}>
         <div className={styles.heroCopy}>
           <p className={styles.heroMeta}>{block.eyebrow}</p>
@@ -288,7 +289,7 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
           const label = (meta.eyebrow || (Array.isArray(meta.title) ? meta.title.join(" ") : meta.title) || "").toUpperCase();
           const tone = LIGHT.includes(block.type) ? (soft ? "soft" : "paper") : "dark";
           return (
-            <div key={key} className={styles.chapter} data-tone={tone}>
+            <div key={key} className={styles.chapter} data-tone={tone} data-motion="curtain">
               <div className={styles.chapterLabel} aria-hidden="true" data-text={`${String(n).padStart(2, "0")} / ${String(chapterBlocks.length + 1).padStart(2, "0")} · ${label}`}>
                 <i />
               </div>
@@ -296,7 +297,7 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
             </div>
           );
         })}
-        <section className={`${sol.closing}${chaptered ? ` ${styles.curtain}` : ""}`} data-tone={chaptered ? "dark" : undefined}>
+        <section className={`${sol.closing}${chaptered ? ` ${styles.curtain}` : ""}`} data-tone={chaptered ? "dark" : undefined} data-motion={chaptered ? "curtain" : undefined}>
           {page.slug === "advisory" && (
             <div className={styles.closingBg} aria-hidden="true">
               <Image src="/marca/nuvens-douradas.jpg" alt="" fill sizes="100vw" loading="lazy" />
@@ -312,6 +313,7 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
           </div>
         </section>
       </main>
+      <ScrollMotion />
       <SiteFooter />
       {config.whatsappUrl && (
         <a href={config.whatsappUrl} className={home.whatsapp} aria-label="Falar pelo WhatsApp" target="_blank" rel="noopener noreferrer">
