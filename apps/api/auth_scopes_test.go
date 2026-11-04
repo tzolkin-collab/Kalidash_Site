@@ -80,6 +80,7 @@ func TestRotaExigeEscopo(t *testing.T) {
 		{"GET", "/api/pipelines", "pipelines:read"}, {"POST", "/api/pipelines", "pipelines:manage"}, {"DELETE", "/api/pipelines/f1", "pipelines:manage"},
 		{"GET", "/api/tasks", "tasks:read"}, {"POST", "/api/tasks", "tasks:write"}, {"POST", "/api/gate/check", "tasks:read"},
 		{"GET", "/api/blog/articles", "blog:read"}, {"POST", "/api/blog/articles", "blog:write"}, {"POST", "/api/blog/upload", "blog:write"},
+		{"POST", "/api/blog/categories", "blog:write"}, {"PUT", "/api/blog/categories", "blog:write"}, {"DELETE", "/api/blog/categories", "blog:write"},
 		{"POST", "/api/emails/send", "emails:send"},
 		{"GET", "/api/team", "team:read"}, {"POST", "/api/team", "team:manage"}, {"PUT", "/api/team/x", "team:manage"},
 		{"GET", "/api/tokens", "keys:manage"}, {"POST", "/api/tokens", "keys:manage"}, {"DELETE", "/api/tokens/x", "keys:manage"},
@@ -99,7 +100,7 @@ func TestRotaExigeEscopo(t *testing.T) {
 			t.Errorf("o escopo %s não protege nenhuma rota (marque Reserved se for gancho)", s.ID)
 		}
 	}
-	for _, c := range [][2]string{{"POST", "/api/public/leads"}, {"POST", "/api/connect/leads"}, {"GET", "/api/connect/config"}, {"OPTIONS", "/api/connect/leads"}, {"GET", "/connect.js"}, {"GET", "/api/blog/article"}, {"GET", "/api/blog/settings"}, {"GET", "/api/blog/articles?published=true"}, {"GET", "/auth/me"}} {
+	for _, c := range [][2]string{{"POST", "/api/public/leads"}, {"POST", "/api/connect/leads"}, {"GET", "/api/connect/config"}, {"OPTIONS", "/api/connect/leads"}, {"GET", "/connect.js"}, {"GET", "/api/blog/article"}, {"GET", "/api/blog/settings"}, {"GET", "/api/blog/categories"}, {"GET", "/api/blog/articles?published=true"}, {"GET", "/auth/me"}} {
 		if _, pub := routeScope(httptest.NewRequest(c[0], c[1], nil)); !pub {
 			t.Errorf("%s %s deveria seguir pública", c[0], c[1])
 		}

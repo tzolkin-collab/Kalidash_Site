@@ -359,6 +359,7 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(articles)
 
 	case http.MethodPost:
+		r.Body = http.MaxBytesReader(w, r.Body, 4<<20) // 4 MB
 		var a Article
 		if err := json.NewDecoder(r.Body).Decode(&a); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -413,6 +414,7 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(a)
 
 	case http.MethodPut:
+		r.Body = http.MaxBytesReader(w, r.Body, 4<<20) // 4 MB
 		var a Article
 		if err := json.NewDecoder(r.Body).Decode(&a); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -621,6 +623,7 @@ func handleBlogSettings(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(s)
 
 	case http.MethodPut:
+		r.Body = http.MaxBytesReader(w, r.Body, 64<<10) // 64 KB
 		var s BlogSettings
 		if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -722,6 +725,7 @@ func handleBlogCategories(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(cats)
 
 	case http.MethodPost:
+		r.Body = http.MaxBytesReader(w, r.Body, 64<<10) // 64 KB
 		var c BlogCategory
 		if err := json.NewDecoder(r.Body).Decode(&c); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -768,6 +772,7 @@ func handleBlogCategories(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(c)
 
 	case http.MethodPut:
+		r.Body = http.MaxBytesReader(w, r.Body, 64<<10) // 64 KB
 		var payload struct {
 			BlogCategory
 			Order []string `json:"order,omitempty"`

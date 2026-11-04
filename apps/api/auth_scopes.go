@@ -196,8 +196,8 @@ func routeScope(r *http.Request) (scope string, public bool) {
 		return "", true
 	case strings.HasPrefix(p, "/api/projects"):
 		return "keys:manage", false // projetos conectados e formulários rastreados: Admin/Gerente
-	case read && (p == "/api/blog/article" || p == "/api/blog/settings"):
-		// O site (Next) lê o artigo publicado por slug e os textos da galeria sem login.
+	case read && (p == "/api/blog/article" || p == "/api/blog/settings" || p == "/api/blog/categories"):
+		// O site (Next) lê o artigo publicado por slug, as categorias e os textos da galeria sem login.
 		return "", true
 	case read && p == "/api/blog/articles" && r.URL.Query().Get("published") == "true":
 		// Lista do site: só publicados. Sem ?published=true entram rascunhos e exige login.

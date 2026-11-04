@@ -279,7 +279,17 @@ func saveLeadV2(in leadInput, ip string) error {
 	}
 	custom := map[string]any{"via": "formulário do site", "formSource": in.Source}
 	if len(in.Attribution) > 0 {
-		custom["attribution"] = in.Attribution
+		attr := map[string]string{}
+		for k, v := range in.Attribution {
+			if attributionKeys[k] || k == "interest" {
+				if s := clean(strOf(v), 500); s != "" {
+					attr[k] = s
+				}
+			}
+		}
+		if len(attr) > 0 {
+			custom["attribution"] = attr
+		}
 	}
 	_, err = connectDB.IngestLead(inboundLead{
 		Project: Project{PipelineID: nullableID(pipelineID), StageID: nullableID(stageID), SourceName: sourceName},

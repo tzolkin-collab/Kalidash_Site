@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 // (o mesmo valor está no .env da API); sem o segredo configurado, o endpoint fica desligado.
 export const dynamic = "force-dynamic";
 
-const ALLOWED = /^\/blog(\/[a-z0-9-]+)?$/;
+const ALLOWED = /^(\/blog(\/categoria\/[a-z0-9-]+|\/[a-z0-9-]+)?|\/sitemap\.xml)$/;
 
 function sameSecret(received: string | null, expected: string): boolean {
   if (!received) return false;
