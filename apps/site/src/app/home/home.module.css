@@ -225,12 +225,12 @@
   grid-column: 2 / 5;
   grid-row: 1;
   min-height: 400px; padding: 64px 48px 44px;
-  background: linear-gradient(135deg, #a85640 0%, #b6644d 45%, #c7745e 100%);
+  background: linear-gradient(135deg, #85402e 0%, #934a37 45%, #a35643 100%); /* terracota escurecido a pedido do dono */
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
   color: #fff;
   overflow: hidden;
-  box-shadow: 0 16px 40px rgba(182, 100, 77, 0.28);
+  box-shadow: 0 16px 40px rgba(133, 64, 46, 0.3);
 }
 .problemCardsRow {
   grid-column: 1 / 5;
@@ -1321,4 +1321,21 @@
 @media (max-width: 1100px) and (min-width: 641px) {
   .footerInner { grid-template-columns: repeat(2, 1fr); gap: 36px 24px; }
   .footerBrand { grid-column: 1 / -1; }
+}
+/* Desktop: o cabeçalho acompanha o fundo que passa por baixo dele (html[data-header-tone], do HeaderTone), como no celular.
+ * A barra é sólida no desktop, então troca a barra inteira: sobre Imperial vira Imperial com logo e menu claros; sobre claro
+ * fica como sempre (branca, logo Imperial). Menu suspenso continua branco. Fora quando a barra de filtros do blog está ativa. */
+@media (min-width: 1101px) {
+  .header { transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease; }
+  :global(html[data-header-tone="dark"]) .header:not([data-filters-active="true"]):not([data-bg="white"]) {
+    background: rgba(40, 24, 59, 0.94);
+    border-bottom-color: rgba(196, 166, 115, 0.28);
+    box-shadow: none;
+  }
+  :global(html[data-header-tone="dark"]) .header:not([data-filters-active="true"]):not([data-bg="white"]) .nav { color: #f8f9fa; }
+  :global(html[data-header-tone="dark"]) .header:not([data-filters-active="true"]):not([data-bg="white"]) .nav a:hover,
+  :global(html[data-header-tone="dark"]) .header:not([data-filters-active="true"]):not([data-bg="white"]) .nav a[data-active="true"] { color: #c4a673; }
+  :global(html[data-header-tone="dark"]) .header:not([data-filters-active="true"]):not([data-bg="white"]) .navCta { color: #c4a673 !important; border-bottom-color: #c4a673; }
+  :global(html[data-header-tone="dark"]) .header:not([data-filters-active="true"]):not([data-bg="white"]) .navDropdown a { color: #111; }
+  :global(html[data-header-tone="dark"]) .header:not([data-filters-active="true"]):not([data-bg="white"]) [data-header-logo="true"] { --logo-body: #f8f9fa; }
 }
