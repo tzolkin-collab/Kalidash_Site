@@ -287,7 +287,9 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
           const n = chapterBlocks.indexOf(block) + 2;
           const meta = block as { eyebrow?: string; title?: string | string[] };
           const label = (meta.eyebrow || (Array.isArray(meta.title) ? meta.title.join(" ") : meta.title) || "").toUpperCase();
-          const tone = LIGHT.includes(block.type) ? (soft ? "soft" : "paper") : "dark";
+          /* Tom do capítulo = cor real do bloco (o fundo do capítulo aparece nos cantos e no pé durante a cortina). A barra de provas
+           * é Limestone mas não entra em LIGHT (mudaria a alternância de fundos), então tem tom próprio. */
+          const tone = block.type === "proofBar" ? "soft" : LIGHT.includes(block.type) ? (soft ? "soft" : "paper") : "dark";
           return (
             <div key={key} className={styles.chapter} data-tone={tone} data-motion="curtain">
               <div className={styles.chapterLabel} aria-hidden="true" data-text={`${String(n).padStart(2, "0")} / ${String(chapterBlocks.length + 1).padStart(2, "0")} · ${label}`}>
