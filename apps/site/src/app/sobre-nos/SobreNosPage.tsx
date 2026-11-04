@@ -10,10 +10,12 @@ import CountUp from "../solucoes/CountUp";
 import prod from "../solucoes/product.module.css";
 import sol from "../solucoes/solucoes.module.css";
 import { fraunces } from "../solucoes/kit-font";
+import kit from "../solucoes/kit.module.css";
 import styles from "./sobre-nos.module.css";
 
-/* /sobre-nos na linguagem da /solucoes: manchete em cartaz, fotos reais como objeto,
- * atos em linhas separadas por hairline, credo e números. Texto e ordem vêm de pages.ts. */
+/* /sobre-nos no sistema da marca (o mesmo da Advisory, kit.module.css): abertura em Imperial com a palavra final em
+ * dourado itálico, capítulos em cortina alternando Limestone / Imperial / branco com o rótulo fino "nº / total · título",
+ * fotos reais como objeto. Texto e ordem vêm de pages.ts; nenhum texto novo (o rótulo vem de data-text via CSS). */
 
 function Rich({ text }: { text: string }) {
   return <>{text.split(/\*\*(.+?)\*\*/g).map((part, i) => (i % 2 ? <strong key={i}>{part}</strong> : part))}</>;
@@ -21,35 +23,44 @@ function Rich({ text }: { text: string }) {
 
 type Of<T extends Block["type"]> = Extract<Block, { type: T }>;
 
+/* Última palavra em dourado itálico: só um span, o texto não muda. */
+function LastWord({ text }: { text: string }) {
+  const i = text.lastIndexOf(" ");
+  if (i < 0) return <>{text}</>;
+  return <>{text.slice(0, i + 1)}<span className={kit.gold}>{text.slice(i + 1)}</span></>;
+}
+
 function Legend({ children }: { children: React.ReactNode }) {
   return <p className={prod.legend}><span>{children}</span></p>;
 }
 
+/* Abertura no desenho da Advisory: Imperial, texto à esquerda e a foto dos fundadores num arco à direita. */
 function Hero({ block }: { block: Of<"heroMedia"> }) {
+  const last = block.title.length - 1;
   return (
-    <header className={styles.hero}>
-      <div className={prod.wrap}>
-        <p className={styles.meta}>{block.eyebrow}</p>
-        <div className={styles.heroTop}>
+    <header className={`${kit.heroBrand} ${styles.hero}`} data-tone="dark">
+      <div className={`${prod.wrap} ${kit.heroGrid}`}>
+        <div className={kit.heroCopy}>
+          <p className={kit.heroMeta}>{block.eyebrow}</p>
           <h1>
-            {block.title.map((line) => (
-              <span key={line}>{line}</span>
+            {block.title.map((line, i) => (
+              <span key={line} className={kit.line}>{i === last ? <LastWord text={line} /> : line}</span>
             ))}
           </h1>
-          <div className={styles.heroLead}>
+          <div className={kit.heroLead}>
             {block.lead.map((p) => (
               <p key={p}><Rich text={p} /></p>
             ))}
           </div>
         </div>
-        <div className={styles.heroPhoto}>
+        <div className={`${kit.heroArch} ${styles.heroArch}`}>
           <Image
             src={block.image.src}
             alt={block.image.alt}
             width={block.image.width}
             height={block.image.height}
             priority
-            sizes="(max-width: 900px) 100vw, 1280px"
+            sizes="(max-width: 900px) 78vw, 520px"
           />
         </div>
       </div>
@@ -87,7 +98,7 @@ function Timeline({ block }: { block: Of<"timeline"> }) {
                 ))}
                 {item.quote && <blockquote>{item.quote}</blockquote>}
               </div>
-              {item.highlight && <p className={styles.keyline}>{item.highlight}</p>}
+              {item.highlight && <p className={styles.keyline}><LastWord text={item.highlight} /></p>}
             </li>
           ))}
         </ol>
@@ -188,6 +199,15 @@ function Proof({ block }: { block: Of<"proof"> }) {
   );
 }
 
+/* Tom de cada capítulo: a história em Limestone, o credo em Imperial, o time em branco e os números fecham em Imperial. */
+const TONE: Partial<Record<Block["type"], "soft" | "dark" | "paper">> = { timeline: "soft", beliefs: "dark", team: "paper", proof: "dark" };
+
+function label(block: Block) {
+  const meta = block as { eyebrow?: string; title?: string | string[] };
+  if (block.type === "proof") return "NÚMEROS E ATUAÇÃO"; // o mesmo rótulo do aria-label da seção
+  return (meta.eyebrow || (Array.isArray(meta.title) ? meta.title.join(" ") : meta.title) || "").toUpperCase();
+}
+
 function BlockView({ block }: { block: Block }) {
   switch (block.type) {
     case "heroMedia": return <Hero block={block} />;
@@ -200,13 +220,24 @@ function BlockView({ block }: { block: Block }) {
 }
 
 export default function SobreNosPage({ page }: { page: PageContent }) {
+  const chapters = page.blocks.filter((b) => b.type !== "heroMedia");
   return (
-    <div className={`${home.home} ${sol.page} ${fraunces.variable}`} data-page={page.slug}>
+    <div className={`${home.home} ${sol.page} ${fraunces.variable} ${kit.kitDark}`} data-page={page.slug}>
       <HomeHeader />
-      <main className={styles.sobre}>
-        {page.blocks.map((block, i) => (
-          <BlockView key={`${block.type}-${i}`} block={block} />
-        ))}
+      <main className={`${kit.main} ${styles.sobre}`}>
+        {page.blocks.map((block, i) => {
+          const key = `${block.type}-${i}`;
+          if (block.type === "heroMedia") return <BlockView key={key} block={block} />;
+          const n = chapters.indexOf(block) + 2;
+          return (
+            <div key={key} className={kit.chapter} data-tone={TONE[block.type] ?? "paper"}>
+              <div className={kit.chapterLabel} aria-hidden="true" data-text={`${String(n).padStart(2, "0")} / ${String(chapters.length + 1).padStart(2, "0")} · ${label(block)}`}>
+                <i />
+              </div>
+              <BlockView block={block} />
+            </div>
+          );
+        })}
       </main>
       <SiteFooter />
       {config.whatsappUrl && (

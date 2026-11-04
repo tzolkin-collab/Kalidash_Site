@@ -304,13 +304,7 @@ export const sobreNos: PageContent = {
         { strong: "Finalista", text: "Prêmio Inovativos 2026" },
       ],
       items: [
-        { label: "Onde aplicamos", names: "ArcelorMittal · CBA · Sicoob · Cooxupé" },
         { label: "Onde ensinamos", names: "Conquer · Xperiun · Rocketseat · Hashtag · Tera" },
-      ],
-      links: [
-        { label: "AI Culture", href: "/treinamento-corporativo-ia" },
-        { label: "Advisory", href: "/advisory" },
-        { label: "Execução", href: "/execucao" },
       ],
     },
   ],

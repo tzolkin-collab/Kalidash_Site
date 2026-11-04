@@ -28,8 +28,15 @@ function toneUnderHeader(): "dark" | "light" {
 export default function HeaderTone() {
   useEffect(() => {
     const root = document.documentElement;
+    /* Só blocos de página contam como fundo. A logo (BrandLogo, inclusive a do rodapé) e etiquetas pequenas também usam
+     * data-tone para outra coisa; se entrassem aqui, uma página sem capítulos ficaria presa ao modo "marcado" com só a logo
+     * do rodapé e a logo do cabeçalho nunca clarearia sobre as faixas Imperial. */
     const marked = [...document.querySelectorAll<HTMLElement>("[data-tone]")].filter(
-      (el) => (el.dataset.tone === "dark" || el.dataset.tone === "soft" || el.dataset.tone === "paper") && !el.closest('header[data-block="home-header"]'),
+      (el) =>
+        (el.dataset.tone === "dark" || el.dataset.tone === "soft" || el.dataset.tone === "paper") &&
+        !el.closest('header[data-block="home-header"]') &&
+        !(el instanceof SVGElement) &&
+        el.tagName !== "SPAN",
     );
     let io: IntersectionObserver | undefined;
     let frame = 0;

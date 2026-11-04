@@ -146,3 +146,75 @@
 .sobre { --font-title: var(--font-fraunces), Georgia, "Times New Roman", serif; }
 .sobre :is(h1, h2, h3) { letter-spacing: calc(-0.03em * var(--tk, 1)); }
 .sobre .hero h1 { font-weight: 400; font-size: clamp(42px, 5.6vw, 84px); line-height: 1; letter-spacing: calc(-0.035em * var(--tk, 1)); }
+
+/* ---------- Sistema da marca, no desenho da Advisory (kit.module.css em .main) ----------
+ * Abertura Imperial com a foto em arco (kit .heroBrand), capítulos em cortina alternando Limestone / Imperial / branco,
+ * títulos em serifa leve, dourado só em legendas, numerais, filetes e palavra final. O fundo vem do capítulo. */
+.sobre section { padding-block: clamp(64px, 7vw, 112px); background: transparent; }
+.sobre [data-tone="dark"] {
+  --ink-text: #f8f9fa;
+  --text-2: rgba(248, 249, 250, 0.74);
+  --text-3: rgba(248, 249, 250, 0.58);
+  --brand-text: var(--gold-light);
+  --accent: var(--gold-light);
+  --rule: rgba(196, 166, 115, 0.35);
+  color: #f8f9fa;
+}
+.sobre [data-tone="dark"] .gold { color: var(--gold-light); }
+.sobre [class*="legend"] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+
+/* Serifa leve em todos os títulos (o .main do kit usa 400; as regras antigas desta página pediam 500) */
+.sobre .hero h1, .sobre .actBody h2, .sobre .beliefHead h2, .sobre .credo h3, .sobre .teamHead h2,
+.sobre .keyline, .sobre .credentials strong, .sobre .where dd { font-weight: 400; letter-spacing: -0.015em; }
+
+/* Abertura: o h1 segue o tamanho da Advisory; a foto dos fundadores (horizontal) num arco mais largo que o da Advisory */
+.sobre .hero { padding-bottom: 0; }
+.sobre .hero h1 { font-size: clamp(38px, 4.8vw, 68px); line-height: 1.05; }
+.sobre .heroArch { width: min(100%, 520px); aspect-ratio: 1 / 1; }
+.sobre .heroArch img { object-position: 46% 30%; }
+
+/* História: mosaico mais calmo (vão maior, cantos do sistema) e atos com título à esquerda e texto à direita */
+.sobre .mosaic { --g: 8px; }
+.sobre .tile { border-radius: 6px; }
+.sobre .mosaicWrap figcaption { color: var(--gold-text); font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; }
+.sobre .actMeta { color: var(--gold-text); font-size: 12px; }
+.sobre .actBody h2 { font-size: var(--t-claim); line-height: 1.14; max-width: 26ch; }
+.sobre .actBody p { font-size: 17px; color: var(--text-2); max-width: 62ch; }
+.sobre .acts > li + li { border-top: 1px solid var(--rule); }
+/* A frase-chave vira manifesto, como "Não entregamos um plano…" da Advisory */
+.sobre .keyline { border-top: 1px solid var(--gold); padding-top: clamp(28px, 3vw, 44px); margin-top: clamp(48px, 6vw, 88px); font-size: var(--t-lema); line-height: 1.12; max-width: 20ch; }
+
+/* Credo: a faixa Imperial de passos da Advisory, com numerais grandes em dourado sobre um fio com pontos */
+.sobre .beliefHead { align-items: start; }
+.sobre .beliefHead h2 { font-size: var(--t-title); line-height: 1.12; max-width: 18ch; }
+.sobre .credo { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(24px, 4vw, 64px); margin-top: clamp(48px, 6vw, 88px); }
+.sobre .credo li { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto 1fr; gap: 14px; padding: 28px 0 0; border-top: 1px solid var(--rule); position: relative; align-items: start; }
+.sobre .credo li::before { content: ""; position: absolute; top: -4px; left: 0; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); }
+.sobre .credo [class*="num"] { font-family: var(--font-title); font-weight: 300; font-size: clamp(48px, 5.6vw, 84px); line-height: 1; letter-spacing: -0.02em; color: var(--gold); opacity: 1; }
+.sobre .credo h3 { font-size: clamp(22px, 2vw, 30px); line-height: 1.15; }
+.sobre .credo p { font-size: 16px; color: var(--text-2); max-width: 32ch; }
+
+/* Time: cabeçalho em duas colunas e foto com o raio do sistema */
+.sobre .teamHead h2 { font-size: var(--t-title); line-height: 1.12; }
+.sobre .teamFigure img { border-radius: var(--r-surface); max-height: 600px; object-fit: cover; }
+.sobre .teamFigure a { text-decoration-color: var(--gold); }
+
+/* Números: fecho Imperial com as nuvens douradas do guide ao fundo (só textura), como o fecho da Advisory */
+.sobre .proof { position: relative; overflow: hidden; background: transparent; color: #f8f9fa; padding-block: clamp(72px, 8vw, 128px); }
+.sobre .proof::before { content: ""; position: absolute; inset: 0; z-index: 0; background: linear-gradient(to right, var(--imperial) 20%, rgba(40, 24, 59, 0.6) 70%, rgba(40, 24, 59, 0.4)), url("/marca/nuvens-douradas.jpg") center / cover no-repeat; opacity: 0.9; }
+.sobre .proof > div { position: relative; z-index: 1; }
+.sobre .credentials strong { color: var(--gold-light); font-size: clamp(36px, 4.4vw, 64px); }
+.sobre .credentials li { border-left: 1px solid var(--rule); padding-left: 20px; }
+.sobre .where dt { color: var(--gold-light); }
+.sobre .where dd { font-size: clamp(20px, 2vw, 28px); color: #f8f9fa; }
+.sobre .links a { color: #f8f9fa; }
+.sobre .links a svg { color: var(--gold-light); }
+
+@media (max-width: 900px) {
+  .sobre .heroArch { width: 86%; justify-self: center; }
+  .sobre .credo { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .sobre .proof::before { background: linear-gradient(to bottom, rgba(40, 24, 59, 0.6), var(--imperial) 85%), url("/marca/nuvens-douradas.jpg") center / cover no-repeat; }
+}
+/* .hero (desta página) e .heroBrand (kit) estão no mesmo elemento: o Imperial e o respiro valem aqui, sem depender da ordem dos CSS */
+.sobre .hero { background: var(--imperial); color: #f8f9fa; padding-top: clamp(28px, 5vh, 56px); }
+@media (max-width: 1100px) { .sobre .hero { padding-top: 92px; } }
