@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./home.module.css";
@@ -56,13 +56,37 @@ function TextLink({ href, children, onClick }: { href: string; children: React.R
   );
 }
 
+const TYPEKIT_KIT = "https://use.typekit.net/krs4uwp.css";
+
 export default function HomePage() {
+  const mainRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const main = mainRef.current;
+    if (!main) return;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = TYPEKIT_KIT;
+    document.head.appendChild(link);
+    const faces = ['400 1em "kepler-std-display"', 'italic 400 1em "kepler-std-display"', '400 1em "kepler-std-subhead"', 'italic 400 1em "kepler-std-subhead"', '400 1em "acumin-pro"', '700 1em "acumin-pro"'];
+    let done = false;
+    const finish = () => { if (!done) { done = true; main.setAttribute("data-fonts", "ready"); } };
+    link.addEventListener("load", () => {
+      Promise.all(faces.map((f) => document.fonts.load(f))).then(finish, finish);
+    });
+    const timeout = window.setTimeout(finish, 5000);
+    return () => window.clearTimeout(timeout);
+  }, []);
   const [activeQuoteIndex, setActiveQuoteIndex] = useState<number | null>(null);
   const [isBadgeHovered, setIsBadgeHovered] = useState(false);
   const logoLoop = [...clients, ...clients];
 
   return (
-    <div className={`${styles.home} ${fraunces.variable}`}>
+    <div className={`${styles.home} ${styles.homeDark} ${fraunces.variable}`}>
+      {/* Kit Adobe (Kepler e Acumin) só na Home e só dentro do <main>. O CSS do kit NÃO bloqueia a primeira pintura (medido: +1,2 s de FCP
+          e texto invisível até a fonte chegar): o <link rel="preload"> começa o download cedo; o useEffect abaixo aplica o CSS e só
+          marca data-fonts="ready" depois que as fontes carregaram. Até lá vale a fonte de reserva, com métrica ajustada (home.module.css). */}
+      <link rel="preconnect" href="https://use.typekit.net" crossOrigin="anonymous" />
+      <link rel="preload" as="style" href={TYPEKIT_KIT} />
       <LogoIntro />
       <script
         type="application/ld+json"
@@ -80,12 +104,12 @@ export default function HomePage() {
       />
       <HomeHeader />
 
-      <main>
-        <section className={styles.hero} data-block="home-hero">
+      <main className={styles.v3} ref={mainRef}>
+        <section className={`${styles.hero} ${styles.heroV3}`} data-block="home-hero" data-tone="dark">
           <div className={heroStyles.main}>
           <div className={heroStyles.text}>
           <Eyebrow>{hero.eyebrow}</Eyebrow>
-          <h1>{hero.title}</h1>
+          <h1>{hero.title.before}<span className={heroStyles.keep}><em className={styles.gold}>{hero.title.accent}</em>{hero.title.after}</span></h1>
           <div className={styles.heroCopy}>
             {hero.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
           </div>
@@ -114,7 +138,8 @@ export default function HomePage() {
           </div>
           </div>
           <div className={heroStyles.bust} aria-hidden="true">
-            <Image src="/kalidash-hero-sculpture.png" alt="" width={1122} height={1402} priority sizes="(max-width: 1023px) 70vw, 36vw" />
+            <Image src="/home/hero-pensador.jpg" alt="" width={1000} height={1200} priority sizes="(max-width: 1023px) 72vw, 36vw" />
+            <p className={heroStyles.caption}>{hero.caption.before}<em>{hero.caption.accent}</em>{hero.caption.after}</p>
           </div>
           </div>
 
@@ -153,7 +178,7 @@ export default function HomePage() {
               <FlickeringGrid
                 squareSize={4}
                 gridGap={6}
-                color="rgb(255, 235, 228)"
+                color="rgb(196, 166, 115)"
                 maxOpacity={0.16}
                 flickerChance={0.2}
               />
@@ -413,10 +438,13 @@ export default function HomePage() {
             </div>
             <div className={styles.caseBody}>
               <p>{caseCba.text}</p>
-              <p className={styles.caseBadge}>{caseCba.badge}</p>
-              {caseCba.pageReady && (
-                <TextLink href={caseCba.cta.href}>{caseCba.cta.label}</TextLink>
-              )}
+              <p className={styles.caseKey}>{caseCba.keyPhrase}</p>
+              <div className={styles.caseActions}>
+                <p className={styles.caseBadge}>{caseCba.badge}</p>
+                {caseCba.pageReady && (
+                  <TextLink href={caseCba.cta.href}>{caseCba.cta.label}</TextLink>
+                )}
+              </div>
             </div>
           </div>
           {caseCba.image && (
@@ -464,21 +492,22 @@ export default function HomePage() {
           </Reveal>
         </section>
 
-        <section id="diagnostico" className={styles.diagnostico} data-block="home-diagnostico">
+        <section id="diagnostico" className={styles.diagnostico} data-block="home-diagnostico" data-tone="dark">
+          <Image className={styles.diagTexture} src="/marca/nuvens-douradas.jpg" alt="" fill sizes="100vw" loading="lazy" aria-hidden="true" />
           <div className={styles.diagnosticoText}>
             <Eyebrow>Diagnóstico</Eyebrow>
-            <h2>{diagnostico.title}</h2>
+            <h2>{diagnostico.title.before}<em className={styles.gold}>{diagnostico.title.accent}</em></h2>
           </div>
           <div className={styles.diagnosticoCtaBox}>
             <p>{diagnostico.text}</p>
             <strong>{diagnostico.microcopy}</strong>
             <div className={styles.diagnosticoActions}>
-              <Link className={styles.primaryButton} href="/diagnostico">
+              <Link className={styles.diagPrimary} href="/diagnostico">
                 {diagnostico.fields.submit} <ArrowRight />
               </Link>
               {config.whatsappUrl && (
                 <a
-                  className={styles.secondaryButton}
+                  className={styles.diagSecondary}
                   href={config.whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"

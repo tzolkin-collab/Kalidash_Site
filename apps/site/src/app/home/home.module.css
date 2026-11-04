@@ -1339,3 +1339,193 @@
   :global(html[data-header-tone="dark"]) .header:not([data-filters-active="true"]):not([data-bg="white"]) .navDropdown a { color: #111; }
   :global(html[data-header-tone="dark"]) .header:not([data-filters-active="true"]):not([data-bg="white"]) [data-header-logo="true"] { --logo-body: #f8f9fa; }
 }
+
+/* ======================================================================================================================
+ * Ajustes V3 (Home). Tudo abaixo vale só dentro do <main className={styles.v3}>: cabeçalho, menu e rodapé ficam como estavam.
+ * Kit Adobe (Kepler nos títulos, Acumin no corpo) carregado em HomePage.tsx, só nesta página. Pesos num lugar só: quando a
+ * Carol incluir Light e Semibold no kit, troque --w-title por 300 e --w-strong por 600.
+ * ==================================================================================================================== */
+.v3 {
+  --w-title: 400;
+  --w-strong: 700;
+  /* Até o kit Adobe carregar (data-fonts="ready", posto em HomePage.tsx) valem as fontes de reserva com métrica ajustada. */
+  --kepler: "kalidash-kepler-reserva", Georgia, "Times New Roman", serif;
+  --acumin: "kalidash-acumin-reserva", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --kepler-sub: "kalidash-kepler-reserva", Georgia, "Times New Roman", serif; /* Kepler Subhead: serifa para tamanhos pequenos, sem tracking negativo */
+  --imperial: #28183b;
+  --aubergine: #46304f;
+  --limestone: #f1ece4;
+  --limestone-2: #e9e1d6;
+  --ink-v3: #19171b;
+  --gold: #a88a58;
+  --gold-text: #8f7248; /* ouro para texto pequeno sobre claro (contraste AA) */
+  --terracota: #b7654d;
+  --on-dark-2: rgba(241, 236, 228, 0.66);
+  /* strong, dt, botões e etiquetas usam var(--font-title): aqui é a Acumin; os títulos (h1 a h3) trocam para Kepler abaixo. */
+  --font-title: var(--acumin);
+  --font-display: var(--kepler);
+  font-family: var(--acumin);
+  font-weight: 400;
+  background: var(--limestone);
+  color: var(--ink-v3);
+}
+.v3 :is(h1, h2, h3) { --font-title: var(--kepler); font-family: var(--kepler); font-weight: var(--w-title); text-wrap: balance; }
+.v3 :is(strong, b) { font-weight: var(--w-strong); }
+.v3 .gold { color: var(--gold); font-style: italic; font-weight: var(--w-title); }
+
+/* ---- Problema: Imperial no lugar do terracota ---- */
+.v3 .problem { background: var(--limestone); overflow: clip; } /* o halo do holograma não vaza sobre o hero Imperial */
+.v3 .problem::before { display: none; }
+.v3 .problemTop {
+  background: linear-gradient(135deg, #28183b 0%, #31204a 55%, #46304f 100%);
+  border: 1px solid rgba(168, 138, 88, 0.5);
+  box-shadow: 0 18px 44px rgba(40, 24, 59, 0.28);
+}
+.v3 .topVignette {
+  background: radial-gradient(ellipse 85% 80% at 25% 65%, rgba(70, 48, 79, 0.55) 0%, rgba(70, 48, 79, 0.16) 60%, transparent 100%);
+}
+.v3 .problemTop h2 { font-size: clamp(30px, 3.4vw, 46px); line-height: 1.08; font-weight: var(--w-title); letter-spacing: -0.01em; text-shadow: none; color: var(--limestone); }
+.v3 .problemTop h2 em { margin-top: 10px; font-size: 0.78em; line-height: 1.15; font-weight: var(--w-title); font-style: italic; color: var(--gold); text-shadow: none; }
+.v3 .problemTop p { color: rgba(241, 236, 228, 0.82); text-shadow: none; font-size: 19px; line-height: 29px; }
+.v3 .problemArrow { color: var(--gold); }
+.v3 .problemCard h3 { font-weight: var(--w-title); letter-spacing: 0.02em; }
+
+/* ---- O que fazemos ---- */
+.v3 .fronts { background: var(--limestone-2); }
+.v3 .frontsIntro h2 { font-size: clamp(34px, 4.4vw, 56px); line-height: 1.04; letter-spacing: -0.01em; }
+.v3 .frontText { background: var(--limestone); }
+.v3 .frontText h3 { font-size: clamp(28px, 2.8vw, 38px); line-height: 1.1; letter-spacing: -0.005em; }
+.v3 .frontLabel { color: var(--gold-text); }
+
+/* ---- Experiência ---- */
+.v3 .experience { background: var(--limestone); }
+.v3 .expIntroLeft h2 { font-size: clamp(32px, 4vw, 52px); line-height: 1.06; letter-spacing: -0.01em; }
+.v3 .expAuthItems { font-family: var(--kepler); font-weight: var(--w-title); letter-spacing: 0; }
+
+/* ---- Case CBA ---- */
+.v3 .caseFeature { border-top-color: rgba(143, 114, 72, 0.3); }
+.v3 .caseFeature h2 { font-size: clamp(30px, 3.6vw, 46px); line-height: 1.08; letter-spacing: -0.01em; }
+.v3 .caseBody { gap: 24px; }
+.v3 .caseBody > p:first-child { color: #3c373f; }
+.v3 .caseKey {
+  max-width: 34ch; padding-left: 20px; border-left: 2px solid var(--gold);
+  font-family: var(--kepler); font-style: italic; font-size: clamp(22px, 2.2vw, 28px); line-height: 1.25; color: var(--imperial);
+}
+.v3 .caseActions { display: grid; gap: 22px; justify-items: start; }
+.v3 .caseBadge {
+  padding: 0; border: 0; background: none; border-radius: 0;
+  color: var(--gold-text); font-size: 12.5px; font-weight: var(--w-strong); letter-spacing: 0.1em; text-transform: uppercase; line-height: 1.5;
+}
+.v3 .caseActions .textLink {
+  padding: 15px 26px; border: 0; border-radius: 999px; background: var(--imperial); color: var(--limestone);
+  font-size: 16px; font-weight: 600; transition: transform 0.3s ease, background 0.2s ease;
+}
+.v3 .caseActions .textLink:hover { background: var(--aubergine); transform: translateY(-2px); }
+.v3 .caseMedia { border-color: rgba(143, 114, 72, 0.25); }
+
+/* ---- Resultados ---- */
+.v3 .resultCard { background: var(--limestone-2); border-color: rgba(143, 114, 72, 0.22); box-shadow: none; }
+.v3 .resultsHead h2 { font-size: clamp(30px, 3.6vw, 48px); line-height: 1.08; letter-spacing: -0.01em; }
+.v3 .resultMetric strong, .v3 .resultPhoto span { font-family: var(--kepler); font-weight: var(--w-title); }
+
+/* ---- Diagnóstico: fecha a página em Imperial ---- */
+.v3 .diagnostico {
+  position: relative; isolation: isolate; width: auto; margin: 0; padding: clamp(80px, 9vw, 128px) var(--gutter);
+  background: var(--imperial); color: var(--limestone); overflow: hidden;
+}
+.v3 .diagTexture { z-index: -1; object-fit: cover; opacity: 0.13; pointer-events: none; }
+.v3 .diagnosticoText .eyebrow { display: flex; align-items: center; gap: 16px; color: var(--gold); }
+.v3 .diagnosticoText .eyebrow::before { content: ""; width: 48px; height: 1px; background: var(--gold); }
+.v3 .diagnosticoText h2 { margin-top: 24px; max-width: 14em; font-size: clamp(36px, 4.4vw, 62px); line-height: 1.04; letter-spacing: -0.01em; color: var(--limestone); }
+.v3 .diagnosticoText h2 .gold { display: block; }
+.v3 .diagnosticoCtaBox { border-left-color: rgba(168, 138, 88, 0.4); }
+.v3 .diagnosticoCtaBox p { color: rgba(241, 236, 228, 0.86); }
+.v3 .diagnosticoCtaBox > strong {
+  font-family: var(--kepler); font-style: italic; font-weight: var(--w-title); font-size: clamp(20px, 1.8vw, 24px); line-height: 1.3; color: var(--gold);
+}
+.v3 .diagPrimary, .v3 .diagSecondary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: 56px; padding: 0 28px;
+  border-radius: 999px; font-size: 16px; font-weight: 600; text-decoration: none;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, border-color 0.2s ease;
+}
+.v3 .diagPrimary { background: var(--limestone); color: var(--imperial) !important; border: 1px solid var(--limestone); }
+.v3 .diagSecondary { background: transparent; color: var(--limestone); border: 1px solid rgba(241, 236, 228, 0.45); }
+.v3 .diagPrimary:hover, .v3 .diagSecondary:hover { transform: translateY(-2px); }
+.v3 .diagSecondary:hover { background: rgba(241, 236, 228, 0.08); border-color: var(--limestone); }
+.v3 .diagPrimary svg, .v3 .diagSecondary svg { width: 19px; height: 19px; }
+
+/* ---- Hero em Imperial (o desenho do arco e da legenda fica em HomeHero.module.css) ---- */
+.v3 .heroV3 {
+  width: auto; margin: 0; padding: clamp(104px, 9vw, 136px) var(--gutter) 0; text-align: left;
+  background: var(--imperial); color: var(--limestone);
+}
+.v3 .heroV3 .eyebrow { color: var(--gold); text-align: left; }
+.v3 .heroV3 h1 { color: var(--limestone); }
+.v3 .heroV3 .heroCopy p { color: var(--on-dark-2); }
+.v3 .heroV3 .primaryButton { background: var(--gold); border-color: var(--gold); color: var(--imperial) !important; }
+.v3 .heroV3 .heroProof { border-top: 1px solid rgba(168, 138, 88, 0.3); margin-top: clamp(40px, 5vw, 72px); }
+.v3 .heroV3 .heroStripTop, .v3 .heroV3 .heroStripBottom { margin-top: 0; opacity: 0.12; filter: invert(1) sepia(0.4); }
+.v3 .heroV3 .logoTrack img { filter: brightness(0) invert(1); opacity: 0.5; }
+.v3 .heroV3 .stats > div { border-right-color: rgba(168, 138, 88, 0.3); }
+.v3 .heroV3 .stats dt { font-family: var(--kepler); font-weight: var(--w-title); color: var(--gold); letter-spacing: -0.01em; font-size: clamp(36px, 4vw, 52px); }
+.v3 .heroV3 .stats dd { color: var(--on-dark-2); }
+.v3 .heroV3 .stats > div { border-color: rgba(168, 138, 88, 0.3); }
+/* Selo Anthropic no celular: o texto do selo é escuro; sobre Imperial passa a Limestone (estrutura e animação intactas). */
+.v3 .heroV3 [class*="mobileBrand"], .v3 .heroV3 [class*="mobilePartner"] { color: rgba(241, 236, 228, 0.8); }
+.v3 .heroV3 [class*="mobileDot"] { color: rgba(241, 236, 228, 0.4); }
+
+.v3[data-fonts="ready"] {
+  --kepler: "kepler-std-display", Georgia, "Times New Roman", serif;
+  --acumin: "acumin-pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --kepler-sub: "kepler-std-subhead", Georgia, "Times New Roman", serif;
+}
+/* Reservas com ajuste de tamanho para a troca de fonte não empurrar o layout (valores medidos na tela, ver relatório). */
+@font-face { font-family: "kalidash-kepler-reserva"; src: local("Georgia"), local("Times New Roman"); size-adjust: 88%; ascent-override: 98%; descent-override: 26%; line-gap-override: 0%; }
+@font-face { font-family: "kalidash-acumin-reserva"; src: local("Segoe UI"), local("Arial"); size-adjust: 100%; }
+
+/* ====================== Rodada 2 (revisão do PO) ====================== */
+/* Botões da Home: mesma forma do CTA do hero (retângulo, raio 4px). */
+.v3 .caseActions .textLink, .v3 .diagPrimary, .v3 .diagSecondary { border-radius: 4px; }
+
+/* Serifa pequena: abaixo de ~30px a Display fica apertada e fina; usa a Subhead com tracking 0. Títulos grandes seguem em Display. */
+.v3 .problemCard h3 { font-family: var(--kepler-sub); font-weight: var(--w-title); letter-spacing: 0; font-size: 22px; }
+.v3 .expAuthItems { font-family: var(--kepler-sub); letter-spacing: 0; }
+.v3 .caseKey { font-family: var(--kepler-sub); letter-spacing: 0; }
+.v3 .diagnosticoCtaBox > strong { font-family: var(--kepler-sub); letter-spacing: 0; }
+.v3 .problemTop h2 em { font-family: var(--kepler-sub); letter-spacing: 0; }
+.v3 .resultMetric strong { font-family: var(--kepler-sub); letter-spacing: 0; }
+@media (max-width: 1000px) {
+  .v3 .frontText h3, .v3 .caseFeature h2, .v3 .resultsHead h2, .v3 .expIntroLeft h2 { font-family: var(--kepler-sub); letter-spacing: 0; }
+}
+@media (max-width: 640px) {
+  .v3 .heroV3 .stats dt { font-family: var(--kepler-sub); letter-spacing: 0; }
+}
+
+/* Problema: o holograma ganha painel Imperial (o ouro tem presença) e o texto do cartão se distribui no meio da altura. */
+.v3 .hologramCol {
+  background: linear-gradient(160deg, #28183b 0%, #31204a 60%, #46304f 100%);
+  border: 1px solid rgba(168, 138, 88, 0.5); border-radius: 20px; box-shadow: 0 18px 44px rgba(40, 24, 59, 0.28);
+}
+@media (min-width: 1101px) { .v3 .problemTop { display: flex; align-items: center; } } /* abaixo disso o cartão fica oculto, como antes */
+.v3 .problemTopContent { max-width: 700px; }
+.v3 .problemTopContent::before { content: ""; display: block; width: 48px; height: 1px; margin-bottom: 28px; background: var(--gold); }
+.v3 .problemTop p { font-size: 20px; line-height: 31px; }
+
+/* ====================== Rodada 3: cabeçalho roxo sobre o hero Imperial ======================
+ * Mesmo padrão do Advisory (kit.module.css .kitDark): o hero e o Diagnóstico são marcados com data-tone="dark" (o HeaderTone
+ * já lê isso, sem edição) e, no celular, o cabeçalho flutuante sobe sobre o hero (margin-bottom negativo, padding-top do hero
+ * compensa; o hero não se move). Antes do JS (html sem data-header-tone) o estado inicial já é escuro: sem faixa nem flash branco. */
+@media (max-width: 1100px) {
+  .homeDark :global(header[data-block="home-header"]) { margin-bottom: -76px; }
+  .v3 .heroV3 { padding-top: calc(clamp(104px, 9vw, 136px) + 76px); }
+  .homeDark :global(header[data-block="home-header"]) [data-header-logo="true"] { --logo-body: #f8f9fa; }
+  :global(html[data-header-tone="light"]) .homeDark :global(header[data-block="home-header"]) [data-header-logo="true"] { --logo-body: #28183b; }
+}
+@media (min-width: 1101px) {
+  :global(html:not([data-header-tone])) .homeDark .header:not([data-filters-active="true"]):not([data-bg="white"]) {
+    background: rgba(40, 24, 59, 0.94); border-bottom-color: rgba(196, 166, 115, 0.28); box-shadow: none;
+  }
+  :global(html:not([data-header-tone])) .homeDark .header:not([data-filters-active="true"]):not([data-bg="white"]) .nav { color: #f8f9fa; }
+  :global(html:not([data-header-tone])) .homeDark .header:not([data-filters-active="true"]):not([data-bg="white"]) .navCta { color: #c4a673 !important; border-bottom-color: #c4a673; }
+  :global(html:not([data-header-tone])) .homeDark .header:not([data-filters-active="true"]):not([data-bg="white"]) [data-header-logo="true"] { --logo-body: #f8f9fa; }
+}

@@ -1,0 +1,15 @@
+{
+ "desktop /": {
+  "perf": 95,
+  "lcp": 1046,
+  "cls": 0.001,
+  "tbt": 0,
+  "fcp": 497,
+  "ttfb": 6,
+  "js": 201,
+  "img": 2142,
+  "font": 626,
+  "total": 3139,
+  "lcpEl": "<img alt=\"\" width=\"1000\" height=\"1200\" decoding=\"async\" data-nimg=\"1\" style=\"col"
+ }
+}

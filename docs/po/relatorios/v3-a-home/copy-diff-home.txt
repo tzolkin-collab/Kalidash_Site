@@ -1,0 +1,24 @@
+2,3c2,4
+< Prepare sua operação para a era dos agentes de IA.
+< Treinamos equipes, estruturamos a governança e implementamos agentes e automações em operações com mais de 500 pessoas. Eficiência medida no resultado, não na ferramenta.
+---
+> A inteligência que falta na IA.
+> falta
+> A IA executa. Quem define onde chegar são as pessoas. Treinamos equipes, estruturamos a governança e implementamos agentes de IA e automações em empresas da economia real.
+10a12,13
+> A IA faz a parte operacional. O protagonismo é nosso.
+> protagonismo
+23c26
+< Quando pessoas, processos e tecnologia andam em ritmos diferentes, a execução trava e as decisões demoram. Ferramenta nova não resolve. O que resolve é mudar o jeito de trabalhar.
+---
+> Quando pessoas, processos e tecnologia andam em ritmos diferentes, a execução trava e as decisões demoram. Reconhece algum destes sintomas?
+95c98
+< Case · CBA
+---
+> Case destaque • CBA
+97a101
+> Consultas que antes eram impossíveis agora levam segundos.
+98a103
+> Ver o case completo
+111a117
+> na sua operação.

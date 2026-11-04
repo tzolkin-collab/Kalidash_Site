@@ -1,0 +1,7 @@
+1024: hscroll=false erros=[]
+768: hscroll=false erros=[]
+iOS UA: hscroll=false erros=[] headerTone=light
+/advisory 1440: 0 px diferentes de 8779680 (0.000%)
+/advisory 390: 0 px diferentes de 2689050 (0.000%)
+/sobre-nos 1440: 0 px diferentes de 7630560 (0.000%)
+/sobre-nos 390: 0 px diferentes de 2199210 (0.000%)
