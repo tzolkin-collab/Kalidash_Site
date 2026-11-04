@@ -14,6 +14,8 @@ function toneUnderHeader(): "dark" | "light" {
   const stack = document.elementsFromPoint(Math.round(window.innerWidth / 2), 44);
   for (const el of stack) {
     if (el.closest('header[data-block="home-header"]')) continue;
+    /* Camadas da transição de página (celular): não são a página; a página nova monta coberta por elas. */
+    if (el.closest("[data-route-transition]")) continue;
     if (getComputedStyle(el).position === "fixed") continue;
     for (let n: Element | null = el; n; n = n.parentElement) {
       const m = getComputedStyle(n).backgroundColor.match(/rgba?\(([^)]+)\)/);
@@ -89,6 +91,14 @@ export default function HeaderTone() {
         if (frame) cancelAnimationFrame(frame);
       });
     }
+    /* A página nova monta coberta pela transição (celular) ou pela abertura da Home: quando elas saem, um evento de rolagem
+     * sintético faz a medição rodar de novo (sem ele, a cor errada ficava até o usuário rolar). */
+    const mo = new MutationObserver(() => {
+      if (root.hasAttribute("data-route-cover")) return;
+      window.requestAnimationFrame(() => window.dispatchEvent(new Event("scroll")));
+    });
+    mo.observe(root, { attributes: true, attributeFilter: ["data-route-cover", "data-intro"] });
+    cleanup.push(() => mo.disconnect());
     return () => {
       io?.disconnect();
       cleanup.forEach((fn) => fn());

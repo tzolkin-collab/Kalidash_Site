@@ -74,7 +74,7 @@ export default function RouteTransition() {
   }, [pathname]);
 
   return (
-    <div ref={rootRef} className={styles.root} data-phase="idle" aria-hidden="true">
+    <div ref={rootRef} className={styles.root} data-phase="idle" data-route-transition="" aria-hidden="true">
       <div className={`${styles.layer} ${styles.first}`} />
       <div className={`${styles.layer} ${styles.second}`} />
     </div>
