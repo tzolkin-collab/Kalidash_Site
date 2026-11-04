@@ -12,6 +12,7 @@ import BuildStory from "./BuildStory";
 import StepsPin from "./StepsPin";
 import ScrollMotion from "./ScrollMotion";
 import { BlockView, HeroView, Legend, toneMap } from "./ProductPage";
+import KitFonts from "./KitFonts";
 import { Accent, LeadershipView, ProblemView, RitualsView, canProblem } from "./AdvisoryViews";
 import prod from "./product.module.css";
 import sol from "./solucoes.module.css";
@@ -255,8 +256,15 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
   const chapterBlocks = page.blocks.filter((b) => b.type !== "heroMedia" && b.type !== "testimonials" && b.type !== "proofBar");
   return (
     <div className={`${home.home} ${sol.page} ${fraunces.variable}${darkHero ? ` ${styles.kitDark}` : ""}${v3 ? ` ${styles.v3}` : ""} ${styles.chapters}`} data-page={page.slug}>
-      {/* Kit Adobe (Kepler Display + Acumin), só nesta página e só dentro do <main>: o cabeçalho e o rodapé mantêm as fontes de hoje. */}
-      {v3 && <link rel="stylesheet" href="https://use.typekit.net/krs4uwp.css" precedence="default" />}
+      {/* Kit Adobe (Kepler + Acumin), só nesta página e só dentro do <main>: o cabeçalho e o rodapé mantêm as fontes de hoje. O CSS do kit
+          não bloqueia a primeira pintura: preload aqui, aplicação e troca de fonte em KitFonts (reserva com métrica ajustada até lá). */}
+      {v3 && (
+        <>
+          <link rel="preconnect" href="https://use.typekit.net" crossOrigin="anonymous" />
+          <link rel="preload" as="style" href="https://use.typekit.net/krs4uwp.css" />
+          <KitFonts />
+        </>
+      )}
       <HomeHeader />
       <main className={styles.main}>
         {portrait ? <HeroView hero={hero} kind="photo" /> : <HeroWide block={hero} />}

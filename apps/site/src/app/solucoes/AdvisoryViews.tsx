@@ -215,7 +215,9 @@ export function RitualsView({ block }: { block: Of<"cards"> }) {
         <h2 className={styles.avRitualsTitle}><Accent text={title} word={block.accent} className={styles.goldEmDark} /></h2>
         <ul className={styles.avCards}>
           {block.items.map((item, i) => {
-            const { body, foot } = splitFoot(item.text);
+            const { body, foot } = item.foot && item.text.endsWith(item.foot)
+              ? { body: item.text.slice(0, -item.foot.length).trim().replace(/[,;]$/, ""), foot: item.foot }
+              : splitFoot(item.text);
             const Icon = ritualIcons[i % ritualIcons.length];
             return (
               <li key={item.title}>

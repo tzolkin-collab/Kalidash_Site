@@ -1,4 +1,6 @@
-# V3 · Sessão B (internas): primeira entrega, B0 + Advisory (V1 a V4)
+# V3 · Sessão B (internas): primeira entrega, B0 + Advisory (V1 a V4), com a rodada de correções do PO
+
+> **Rodada 2 (revisão do PO, nota 8,5):** ver a seção "Rodada de correções" logo abaixo; ela prevalece sobre o que estiver diferente no resto do texto (recorte da foto, web vitals, tipografia pequena).
 
 Branch `claude/v3-internas-d70d92`, a partir de `240a2bb`. Sem push, sem merge. AI Culture e Execução **não foram tocadas** (aguardam aprovação do PO; C1 e E2 seguem bloqueados).
 Capturas em `docs/po/relatorios/v3-b-internas/` (cada `V*-1440.png` empilha ANTES / DEPOIS / REFERÊNCIA; `V*-390.png` põe antes e depois lado a lado).
@@ -16,13 +18,36 @@ Palavras em destaque (itálico dourado): Advisory `resultado.` (hero), `E agora?
 
 ## Seção por seção (três linhas antes de desenhar)
 
-**V1 Hero.** A referência `doc-17.png` **não está** na pasta `_assets-carol/v3/` (só `advisory-foto-drive.jpg`); segui o brief. Reproduzo o arco atual com a foto do Drive; deixo de fora qualquer rótulo ou moldura nova. O recorte sobe para a tela projetada e o palestrante, e corta fora a bancada com as plaquinhas (ver `V1-recorte-da-foto.png`, retângulo vermelho).
+**V1 Hero.** `doc-17.png` (que faltava na 1ª entrega) é o hero "de hoje" do doc: serve de comparação, não de alvo. Reproduzo o arco atual com a foto do Drive; deixo de fora qualquer rótulo ou moldura nova. O recorte sobe para a tela projetada e o palestrante, e corta fora a bancada com as plaquinhas (ver `V1-recorte-da-foto.png`, retângulo vermelho).
 
 **V2 "A estratégia foi definida".** A referência separa o problema (Limestone) da resposta (Imperial). Reproduzo: título com "E agora?" dourado + parágrafo à direita; linha do tempo com os 4 eventos (colunas com filete e ponto sobre a linha); parte Imperial com "Não entregamos um plano." atenuado, "Acompanhamos o que acontece" forte, "depois dele." dourado; régua 01–04 em ouro. Deixo de fora "Plano aprovado" e "Fim do 1º trimestre" (copy nova). Tudo no mesmo capítulo: contagem e cortina intactas.
 
 **V3 "Ajudamos sua liderança".** A referência dá título + apoio à esquerda e uma coluna única de 5 linhas à direita. Reproduzo: coluna única com romano (I a V) à esquerda e ícone de linha à direita, filete entre as linhas, pentágono SVG inline `aria-hidden` em linha ouro. Deixo de fora o rótulo "Liderança" no centro (texto novo) e a numeração 01–05 (o brief proíbe).
 
 **V4 "Três rituais".** A referência dá cartões escuros com ícone, título, descrição e frase final em itálico, mais uma faixa clara. Reproduzo: seção Imperial, 3 cartões Aubergine (raio 18 px), ícone ouro, frase final de "Comitê de IA" separada por filete em itálico ouro, faixa Limestone com 3 colunas e ícone (texto do `closing`). Deixo de fora as pílulas "Mensal/Contínuo/Individual", "I · Com a liderança", o texto de apoio à direita do título e os subtítulos da faixa (todos copy nova); aguardam decisão da Carol.
+
+## Rodada de correções (revisão do PO)
+
+1. **V4, cartões 2 e 3 com vazio.** Novo campo opcional `foot` nos itens de `cards` (`pages.ts`): é o trecho final do `text`, que a Advisory mostra à parte. "antes de virar problema de diretoria." e "e precisam de um olhar externo e experiente." vão ao pé, em itálico ouro; primeira letra maiúscula só por CSS. O texto de `pages.ts` não mudou. Os três cartões usam `subgrid`: ícone, título, texto e filete ficam na mesma altura no desktop. No celular volta a pilha simples.
+2. **V2, ponto final.** Os quatro itens da linha do tempo terminam com ponto (CSS), todos iguais.
+3. **V3.** Romanos de 17 px para 20 px (lista) e de 15 px para 20 px (pentágono), em Kepler Subhead e no ouro acessível `#8F7248`. Ícones 28 para 34 px, pentágono 300 para 360 px.
+4. **Serifa pequena.** Nova variável `--font-sub` (`kepler-std-subhead`, `letter-spacing: 0`) para: linhas de V3, linha do tempo, régua 01–04, pé dos cartões, faixa Limestone de V4 e os romanos. Títulos grandes seguem em Display. Os `h3` dos cartões (26 a 34 px) ficaram em Display com tracking 0.
+5. **V1.** Novo recorte (x 380–712, y 520–935 do original, 664×830, WebP): sem plaquinha nenhuma (conferi o canto inferior direito, onde aparecia a ponta de uma) e menos teto. O arco sobe 44 px do pé da abertura (`margin-bottom` com cantos de baixo arredondados), então a cortina do capítulo seguinte não corta mais o palestrante. Em 1440×900 e em 390 o palestrante aparece inteiro até os joelhos.
+6. **FCP.** Mesmo padrão da Home (`081a733`), sem editar a Home: `preconnect` + `preload` do CSS no `KitPage`, e o novo `KitFonts.tsx` (cliente) aplica o CSS depois da carga e marca `main[data-fonts="ready"]` quando as fontes carregaram. Até lá valem as reservas `kit-kepler-reserva` e `kit-acumin-reserva` com métrica ajustada (`size-adjust`), então não há texto invisível.
+
+**Web vitals da Advisory, depois da rodada** (build de produção, Lighthouse 12, mediana de 3; `webvitals-antes.json` × `webvitals-depois.json`):
+
+| | LCP | CLS | TBT | FCP | Fonte transferida |
+|---|---|---|---|---|---|
+| mobile, baseline | 4885 ms | 0 | 42 ms | 1965 ms | 323 KB |
+| mobile, 1ª entrega | 4723 ms | 0 | 47 ms | 2361 ms | 626 KB |
+| mobile, agora | **4632 ms** | 0,015 | 35 ms | **1968 ms** | 876 KB |
+| desktop, baseline | 942 ms | 0 | 0 | 495 ms | 323 KB |
+| desktop, agora | **893 ms** | 0 | 0 | 535 ms | 876 KB |
+
+O FCP volta ao nível do baseline no celular (de 2361 para 1968 ms) e o LCP melhora nos dois perfis. Sobra +40 ms de FCP no desktop e um CLS de 0,015 no celular (a troca da reserva pela fonte real; abaixo do limite de 0,1). O peso de fonte sobe (876 KB) porque a Subhead entrou na carga, mas agora sem bloquear a pintura.
+
+**Conferências repetidas na rodada:** `tsc` e `build` passam; lint com o mesmo erro preexistente de `DiagnosticoForm.tsx`; `/kognis`, `/spectra` e `/solucoes` com 0 px de diferença, `/sobre-nos` 0 px contra o baseline recapturado; cabeçalho idêntico (JSON `antes` × `depois`); 1440, 1024, 768 e 390 sem rolagem horizontal e sem erro de console; quadros de movimento refeitos (desktop, iPhone simulado e movimento reduzido) com cascata do hero, cortina, rótulo e surge intactos. Copy: nenhuma palavra mudou (mesma análise de antes; os pés dos cartões 2 e 3 só repartem frases existentes).
 
 ## Decisões a registrar
 
@@ -66,13 +91,12 @@ LCP não piorou (a foto nova é 26 KB contra 91 a 109 KB da Escola de Atenas). O
 
 ## Riscos e o que falta
 
-1. Typekit é terceiro e bloqueante (FCP). O kit só traz 400 e 700; títulos usam 400 (certo). Quando a Carol incluir Light/Semibold, trocar `--w-title`/`--w-strong`.
+1. Typekit é terceiro (agora não bloqueia a pintura, ver a rodada de correções). O kit só traz 400 e 700; títulos usam 400 (certo). Quando a Carol incluir Light/Semibold, trocar `--w-title`/`--w-strong`.
 2. `v3` está ligado só à Advisory (`const v3 = page.slug === "advisory"` em `KitPage`). AI Culture e Execução seguem com Fraunces/Archivo até a próxima etapa.
-3. Foto com pouca resolução (ver autoavaliação).
+3. Foto com pouca resolução: o recorte novo tem 332 px de origem, ampliado para 664 (mole em tela retina). Uma foto maior do Drive resolveria.
 4. Ícones desenhados à mão (`AdvisoryViews.tsx`).
-5. `doc-17.png` ausente da pasta de referências.
 6. `/consultoria-governanca-ia` renderiza o mesmo conteúdo e herda tudo (checar no merge).
 
 ## Commits
 
-Um commit nesta entrega (B0 + Advisory V1 a V4 + relatório), no branch `claude/v3-internas-d70d92`.
+Dois commits no branch `claude/v3-internas-d70d92`: `524ec8c` (B0 + Advisory V1 a V4 + relatório) e o da rodada de correções.

@@ -15,7 +15,8 @@ export type Block =
       eyebrow?: string;
       title: string[];
       intro?: string[];
-      items: Array<{ title: string; text: string; example?: string; href?: string; cta?: string }>;
+      /* `foot`: trecho final de `text` que a Advisory mostra à parte (pé do cartão, em itálico). O texto não muda. */
+      items: Array<{ title: string; text: string; example?: string; href?: string; cta?: string; foot?: string }>;
       columns?: 2 | 3;
       animated?: boolean;
       accent?: string;
@@ -443,7 +444,7 @@ export const advisory: PageContent = {
       support: "Ao lado da liderança. Dentro da execução.",
       cta: { label: "Conversar com um sócio", href: formHref("advisory") },
       /* Foto da capacitação na Fundação Dom Cabral (Drive), recortada para não mostrar as plaquinhas com os nomes dos alunos. */
-      image: { src: "/advisory/comite-fdc.webp", alt: "Palestrante da Kalidash conduz uma capacitação em IA numa sala da Fundação Dom Cabral, com a tela do assistente projetada ao fundo", width: 800, height: 1000 },
+      image: { src: "/advisory/comite-fdc.webp", alt: "Palestrante da Kalidash conduz uma capacitação em IA numa sala da Fundação Dom Cabral, com a tela do assistente projetada ao fundo", width: 664, height: 830 },
       aspect: "landscape",
     },
     {
@@ -480,8 +481,8 @@ export const advisory: PageContent = {
       accent: "rituais",
       items: [
         { title: "Comitê de IA", text: "Encontro mensal com a liderança para revisar prioridades, indicadores e decisões em aberto. É o ritual que impede a iniciativa de morrer na primeira urgência do mês." },
-        { title: "Acompanhamento de iniciativas", text: "Proximidade com os times que executam, para destravar o que emperrou antes de virar problema de diretoria." },
-        { title: "Mentoria executiva", text: "Conversas individuais com líderes que conduzem a mudança e precisam de um olhar externo e experiente." },
+        { title: "Acompanhamento de iniciativas", text: "Proximidade com os times que executam, para destravar o que emperrou antes de virar problema de diretoria.", foot: "antes de virar problema de diretoria." },
+        { title: "Mentoria executiva", text: "Conversas individuais com líderes que conduzem a mudança e precisam de um olhar externo e experiente.", foot: "e precisam de um olhar externo e experiente." },
       ],
       // Exemplo sugerido pela Carol entre colchetes no doc; confirmar os entregáveis reais.
       closing: ["**O que a liderança recebe:** painel com os indicadores das iniciativas · relatório mensal de decisões e desvios · roadmap priorizado, revisado a cada trimestre."],

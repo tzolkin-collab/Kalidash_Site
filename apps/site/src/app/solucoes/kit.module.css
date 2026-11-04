@@ -300,8 +300,10 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
  * Hoje o kit tem 400 e 700; quando a Carol incluir Light e Semibold, troque só --w-title (300) e --w-strong (600) aqui.
  * Títulos nunca em 700. */
 .v3 .main {
-  --font-title: "kepler-std-display", Georgia, "Times New Roman", serif;
-  --font-body: "acumin-pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Até o kit carregar (data-fonts="ready", posto por KitFonts.tsx) valem as reservas com métrica ajustada. */
+  --font-title: "kit-kepler-reserva", Georgia, "Times New Roman", serif;
+  --font-sub: "kit-kepler-reserva", Georgia, "Times New Roman", serif;
+  --font-body: "kit-acumin-reserva", system-ui, -apple-system, "Segoe UI", sans-serif;
   --w-title: 400;
   --w-strong: 700;
   --limestone: #f1ece4;
@@ -317,6 +319,14 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
   font-family: var(--font-body);
   background: var(--limestone);
 }
+/* Display nos títulos grandes; Subhead (desenhada para tamanho pequeno) com tracking 0 abaixo de ~30 px. */
+.v3 .main[data-fonts="ready"] {
+  --font-title: "kepler-std-display", Georgia, "Times New Roman", serif;
+  --font-sub: "kepler-std-subhead", "kepler-std-display", Georgia, "Times New Roman", serif;
+  --font-body: "acumin-pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@font-face { font-family: "kit-kepler-reserva"; src: local("Georgia"), local("Times New Roman"); size-adjust: 88%; ascent-override: 98%; descent-override: 26%; line-gap-override: 0%; }
+@font-face { font-family: "kit-acumin-reserva"; src: local("Segoe UI"), local("Arial"); size-adjust: 100%; }
 .v3 .main :is(strong, dt, button, [class*="Button"], [class*="eyebrow"], [class*="chip"]) { font-family: var(--font-body); }
 .v3 .main :is(h1, h2, h3, summary) { font-family: var(--font-title); font-weight: var(--w-title); letter-spacing: -0.012em; text-wrap: balance; }
 .v3 .main strong { font-weight: var(--w-strong); }
@@ -328,5 +338,6 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 .v3 .heroLead strong { color: var(--limestone); }
 .v3 .heroMeta { color: var(--gold-light); }
 /* O arco da foto: a mesma proporção do recorte (4:5), sem esticar. */
-.v3 .heroArch { background: #46304f; }
+/* O arco sobe 44 px do pé da abertura: a cortina do capítulo seguinte não corta mais o palestrante. */
+.v3 .heroArch { background: #46304f; margin-bottom: 44px; border-radius: 999px 999px 18px 18px; }
 .v3 .heroArch img { object-position: 50% 50%; }
