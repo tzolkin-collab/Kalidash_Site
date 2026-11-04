@@ -81,7 +81,7 @@ export default function HomePage() {
   const logoLoop = [...clients, ...clients];
 
   return (
-    <div className={`${styles.home} ${fraunces.variable}`}>
+    <div className={`${styles.home} ${styles.homeDark} ${fraunces.variable}`}>
       {/* Kit Adobe (Kepler e Acumin) só na Home e só dentro do <main>. O CSS do kit NÃO bloqueia a primeira pintura (medido: +1,2 s de FCP
           e texto invisível até a fonte chegar): o <link rel="preload"> começa o download cedo; o useEffect abaixo aplica o CSS e só
           marca data-fonts="ready" depois que as fontes carregaram. Até lá vale a fonte de reserva, com métrica ajustada (home.module.css). */}
@@ -105,7 +105,7 @@ export default function HomePage() {
       <HomeHeader />
 
       <main className={styles.v3} ref={mainRef}>
-        <section className={`${styles.hero} ${styles.heroV3}`} data-block="home-hero">
+        <section className={`${styles.hero} ${styles.heroV3}`} data-block="home-hero" data-tone="dark">
           <div className={heroStyles.main}>
           <div className={heroStyles.text}>
           <Eyebrow>{hero.eyebrow}</Eyebrow>
@@ -492,7 +492,7 @@ export default function HomePage() {
           </Reveal>
         </section>
 
-        <section id="diagnostico" className={styles.diagnostico} data-block="home-diagnostico">
+        <section id="diagnostico" className={styles.diagnostico} data-block="home-diagnostico" data-tone="dark">
           <Image className={styles.diagTexture} src="/marca/nuvens-douradas.jpg" alt="" fill sizes="100vw" loading="lazy" aria-hidden="true" />
           <div className={styles.diagnosticoText}>
             <Eyebrow>Diagnóstico</Eyebrow>

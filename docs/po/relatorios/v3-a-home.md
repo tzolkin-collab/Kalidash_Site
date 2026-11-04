@@ -98,3 +98,34 @@ Fontes transferidas: 323 KB → 876 KB (Kepler Display + Subhead + Acumin). LCP 
 
 - Safari/iOS real; troca de fonte pós-carregamento em conexão lenta real.
 - O cartão de texto do problema continua oculto abaixo de 1100 px (comportamento anterior); a leitura "Reconhece algum destes sintomas?" só existe no desktop.
+
+---
+
+# Rodada 3: cabeçalho roxo no topo da Home
+
+Capturas e logs em `v3-a-home/r3/`. Só Home, no branch, sem push nem merge.
+
+## O que mudou (nenhum arquivo do cabeçalho foi editado)
+
+Mesmo padrão do Advisory (`kit.module.css .kitDark`), só em `home.module.css` e `HomePage.tsx`:
+- Hero e Diagnóstico com `data-tone="dark"`: o `HeaderTone` (sem edição) passa a marcar `html[data-header-tone="dark"]` em y=0 e no Diagnóstico.
+- Classe `.homeDark` no contêiner da Home. **Celular (≤1100 px):** cabeçalho com `margin-bottom: -76px` e o hero com `padding-top` +76 px (o hero não se move: diferença média de pixel abaixo do cabeçalho r2×r3 = 0,5 e 1,1 de 255, ruído de JPEG), logo `--logo-body` claro e, com tom claro, Imperial. **Desktop:** antes do JS (`html:not([data-header-tone])`) a barra já nasce Imperial, com menu e logo claros, para não haver faixa branca.
+
+## Resultado (`r3/log.txt`, `r3/flash-log.txt`)
+
+- **y=0, 1440 e 390:** `tone=dark`; desktop com barra `rgba(40,24,59,.94)`, logo e menu claros; celular com logo e botão de menu legíveis sobre o Imperial. Posição do cabeçalho e do `h1` inalteradas entre rolagens.
+- **Carga fresca:** a abertura `LogoIntro` é branca por desenho (não tocada). A faixa do cabeçalho sai de branco (255) para Imperial (~49) de forma monótona (~1 s), sem voltar ao branco. No commit de partida a faixa ia a ~175 e voltava a ~251 (branco). Sem faixa branca depois da abertura.
+- **Rolagem:** problema → claro; Diagnóstico → escuro; fronts → claro; voltar ao topo → escuro. Descer esconde, subir devolve o cabeçalho (`data-header-collapsed`, y=0). Recarregar no meio da página (Diagnóstico): `tone=dark`. Vindo de `/sobre-nos` pelo logo (transição): chega em `/` com `tone=dark`, faixa Imperial desde 150 ms no desktop e 600 ms no celular. Submenu legível (`submenu-1440.jpg`); menu do celular em `menu-aberto-390.jpg`.
+- **Isolamento:** `/advisory` e `/sobre-nos` em 1440 e 390, página inteira, contra o commit de partida: **0 pixels diferentes** nas quatro.
+- **Animações:** quadros de antes (`../movimento/antes-*`) e depois (`r3/movimento/r3-*`, e `r3-reduzido-*` com movimento reduzido) em 1440 e 390: entrada do hero, selo Anthropic e faixa de logos conferidos; nenhum arquivo de animação foi tocado.
+
+## Números (Lighthouse 12, mediana de 3, `/`, produção)
+
+| | LCP | CLS | TBT |
+|---|---|---|---|
+| Móvel antes (`240a2bb`) | 5236 ms | 0 | 44 ms |
+| Móvel r3 | 5060 ms | 0,001 | 38 ms |
+| Desktop antes | 1025 ms | 0 | 0 |
+| Desktop r3 | 1042 ms | 0,001 | 0 |
+
+CLS = 0,001, igual ao da rodada 2 (não subiu); em relação à partida (0) é 0,001, da troca de fonte. O bloco do problema no celular não foi tocado.

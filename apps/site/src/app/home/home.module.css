@@ -1510,3 +1510,22 @@
 .v3 .problemTopContent { max-width: 700px; }
 .v3 .problemTopContent::before { content: ""; display: block; width: 48px; height: 1px; margin-bottom: 28px; background: var(--gold); }
 .v3 .problemTop p { font-size: 20px; line-height: 31px; }
+
+/* ====================== Rodada 3: cabeçalho roxo sobre o hero Imperial ======================
+ * Mesmo padrão do Advisory (kit.module.css .kitDark): o hero e o Diagnóstico são marcados com data-tone="dark" (o HeaderTone
+ * já lê isso, sem edição) e, no celular, o cabeçalho flutuante sobe sobre o hero (margin-bottom negativo, padding-top do hero
+ * compensa; o hero não se move). Antes do JS (html sem data-header-tone) o estado inicial já é escuro: sem faixa nem flash branco. */
+@media (max-width: 1100px) {
+  .homeDark :global(header[data-block="home-header"]) { margin-bottom: -76px; }
+  .v3 .heroV3 { padding-top: calc(clamp(104px, 9vw, 136px) + 76px); }
+  .homeDark :global(header[data-block="home-header"]) [data-header-logo="true"] { --logo-body: #f8f9fa; }
+  :global(html[data-header-tone="light"]) .homeDark :global(header[data-block="home-header"]) [data-header-logo="true"] { --logo-body: #28183b; }
+}
+@media (min-width: 1101px) {
+  :global(html:not([data-header-tone])) .homeDark .header:not([data-filters-active="true"]):not([data-bg="white"]) {
+    background: rgba(40, 24, 59, 0.94); border-bottom-color: rgba(196, 166, 115, 0.28); box-shadow: none;
+  }
+  :global(html:not([data-header-tone])) .homeDark .header:not([data-filters-active="true"]):not([data-bg="white"]) .nav { color: #f8f9fa; }
+  :global(html:not([data-header-tone])) .homeDark .header:not([data-filters-active="true"]):not([data-bg="white"]) .navCta { color: #c4a673 !important; border-bottom-color: #c4a673; }
+  :global(html:not([data-header-tone])) .homeDark .header:not([data-filters-active="true"]):not([data-bg="white"]) [data-header-logo="true"] { --logo-body: #f8f9fa; }
+}

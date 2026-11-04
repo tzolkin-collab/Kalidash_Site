@@ -1,0 +1,44 @@
+1440 carga 120ms: luminancia da faixa do cabecalho=255 (0=preto, 255=branco)
+1440 carga 400ms: luminancia da faixa do cabecalho=255 (0=preto, 255=branco)
+1440 carga 900ms: luminancia da faixa do cabecalho=255 (0=preto, 255=branco)
+1440 carga 1800ms: luminancia da faixa do cabecalho=251 (0=preto, 255=branco)
+1440 carga 2800ms: luminancia da faixa do cabecalho=49 (0=preto, 255=branco)
+1440 carga 3600ms: luminancia da faixa do cabecalho=52 (0=preto, 255=branco)
+1440 carga 5500ms: luminancia da faixa do cabecalho=52 (0=preto, 255=branco)
+1440 topo: tone=dark headerBg=rgba(40, 24, 59, 0.94) headerY=0 h1Top=297 scrollY=0
+1440 problema: tone=light headerBg=rgba(255, 255, 255, 0.96) headerY=0 h1Top=297 scrollY=1498
+1440 diagnostico: tone=dark headerBg=rgba(40, 24, 59, 0.94) headerY=0 h1Top=297 scrollY=7054
+1440 fronts: tone=light headerBg=rgba(255, 255, 255, 0.96) headerY=0 h1Top=297 scrollY=2478
+1440 volta ao topo: tone=dark headerBg=rgba(40, 24, 59, 0.94) headerY=0 h1Top=297 scrollY=0
+1440 rolando p/ baixo: header collapsed=true y=0
+1440 rolando p/ cima: y=0
+1440 reload no meio (Diagnostico): tone=dark headerBg=rgba(40, 24, 59, 0.94) headerY=0 h1Top=297 scrollY=7054
+1440 transicao 150ms: url=/ luminancia faixa=52
+1440 transicao 600ms: url=/ luminancia faixa=52
+1440 transicao 1400ms: url=/ luminancia faixa=52
+1440 transicao 3500ms: url=/ luminancia faixa=52
+1440 apos transicao: tone=dark headerBg=rgba(40, 24, 59, 0.94) headerY=0 h1Top=297 scrollY=0
+390 carga 120ms: luminancia da faixa do cabecalho=255 (0=preto, 255=branco)
+390 carga 400ms: luminancia da faixa do cabecalho=255 (0=preto, 255=branco)
+390 carga 900ms: luminancia da faixa do cabecalho=255 (0=preto, 255=branco)
+390 carga 1800ms: luminancia da faixa do cabecalho=255 (0=preto, 255=branco)
+390 carga 2800ms: luminancia da faixa do cabecalho=48 (0=preto, 255=branco)
+390 carga 3600ms: luminancia da faixa do cabecalho=52 (0=preto, 255=branco)
+390 carga 5500ms: luminancia da faixa do cabecalho=53 (0=preto, 255=branco)
+390 topo: tone=dark headerBg=rgba(0, 0, 0, 0) headerY=0 h1Top=236 scrollY=0
+390 problema: tone=light headerBg=rgba(0, 0, 0, 0) headerY=0 h1Top=236 scrollY=1821
+390 diagnostico: tone=dark headerBg=rgba(0, 0, 0, 0) headerY=0 h1Top=236 scrollY=11087
+390 fronts: tone=light headerBg=rgba(0, 0, 0, 0) headerY=0 h1Top=236 scrollY=3867
+390 volta ao topo: tone=dark headerBg=rgba(0, 0, 0, 0) headerY=0 h1Top=236 scrollY=0
+390 rolando p/ baixo: header collapsed=true y=0
+390 rolando p/ cima: y=0
+390 reload no meio (Diagnostico): tone=dark headerBg=rgba(0, 0, 0, 0) headerY=0 h1Top=236 scrollY=11087
+390 transicao 150ms: url=/sobre-nos luminancia faixa=79
+390 transicao 600ms: url=/ luminancia faixa=30
+390 transicao 1400ms: url=/ luminancia faixa=53
+390 transicao 3500ms: url=/ luminancia faixa=53
+390 apos transicao: tone=dark headerBg=rgba(0, 0, 0, 0) headerY=0 h1Top=236 scrollY=0
+pixel /advisory 1440: 0 px diferentes de 8779680
+pixel /advisory 390: 0 px diferentes de 2689050
+pixel /sobre-nos 1440: 0 px diferentes de 7630560
+pixel /sobre-nos 390: 0 px diferentes de 2199210
