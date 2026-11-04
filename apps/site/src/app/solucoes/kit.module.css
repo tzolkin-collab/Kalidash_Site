@@ -264,5 +264,6 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 :global(html[data-motion="js"]) [data-motion="curtain"][data-in] { transform: none; }
 :global(html[data-motion="js"]) [data-surge] { opacity: 0.3; transform: translate3d(0, 28px, 0); transition: opacity 700ms ease-out, transform 800ms cubic-bezier(0.2, 0.8, 0.2, 1); }
 :global(html[data-motion="js"]) [data-surge][data-in] { opacity: 1; transform: none; }
-:global(html[data-motion="js"]) [data-motion="hero"] .heroCopy { transform: translate3d(0, calc(var(--drift, 0) * 64px), 0); opacity: calc(1 - var(--drift, 0) * 0.45); will-change: transform; }
-:global(html[data-motion="js"]) [data-motion="hero"] .heroArch { transform: translate3d(0, calc(var(--drift, 0) * 90px), 0); will-change: transform; }
+:global(html[data-motion="js"]) [data-motion="hero"] { position: sticky; top: var(--pin-top, 0px); z-index: 0; }
+:global(html[data-motion="js"]) [data-motion="hero"] .heroCopy { transform: translate3d(0, calc(var(--drift, 0) * -48px), 0) scale(calc(1 - var(--drift, 0) * 0.04)); opacity: calc(1 - var(--drift, 0) * 0.6); transform-origin: 50% 100%; will-change: transform, opacity; }
+:global(html[data-motion="js"]) [data-motion="hero"] .heroArch { transform: translate3d(0, calc(var(--drift, 0) * -90px), 0) scale(calc(1 - var(--drift, 0) * 0.06)); transform-origin: 50% 100%; will-change: transform; }

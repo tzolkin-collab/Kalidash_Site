@@ -41,25 +41,42 @@ export default function ScrollMotion() {
     );
     [...chapters, ...surge].forEach((el) => io.observe(el));
 
+    /* Abertura como no desktop: fica presa e o primeiro capítulo sobe por cima. No celular ela é mais alta que a tela, então
+     * prende pelo pé (top negativo = altura da tela - altura da abertura): rola até o fim dela aparecer inteiro e só então
+     * fica parada enquanto é coberta. --drift (0..1) mede o quanto já foi coberta e afunda o texto e a foto. */
     const hero = document.querySelector<HTMLElement>('[data-motion="hero"]');
     let frame = 0;
+    let pinTop = 0;
+    const measure = () => {
+      if (!hero) return;
+      pinTop = Math.min(0, window.innerHeight - hero.offsetHeight);
+      hero.style.setProperty("--pin-top", `${pinTop}px`);
+    };
     const update = () => {
       frame = 0;
       if (!hero) return;
-      const h = hero.offsetHeight || 1;
-      hero.style.setProperty("--drift", Math.min(1, Math.max(0, window.scrollY / h)).toFixed(4));
+      const covered = window.scrollY + pinTop; // quanto já rolou depois de a abertura prender
+      const span = Math.max(1, window.innerHeight * 0.9);
+      hero.style.setProperty("--drift", Math.min(1, Math.max(0, covered / span)).toFixed(4));
     };
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(update);
     };
+    const onResize = () => {
+      measure();
+      onScroll();
+    };
     if (hero) {
+      measure();
       update();
       window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onResize);
     }
 
     return () => {
       io.disconnect();
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
       if (frame) cancelAnimationFrame(frame);
       surge.forEach((el) => {
         delete el.dataset.surge;
