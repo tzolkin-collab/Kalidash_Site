@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./home.module.css";
-import { fraunces } from "../solucoes/kit-font";
+import { fraunces } from "./home-font";
 import heroStyles from "./HomeHero.module.css";
 import HomeHeader from "./HomeHeader";
 import LogoIntro from "../components/LogoIntro";

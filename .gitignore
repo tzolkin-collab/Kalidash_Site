@@ -49,3 +49,4 @@ apps/site/public/*CONTRATO*
 
 # Material bruto enviado pela Carol (PDFs e imagens extraidas, 30+ MB): nao vai para o git
 _assets-carol/
+apps/site/docs/

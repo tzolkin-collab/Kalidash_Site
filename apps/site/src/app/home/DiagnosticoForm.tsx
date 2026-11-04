@@ -64,6 +64,19 @@ export default function DiagnosticoForm() {
       });
       if (!res.ok) throw new Error(String(res.status));
       setStatus("sent");
+      try {
+        if (typeof window !== "undefined") {
+          (window as unknown as { dataLayer?: unknown[] }).dataLayer =
+            (window as unknown as { dataLayer?: unknown[] }).dataLayer || [];
+          (window as unknown as { dataLayer: unknown[] }).dataLayer.push({
+            event: "lead_form_submitted",
+            form_name: "home_diagnostico",
+            lead_source: "site-home-diagnostico",
+            goals,
+            team_size: teamSize,
+          });
+        }
+      } catch {}
       (e.target as HTMLFormElement).reset();
     } catch {
       setStatus("error");
