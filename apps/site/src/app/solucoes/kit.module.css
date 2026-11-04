@@ -248,3 +248,18 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 .main :is([data-tone="dark"], section[class*="steps"], .heroBrand, .heroLead) a[class*="primaryButton"]:hover,
 .main > section:last-child a:hover,
 .main .curtain a:hover { background: var(--gold-light); border-color: var(--gold-light); color: #19171b !important; }
+
+/* ---------- Movimento de rolagem também no celular/tela baixa (pedido do dono) ----------
+ * Cortina: cada capítulo sobe sobre o anterior, como no desktop (só transform).
+ * Abertura Imperial (Advisory, Sobre nós): não fica presa (no celular ela é mais alta que a tela e o fim ficaria
+ * inalcançável); em vez disso o texto e a foto descem um pouco mais devagar que a página, um paralaxe leve.
+ * O rótulo fixo "nº / total" segue só no desktop (40px de topo pesam numa tela pequena). Parado com movimento reduzido. */
+@supports (animation-timeline: scroll()) {
+  @media (max-width: 900px) and (prefers-reduced-motion: no-preference), (max-height: 739px) and (prefers-reduced-motion: no-preference) {
+    .chapter { animation: curtainRise ease-out both; animation-timeline: view(); animation-range: entry 0% entry 40%; }
+    .heroBrand .heroCopy { animation: heroDriftCopy linear both; animation-timeline: scroll(root block); animation-range: 0 520px; }
+    .heroBrand .heroArch { animation: heroDriftArt linear both; animation-timeline: scroll(root block); animation-range: 0 900px; }
+  }
+}
+@keyframes heroDriftCopy { to { transform: translate3d(0, 64px, 0); opacity: 0.55; } }
+@keyframes heroDriftArt { to { transform: translate3d(0, 90px, 0); } }
