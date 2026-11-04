@@ -25,7 +25,9 @@ export default function ScrollMotion() {
     const chapters = [...document.querySelectorAll<HTMLElement>('[data-motion="curtain"]')];
     const surge = chapters
       .filter((c) => !c.querySelector(own))
-      .flatMap((c) => [...c.querySelectorAll<HTMLElement>("h2, figure, details")]);
+      .flatMap((c) => [...c.querySelectorAll<HTMLElement>("h2, figure, details")])
+      /* Peças soltas fora de capítulos (ex.: cartões do blog) marcadas para surgir. */
+      .concat([...document.querySelectorAll<HTMLElement>('[data-motion="surge"]')]);
     surge.forEach((el) => (el.dataset.surge = ""));
 
     const io = new IntersectionObserver(

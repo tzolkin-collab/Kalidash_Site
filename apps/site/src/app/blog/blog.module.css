@@ -747,3 +747,68 @@
 .page .posts article > p { font-size: 0.75rem; }
 .page .hero > :first-child { font-size: 12px; }
 .page .posts article > [data-role="read-more"]::before { content: ""; position: absolute; inset: -14px -8px; }
+
+/* ==========================================================================
+ * Sistema da marca no blog (o mesmo de Advisory, Sobre nós, Execução…): abertura em Imperial com legenda e destaque em
+ * dourado, dourado nas legendas, no filtro ativo e nas réguas; o "Ler artigo" segue terracota (CTA sobre fundo claro).
+ * Movimento: a abertura entra ao carregar (só transform) e os cartões surgem na rolagem (CSS onde há suporte; no celular e
+ * sem suporte, o ScrollMotion faz o mesmo por IntersectionObserver). Nada nasce escondido; parado com movimento reduzido.
+ * ========================================================================== */
+.page {
+  --imperial: #28183b;
+  --gold: #a88a58;
+  --gold-light: #c4a673;
+  --gold-text: #8f7248;
+  --brand-text: var(--gold-text);
+  --rule: rgba(168, 138, 88, 0.35);
+}
+
+/* Abertura Imperial de ponta a ponta (no desktop o bloco tem largura máxima; o fundo sangra pelos lados sem mudar o layout) */
+.page .hero {
+  background: var(--imperial);
+  box-shadow: 0 0 0 100vmax var(--imperial);
+  clip-path: inset(0 -100vmax);
+  padding: clamp(48px, 6vw, 96px) 0 clamp(48px, 6vw, 88px);
+}
+@media (min-width: 960px) { .page .hero { padding-left: 24px; padding-right: 24px; } }
+.page .hero > :first-child { color: var(--gold-light) !important; font-family: var(--font-archivo), "Archivo", system-ui, sans-serif; font-weight: 600; letter-spacing: 0.14em; }
+.page .hero h1 { color: #f8f9fa; font-weight: 400; letter-spacing: -0.02em; }
+.page .hero h1 span, .page .hero h1 strong, .page .hero h1 [style] { color: var(--gold-light) !important; font-style: italic; font-weight: 400; }
+.page .hero > :last-child { color: rgba(248, 249, 250, 0.78) !important; }
+.page .hero a { color: var(--gold-light); }
+
+/* Celular/tablet: o cabeçalho flutua sobre a abertura (sem faixa branca acima) e a logo clareia sobre o Imperial (HeaderTone) */
+@media (max-width: 1100px) {
+  .page :global(header[data-block="home-header"]:not([data-filters-active="true"])) { margin-bottom: -76px; background: transparent; box-shadow: none; border-bottom-color: transparent; }
+  .page .hero { padding-top: 112px; }
+}
+
+/* Filtro e cartões em dourado */
+.page .filters { border-color: var(--rule); }
+.page .filters button[aria-pressed="true"],
+.page .headerFiltersInner button[aria-pressed="true"] { color: var(--imperial); }
+.page .filters button[aria-pressed="true"]::after,
+.page .headerFiltersInner button[aria-pressed="true"]::after { background: var(--gold); }
+.page .filters button[aria-pressed="true"] .filterBadge,
+.page .headerFiltersInner button[aria-pressed="true"] .filterBadge { color: var(--gold-text); background: transparent; }
+.page .posts article { border-top-color: var(--rule); }
+.page .posts article > p { color: var(--gold-text) !important; }
+@media (hover: hover) { .page .posts article:hover > h2 a { color: var(--imperial); text-decoration: underline; text-decoration-color: var(--gold); text-underline-offset: 6px; text-decoration-thickness: 1px; } }
+
+/* Movimento */
+@keyframes blogLineIn { from { transform: translate3d(0, 22px, 0); } to { transform: none; } }
+@keyframes blogSurge { from { opacity: 0.3; transform: translate3d(0, 28px, 0); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  .page .hero > * { animation: blogLineIn 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  .page .hero > :nth-child(2) { animation-delay: 90ms; }
+  .page .hero > :nth-child(3) { animation-delay: 200ms; }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    :global(html:not([data-motion="js"])) .page .posts article[data-motion="surge"] { animation: blogSurge ease-out both; animation-timeline: view(); animation-range: entry 0% cover 24%; }
+  }
+}
+:global(html[data-motion="js"]) .page [data-surge] { opacity: 0.3; transform: translate3d(0, 28px, 0); transition: opacity 700ms ease-out, transform 800ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+:global(html[data-motion="js"]) .page [data-surge][data-in] { opacity: 1; transform: none; }
+/* Com o filtro no cabeçalho, a barra é branca: a logo fica sempre escura. */
+.page :global(header[data-block="home-header"][data-filters-active="true"]) :global([data-header-logo="true"]) { --logo-body: #28183b; }

@@ -48,7 +48,8 @@ export default function HeaderTone() {
         /* O último elemento visível na faixa do topo (ordem do documento) é o que está sob o cabeçalho. */
         let tone = "";
         for (const el of marked) if (seen.get(el)) tone = el.dataset.tone === "dark" ? "dark" : "light";
-        if (tone) root.dataset.headerTone = tone;
+        /* Nenhum bloco marcado sob o cabeçalho (ex.: o blog, que só marca a abertura, depois que ela sai): fundo claro. */
+        root.dataset.headerTone = tone || "light";
       };
       io = new IntersectionObserver(
         (entries) => {

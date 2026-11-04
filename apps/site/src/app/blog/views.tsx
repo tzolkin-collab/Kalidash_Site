@@ -7,6 +7,7 @@ import articleStyles from "./[slug]/article.module.css";
 import HomeHeader from "../home/HomeHeader";
 import { fraunces } from "../solucoes/kit-font";
 import SiteFooter from "../home/SiteFooter";
+import ScrollMotion from "../solucoes/ScrollMotion";
 import ReadingProgressBar from "./ReadingProgressBar";
 import ShareButtons from "./ShareButtons";
 import { SITE_URL } from "@/lib/siteUrl";
@@ -231,8 +232,9 @@ export function BlogGalleryView({
 
   return (
     <div className={`${styles.page} ${fraunces.variable}`}>
+      {/* Barra branca só quando o filtro está no cabeçalho; antes disso ela acompanha o fundo (abertura Imperial). */}
       <HomeHeader
-        bg="white"
+        bg={scrolled ? "white" : undefined}
         filterSlot={categories.length > 0 ? renderFilterButtons(true) : undefined}
         filtersActive={scrolled}
       />
@@ -243,10 +245,11 @@ export function BlogGalleryView({
             className={styles.hero}
             data-block="hero"
             data-focus="hero"
+            data-tone="dark"
             dangerouslySetInnerHTML={{ __html: heroHtml }}
           />
         ) : (
-          <section className={styles.hero} data-block="hero" data-focus="hero">
+          <section className={styles.hero} data-block="hero" data-focus="hero" data-tone="dark">
             <p>Inteligência aplicada ao trabalho</p>
             <h1>
               Ideias para a próxima <span>operação.</span>
@@ -314,6 +317,7 @@ export function BlogGalleryView({
                   data-layout={layoutRole}
                   data-focus="card"
                   data-block-id={item.blockId}
+                  data-motion={index === 0 ? undefined : "surge"}
                 >
                   {item.coverImageUrl && (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -353,6 +357,7 @@ export function BlogGalleryView({
         )}
       </main>
 
+      <ScrollMotion />
       <SiteFooter />
     </div>
   );
