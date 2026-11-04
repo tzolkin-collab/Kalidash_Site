@@ -267,3 +267,10 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 :global(html[data-motion="js"]) [data-motion="hero"] { position: sticky; top: var(--pin-top, 0px); z-index: 0; }
 :global(html[data-motion="js"]) [data-motion="hero"] .heroCopy { transform: translate3d(0, calc(var(--drift, 0) * -48px), 0) scale(calc(1 - var(--drift, 0) * 0.04)); opacity: calc(1 - var(--drift, 0) * 0.6); transform-origin: 50% 100%; will-change: transform, opacity; }
 :global(html[data-motion="js"]) [data-motion="hero"] .heroArch { transform: translate3d(0, calc(var(--drift, 0) * -90px), 0) scale(calc(1 - var(--drift, 0) * 0.06)); transform-origin: 50% 100%; will-change: transform; }
+
+/* ---------- Sem fresta na cortina ----------
+ * O capítulo começa 56px abaixo e sobe; com só 28px de sobreposição abria uma fresta por onde aparecia o Imperial da abertura
+ * (presa no fundo da página). A sobreposição passa a 64px, maior que o deslocamento, e cada bloco ganha 36px no pé para o
+ * espaço visível continuar o mesmo (64 - 36 = 28, como antes). */
+.chapter, .curtain { margin-top: -64px; padding-bottom: 36px; }
+.heroBrand { padding-bottom: 36px; }
