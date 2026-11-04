@@ -235,3 +235,26 @@
   [data-page="solucoes"] .heroInner { justify-content: center; }
   [data-page="solucoes"] .heroLead { margin-top: clamp(24px, 4vh, 44px); }
 }
+
+/* ---------- Movimento nas páginas de produto (Soluções, Kognis, Spectra) ----------
+ * Mesmo "surge" das páginas em capítulos: títulos, figuras e linhas de lista sobem e firmam ao entrar na tela, ligados à
+ * rolagem (CSS puro). Só nos <main> sem classe (ProductPage e /solucoes; o Kit e o Sobre nós têm o seu) e fora de seções
+ * com palco preso ou animação própria. Nunca nasce escondido (parte de 30% de opacidade); sem suporte ou com movimento
+ * reduzido, fica parado. A abertura entra uma vez ao carregar, só com transform (não atrasa o LCP). */
+@keyframes productSurge { from { opacity: 0.3; transform: translate3d(0, 28px, 0); } to { opacity: 1; transform: none; } }
+@keyframes heroLineIn { from { transform: translate3d(0, 22px, 0); } to { transform: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  .page main:not([class]) .hero h1 span,
+  .page main:not([class]) .hero h1:not(:has(span)) { animation: heroLineIn 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  .page main:not([class]) .hero h1 span:nth-child(2) { animation-delay: 90ms; }
+  .page main:not([class]) .hero h1 span:nth-child(3) { animation-delay: 180ms; }
+  .page main:not([class]) .heroLead,
+  .page main:not([class]) .hero [class*="lead"] { animation: heroLineIn 900ms 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .page main:not([class]) > section:not(:first-child):not(:has([class*="pin"], [class*="story"], [class*="stage"], [class*="countup"], [data-state], [data-live])) :is(h2, h3, figure, li, details) {
+      animation: productSurge ease-out both; animation-timeline: view(); animation-range: entry 0% cover 28%;
+    }
+  }
+}

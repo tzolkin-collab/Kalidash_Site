@@ -239,11 +239,13 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
   if (!hero) return null;
   const portrait = hero.image.height > hero.image.width;
   const tones = toneMap(page.blocks, LIGHT);
-  /* Advisory: movimento de rolagem em CSS (hero fixado, capítulos em cortina). Sem JS; só vale no desktop alto e sem movimento reduzido. */
-  const chaptered = page.slug === "advisory";
+  /* Movimento de rolagem em CSS (capítulos em cortina, rótulo "nº / total", surge) em todas as páginas do Kit. Sem JS; a cortina só
+   * vale no desktop alto e sem movimento reduzido. O ajuste do cabeçalho no celular (kitDark) é só da Advisory, a única com hero Imperial. */
+  const chaptered = true;
+  const darkHero = page.slug === "advisory";
   const chapterBlocks = page.blocks.filter((b) => b.type !== "heroMedia" && b.type !== "testimonials");
   return (
-    <div className={`${home.home} ${sol.page} ${fraunces.variable}${chaptered ? ` ${styles.kitDark}` : ""}`} data-page={page.slug}>
+    <div className={`${home.home} ${sol.page} ${fraunces.variable}${darkHero ? ` ${styles.kitDark}` : ""} ${styles.chapters}`} data-page={page.slug}>
       <HomeHeader />
       <main className={styles.main}>
         {portrait ? <HeroView hero={hero} kind="photo" /> : <HeroWide block={hero} />}
