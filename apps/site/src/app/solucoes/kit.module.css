@@ -294,3 +294,39 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
   .main > header:first-child:not(.heroBrand) [class*="lead"] { animation-delay: calc(var(--enter-delay) + 220ms); }
   .main > header:first-child:not(.heroBrand) :is([class*="photo"], [class*="cutout"]) { animation: enterLift 1200ms cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(var(--enter-delay) + 150ms); }
 }
+
+/* ---------- Ajustes V3: tipografia e cores (só em páginas com .v3 no root do KitPage; hoje a Advisory) ----------
+ * Kit Adobe krs4uwp carregado no KitPage. As famílias valem só dentro do <main>: cabeçalho, menu e rodapé ficam como estão.
+ * Hoje o kit tem 400 e 700; quando a Carol incluir Light e Semibold, troque só --w-title (300) e --w-strong (600) aqui.
+ * Títulos nunca em 700. */
+.v3 .main {
+  --font-title: "kepler-std-display", Georgia, "Times New Roman", serif;
+  --font-body: "acumin-pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --w-title: 400;
+  --w-strong: 700;
+  --limestone: #f1ece4;
+  --limestone-deep: #e9e1d6;
+  --ink: #19171b;
+  --gold-text: #8f7248;
+  --paper: var(--limestone);
+  --soft: var(--limestone-deep);
+  --ink-text: var(--ink);
+  --t-claim: clamp(26px, 2.7vw, 38px);
+  --t-lema: clamp(32px, 3.7vw, 52px);
+  --t-title: clamp(32px, 3.7vw, 52px);
+  font-family: var(--font-body);
+  background: var(--limestone);
+}
+.v3 .main :is(strong, dt, button, [class*="Button"], [class*="eyebrow"], [class*="chip"]) { font-family: var(--font-body); }
+.v3 .main :is(h1, h2, h3, summary) { font-family: var(--font-title); font-weight: var(--w-title); letter-spacing: -0.012em; text-wrap: balance; }
+.v3 .main strong { font-weight: var(--w-strong); }
+.v3 .chapter[data-tone="paper"] { background: var(--limestone); --lbl-bg: var(--limestone); }
+.v3 .chapter[data-tone="soft"] { background: var(--limestone-deep); --lbl-bg: var(--limestone-deep); }
+.v3 .heroBrand h1 { font-size: clamp(42px, 5.2vw, 76px); line-height: 1.04; }
+.v3 .heroBrand .gold { color: var(--gold-light); }
+.v3 .heroLead p { color: rgba(241, 236, 228, 0.66); }
+.v3 .heroLead strong { color: var(--limestone); }
+.v3 .heroMeta { color: var(--gold-light); }
+/* O arco da foto: a mesma proporção do recorte (4:5), sem esticar. */
+.v3 .heroArch { background: #46304f; }
+.v3 .heroArch img { object-position: 50% 50%; }

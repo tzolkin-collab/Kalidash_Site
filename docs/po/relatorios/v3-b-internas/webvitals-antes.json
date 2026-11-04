@@ -1,0 +1,28 @@
+{
+ "mobile /advisory": {
+  "perf": 81,
+  "lcp": 4885,
+  "cls": 0,
+  "tbt": 42,
+  "fcp": 1965,
+  "ttfb": 6,
+  "js": 199,
+  "img": 91,
+  "font": 323,
+  "total": 739,
+  "lcpEl": "<img alt=\"A Escola de Atenas, de Rafael\" width=\"1448\" height=\"1086\" decoding=\"as"
+ },
+ "desktop /advisory": {
+  "perf": 99,
+  "lcp": 942,
+  "cls": 0,
+  "tbt": 0,
+  "fcp": 495,
+  "ttfb": 5,
+  "js": 201,
+  "img": 109,
+  "font": 323,
+  "total": 797,
+  "lcpEl": "<img alt=\"A Escola de Atenas, de Rafael\" width=\"1448\" height=\"1086\" decoding=\"as"
+ }
+}

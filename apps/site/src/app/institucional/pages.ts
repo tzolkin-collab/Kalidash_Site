@@ -8,7 +8,8 @@ export type Cta = { label: string; href: string };
 
 export type Block =
   | { type: "hero"; eyebrow: string; title: string[]; lead: string[]; tagline?: string; meta?: string; cta: Cta }
-  | { type: "text"; eyebrow?: string; title: string[]; paragraphs?: string[]; chips?: string[]; highlight?: string[] }
+  /* `accent` / `highlightAccent`: a palavra de sentido que vai em itálico dourado no título e na frase-manifesto (sem ela, vale o comportamento antigo). */
+  | { type: "text"; eyebrow?: string; title: string[]; paragraphs?: string[]; chips?: string[]; highlight?: string[]; accent?: string; highlightAccent?: string }
   | {
       type: "cards";
       eyebrow?: string;
@@ -17,6 +18,7 @@ export type Block =
       items: Array<{ title: string; text: string; example?: string; href?: string; cta?: string }>;
       columns?: 2 | 3;
       animated?: boolean;
+      accent?: string;
       closing?: string[];
       cta?: Cta;
     }
@@ -49,6 +51,7 @@ export type Block =
       title: string[];
       lead: string[];
       support?: string;
+      accent?: string;
       cta?: Cta;
       image: Media;
       aspect?: "portrait" | "landscape";
@@ -433,17 +436,21 @@ export const advisory: PageContent = {
       type: "heroMedia",
       eyebrow: "Advisory · Consultoria e governança de IA",
       title: ["Sua estratégia de IA, acompanhada até virar resultado."],
+      accent: "resultado.",
       lead: [
         "Acompanhamos a liderança na implementação de iniciativas de IA e eficiência. Priorizamos, medimos e ajustamos a rota, para que o investimento se pague.",
       ],
       support: "Ao lado da liderança. Dentro da execução.",
       cta: { label: "Conversar com um sócio", href: formHref("advisory") },
-      image: { src: "/home/comite-reuniao.jpg", alt: "Comitê de IA reunido em torno da mesa com um sócio da Kalidash", width: 1600, height: 1200 },
+      /* Foto da capacitação na Fundação Dom Cabral (Drive), recortada para não mostrar as plaquinhas com os nomes dos alunos. */
+      image: { src: "/advisory/comite-fdc.webp", alt: "Palestrante da Kalidash conduz uma capacitação em IA numa sala da Fundação Dom Cabral, com a tela do assistente projetada ao fundo", width: 800, height: 1000 },
       aspect: "landscape",
     },
     {
       type: "text",
       title: ["A estratégia foi definida. E agora?"],
+      accent: "E agora?",
+      highlightAccent: "depois dele.",
       paragraphs: [
         "Escolher tecnologias e aprovar projetos é a parte fácil. O difícil vem depois: decidir o que priorizar, medir o que funciona, definir responsáveis e corrigir a rota.",
         "E o plano raramente sobrevive ao primeiro trimestre. Surgem informações novas, prioridades mudam, uma tecnologia não entrega o esperado, uma área resiste.",
@@ -454,6 +461,7 @@ export const advisory: PageContent = {
       type: "text",
       eyebrow: "O que fazemos",
       title: ["Ajudamos sua liderança a decidir melhor sobre IA."],
+      accent: "melhor",
       paragraphs: ["Atuamos como conselho da implementação, ao lado da diretoria e dos times que executam."],
       chips: [
         "Questionamos prioridades",
@@ -469,6 +477,7 @@ export const advisory: PageContent = {
       title: ["Três rituais que mantêm a IA na agenda da diretoria."],
       columns: 3,
       animated: true,
+      accent: "rituais",
       items: [
         { title: "Comitê de IA", text: "Encontro mensal com a liderança para revisar prioridades, indicadores e decisões em aberto. É o ritual que impede a iniciativa de morrer na primeira urgência do mês." },
         { title: "Acompanhamento de iniciativas", text: "Proximidade com os times que executam, para destravar o que emperrou antes de virar problema de diretoria." },
