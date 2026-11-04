@@ -387,10 +387,13 @@ export function ArticleView({
   return (
     <div className={`${articleStyles.page} ${fraunces.variable}`}>
       <ReadingProgressBar />
-      <HomeHeader bg="white" />
+      <HomeHeader />
 
       <main className={articleStyles.mainContainer}>
-        {/* Barra superior de navegação / breadcrumb */}
+        <article className={articleStyles.articleContent}>
+          {/* Abertura em Imperial (sistema da marca): navegação, metadados, título, resumo e autor; a capa entra metade sobre ela. */}
+          <header className={articleStyles.articleHead} data-tone="dark">
+            {/* Barra superior de navegação / breadcrumb */}
         <nav className={articleStyles.breadcrumbNav} aria-label="Navegação estrutural">
           <Link href="/blog" className={articleStyles.backButton}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -408,7 +411,6 @@ export function ArticleView({
           </div>
         </nav>
 
-        <article className={articleStyles.articleContent}>
           {/* Metadados e cabeçalho */}
           <div className={articleStyles.headerMeta}>
             <p data-focus="meta" className={articleStyles.categoryBadge}>
@@ -450,6 +452,7 @@ export function ArticleView({
 
             <ShareButtons title={article.title} url={url} className={articleStyles.shareTop} />
           </div>
+          </header>
 
           {article.coverImageUrl && (
             <div className={articleStyles.coverContainer}>
@@ -472,6 +475,7 @@ export function ArticleView({
             className={articleStyles.body}
             data-block="article-body"
             data-focus="body"
+            data-motion="surge-within"
             dangerouslySetInnerHTML={{ __html: article.body }}
           />
 
@@ -481,7 +485,7 @@ export function ArticleView({
           </div>
 
           {/* Bloco de Conversão Kalidash */}
-          <section className={articleStyles.conversionCta}>
+          <section className={articleStyles.conversionCta} data-tone="dark">
             <div className={articleStyles.ctaCopy}>
               <p className={articleStyles.ctaEyebrow}>Consultoria e Educação em IA</p>
               <h2 className={articleStyles.ctaTitle}>
@@ -513,7 +517,7 @@ export function ArticleView({
                 {relatedArticles.map((item) => {
                   const showCovers = relatedArticles.every((r) => Boolean(r.coverImageUrl));
                   return (
-                    <Link key={item.id} href={item.href} className={articleStyles.relatedCard}>
+                    <Link key={item.id} href={item.href} className={articleStyles.relatedCard} data-motion="surge">
                       {showCovers && item.coverImageUrl && (
                         <div className={articleStyles.relatedCoverWrap}>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -541,6 +545,7 @@ export function ArticleView({
         </article>
       </main>
 
+      <ScrollMotion />
       <SiteFooter />
     </div>
   );

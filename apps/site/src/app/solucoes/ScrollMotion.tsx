@@ -27,7 +27,9 @@ export default function ScrollMotion() {
       .filter((c) => !c.querySelector(own))
       .flatMap((c) => [...c.querySelectorAll<HTMLElement>("h2, figure, details")])
       /* Peças soltas fora de capítulos (ex.: cartões do blog) marcadas para surgir. */
-      .concat([...document.querySelectorAll<HTMLElement>('[data-motion="surge"]')]);
+      .concat([...document.querySelectorAll<HTMLElement>('[data-motion="surge"]')])
+      /* Blocos de texto vindos do editor (corpo do artigo): títulos, citações e imagens surgem. */
+      .concat([...document.querySelectorAll<HTMLElement>('[data-motion="surge-within"] > :is(h2, h3, figure, blockquote, img)')]);
     surge.forEach((el) => (el.dataset.surge = ""));
 
     const io = new IntersectionObserver(

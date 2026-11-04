@@ -1254,3 +1254,85 @@
 .page .ctaSecondaryBtn, .page .relatedReadMore { position: relative; }
 .page .ctaSecondaryBtn::before, .page .relatedReadMore::before { content: ""; position: absolute; inset: -14px -8px; }
 @media (max-width: 767px) { .page .shareLabel { font-size: 12px; letter-spacing: 0.04em; } }
+
+/* ==========================================================================
+ * Sistema da marca no artigo (o mesmo da lista do blog e das páginas internas).
+ * Abertura em Imperial de ponta a ponta (navegação, metadados, título, resumo, autor e compartilhar); a capa entra metade
+ * sobre ela. O corpo segue branco para a leitura, com réguas e citações em dourado; links do texto continuam terracota.
+ * A faixa de conversão passa de preto para Imperial, com o botão dourado (CTA sobre roxo). Movimento: a abertura entra ao
+ * carregar; títulos, citações e imagens do corpo e os artigos recomendados surgem na rolagem (CSS ou ScrollMotion no celular).
+ * ========================================================================== */
+.page {
+  --imperial: #28183b;
+  --gold: #a88a58;
+  --gold-light: #c4a673;
+  --gold-text: #8f7248;
+  --rule: rgba(168, 138, 88, 0.35);
+}
+.page .mainContainer { padding-top: 0; }
+
+.page .articleHead {
+  position: relative;
+  background: var(--imperial);
+  box-shadow: 0 0 0 100vmax var(--imperial);
+  clip-path: inset(0 -100vmax);
+  padding: 32px 0 clamp(40px, 5vw, 64px);
+  color: #f8f9fa;
+}
+.page .articleHead:has(+ .coverContainer) { padding-bottom: clamp(96px, 11vw, 168px); }
+.page .articleHead + .coverContainer { position: relative; z-index: 1; margin-top: calc(-1 * clamp(64px, 8vw, 128px)); }
+@media (min-width: 1024px) {
+  .page .articleHead > :is(.headerMeta, .title, .excerpt, .authorBar) { margin-left: min(16.66%, 213px); }
+}
+.page .articleHead .breadcrumbNav { margin-top: 0; }
+.page .articleHead .backButton { color: var(--gold-light); }
+.page .articleHead .breadcrumbTrail, .page .articleHead .breadcrumbTrail a, .page .articleHead .breadcrumbTrail span { color: rgba(248, 249, 250, 0.62); }
+.page .articleHead .breadcrumbActive { color: var(--gold-light) !important; }
+.page .articleHead .categoryBadge { color: var(--gold-light); }
+.page .articleHead :is(.metaDot, .dateText, .readingBadge) { color: rgba(248, 249, 250, 0.62); }
+.page .articleHead .title { color: #f8f9fa; font-weight: 400; letter-spacing: -0.02em; }
+.page .articleHead .excerpt { color: rgba(248, 249, 250, 0.78); }
+.page .articleHead .authorBar { border-color: rgba(196, 166, 115, 0.3); }
+.page .articleHead .authorName { color: #f8f9fa; }
+.page .articleHead .authorRole { color: rgba(248, 249, 250, 0.58); }
+.page .articleHead .shareLabel { color: rgba(248, 249, 250, 0.62); }
+.page .articleHead :is(.shareCopyBtn, .shareIconBtn) { color: #f8f9fa; border-color: rgba(196, 166, 115, 0.45); background: transparent; }
+.page .articleHead :is(.shareCopyBtn, .shareIconBtn):hover { color: #19171b; background: var(--gold); border-color: var(--gold); }
+
+/* Celular/tablet: o cabeçalho flutua sobre a abertura (sem faixa branca acima) e a logo clareia sobre o Imperial */
+@media (max-width: 1100px) {
+  .page :global(header[data-block="home-header"]) { margin-bottom: -76px; background: transparent; box-shadow: none; border-bottom-color: transparent; }
+  .page .articleHead { padding-top: 100px; }
+}
+
+/* Corpo: réguas e citações em dourado; a legenda dos recomendados também */
+.page .body h2 { border-top-color: var(--rule); }
+.page .body blockquote { border-top: 1px solid var(--gold); }
+.page .relatedMeta, .page .relatedEyebrow { color: var(--gold-text); }
+.page .relatedCard { border-top-color: var(--rule); }
+
+/* Conversão em Imperial, com o botão dourado e o link claro de sublinhado dourado */
+.page .conversionCta { background: var(--imperial); box-shadow: 0 0 0 100vmax var(--imperial); }
+.page .ctaEyebrow { color: var(--gold-light); }
+.page .ctaTitle { font-weight: 400; letter-spacing: -0.02em; }
+.page .ctaPrimaryBtn { background: var(--gold) !important; border-color: var(--gold) !important; color: #19171b !important; }
+.page .ctaPrimaryBtn:hover { background: var(--gold-light) !important; border-color: var(--gold-light) !important; }
+.page .ctaSecondaryBtn { border-bottom-color: var(--gold); }
+
+/* Movimento */
+@keyframes articleLineIn { from { transform: translate3d(0, 22px, 0); } to { transform: none; } }
+@keyframes articleSurge { from { opacity: 0.3; transform: translate3d(0, 28px, 0); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  .page .articleHead > :is(.headerMeta, .title, .excerpt, .authorBar) { animation: articleLineIn 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+  .page .articleHead > .title { animation-delay: 80ms; }
+  .page .articleHead > .excerpt { animation-delay: 160ms; }
+  .page .articleHead > .authorBar { animation-delay: 240ms; }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    :global(html:not([data-motion="js"])) .page .body > :is(h2, h3, figure, blockquote, img),
+    :global(html:not([data-motion="js"])) .page .relatedCard { animation: articleSurge ease-out both; animation-timeline: view(); animation-range: entry 0% cover 24%; }
+  }
+}
+:global(html[data-motion="js"]) .page [data-surge] { opacity: 0.3; transform: translate3d(0, 28px, 0); transition: opacity 700ms ease-out, transform 800ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+:global(html[data-motion="js"]) .page [data-surge][data-in] { opacity: 1; transform: none; }

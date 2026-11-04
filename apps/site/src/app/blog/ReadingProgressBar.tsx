@@ -40,7 +40,7 @@ export default function ReadingProgressBar() {
         left: 0,
         width: `${progress}%`,
         height: "3px",
-        backgroundColor: "#b6644d",
+        backgroundColor: "#a88a58", /* dourado da marca */
         zIndex: 100,
         transition: "width 0.1s ease-out",
         pointerEvents: "none",
