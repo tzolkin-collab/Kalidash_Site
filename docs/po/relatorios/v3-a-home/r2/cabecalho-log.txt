@@ -1,0 +1,8 @@
+1440 hero-rolado: tone=dark bar y=0 h=57 bg=rgba(40, 24, 59, 0.94) logoColor=rgb(10, 10, 10)
+1440 problema: tone=light bar y=0 h=57 bg=rgba(255, 255, 255, 0.96) logoColor=rgb(10, 10, 10)
+1440 diagnostico: tone=dark bar y=0 h=57 bg=rgba(40, 24, 59, 0.94) logoColor=rgb(10, 10, 10)
+1440 fronts: tone=light bar y=0 h=57 bg=rgba(255, 255, 255, 0.96) logoColor=rgb(10, 10, 10)
+390 hero-rolado: tone=dark bar y=0 h=76 bg=rgba(0, 0, 0, 0) logoColor=rgb(10, 10, 10)
+390 problema: tone=light bar y=0 h=76 bg=rgba(0, 0, 0, 0) logoColor=rgb(10, 10, 10)
+390 diagnostico: tone=dark bar y=0 h=76 bg=rgba(0, 0, 0, 0) logoColor=rgb(10, 10, 10)
+390 fronts: tone=light bar y=0 h=76 bg=rgba(0, 0, 0, 0) logoColor=rgb(10, 10, 10)

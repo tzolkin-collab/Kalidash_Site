@@ -12,6 +12,8 @@ import BuildStory from "./BuildStory";
 import StepsPin from "./StepsPin";
 import ScrollMotion from "./ScrollMotion";
 import { BlockView, HeroView, Legend, toneMap } from "./ProductPage";
+import KitFonts from "./KitFonts";
+import { Accent, LeadershipView, ProblemView, RitualsView, canProblem } from "./AdvisoryViews";
 import prod from "./product.module.css";
 import sol from "./solucoes.module.css";
 import styles from "./kit.module.css";
@@ -26,14 +28,15 @@ function Rich({ text }: { text: string }) {
   return <>{text.split(/\*\*(.+?)\*\*/g).map((part, i) => (i % 2 ? <strong key={i}>{part}</strong> : part))}</>;
 }
 
-/* Última palavra da frase-manifesto em dourado itálico: só um span, o texto não muda. */
-function LastWord({ text }: { text: string }) {
+/* Palavra de sentido em dourado itálico: a escolhida no bloco (`accent`); sem ela, a última da frase. Só um span, o texto não muda. */
+function LastWord({ text, accent }: { text: string; accent?: string }) {
+  if (accent && text.includes(accent)) return <Accent text={text} word={accent} className={styles.gold} />;
   const i = text.lastIndexOf(" ");
   if (i < 0) return <>{text}</>;
   return <>{text.slice(0, i + 1)}<span className={styles.gold}>{text.slice(i + 1)}</span></>;
 }
 
-/* Abertura da Advisory: Imperial, texto à esquerda e a Escola de Atenas (comitê de pensadores) num arco à direita. */
+/* Abertura da Advisory: Imperial, texto à esquerda e a foto (pages.ts) num arco à direita. */
 function HeroWide({ block }: { block: Of<"heroMedia"> }) {
   const last = block.title.length - 1;
   return (
@@ -43,7 +46,7 @@ function HeroWide({ block }: { block: Of<"heroMedia"> }) {
           <p className={styles.heroMeta}>{block.eyebrow}</p>
           <h1>
             {block.title.map((line, i) => (
-              <span key={line} className={styles.line}>{i === last ? <LastWord text={line} /> : line}</span>
+              <span key={line} className={styles.line}>{i === last ? <LastWord text={line} accent={block.accent} /> : line}</span>
             ))}
           </h1>
           <div className={styles.heroLead}>
@@ -58,7 +61,7 @@ function HeroWide({ block }: { block: Of<"heroMedia"> }) {
           </div>
         </div>
         <div className={styles.heroArch}>
-          <Image src="/marca/escola-de-atenas.jpg" alt="A Escola de Atenas, de Rafael" width={1448} height={1086} priority sizes="(max-width: 900px) 78vw, 460px" />
+          <Image src={block.image.src} alt={block.image.alt} width={block.image.width} height={block.image.height} priority sizes="(max-width: 900px) 78vw, 460px" />
         </div>
       </div>
     </header>
@@ -71,7 +74,7 @@ function TextView({ block, soft, figure }: { block: Of<"text">; soft: boolean; f
       <div className={prod.wrap}>
         {block.eyebrow && <Legend>{block.eyebrow}</Legend>}
         <div className={styles.assert}>
-          <h2>{block.title.join(" ")}</h2>
+          <h2><Accent text={block.title.join(" ")} word={block.accent} className={styles.gold} /></h2>
           {block.paragraphs && (
             <div className={styles.paragraphs}>
               {block.paragraphs.map((p) => (
@@ -92,7 +95,7 @@ function TextView({ block, soft, figure }: { block: Of<"text">; soft: boolean; f
         )}
         {block.highlight && (
           <div className={styles.manifesto}>
-            <p><LastWord text={block.highlight.join(" ")} /></p>
+            <p><LastWord text={block.highlight.join(" ")} accent={block.highlightAccent} /></p>
             {figure && (
               <div className={styles.manifestoFig}>
                 <Image src="/marca/socrates.jpg" alt="Busto de Sócrates sobre um pedestal" width={1122} height={1402} sizes="(max-width: 900px) 70vw, 340px" loading="lazy" />
@@ -238,8 +241,13 @@ const LIGHT: Block["type"][] = ["text", "list", "cards", "faq", "formats", "show
 export default function KitPage({ page, closing }: { page: PageContent; closing: string }) {
   const hero = page.blocks.find((b): b is Of<"heroMedia"> => b.type === "heroMedia");
   if (!hero) return null;
-  const portrait = hero.image.height > hero.image.width;
-  const tones = toneMap(page.blocks, LIGHT);
+  /* `aspect: "landscape"` pede a abertura larga (HeroWide) mesmo com foto em pé: o arco recorta. */
+  const portrait = hero.aspect === "landscape" ? false : hero.image.height > hero.image.width;
+  /* Ajustes V3: desenho novo (tipografia Kepler/Acumin, Imperial e Limestone) só onde já foi aprovado para ir ao ar; hoje, a Advisory. */
+  const v3 = page.slug === "advisory";
+  /* Na Advisory os "rituais" (cards) viram seção Imperial: saem da alternância de fundos claros. */
+  const light = v3 ? LIGHT.filter((t) => t !== "cards") : LIGHT;
+  const tones = toneMap(page.blocks, light);
   /* Movimento de rolagem em CSS (capítulos em cortina, rótulo "nº / total", surge) em todas as páginas do Kit. Sem JS; a cortina só
    * vale no desktop alto e sem movimento reduzido. O ajuste do cabeçalho no celular (kitDark) é só da Advisory, a única com hero Imperial. */
   const chaptered = true;
@@ -247,7 +255,16 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
   /* A barra de provas (proofBar) é uma faixa fina colada à abertura, não um capítulo: fica fora da cortina e da contagem. */
   const chapterBlocks = page.blocks.filter((b) => b.type !== "heroMedia" && b.type !== "testimonials" && b.type !== "proofBar");
   return (
-    <div className={`${home.home} ${sol.page} ${fraunces.variable}${darkHero ? ` ${styles.kitDark}` : ""} ${styles.chapters}`} data-page={page.slug}>
+    <div className={`${home.home} ${sol.page} ${fraunces.variable}${darkHero ? ` ${styles.kitDark}` : ""}${v3 ? ` ${styles.v3}` : ""} ${styles.chapters}`} data-page={page.slug}>
+      {/* Kit Adobe (Kepler + Acumin), só nesta página e só dentro do <main>: o cabeçalho e o rodapé mantêm as fontes de hoje. O CSS do kit
+          não bloqueia a primeira pintura: preload aqui, aplicação e troca de fonte em KitFonts (reserva com métrica ajustada até lá). */}
+      {v3 && (
+        <>
+          <link rel="preconnect" href="https://use.typekit.net" crossOrigin="anonymous" />
+          <link rel="preload" as="style" href="https://use.typekit.net/krs4uwp.css" />
+          <KitFonts />
+        </>
+      )}
       <HomeHeader />
       <main className={styles.main}>
         {portrait ? <HeroView hero={hero} kind="photo" /> : <HeroWide block={hero} />}
@@ -257,13 +274,18 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
           const soft = tones[index];
           let node: React.ReactNode;
           switch (block.type) {
-            case "text": node = <TextView key={key} block={block} soft={soft} figure={page.slug === "advisory"} />; break;
+            case "text":
+              if (v3 && block.highlight && canProblem(block)) node = <ProblemView key={key} block={block} soft={soft} />;
+              else if (v3 && block.chips) node = <LeadershipView key={key} block={block} soft={soft} />;
+              else node = <TextView key={key} block={block} soft={soft} figure={page.slug === "advisory"} />;
+              break;
             case "list": node = <ListView key={key} block={block} soft={soft} />; break;
             case "formats": node = <FormatsView key={key} block={block} soft={soft} />; break;
             case "showcase": node = <ShowcaseView key={key} block={block} soft={soft} />; break;
             /* Depoimentos só vão ao ar com vídeo aprovado e hospedado (ver pages.ts): sem isso, nada. */
             case "testimonials": return null;
             case "cards":
+              if (v3) { node = <RitualsView key={key} block={block} />; break; }
               /* Execução, "O que construímos": índice em acordeão preso na rolagem, com a tela ilustrativa de cada frente. */
               if (page.slug === "execucao" && block.items.some((it) => it.example)) {
                 const t = Array.isArray(block.title) ? block.title.join(" ") : block.title;
@@ -290,7 +312,7 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
           const meta = block as { eyebrow?: string; title?: string | string[] };
           const label = (meta.eyebrow || (Array.isArray(meta.title) ? meta.title.join(" ") : meta.title) || "").toUpperCase();
           /* Tom do capítulo = cor real do bloco (o fundo do capítulo aparece nos cantos e no pé durante a cortina). */
-          const tone = LIGHT.includes(block.type) ? (soft ? "soft" : "paper") : "dark";
+          const tone = light.includes(block.type) ? (soft ? "soft" : "paper") : "dark";
           return (
             <div key={key} className={styles.chapter} data-tone={tone} data-motion="curtain">
               <div className={styles.chapterLabel} aria-hidden="true" data-text={`${String(n).padStart(2, "0")} / ${String(chapterBlocks.length + 1).padStart(2, "0")} · ${label}`}>

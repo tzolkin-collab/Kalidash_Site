@@ -1,0 +1,28 @@
+{
+ "mobile /": {
+  "perf": 73,
+  "lcp": 5397,
+  "cls": 0,
+  "tbt": 43,
+  "fcp": 1817,
+  "ttfb": 9,
+  "js": 199,
+  "img": 2035,
+  "font": 323,
+  "total": 2683,
+  "lcpEl": "<img alt=\"\" width=\"1122\" height=\"1402\" decoding=\"async\" data-nimg=\"1\" style=\"col"
+ },
+ "desktop /": {
+  "perf": 95,
+  "lcp": 1025,
+  "cls": 0,
+  "tbt": 0,
+  "fcp": 459,
+  "ttfb": 4,
+  "js": 201,
+  "img": 2202,
+  "font": 323,
+  "total": 2890,
+  "lcpEl": "<img alt=\"\" width=\"1122\" height=\"1402\" decoding=\"async\" data-nimg=\"1\" style=\"col"
+ }
+}

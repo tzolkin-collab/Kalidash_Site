@@ -1,0 +1,28 @@
+{
+ "mobile /advisory": {
+  "perf": 82,
+  "lcp": 4632,
+  "cls": 0.015,
+  "tbt": 35,
+  "fcp": 1968,
+  "ttfb": 10,
+  "js": 199,
+  "img": 16,
+  "font": 876,
+  "total": 1223,
+  "lcpEl": "<img alt=\"Palestrante da Kalidash conduz uma capacitação em IA numa sala da Fund"
+ },
+ "desktop /advisory": {
+  "perf": 99,
+  "lcp": 893,
+  "cls": 0,
+  "tbt": 0,
+  "fcp": 535,
+  "ttfb": 4,
+  "js": 201,
+  "img": 34,
+  "font": 876,
+  "total": 1283,
+  "lcpEl": "<img alt=\"Palestrante da Kalidash conduz uma capacitação em IA numa sala da Fund"
+ }
+}

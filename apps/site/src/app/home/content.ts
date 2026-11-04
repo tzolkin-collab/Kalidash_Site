@@ -48,10 +48,12 @@ export const navCta = { label: "Diagnóstico", href: "/diagnostico" };
 
 export const hero = {
   eyebrow: "Aceleradora de eficiência operacional",
-  title: "Prepare sua operação para a era dos agentes de IA.",
+  /* Partes do título: a palavra de sentido (em itálico dourado) vem separada, não é a última palavra da frase. */
+  title: { before: "A inteligência que ", accent: "falta", after: " na IA." },
   paragraphs: [
-    "Treinamos equipes, estruturamos a governança e implementamos agentes e automações em operações com mais de 500 pessoas. Eficiência medida no resultado, não na ferramenta.",
+    "A IA executa. Quem define onde chegar são as pessoas. Treinamos equipes, estruturamos a governança e implementamos agentes de IA e automações em empresas da economia real.",
   ],
+  caption: { before: "A IA faz a parte operacional. O ", accent: "protagonismo", after: " é nosso." },
   primaryCta: { label: "Preparar minha operação", href: "/diagnostico" },
   secondaryCta: { label: "Conhecer a Kalidash", href: "/#experiencia" },
   stats: [
@@ -75,7 +77,7 @@ export const problem = {
   watermark: "-   Inteligência Empresarial",
   title: "O problema não é só tecnológico.",
   subtitle: "É operacional, é cultural, é humano.",
-  text: "Quando pessoas, processos e tecnologia andam em ritmos diferentes, a execução trava e as decisões demoram. Ferramenta nova não resolve. O que resolve é mudar o jeito de trabalhar.",
+  text: "Quando pessoas, processos e tecnologia andam em ritmos diferentes, a execução trava e as decisões demoram. Reconhece algum destes sintomas?",
   closingFinal: "Ferramenta nova não resolve isso. Muda-se o jeito de trabalhar.",
   quote: {
     text: "Pequenas tarefas se acumulavam e atrasavam outras entregas. Agora temos processos mais bem definidos e as automações certas, a equipe ganhou fluidez e reduziu o retrabalho.",
@@ -194,12 +196,13 @@ export const experience = {
 /* Case em destaque (alt. 6 da Carol, 20/10/2026). A página /cases/cba ainda não existe:
  * enquanto `pageReady` for false o CTA não é exibido (evita link quebrado). */
 export const caseCba = {
-  eyebrow: "Case · CBA",
+  eyebrow: "Case destaque • CBA",
   title: "Captura Inteligente do Conhecimento",
   text: "O que se decidia nas reuniões diárias de rotina ficava só na memória de quem estava na sala. Criamos uma solução de IA que transcreve essas conversas, mesmo com ruído industrial, e as transforma em dado estruturado: problema, solução, criticidade e prazo, validados por quem conhece o processo.",
+  keyPhrase: "Consultas que antes eram impossíveis agora levam segundos.",
   badge: "Finalista Prêmio Inovativos 2026 — categoria Dados, Insights e Decisão",
   cta: { label: "Ver o case completo", href: "/blog?categoria=cases" },
-  pageReady: false,
+  pageReady: true,
   image: {
     src: "/home/g21-cba-premio.jpg",
     alt: "CBA e Kalidash no Prêmio Inovativos 2026",
@@ -254,7 +257,7 @@ export const people = {
 };
 
 export const diagnostico = {
-  title: "Existe uma oportunidade de eficiência na sua operação.",
+  title: { before: "Existe uma oportunidade de eficiência ", accent: "na sua operação." },
   text: "Conte um pouco sobre o momento da sua empresa e vamos entender o desafio antes de falar sobre qualquer solução.",
   microcopy: "Primeiro entendemos. Depois construímos juntos.",
   fields: {
