@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./home.module.css";
@@ -56,15 +56,37 @@ function TextLink({ href, children, onClick }: { href: string; children: React.R
   );
 }
 
+const TYPEKIT_KIT = "https://use.typekit.net/krs4uwp.css";
+
 export default function HomePage() {
+  const mainRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const main = mainRef.current;
+    if (!main) return;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = TYPEKIT_KIT;
+    document.head.appendChild(link);
+    const faces = ['400 1em "kepler-std-display"', 'italic 400 1em "kepler-std-display"', '400 1em "acumin-pro"', '700 1em "acumin-pro"'];
+    let done = false;
+    const finish = () => { if (!done) { done = true; main.setAttribute("data-fonts", "ready"); } };
+    link.addEventListener("load", () => {
+      Promise.all(faces.map((f) => document.fonts.load(f))).then(finish, finish);
+    });
+    const timeout = window.setTimeout(finish, 5000);
+    return () => window.clearTimeout(timeout);
+  }, []);
   const [activeQuoteIndex, setActiveQuoteIndex] = useState<number | null>(null);
   const [isBadgeHovered, setIsBadgeHovered] = useState(false);
   const logoLoop = [...clients, ...clients];
 
   return (
     <div className={`${styles.home} ${fraunces.variable}`}>
-      {/* Kit Adobe (Kepler e Acumin) só na Home; React 19 move o <link> para o <head>. As famílias valem só dentro do <main>. */}
-      <link rel="stylesheet" href="https://use.typekit.net/krs4uwp.css" precedence="default" />
+      {/* Kit Adobe (Kepler e Acumin) só na Home e só dentro do <main>. O CSS do kit NÃO bloqueia a primeira pintura (medido: +1,2 s de FCP
+          e texto invisível até a fonte chegar): o <link rel="preload"> começa o download cedo; o useEffect abaixo aplica o CSS e só
+          marca data-fonts="ready" depois que as fontes carregaram. Até lá vale a fonte de reserva, com métrica ajustada (home.module.css). */}
+      <link rel="preconnect" href="https://use.typekit.net" crossOrigin="anonymous" />
+      <link rel="preload" as="style" href={TYPEKIT_KIT} />
       <LogoIntro />
       <script
         type="application/ld+json"
@@ -82,7 +104,7 @@ export default function HomePage() {
       />
       <HomeHeader />
 
-      <main className={styles.v3}>
+      <main className={styles.v3} ref={mainRef}>
         <section className={`${styles.hero} ${styles.heroV3}`} data-block="home-hero">
           <div className={heroStyles.main}>
           <div className={heroStyles.text}>

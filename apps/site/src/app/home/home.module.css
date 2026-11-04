@@ -1348,8 +1348,9 @@
 .v3 {
   --w-title: 400;
   --w-strong: 700;
-  --kepler: "kepler-std-display", Georgia, "Times New Roman", serif;
-  --acumin: "acumin-pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Até o kit Adobe carregar (data-fonts="ready", posto em HomePage.tsx) valem as fontes de reserva com métrica ajustada. */
+  --kepler: "kalidash-kepler-reserva", Georgia, "Times New Roman", serif;
+  --acumin: "kalidash-acumin-reserva", system-ui, -apple-system, "Segoe UI", sans-serif;
   --imperial: #28183b;
   --aubergine: #46304f;
   --limestone: #f1ece4;
@@ -1372,7 +1373,7 @@
 .v3 .gold { color: var(--gold); font-style: italic; font-weight: var(--w-title); }
 
 /* ---- Problema: Imperial no lugar do terracota ---- */
-.v3 .problem { background: var(--limestone); }
+.v3 .problem { background: var(--limestone); overflow: clip; } /* o halo do holograma não vaza sobre o hero Imperial */
 .v3 .problem::before { display: none; }
 .v3 .problemTop {
   background: linear-gradient(135deg, #28183b 0%, #31204a 55%, #46304f 100%);
@@ -1471,3 +1472,11 @@
 /* Selo Anthropic no celular: o texto do selo é escuro; sobre Imperial passa a Limestone (estrutura e animação intactas). */
 .v3 .heroV3 [class*="mobileBrand"], .v3 .heroV3 [class*="mobilePartner"] { color: rgba(241, 236, 228, 0.8); }
 .v3 .heroV3 [class*="mobileDot"] { color: rgba(241, 236, 228, 0.4); }
+
+.v3[data-fonts="ready"] {
+  --kepler: "kepler-std-display", Georgia, "Times New Roman", serif;
+  --acumin: "acumin-pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+/* Reservas com ajuste de tamanho para a troca de fonte não empurrar o layout (valores medidos na tela, ver relatório). */
+@font-face { font-family: "kalidash-kepler-reserva"; src: local("Georgia"), local("Times New Roman"); size-adjust: 88%; ascent-override: 98%; descent-override: 26%; line-gap-override: 0%; }
+@font-face { font-family: "kalidash-acumin-reserva"; src: local("Segoe UI"), local("Arial"); size-adjust: 100%; }

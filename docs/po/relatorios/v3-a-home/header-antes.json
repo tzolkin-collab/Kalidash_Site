@@ -1,0 +1,38 @@
+{
+ "1440-topo": {
+  "header": "\"Source Sans 3\", \"Source Sans 3 Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 16px | 400 | rgb(10, 10, 10) | rgba(255, 255, 255, 0.88) | 0 | 0 | 1440 | 57 | light",
+  "header a": "Inter, \"Inter Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 16px | 400 | rgb(10, 10, 10) | rgba(0, 0, 0, 0) | 80 | 14 | 174 | 27 | light",
+  "header nav a": "Inter, \"Inter Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 14px | 500 | rgb(17, 17, 17) | rgba(0, 0, 0, 0) | 856 | 18 | 115 | 21 | light",
+  "header button": "Inter, \"Inter Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 16px | 400 | rgb(40, 24, 59) | rgba(0, 0, 0, 0) | 0 | 0 | 0 | 0 | light"
+ },
+ "1440-claro": {
+  "header": "\"Source Sans 3\", \"Source Sans 3 Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 16px | 400 | rgb(10, 10, 10) | rgba(255, 255, 255, 0.96) | 0 | 0 | 1440 | 57 | light",
+  "header a": "Inter, \"Inter Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 16px | 400 | rgb(10, 10, 10) | rgba(0, 0, 0, 0) | 80 | 14 | 28 | 27 | light",
+  "header nav a": "Inter, \"Inter Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 14px | 500 | rgb(182, 100, 77) | rgba(0, 0, 0, 0) | 856 | 18 | 115 | 21 | light",
+  "header button": "Inter, \"Inter Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 16px | 400 | rgb(40, 24, 59) | rgba(0, 0, 0, 0) | 0 | 0 | 0 | 0 | light"
+ },
+ "1440-escuro": {
+  "header": "\"Source Sans 3\", \"Source Sans 3 Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 16px | 400 | rgb(10, 10, 10) | rgba(255, 255, 255, 0.96) | 0 | 0 | 1440 | 57 | light",
+  "header a": "Inter, \"Inter Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 16px | 400 | rgb(10, 10, 10) | rgba(0, 0, 0, 0) | 80 | 14 | 28 | 27 | light",
+  "header nav a": "Inter, \"Inter Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 14px | 500 | rgb(182, 100, 77) | rgba(0, 0, 0, 0) | 856 | 18 | 115 | 21 | light",
+  "header button": "Inter, \"Inter Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 16px | 400 | rgb(40, 24, 59) | rgba(0, 0, 0, 0) | 0 | 0 | 0 | 0 | light"
+ },
+ "390-topo": {
+  "header": "\"Source Sans 3\", \"Source Sans 3 Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 16px | 400 | rgb(10, 10, 10) | rgba(0, 0, 0, 0) | 0 | 0 | 390 | 76 | light",
+  "header a": "Inter, \"Inter Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 16px | 400 | rgb(10, 10, 10) | rgba(0, 0, 0, 0) | 24 | 16 | 174 | 44 | light",
+  "header nav a": "Inter, \"Inter Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 14px | 500 | rgb(17, 17, 17) | rgba(0, 0, 0, 0) | 0 | 0 | 0 | 0 | light",
+  "header button": "Inter, \"Inter Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 16px | 400 | rgb(40, 24, 59) | rgba(255, 255, 255, 0.95) | 322 | 16 | 44 | 44 | light"
+ },
+ "390-claro": {
+  "header": "\"Source Sans 3\", \"Source Sans 3 Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 16px | 400 | rgb(10, 10, 10) | rgba(0, 0, 0, 0) | 0 | 0 | 390 | 76 | light",
+  "header a": "Inter, \"Inter Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 16px | 400 | rgb(10, 10, 10) | rgba(0, 0, 0, 0) | -15 | 16 | 28 | 44 | light",
+  "header nav a": "Inter, \"Inter Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 14px | 500 | rgb(182, 100, 77) | rgba(0, 0, 0, 0) | 0 | 0 | 0 | 0 | light",
+  "header button": "Inter, \"Inter Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 16px | 400 | rgb(40, 24, 59) | rgba(255, 255, 255, 0.95) | 384 | 16 | 44 | 44 | light"
+ },
+ "390-escuro": {
+  "header": "\"Source Sans 3\", \"Source Sans 3 Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 16px | 400 | rgb(10, 10, 10) | rgba(0, 0, 0, 0) | 0 | 0 | 390 | 76 | light",
+  "header a": "Inter, \"Inter Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 16px | 400 | rgb(10, 10, 10) | rgba(0, 0, 0, 0) | -15 | 16 | 28 | 44 | light",
+  "header nav a": "Inter, \"Inter Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 14px | 500 | rgb(182, 100, 77) | rgba(0, 0, 0, 0) | 0 | 0 | 0 | 0 | light",
+  "header button": "Inter, \"Inter Fallback\", system-ui, -apple-system, \"Segoe UI\", sans-serif | 16px | 400 | rgb(40, 24, 59) | rgba(255, 255, 255, 0.95) | 384 | 16 | 44 | 44 | light"
+ }
+}
