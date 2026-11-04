@@ -274,3 +274,7 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
  * espaço visível continuar o mesmo (64 - 36 = 28, como antes). */
 .chapter, .curtain { margin-top: -64px; padding-bottom: 36px; }
 .heroBrand { padding-bottom: 36px; }
+
+/* Barra de provas (AI Culture) fora dos capítulos: sem cortina, cantos ou sobreposição. Fica acima da abertura no empilhamento
+ * e ganha 36px no pé, que o capítulo seguinte cobre ao subir (64px de sobreposição, como entre capítulos). */
+.flatBar { position: relative; z-index: 1; padding-bottom: 36px; background: var(--soft); }

@@ -244,7 +244,8 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
    * vale no desktop alto e sem movimento reduzido. O ajuste do cabeçalho no celular (kitDark) é só da Advisory, a única com hero Imperial. */
   const chaptered = true;
   const darkHero = page.slug === "advisory";
-  const chapterBlocks = page.blocks.filter((b) => b.type !== "heroMedia" && b.type !== "testimonials");
+  /* A barra de provas (proofBar) é uma faixa fina colada à abertura, não um capítulo: fica fora da cortina e da contagem. */
+  const chapterBlocks = page.blocks.filter((b) => b.type !== "heroMedia" && b.type !== "testimonials" && b.type !== "proofBar");
   return (
     <div className={`${home.home} ${sol.page} ${fraunces.variable}${darkHero ? ` ${styles.kitDark}` : ""} ${styles.chapters}`} data-page={page.slug}>
       <HomeHeader />
@@ -282,14 +283,14 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
               node = <BlockView key={key} block={block} cardsIndex={1} poster={false} soft={soft} />;
           }
           if (!chaptered) return node;
+          if (block.type === "proofBar") return <div key={key} className={styles.flatBar} data-tone="soft">{node}</div>;
           /* Capítulo: cortina que sobe sobre o anterior + cabeçalho fino (número / total · título) que acompanha a leitura.
            * O rótulo vem de data-text (CSS), então não entra no texto da página. */
           const n = chapterBlocks.indexOf(block) + 2;
           const meta = block as { eyebrow?: string; title?: string | string[] };
           const label = (meta.eyebrow || (Array.isArray(meta.title) ? meta.title.join(" ") : meta.title) || "").toUpperCase();
-          /* Tom do capítulo = cor real do bloco (o fundo do capítulo aparece nos cantos e no pé durante a cortina). A barra de provas
-           * é Limestone mas não entra em LIGHT (mudaria a alternância de fundos), então tem tom próprio. */
-          const tone = block.type === "proofBar" ? "soft" : LIGHT.includes(block.type) ? (soft ? "soft" : "paper") : "dark";
+          /* Tom do capítulo = cor real do bloco (o fundo do capítulo aparece nos cantos e no pé durante a cortina). */
+          const tone = LIGHT.includes(block.type) ? (soft ? "soft" : "paper") : "dark";
           return (
             <div key={key} className={styles.chapter} data-tone={tone} data-motion="curtain">
               <div className={styles.chapterLabel} aria-hidden="true" data-text={`${String(n).padStart(2, "0")} / ${String(chapterBlocks.length + 1).padStart(2, "0")} · ${label}`}>
