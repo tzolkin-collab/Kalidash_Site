@@ -301,7 +301,8 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
  * Títulos nunca em 700. */
 .v3 .main {
   /* Até o kit carregar (data-fonts="ready", posto por KitFonts.tsx) valem as reservas com métrica ajustada. */
-  --font-title: "kit-kepler-reserva", Georgia, "Times New Roman", serif;
+  --v3-title: "kit-kepler-reserva", Georgia, "Times New Roman", serif;
+  --font-title: var(--v3-title);
   --font-sub: "kit-kepler-reserva", Georgia, "Times New Roman", serif;
   --font-body: "kit-acumin-reserva", system-ui, -apple-system, "Segoe UI", sans-serif;
   --w-title: 400;
@@ -321,14 +322,15 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 }
 /* Display nos títulos grandes; Subhead (desenhada para tamanho pequeno) com tracking 0 abaixo de ~30 px. */
 .v3 .main[data-fonts="ready"] {
-  --font-title: "kepler-std-display", Georgia, "Times New Roman", serif;
+  --v3-title: "kepler-std-display", Georgia, "Times New Roman", serif;
   --font-sub: "kepler-std-subhead", "kepler-std-display", Georgia, "Times New Roman", serif;
   --font-body: "acumin-pro", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 @font-face { font-family: "kit-kepler-reserva"; src: local("Georgia"), local("Times New Roman"); size-adjust: 88%; ascent-override: 98%; descent-override: 26%; line-gap-override: 0%; }
 @font-face { font-family: "kit-acumin-reserva"; src: local("Segoe UI"), local("Arial"); size-adjust: 100%; }
 .v3 .main :is(strong, dt, button, [class*="Button"], [class*="eyebrow"], [class*="chip"]) { font-family: var(--font-body); }
-.v3 .main :is(h1, h2, h3, summary) { font-family: var(--font-title); font-weight: var(--w-title); letter-spacing: -0.012em; text-wrap: balance; }
+/* home.module.css redefine --font-title (Fraunces) em cada título; por isso a variável é refeita aqui, no próprio título. */
+.v3 .main :is(h1, h2, h3, summary) { --font-title: var(--v3-title); font-family: var(--font-title); font-weight: var(--w-title); letter-spacing: -0.012em; text-wrap: balance; }
 .v3 .main strong { font-weight: var(--w-strong); }
 .v3 .chapter[data-tone="paper"] { background: var(--limestone); --lbl-bg: var(--limestone); }
 .v3 .chapter[data-tone="soft"] { background: var(--limestone-deep); --lbl-bg: var(--limestone-deep); }
