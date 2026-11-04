@@ -24,6 +24,13 @@
       "runtimeExecutable": "node",
       "runtimeArgs": [".archive/v1.0_site/node_modules/next/dist/bin/next", "dev", ".archive/v1.0_site", "--port", "3001"],
       "port": 3001
+    },
+    {
+      "name": "kalidash-v3-preview",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--dir", "D:/Códigos/Tzolkin/Projetos/carol/kalidash/.claude/worktrees/v3-preview/apps/site", "exec", "next", "start", "-p", "3300"],
+      "autoPort": false,
+      "port": 3300
     }
   ]
 }
