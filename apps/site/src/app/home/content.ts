@@ -2,7 +2,7 @@
  * Copy atualizada em 09/10/2026 a partir do documento aprovado pela Kalidash. */
 
 export const config = {
-  leadEndpoint: process.env.NEXT_PUBLIC_LEAD_ENDPOINT || "/api/leads",
+  leadEndpoint: "/api/leads",
   // Links enviados pela Kalidash em 02/10/2026; WhatsApp trocado em 20/10/2026 (Michelle saiu). Pode ser sobrescrito por variável de ambiente.
   whatsappUrl: process.env.NEXT_PUBLIC_WHATSAPP_URL ?? "https://wa.link/v9grih",
   social: {

@@ -3,19 +3,29 @@ import { API_URL } from "@/lib/api";
 
 const MAX_BODY_BYTES = 8 * 1024; // 8 KB (mesmo teto de public_leads.go)
 
+function resolveUpstreamUrl(): string {
+  const explicit = process.env.NEXT_PUBLIC_LEAD_ENDPOINT?.trim() ?? "";
+  if (/^https?:\/\//i.test(explicit)) {
+    return explicit.includes("/api/")
+      ? explicit
+      : `${explicit.replace(/\/+$/, "")}/api/public/leads`;
+  }
+  return `${API_URL.replace(/\/+$/, "")}/api/public/leads`;
+}
+
 // Proxy server-side para POST /api/public/leads na API Go.
-// Permite que /diagnostico funcione automaticamente com a mesma variável API_URL usada pelo /blog,
-// sem exigir NEXT_PUBLIC_LEAD_ENDPOINT exposto no bundle e sem problemas de CORS entre www/apex.
+// Faz a chamada servidor-para-servidor (sem cabeçalho Origin de navegador), evitando
+// bloqueios de CORS ("origem não permitida") entre www.kalidash.com, kalidash.com e previews.
 export async function POST(request: Request) {
   let rawBody: string;
   try {
     rawBody = await request.text();
   } catch {
-    return NextResponse.json({ error: "invalid body" }, { status: 400 });
+    return NextResponse.json({ error: "corpo inválido" }, { status: 400 });
   }
 
   if (!rawBody || Buffer.byteLength(rawBody, "utf8") > MAX_BODY_BYTES) {
-    return NextResponse.json({ error: "payload too large or empty" }, { status: 400 });
+    return NextResponse.json({ error: "corpo inválido" }, { status: 400 });
   }
 
   const headers: Record<string, string> = {
@@ -28,13 +38,8 @@ export async function POST(request: Request) {
     headers["X-Forwarded-For"] = forwardedFor;
   }
 
-  const origin = process.env.SITE_URL || request.headers.get("origin") || "";
-  if (origin) {
-    headers["Origin"] = origin;
-  }
-
   try {
-    const upstream = await fetch(`${API_URL}/api/public/leads`, {
+    const upstream = await fetch(resolveUpstreamUrl(), {
       method: "POST",
       headers,
       body: rawBody,
@@ -42,7 +47,7 @@ export async function POST(request: Request) {
     });
 
     const text = await upstream.text();
-    return new NextResponse(text || JSON.stringify({ status: upstream.ok ? "ok" : "error" }), {
+    return new NextResponse(text || JSON.stringify({ ok: upstream.ok }), {
       status: upstream.status,
       headers: { "Content-Type": "application/json" },
     });

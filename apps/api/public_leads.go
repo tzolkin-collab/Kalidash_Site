@@ -141,6 +141,10 @@ func clientIP(r *http.Request) string {
 // allowedOrigins: ALLOWED_ORIGINS (vírgula) + SITE_URL. Entradas com "*." casam subdomínios
 // (ex.: https://*.vercel.app, para os ambientes de visualização). Sem nenhuma configurada
 // (desenvolvimento) aceita qualquer origem.
+func stripWWW(host string) string {
+	return strings.TrimPrefix(strings.ToLower(host), "www.")
+}
+
 func originAllowed(origin string, list []string) bool {
 	if len(list) == 0 {
 		return true
@@ -158,6 +162,10 @@ func originAllowed(origin string, list []string) bool {
 			if err == nil && au.Scheme == u.Scheme && strings.HasSuffix(u.Host, "."+au.Host) {
 				return true
 			}
+			continue
+		}
+		if au, err := url.Parse(a); err == nil && au.Scheme == u.Scheme && stripWWW(au.Host) == stripWWW(u.Host) {
+			return true
 		}
 	}
 	return false
@@ -165,13 +173,12 @@ func originAllowed(origin string, list []string) bool {
 
 func configuredOrigins() []string {
 	var out []string
-	for _, p := range strings.Split(os.Getenv("ALLOWED_ORIGINS"), ",") {
-		if p = strings.TrimRight(strings.TrimSpace(p), "/"); p != "" {
-			out = append(out, p)
+	for _, raw := range []string{os.Getenv("ALLOWED_ORIGINS"), os.Getenv("SITE_URL")} {
+		for _, p := range strings.Split(raw, ",") {
+			if p = strings.TrimRight(strings.TrimSpace(p), "/"); p != "" {
+				out = append(out, p)
+			}
 		}
-	}
-	if s := strings.TrimRight(strings.TrimSpace(os.Getenv("SITE_URL")), "/"); s != "" {
-		out = append(out, s)
 	}
 	return out
 }
