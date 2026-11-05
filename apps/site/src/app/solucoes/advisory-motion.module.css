@@ -103,3 +103,37 @@
 .advStory[data-arm] .icon svg { opacity: 0; }
 .advStory[data-arm][data-live] li[data-drawn] .icon svg,
 .advStory[data-arm]:not([data-live]) li[data-in] .icon svg { opacity: 1; }
+
+/* ================= Seção 4: rituais (sem palco) ================= */
+/* Os cartões têm entrada própria (stagger): o surge do CSS e do ScrollMotion sai só deles. O restante do capítulo segue com surge. */
+.cards > li { animation: none !important; }
+.root[data-arm] .cards > li[data-r] { transition-delay: calc(var(--i, 0) * 90ms), calc(var(--i, 0) * 90ms), 0s; }
+.cards > li { transition: opacity 700ms ease-out, transform 800ms cubic-bezier(0.33, 1, 0.68, 1), translate 300ms ease; }
+.cards > li:hover { translate: 0 -4px; }
+.cards > li:hover .foot::before { background: #c4a673; }
+.foot::before { transition: background-color 300ms ease; }
+.root[data-arm] .cards > li:not([data-in]) .foot::before { transform: scaleX(0); }
+.root[data-arm] .cards > li:not([data-in]) .foot { opacity: 0; }
+.root[data-arm] .cards > li .foot::before { transform-origin: left center; transition: transform 900ms cubic-bezier(0.33, 1, 0.68, 1) calc(var(--i, 0) * 90ms + 450ms), background-color 300ms ease; }
+.root[data-arm] .cards > li .foot { transition: opacity 700ms ease-out calc(var(--i, 0) * 90ms + 800ms); }
+
+/* A faixa "O que a liderança recebe" sobe por último e traça os ícones em sequência. */
+.root[data-arm] .recv:not([data-in]) svg { opacity: 0; }
+.root[data-arm] .recv svg { transition: opacity 200ms ease calc(700ms + var(--j, 0) * 250ms); }
+.root[data-arm] .recv svg :is(path, rect, circle) { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 900ms ease-out calc(700ms + var(--j, 0) * 250ms); }
+.root[data-arm] .recv[data-in] svg :is(path, rect, circle) { stroke-dashoffset: 0; }
+
+/* Ícones vivos: só correm com o cartão na tela (data-run) e nunca com movimento reduzido. */
+.trendLine { stroke-dasharray: 1; }
+.root[data-arm] .cards > li:not([data-in]) .trendLine { stroke-dashoffset: 1; }
+.root[data-arm] .trendLine { transition: stroke-dashoffset 1400ms ease-out calc(var(--i, 0) * 90ms + 500ms); }
+@media (prefers-reduced-motion: no-preference) {
+  .orbit { transform-box: view-box; transform-origin: 12px 12px; animation: orbit 30s linear infinite paused; }
+  .pulse { transform-box: fill-box; transform-origin: center; animation: pulse 2.6s ease-in-out infinite paused; }
+  .cA { animation: cross 9s ease-in-out infinite alternate paused; --dx: 3px; }
+  .cB { animation: cross 9s ease-in-out infinite alternate paused; --dx: -3px; }
+  .cards > li[data-run] :is(.orbit, .pulse, .cA, .cB) { animation-play-state: running; }
+}
+@keyframes orbit { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(2); opacity: 0.45; } }
+@keyframes cross { from { transform: translateX(calc(var(--dx) * -1)); } to { transform: translateX(var(--dx)); } }

@@ -2,7 +2,8 @@ import type { SVGProps } from "react";
 import type { Block } from "../institucional/pages";
 import { Legend } from "./ProductPage";
 import styles from "./advisory-v3.module.css";
-import { LeadStage, ProblemStage } from "./AdvisoryMotion";
+import { LeadStage, MotionRoot, ProblemStage } from "./AdvisoryMotion";
+import mo from "./advisory-motion.module.css";
 
 /* Seções da Advisory no desenho V3 (Ajustes V3, itens V2 a V4). Todo o texto vem de pages.ts e é só repartido em peças
  * (nenhuma string nova): a ordem de leitura e os níveis mudam, a copy não. Numerais romanos, numerais 01-04 e ícones são desenho.
@@ -59,7 +60,14 @@ const I = {
 };
 
 const leaderIcons = [I.search, I.structure, I.bars, I.signal, I.nodes];
-const ritualIcons = [I.council, I.trend, I.mentor];
+/* Ícones vivos dos rituais (só se movem com o cartão visível; ver advisory-motion.module.css): o comitê reúne pontos em órbita,
+ * o acompanhamento traça a tendência e o último ponto pulsa, a mentoria aproxima dois círculos até se cruzarem. */
+const R = {
+  council: (p: SVGProps<SVGSVGElement>) => (<svg {...base} {...p}><circle cx="12" cy="12" r="4.2" /><g className={mo.orbit}><circle cx="12" cy="3.6" r="1.5" /><circle cx="20.2" cy="9.6" r="1.5" /><circle cx="17" cy="19.4" r="1.5" /><circle cx="7" cy="19.4" r="1.5" /><circle cx="3.8" cy="9.6" r="1.5" /></g></svg>),
+  trend: (p: SVGProps<SVGSVGElement>) => (<svg {...base} {...p}><path d="M3 21h18" /><path className={mo.trendLine} pathLength={1} d="M4 17l5-5 4 3 7-8" /><circle cx="4" cy="17" r="1.2" /><circle cx="9" cy="12" r="1.2" /><circle cx="13" cy="15" r="1.2" /><circle className={mo.pulse} cx="20" cy="7" r="1.2" /></svg>),
+  mentor: (p: SVGProps<SVGSVGElement>) => (<svg {...base} {...p}><circle className={mo.cA} cx="9" cy="12" r="6" /><circle className={mo.cB} cx="15" cy="12" r="6" /><circle cx="12" cy="12" r="1" /></svg>),
+};
+const ritualIcons = [R.council, R.trend, R.mentor];
 const receiveIcons = [I.panel, I.report, I.stairs];
 
 /* ---------- V2 · "A estratégia foi definida. E agora?" ---------- */
@@ -174,34 +182,35 @@ export function RitualsView({ block }: { block: Of<"cards"> }) {
   const label = closing?.match(/^\*\*(.+?)\*\*\s*(.*)$/);
   const gets = label ? label[2].split(/\s+·\s+/).map((g) => g.replace(/\.$/, "")) : null;
   return (
+    <MotionRoot>
     <section className={styles.avRituals}>
       <div className={styles.wrap}>
         {block.eyebrow && <Legend>{block.eyebrow}</Legend>}
         <h2 className={styles.avRitualsTitle}><Accent text={title} word={block.accent} className={styles.goldEmDark} /></h2>
-        <ul className={styles.avCards}>
+        <ul className={`${styles.avCards} ${mo.cards}`}>
           {block.items.map((item, i) => {
             const { body, foot } = item.foot && item.text.endsWith(item.foot)
               ? { body: item.text.slice(0, -item.foot.length).trim().replace(/[,;]$/, ""), foot: item.foot }
               : splitFoot(item.text);
             const Icon = ritualIcons[i % ritualIcons.length];
             return (
-              <li key={item.title}>
+              <li key={item.title} data-r="" style={{ "--i": i } as React.CSSProperties}>
                 <Icon className={styles.avCardIcon} width={40} height={40} strokeWidth={1.2} />
                 <h3>{item.title}</h3>
                 <p>{body}</p>
-                {foot && <p className={styles.avCardFoot}>{foot}</p>}
+                {foot && <p className={`${styles.avCardFoot} ${mo.foot}`}>{foot}</p>}
               </li>
             );
           })}
         </ul>
         {label && gets && (
-          <div className={styles.avReceive}>
+          <div className={`${styles.avReceive} ${mo.recv}`} data-r="" style={{ "--i": 4 } as React.CSSProperties}>
             <p className={styles.avReceiveLabel}>{label[1]}</p>
             <ul>
               {gets.map((g, i) => {
                 const Icon = receiveIcons[i % receiveIcons.length];
                 return (
-                  <li key={g}>
+                  <li key={g} style={{ "--j": i } as React.CSSProperties}>
                     <Icon className={styles.avIcon} />
                     <span>{g}{i === gets.length - 1 ? "." : ""}</span>
                   </li>
@@ -212,5 +221,6 @@ export function RitualsView({ block }: { block: Of<"cards"> }) {
         )}
       </div>
     </section>
+    </MotionRoot>
   );
 }
