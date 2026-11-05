@@ -343,6 +343,8 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 /* O arco sobe 44 px do pé da abertura: a cortina do capítulo seguinte não corta mais o palestrante. */
 .v3 .heroArch { background: #46304f; margin-bottom: 44px; border-radius: 999px 999px 18px 18px; }
 .v3 .heroArch img { object-position: 50% 50%; }
+/* Aberturas claras (Execução e AI Culture) em branco, não em Limestone: pedido do dono. */
+.v3 .main > header:first-child:not(.heroBrand) { --paper: #fff; background: #fff; }
 
 /* ---------- Advisory (movimento): separação entre os dois capítulos Imperial seguidos (rituais e três passos) e seta do CTA do fecho ---------- */
 .v3 .chapter[data-tone="dark"] section[class*="steps"] { box-shadow: inset 0 1px 0 rgba(196, 166, 115, 0.45); }

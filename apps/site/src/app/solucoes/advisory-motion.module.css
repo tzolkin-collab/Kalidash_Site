@@ -67,9 +67,6 @@
 .icon { display: block; justify-self: end; width: 34px; height: 34px; }
 .icon svg { display: block; width: 100%; height: 100%; color: #6b5733; transition: color 300ms ease; }
 .itemBtn[data-on] .icon svg { color: #8f7248; }
-.itemBtn[data-on] { box-shadow: inset 2px 0 0 #a88a58; }
-.itemBtn[data-on] { padding-left: 14px; }
-.itemBtn { transition: opacity 300ms ease, padding-left 300ms cubic-bezier(0.33, 1, 0.68, 1); }
 
 /* O ícone é traçado quando o item é alcançado (palco) ou aparece (celular). */
 .advStory[data-arm] .icon :is(path, circle, rect, line) { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 900ms ease-out; }
@@ -94,9 +91,6 @@
 .roman[data-on] { fill: #6b5733; font-weight: 700; }
 @media (prefers-reduced-motion: reduce) {
   .polyGold, .spoke, .vertex, .itemBtn { transition: none; }
-}
-@media (max-width: 900px) {
-  .itemBtn[data-on] { padding-left: 10px; }
 }
 
 /* Ícone ainda não traçado fica invisível (o traço com ponta redonda deixaria pontos soltos). */
