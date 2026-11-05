@@ -67,13 +67,13 @@ export const clients = [
   { name: "CBA", src: "/logos/cba.svg" },
   { name: "Sicoob", src: "/logos/sicoob.svg" },
   { name: "Clara Resorts", src: "/logos/clara-resorts.svg" },
-  { name: "Neon", src: "/home/logo-neon.png" },
-  { name: "Arquiteto de Bolso", src: "/home/logo-arquiteto.png" },
-  { name: "Spark", src: "/home/logo-spark.png" },
-  { name: "Fermec", src: "/home/logo-fermec.png" },
+  { name: "Neon", src: "/logos/neon.svg" },
+  { name: "Arquiteto de Bolso", src: "/logos/arquiteto-de-bolso.png" },
+  { name: "Spark", src: "/logos/spark.png" },
+  { name: "Fermec", src: "/logos/fermec.png" },
   { name: "Bázico", src: "/home/logo-bazico.png" },
-  { name: "Control iD", src: "/home/logo-controlid.png" },
-  { name: "3D Lab", src: "/home/logo-3dlab.png" },
+  { name: "Control iD", src: "/logos/control-id.png" },
+  { name: "3D Lab", src: "/logos/3dlab.png" },
 ];
 
 export const problem = {
