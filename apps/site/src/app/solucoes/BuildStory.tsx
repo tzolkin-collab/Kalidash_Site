@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import BuildMocks from "./BuildMocks";
+import BuildMocks, { InlineScene } from "./BuildMocks";
 import styles from "./build-story.module.css";
 
 type Item = { title: string; text: string; example?: string };
@@ -37,8 +37,11 @@ export default function BuildStory({ eyebrow, title, items }: { eyebrow?: string
       const rect = el.getBoundingClientRect();
       const run = rect.height - window.innerHeight;
       const p = run > 0 ? clamp(-rect.top / run) : 0;
+      const at = Math.min(items.length - 1, Math.floor(p * items.length));
+      /* Progresso do item ativo (0..1): a tela completa o movimento aos 78% do trecho e segura o resto. */
+      el.style.setProperty("--s", clamp((p * items.length - at) / 0.78).toFixed(4));
       el.style.setProperty("--p", p.toFixed(4));
-      setActive(Math.min(items.length - 1, Math.floor(p * items.length)));
+      setActive(at);
     };
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(update);
@@ -82,6 +85,7 @@ export default function BuildStory({ eyebrow, title, items }: { eyebrow?: string
                       <div>
                         <p>{it.text}</p>
                         {it.example && <p className={styles.example}>{it.example}</p>}
+                        {!live && <InlineScene index={i} />}
                       </div>
                     </div>
                   </li>

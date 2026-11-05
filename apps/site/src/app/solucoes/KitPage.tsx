@@ -17,6 +17,7 @@ import KitFonts from "./KitFonts";
 import { Accent, FaqView, LeadershipView, ProblemView, RitualsView, canProblem } from "./AdvisoryViews";
 import { ClosingBg, ClosingText, HeroArc, MotionRoot } from "./AdvisoryMotion";
 import mo from "./advisory-motion.module.css";
+import { ExecucaoClosing, ExecucaoLead, ExecucaoProof } from "./ExecucaoMotion";
 import prod from "./product.module.css";
 import sol from "./solucoes.module.css";
 import styles from "./kit.module.css";
@@ -251,9 +252,10 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
   /* `aspect: "landscape"` pede a abertura larga (HeroWide) mesmo com foto em pé: o arco recorta. */
   const portrait = hero.aspect === "landscape" ? false : hero.image.height > hero.image.width;
   /* Ajustes V3: desenho novo (tipografia Kepler/Acumin, Imperial e Limestone) só onde já foi aprovado para ir ao ar; hoje, a Advisory. */
-  const v3 = page.slug === "advisory";
+  const advisoryV3 = page.slug === "advisory";
+  const v3 = advisoryV3 || page.slug === "execucao";
   /* Na Advisory os "rituais" (cards) viram seção Imperial: saem da alternância de fundos claros. */
-  const light = v3 ? LIGHT.filter((t) => t !== "cards") : LIGHT;
+  const light = advisoryV3 ? LIGHT.filter((t) => t !== "cards") : LIGHT;
   const tones = toneMap(page.blocks, light);
   /* Movimento de rolagem em CSS (capítulos em cortina, rótulo "nº / total", surge) em todas as páginas do Kit. Sem JS; a cortina só
    * vale no desktop alto e sem movimento reduzido. O ajuste do cabeçalho no celular (kitDark) é só da Advisory, a única com hero Imperial. */
@@ -282,18 +284,19 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
           let node: React.ReactNode;
           switch (block.type) {
             case "text":
-              if (v3 && block.highlight && canProblem(block)) node = <ProblemView key={key} block={block} soft={soft} />;
-              else if (v3 && block.chips) node = <LeadershipView key={key} block={block} soft={soft} />;
+              if (advisoryV3 && block.highlight && canProblem(block)) node = <ProblemView key={key} block={block} soft={soft} />;
+              else if (advisoryV3 && block.chips) node = <LeadershipView key={key} block={block} soft={soft} />;
+              else if (page.slug === "execucao" && block.highlight) node = <ExecucaoLead key={key} block={block} soft={soft} />;
               else node = <TextView key={key} block={block} soft={soft} figure={page.slug === "advisory"} />;
               break;
             case "list": node = <ListView key={key} block={block} soft={soft} motion={v3} />; break;
             case "faq": node = v3 ? <FaqView key={key} block={block} soft={soft} /> : <BlockView key={key} block={block} cardsIndex={1} poster={false} soft={soft} />; break;
             case "formats": node = <FormatsView key={key} block={block} soft={soft} />; break;
-            case "showcase": node = <ShowcaseView key={key} block={block} soft={soft} />; break;
+            case "showcase": node = page.slug === "execucao" ? <ExecucaoProof key={key} block={block} soft={soft} /> : <ShowcaseView key={key} block={block} soft={soft} />; break;
             /* Depoimentos só vão ao ar com vídeo aprovado e hospedado (ver pages.ts): sem isso, nada. */
             case "testimonials": return null;
             case "cards":
-              if (v3) { node = <RitualsView key={key} block={block} />; break; }
+              if (advisoryV3) { node = <RitualsView key={key} block={block} />; break; }
               /* Execução, "O que construímos": índice em acordeão preso na rolagem, com a tela ilustrativa de cada frente. */
               if (page.slug === "execucao" && block.items.some((it) => it.example)) {
                 const t = Array.isArray(block.title) ? block.title.join(" ") : block.title;
@@ -336,8 +339,13 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
               <Image src="/marca/nuvens-douradas.jpg" alt="" fill sizes="100vw" loading="lazy" />
             </ClosingBg>
           )}
+          {page.slug === "execucao" && (
+            <div className={`${styles.closingBg} ${styles.closingArcs}`} aria-hidden="true">
+              <Image src="/marca/arcos-sepia.webp" alt="" fill sizes="100vw" loading="lazy" />
+            </div>
+          )}
           <div className={sol.closingInner}>
-            {v3 ? <ClosingText text={closing} goldClass={styles.gold} /> : <p><LastWord text={closing} /></p>}
+            {page.slug === "execucao" ? <ExecucaoClosing text={closing} /> : v3 ? <ClosingText text={closing} goldClass={styles.gold} /> : <p><LastWord text={closing} /></p>}
             {hero.cta && (
               <Link className={sol.closingCta} href={hero.cta.href}>
                 {hero.cta.label} <ArrowRight />

@@ -93,6 +93,8 @@ export type Block =
       type: "showcase";
       eyebrow: string;
       title: string[];
+      /* `hideItems`: oculta a lista Kognis/Spectra (Execução) sem apagar o texto; aguarda a Carol. */
+      hideItems?: boolean;
       metrics: ProofMetric[];
       featured: {
         eyebrow: string;
@@ -554,6 +556,7 @@ export const execucao: PageContent = {
         "Processos manuais, tarefas repetitivas, sistemas que não conversam. A maioria das empresas sabe onde estão os gargalos. O que falta é tempo, time técnico e método para resolver sem parar a operação.",
       ],
       highlight: ["É aí que a Kalidash entra."],
+      highlightAccent: "entra",
     },
     {
       type: "cards",

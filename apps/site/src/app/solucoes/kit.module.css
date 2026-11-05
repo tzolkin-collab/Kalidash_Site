@@ -350,3 +350,28 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 .v3 .main .curtain a:hover svg, .v3 .main .curtain a:focus-visible svg { transform: translateX(6px); }
 @media (prefers-reduced-motion: reduce) { .v3 .main .curtain a svg { transition: none; } }
 .v3 .heroArch { position: relative; }
+/* ---------- Execução V3: linha fina deslocada atrás da foto em arco (doc-26). Só CSS, fora do fluxo. ---------- */
+.v3[data-page="execucao"] .main > header:first-child [class*="photo"]::before {
+  content: ""; position: absolute; z-index: -1; inset: 0; transform: translate3d(14px, 14px, 0);
+  border: 1px solid rgba(143, 114, 72, 0.7); border-radius: 999px 999px 0 0; pointer-events: none;
+}
+.v3[data-page="execucao"] .main :is(h1, h2, h3) em { font-style: italic; }
+
+/* Execução V3: fecho com arcos sépia em baixa opacidade, deslocados de leve na rolagem (só transform), e título sem o tracking apertado herdado. */
+.v3[data-page="execucao"] .closingArcs { opacity: 0.32; overflow: hidden; }
+.v3[data-page="execucao"] .closingArcs img { transform: scale(1.12); }
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .v3[data-page="execucao"] .closingArcs img { animation: arcsDrift linear both; animation-timeline: view(); animation-range: entry 0% exit 100%; }
+  }
+}
+@keyframes arcsDrift { from { transform: scale(1.12) translate3d(0, -4%, 0); } to { transform: scale(1.12) translate3d(0, 4%, 0); } }
+.v3[data-page="execucao"] section[data-tone="dark"] p { letter-spacing: -0.012em; }
+
+/* Execução V3, abertura: a foto assenta de 1,04 para 1 e a linha fina sai de trás do arco depois da entrada. Só transform e opacity; a foto nunca nasce invisível (LCP). */
+@media (prefers-reduced-motion: no-preference) {
+  .v3[data-page="execucao"] .main > header:first-child [class*="photo"] img { animation: photoSettle 1500ms cubic-bezier(0.33, 1, 0.68, 1) both; animation-delay: calc(var(--enter-delay, 0ms) + 150ms); }
+  .v3[data-page="execucao"] .main > header:first-child [class*="photo"]::before { animation: lineOut 1100ms cubic-bezier(0.33, 1, 0.68, 1) both; animation-delay: calc(var(--enter-delay, 0ms) + 900ms); }
+}
+@keyframes photoSettle { from { transform: scale(1.04); } to { transform: scale(1); } }
+@keyframes lineOut { from { opacity: 0; transform: translate3d(0, 0, 0); } to { opacity: 1; transform: translate3d(14px, 14px, 0); } }
