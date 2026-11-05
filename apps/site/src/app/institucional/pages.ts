@@ -107,6 +107,7 @@ export type Block =
         image?: Media;
       };
       items: Array<{ title: string; text: string; href?: string }>;
+      hideItems?: boolean;
     }
   | { type: "formats"; eyebrow: string; title: string[]; background: Media; items: FormatCard[] }
   | { type: "testimonials"; eyebrow: string; title: string[]; items: Testimonial[] };
@@ -362,6 +363,7 @@ export const aiCulture: PageContent = {
         "Muitas empresas já liberaram ChatGPT, Copilot ou Gemini para o time e a rotina continua igual. O gargalo não é a ferramenta, é saber onde aplicar, testar no próprio trabalho e transformar isso em hábito.",
       ],
       highlight: ["Nosso objetivo é criar capacidade dentro da empresa, não ensinar mais uma ferramenta."],
+      highlightAccent: "capacidade",
     },
     {
       type: "steps",
@@ -554,6 +556,7 @@ export const execucao: PageContent = {
         "Processos manuais, tarefas repetitivas, sistemas que não conversam. A maioria das empresas sabe onde estão os gargalos. O que falta é tempo, time técnico e método para resolver sem parar a operação.",
       ],
       highlight: ["É aí que a Kalidash entra."],
+      highlightAccent: "entra.",
     },
     {
       type: "cards",
@@ -588,6 +591,7 @@ export const execucao: PageContent = {
       type: "showcase",
       eyebrow: "Feito para funcionar",
       title: ["Projetos que já estão rodando."],
+      hideItems: true,
       metrics: [
         { value: "+100", label: "processos automatizados", confirmed: true },
         { value: "170", label: "operações atendidas", confirmed: true },

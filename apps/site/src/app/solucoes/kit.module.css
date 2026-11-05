@@ -343,3 +343,115 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 /* O arco sobe 44 px do pé da abertura: a cortina do capítulo seguinte não corta mais o palestrante. */
 .v3 .heroArch { background: #46304f; margin-bottom: 44px; border-radius: 999px 999px 18px 18px; }
 .v3 .heroArch img { object-position: 50% 50%; }
+
+/* ---------- Ajustes V3: AI Culture e Execução (abertura clara, manifesto, passos, formatos e fecho) ---------- */
+.v3 .main > header:first-child:not(.heroBrand) { background: var(--limestone); color: var(--ink); }
+.v3 .main > header:first-child:not(.heroBrand) [class*="meta"],
+.v3 .main > header:first-child:not(.heroBrand) [class*="support"] { color: var(--gold-text); }
+.v3 .main > header:first-child:not(.heroBrand) [class*="lead"] p { color: rgba(25, 23, 27, 0.74); font-size: clamp(16px, 1.25vw, 18px); line-height: 1.58; }
+.v3 .main > header:first-child:not(.heroBrand) [class*="lead"] strong { color: var(--ink); }
+
+/* C2: H1 da AI Culture ~15% menor para respirar com o subtítulo */
+.v3[data-page="treinamento-corporativo-ia"] .main > header:first-child h1 { font-size: clamp(34px, 4.2vw, 62px); line-height: 1.04; }
+
+/* E1: linha contínua em arco deslocada atrás da foto da Execução (doc-26.png) */
+.v3[data-page="execucao"] .main > header:first-child [class*="photo"] { isolation: isolate; overflow: visible; border-radius: 999px 999px 0 0; background: transparent; }
+.v3[data-page="execucao"] .main > header:first-child [class*="photo"] img { border-radius: 999px 999px 0 0; }
+.v3[data-page="execucao"] .main > header:first-child [class*="photo"]::before {
+  content: "";
+  position: absolute;
+  inset: -10px -14px 10px 14px;
+  border: 1px solid rgba(168, 138, 88, 0.7);
+  border-radius: 999px 999px 0 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* C2 / E3: afirmação e assinatura do manifesto (sem competir como segundo H1) */
+.v3 .assert h2 { font-size: clamp(32px, 3.8vw, 54px); line-height: 1.06; letter-spacing: -0.012em; max-width: 17ch; }
+.v3 .paragraphs p { font-size: clamp(16px, 1.25vw, 18px); line-height: 1.6; color: rgba(25, 23, 27, 0.74); max-width: 50ch; }
+.chapters.v3 .main .manifesto { border-top: 1px solid rgba(168, 138, 88, 0.42); margin-top: clamp(32px, 4.5vw, 56px); padding-top: clamp(24px, 3vw, 36px); }
+.v3 .manifesto p { font-family: var(--font-sub); font-size: clamp(22px, 2.3vw, 32px); line-height: 1.24; letter-spacing: 0; max-width: 36ch; color: var(--ink); }
+.v3[data-page="treinamento-corporativo-ia"] .manifesto .gold { color: #b7654d; }
+
+/* C3: leitura contínua nos títulos e notas de passos ("Começamos pelo trabalho..." e "O treinamento termina. A capacidade fica.") */
+.v3 .main > section[class*="steps"] [class*="stepsHead"] h2 { font-size: clamp(32px, 3.8vw, 52px); line-height: 1.08; max-width: 28ch; }
+.v3 .main [class*="stepsNote"] { grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
+.v3 .main [class*="stepsNote"] p:first-child { max-width: none; font-size: clamp(24px, 2.5vw, 36px); line-height: 1.15; color: var(--gold-light); }
+
+/* C4: Formatos em dois blocos horizontais largos (01 Limestone | 02 Imperial, doc-15.png) */
+.formatTop { display: none; }
+.v3 .formats { display: grid; gap: clamp(20px, 2.6vw, 32px); }
+.v3 .formats > li {
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: clamp(24px, 4vw, 56px);
+  padding: clamp(28px, 3.6vw, 44px);
+  border-radius: 18px;
+  border: 1px solid rgba(168, 138, 88, 0.32);
+  background: var(--limestone-deep);
+  color: var(--ink);
+  align-items: stretch;
+}
+.v3 .formats > li:nth-child(2) {
+  background: var(--imperial);
+  color: var(--limestone);
+  border-color: rgba(196, 166, 115, 0.28);
+}
+.v3 .formatTop {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: -6px;
+}
+.v3 .formatTop span {
+  font-family: var(--font-sub);
+  font-size: 20px;
+  line-height: 1;
+  color: var(--gold-text);
+  font-variant-numeric: tabular-nums;
+}
+.v3 .formats > li:nth-child(2) .formatTop span { color: var(--gold-light); }
+.v3 .formatTop i { flex: 1; height: 1px; background: rgba(168, 138, 88, 0.35); }
+.v3 .formats > li:nth-child(2) .formatTop i { background: rgba(196, 166, 115, 0.25); }
+.v3 .formatHead { display: flex; flex-direction: column; gap: 16px; align-items: flex-start; }
+.v3 .formatHead h3 { margin: 0; font-size: clamp(28px, 3vw, 42px); line-height: 1.06; letter-spacing: -0.012em; color: inherit; }
+.v3 .formatHead p { font-size: 16px; line-height: 1.58; color: rgba(25, 23, 27, 0.74); }
+.v3 .formats > li:nth-child(2) .formatHead p { color: rgba(241, 236, 228, 0.72); }
+.v3 .formats > li:nth-child(2) .formatHead strong { color: var(--limestone); }
+.v3 .formatHead a { margin-top: auto; }
+.v3 .formats > li:nth-child(2) .formatHead a { background: transparent; border-color: rgba(196, 166, 115, 0.65); color: var(--limestone); }
+.v3 .formats > li:nth-child(2) .formatHead a:hover { background: var(--gold); border-color: var(--gold); color: #fff; }
+.v3 .formatBody {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  border-left: 1px solid rgba(168, 138, 88, 0.32);
+  padding-left: clamp(24px, 4vw, 56px);
+}
+.v3 .formats > li:nth-child(2) .formatBody { border-left-color: rgba(196, 166, 115, 0.25); }
+.v3 .formatBody > p { font-size: 16px; line-height: 1.58; color: rgba(25, 23, 27, 0.78); }
+.v3 .formats > li:nth-child(2) .formatBody > p { color: rgba(241, 236, 228, 0.82); }
+.v3 .formatBody ul li {
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.25fr);
+  gap: 16px;
+  padding: 13px 0;
+  border-top: 1px solid rgba(168, 138, 88, 0.28);
+  align-items: center;
+}
+.v3 .formatBody ul li:first-child { border-top: 1px solid rgba(168, 138, 88, 0.28); }
+.v3 .formatBody ul li strong { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; color: var(--ink); }
+.v3 .formatBody ul li strong svg { width: 18px; height: 18px; flex: none; color: var(--gold-text); }
+.v3 .formatBody .extra { padding-top: 14px; border-top: 1px solid rgba(196, 166, 115, 0.22); font-size: 15px; line-height: 1.55; color: rgba(241, 236, 228, 0.68); }
+.v3 .formatSupport { margin: 0; margin-top: auto; padding-top: 14px; border-top: 1px solid rgba(168, 138, 88, 0.28); font-size: 14px; line-height: 1.5; color: rgba(25, 23, 27, 0.62); }
+.v3 .formats > li:nth-child(2) .formatSupport { border-top-color: rgba(196, 166, 115, 0.22); color: rgba(241, 236, 228, 0.58); }
+
+/* Escala do encerramento em V3 para não sobrecarregar a tela */
+.v3 .main > section:last-child p { font-size: clamp(28px, 3.2vw, 44px); line-height: 1.08; max-width: 22ch; }
+
+@media (max-width: 900px) {
+  .v3 .formats > li { grid-template-columns: minmax(0, 1fr); }
+  .v3 .formatBody { border-left: 0; padding-left: 0; border-top: 1px solid rgba(168, 138, 88, 0.32); padding-top: 20px; }
+  .v3 .formats > li:nth-child(2) .formatBody { border-top-color: rgba(196, 166, 115, 0.25); }
+  .v3 .formatBody ul li { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+}

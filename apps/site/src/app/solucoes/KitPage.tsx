@@ -138,7 +138,18 @@ function ListView({ block, soft }: { block: Of<"list">; soft: boolean }) {
   );
 }
 
-/* Formatos: uma linha por formato (título + público | texto + recursos | apoio + CTA). */
+function FormatIcon({ index }: { index: number }) {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {index === 0 && (<><rect x="3" y="3" width="6" height="6" rx="1" /><rect x="11" y="3" width="6" height="6" rx="1" /><rect x="3" y="11" width="6" height="6" rx="1" /><rect x="11" y="11" width="6" height="6" rx="1" /></>)}
+      {index === 1 && (<><circle cx="10" cy="10" r="7" /><circle cx="10" cy="10" r="2.5" /><path d="M10 3v2M10 15v2M3 10h2M15 10h2" /></>)}
+      {index === 2 && <path d="M3.5 15.5h13M4.5 13l-1-6 4 3 2.5-4.5L12.5 10l4-3-1 6H4.5z" />}
+      {index >= 3 && (<><circle cx="10" cy="5.5" r="2.2" /><circle cx="5" cy="14" r="2.2" /><circle cx="15" cy="14" r="2.2" /><path d="M8.5 7.3L6.3 12M11.5 7.3l2.2 4.7M7.2 14h5.6" /></>)}
+    </svg>
+  );
+}
+
+/* Formatos: dois blocos largos (01 Limestone | 02 Imperial), com cabeçalho + CTA à esquerda e escopo + apoio à direita. */
 function FormatsView({ block, soft }: { block: Of<"formats">; soft: boolean }) {
   return (
     <section className={`${prod.section}${soft ? ` ${prod.soft}` : ""}`}>
@@ -146,31 +157,33 @@ function FormatsView({ block, soft }: { block: Of<"formats">; soft: boolean }) {
         <Legend>{block.eyebrow}</Legend>
         <h2 className={prod.h2Wide}>{block.title.join(" ")}</h2>
         <ol className={styles.formats}>
-          {block.items.map((item) => (
+          {block.items.map((item, i) => (
             <li key={item.title}>
+              <div className={styles.formatTop} aria-hidden="true">
+                <span>{String(i + 1).padStart(2, "0")}</span>
+                <i />
+              </div>
               <div className={styles.formatHead}>
                 <h3>{item.title}</h3>
                 <p><Rich text={item.audience} /></p>
+                <Link className={item.ctaStyle === "primary" ? home.primaryButton : home.secondaryButton} href={item.cta.href}>
+                  {item.cta.label} <ArrowRight />
+                </Link>
               </div>
               <div className={styles.formatBody}>
                 <p>{item.text}</p>
                 {item.features && (
                   <ul>
-                    {item.features.map((f) => (
+                    {item.features.map((f, fi) => (
                       <li key={f.title}>
-                        <strong>{f.title}</strong>
+                        <strong><FormatIcon index={fi} />{f.title}</strong>
                         <span>{f.text}</span>
                       </li>
                     ))}
                   </ul>
                 )}
                 {item.extra && <p className={styles.extra}>{item.extra}</p>}
-              </div>
-              <div className={styles.formatAside}>
-                <p>{item.support}</p>
-                <Link className={item.ctaStyle === "primary" ? home.primaryButton : home.secondaryButton} href={item.cta.href}>
-                  {item.cta.label} <ArrowRight />
-                </Link>
+                <p className={styles.formatSupport}>{item.support}</p>
               </div>
             </li>
           ))}
@@ -218,19 +231,21 @@ function ShowcaseView({ block, soft }: { block: Of<"showcase">; soft: boolean })
             )}
           </div>
         </article>
-        <ul className={styles.products}>
-          {block.items.map((item) => (
-            <li key={item.title}>
-              <h3>{item.title}</h3>
-              <p>{item.text}</p>
-              {item.href && (
-                <Link href={item.href} className={home.textLink}>
-                  Saiba mais <ArrowRight />
-                </Link>
-              )}
-            </li>
-          ))}
-        </ul>
+        {!block.hideItems && (
+          <ul className={styles.products}>
+            {block.items.map((item) => (
+              <li key={item.title}>
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+                {item.href && (
+                  <Link href={item.href} className={home.textLink}>
+                    Saiba mais <ArrowRight />
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </section>
   );
@@ -243,15 +258,16 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
   if (!hero) return null;
   /* `aspect: "landscape"` pede a abertura larga (HeroWide) mesmo com foto em pé: o arco recorta. */
   const portrait = hero.aspect === "landscape" ? false : hero.image.height > hero.image.width;
-  /* Ajustes V3: desenho novo (tipografia Kepler/Acumin, Imperial e Limestone) só onde já foi aprovado para ir ao ar; hoje, a Advisory. */
-  const v3 = page.slug === "advisory";
+  /* Ajustes V3: desenho novo (tipografia Kepler/Acumin, Imperial e Limestone) em Advisory, AI Culture e Execução. */
+  const isAdvisory = page.slug === "advisory";
+  const v3 = isAdvisory || page.slug === "treinamento-corporativo-ia" || page.slug === "execucao";
   /* Na Advisory os "rituais" (cards) viram seção Imperial: saem da alternância de fundos claros. */
-  const light = v3 ? LIGHT.filter((t) => t !== "cards") : LIGHT;
+  const light = isAdvisory ? LIGHT.filter((t) => t !== "cards") : LIGHT;
   const tones = toneMap(page.blocks, light);
   /* Movimento de rolagem em CSS (capítulos em cortina, rótulo "nº / total", surge) em todas as páginas do Kit. Sem JS; a cortina só
    * vale no desktop alto e sem movimento reduzido. O ajuste do cabeçalho no celular (kitDark) é só da Advisory, a única com hero Imperial. */
   const chaptered = true;
-  const darkHero = page.slug === "advisory";
+  const darkHero = isAdvisory;
   /* A barra de provas (proofBar) é uma faixa fina colada à abertura, não um capítulo: fica fora da cortina e da contagem. */
   const chapterBlocks = page.blocks.filter((b) => b.type !== "heroMedia" && b.type !== "testimonials" && b.type !== "proofBar");
   return (
@@ -275,9 +291,9 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
           let node: React.ReactNode;
           switch (block.type) {
             case "text":
-              if (v3 && block.highlight && canProblem(block)) node = <ProblemView key={key} block={block} soft={soft} />;
-              else if (v3 && block.chips) node = <LeadershipView key={key} block={block} soft={soft} />;
-              else node = <TextView key={key} block={block} soft={soft} figure={page.slug === "advisory"} />;
+              if (isAdvisory && block.highlight && canProblem(block)) node = <ProblemView key={key} block={block} soft={soft} />;
+              else if (isAdvisory && block.chips) node = <LeadershipView key={key} block={block} soft={soft} />;
+              else node = <TextView key={key} block={block} soft={soft} figure={isAdvisory} />;
               break;
             case "list": node = <ListView key={key} block={block} soft={soft} />; break;
             case "formats": node = <FormatsView key={key} block={block} soft={soft} />; break;
@@ -285,7 +301,7 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
             /* Depoimentos só vão ao ar com vídeo aprovado e hospedado (ver pages.ts): sem isso, nada. */
             case "testimonials": return null;
             case "cards":
-              if (v3) { node = <RitualsView key={key} block={block} />; break; }
+              if (isAdvisory) { node = <RitualsView key={key} block={block} />; break; }
               /* Execução, "O que construímos": índice em acordeão preso na rolagem, com a tela ilustrativa de cada frente. */
               if (page.slug === "execucao" && block.items.some((it) => it.example)) {
                 const t = Array.isArray(block.title) ? block.title.join(" ") : block.title;
@@ -323,7 +339,7 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
           );
         })}
         <section className={`${sol.closing}${chaptered ? ` ${styles.curtain}` : ""}`} data-tone={chaptered ? "dark" : undefined} data-motion={chaptered ? "curtain" : undefined}>
-          {page.slug === "advisory" && (
+          {v3 && (
             <div className={styles.closingBg} aria-hidden="true">
               <Image src="/marca/nuvens-douradas.jpg" alt="" fill sizes="100vw" loading="lazy" />
             </div>
