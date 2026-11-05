@@ -98,3 +98,8 @@
 @media (max-width: 900px) {
   .itemBtn[data-on] { padding-left: 10px; }
 }
+
+/* Ícone ainda não traçado fica invisível (o traço com ponta redonda deixaria pontos soltos). */
+.advStory[data-arm] .icon svg { opacity: 0; }
+.advStory[data-arm][data-live] li[data-drawn] .icon svg,
+.advStory[data-arm]:not([data-live]) li[data-in] .icon svg { opacity: 1; }
