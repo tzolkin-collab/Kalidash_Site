@@ -1356,7 +1356,7 @@
   --aubergine: #46304f;
   --limestone: #f1ece4;
   --limestone-2: #e9e1d6;
-  --ink-v3: #19171b;
+  --ink-v3: #0a0a0a; /* 02/11: mesma tinta dos títulos da Home de referência */
   --gold: #a88a58;
   --gold-text: #8f7248; /* ouro para texto pequeno sobre claro (contraste AA) */
   --terracota: #b7654d;
@@ -1366,10 +1366,10 @@
   --font-display: var(--kepler);
   font-family: var(--acumin);
   font-weight: 400;
-  background: var(--limestone);
+  background: #fff;
   color: var(--ink-v3);
 }
-.v3 :is(h1, h2, h3) { --font-title: var(--kepler); font-family: var(--kepler); font-weight: var(--w-title); text-wrap: balance; }
+.v3 :is(h1, h2, h3) { --font-title: var(--kepler); font-family: var(--kepler); font-weight: var(--w-title); letter-spacing: -0.015em; text-wrap: balance; }
 .v3 :is(strong, b) { font-weight: var(--w-strong); }
 .v3 .gold { color: var(--gold); font-style: italic; font-weight: var(--w-title); }
 
@@ -1391,11 +1391,12 @@
 .v3 .problemCard h3 { font-weight: var(--w-title); letter-spacing: 0.02em; }
 
 /* ---- O que fazemos ---- */
-.v3 .fronts { background: var(--limestone-2); }
-.v3 .frontsIntro h2 { font-size: clamp(34px, 4.4vw, 56px); line-height: 1.04; letter-spacing: -0.01em; }
-.v3 .frontText { background: var(--limestone); }
-.v3 .frontText h3 { font-size: clamp(28px, 2.8vw, 38px); line-height: 1.1; letter-spacing: -0.005em; }
-.v3 .frontLabel { color: var(--gold-text); }
+.v3 .fronts { background: #fff; }
+.v3 .frontsIntro h2 { font-size: clamp(40px, 5.1vw, 74px); line-height: 1; letter-spacing: -0.02em; }
+.v3 .frontText { background: #fff; }
+.v3 .frontText h3 { font-size: clamp(32px, 3.4vw, 48px); line-height: 1.02; letter-spacing: -0.015em; }
+.v3 .frontLabel { color: var(--accent); }
+@media (min-width: 1101px) { .v3 .frontRow { min-height: 40vw; } } /* 02/11: fotos de 640 x 550 a 593 em 1440 */
 
 /* ---- Experiência ---- */
 .v3 .experience { background: var(--limestone); }
