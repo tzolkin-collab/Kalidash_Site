@@ -1398,9 +1398,9 @@
 @media (min-width: 1101px) { .v3 .frontRow { min-height: 40vw; } } /* 02/11: fotos de 640 x 550 a 593 em 1440 */
 
 /* ---- Experiência ---- */
-.v3 .experience { background: var(--limestone); }
-.v3 .expIntroLeft h2 { font-size: clamp(32px, 4vw, 52px); line-height: 1.06; letter-spacing: -0.01em; }
-.v3 .expAuthItems { font-family: var(--kepler); font-weight: var(--w-title); letter-spacing: 0; }
+.v3 .experience { background: var(--gray-1); }
+.v3 .expIntroLeft h2 { font-size: clamp(38px, 4.8vw, 68px); line-height: 1; letter-spacing: -0.02em; }
+.v3 .expAuthItems { letter-spacing: -0.01em; }
 
 /* ---- Case CBA ---- */
 .v3 .caseFeature { border-top-color: rgba(143, 114, 72, 0.3); }
@@ -1468,7 +1468,6 @@
 .v3 .caseActions .textLink, .v3 .diagPrimary, .v3 .diagSecondary { border-radius: 4px; }
 
 /* Serifa pequena: abaixo de ~30px a Display fica apertada e fina; usa a Subhead com tracking 0. Títulos grandes seguem em Display. */
-.v3 .expAuthItems { font-family: var(--kepler-sub); letter-spacing: 0; }
 .v3 .caseKey { font-family: var(--kepler-sub); letter-spacing: 0; }
 .v3 .diagnosticoCtaBox > strong { font-family: var(--kepler-sub); letter-spacing: 0; }
 .v3 .resultMetric strong { font-family: var(--kepler-sub); letter-spacing: 0; }
