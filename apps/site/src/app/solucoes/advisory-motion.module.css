@@ -1,0 +1,100 @@
+/* Movimento da Advisory (AdvisoryMotion.tsx). Só opacity e transform; traço por stroke-dashoffset em elementos com pathLength=1.
+ * Nada nasce escondido: o estado escondido só existe com data-arm (JS ligado e sem movimento reduzido). O palco preso só existe com
+ * data-live (1024+ x 600+). Evite nestes nomes "legend", "pin", "tile", "chip", "rule", "steps": kit.module.css tem seletores [class*=...]. */
+
+.root { display: contents; }
+
+/* ---------- Revelação ao entrar na tela (celular, tablet e seções sem palco) ---------- */
+.advStory[data-arm]:not([data-live]) [data-r=""]:not([data-in]),
+.root[data-arm] [data-r=""]:not([data-in]) { opacity: 0; transform: translate3d(0, 22px, 0); }
+.advStory[data-arm]:not([data-live]) [data-r=""],
+.root[data-arm] [data-r=""] { transition: opacity 700ms ease-out, transform 800ms cubic-bezier(0.33, 1, 0.68, 1); transition-delay: calc(var(--i, 0) * 90ms); }
+
+/* ================= Palco preso (seções 2 e 3) ================= */
+.stick { position: relative; }
+.advStory[data-live] { position: relative; margin-bottom: -36px; }
+.advStory[data-live][data-stage="problem"] { height: 260svh; }
+.advStory[data-live][data-stage="lead"] { height: 230svh; }
+.advStory[data-live] .stick { position: sticky; top: calc(var(--header, 56px) + 40px); height: calc(100svh - var(--header, 56px) - 40px); overflow: clip; background: var(--limestone); }
+.advStory.soft[data-live] .stick { background: var(--limestone-deep); }
+
+/* ---------- Seção 2 ---------- */
+.advStory[data-live] .layA, .advStory[data-live] .layB { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; will-change: transform, opacity; }
+.advStory[data-live] .layA > section, .advStory[data-live] .layB > section { padding-block: 0; margin: 0; width: 100%; }
+.advStory[data-live] .layA { transform: translate3d(0, calc(var(--s, 0) * -14vh), 0); opacity: calc(1 - var(--s, 0) * 1.5); }
+.advStory[data-live] .layB { background: #28183b; transform: translate3d(0, calc((1 - var(--s, 0)) * 100%), 0); }
+
+/* Fase 1: a linha é traçada pela rolagem; cada ponto acende e o evento sobe. */
+.advStory[data-live] [data-part="events"]::before { transform: scaleX(var(--line, 0)); transform-origin: left center; }
+.advStory[data-live] [data-part="events"] > li { opacity: var(--ei, 0); transform: translate3d(0, calc((1 - var(--ei, 0)) * 18px), 0); }
+.advStory[data-live] [data-part="events"] > li:nth-child(1) { --ei: var(--e0, 0); }
+.advStory[data-live] [data-part="events"] > li:nth-child(2) { --ei: var(--e1, 0); }
+.advStory[data-live] [data-part="events"] > li:nth-child(3) { --ei: var(--e2, 0); }
+.advStory[data-live] [data-part="events"] > li:nth-child(4) { --ei: var(--e3, 0); }
+
+/* Fase 3: a assinatura. */
+.advStory[data-live] [data-part="soft"] { opacity: var(--soft, 0); }
+.advStory[data-live] [data-part="strong"] { opacity: var(--strong, 0.3); }
+.advStory[data-live] [data-part="strong"] em { opacity: var(--gold, 0); }
+.advStory[data-live] [data-part="sigil"] :is(circle, path) { stroke-dasharray: 1; stroke-dashoffset: calc(1 - var(--sig, 0)); }
+.advStory[data-live] [data-part="sigil"] circle:last-of-type { opacity: var(--sig, 0); }
+.advStory[data-live] [data-part="marks"] { position: relative; border-top-color: rgba(196, 166, 115, 0.18); }
+.advStory[data-live] [data-part="marks"]::before { content: ""; position: absolute; left: 0; right: 0; top: -1px; height: 1px; background: #c4a673; transform: scaleX(var(--mline, 0)); transform-origin: left center; }
+.advStory[data-live] [data-part="marks"] > li { opacity: calc(0.22 + 0.78 * var(--mi, 0)); }
+.advStory[data-live] [data-part="marks"] > li:nth-child(1) { --mi: var(--m0, 0); }
+.advStory[data-live] [data-part="marks"] > li:nth-child(2) { --mi: var(--m1, 0); }
+.advStory[data-live] [data-part="marks"] > li:nth-child(3) { --mi: var(--m2, 0); }
+.advStory[data-live] [data-part="marks"] > li:nth-child(4) { --mi: var(--m3, 0); }
+
+/* Fora do palco, a linha também é traçada e a assinatura/sigilo entram ao aparecer. */
+.advStory[data-arm]:not([data-live]) [data-part="events"]::before { transform: scaleX(0); transform-origin: left center; transition: transform 1400ms cubic-bezier(0.33, 1, 0.68, 1); }
+.advStory[data-arm]:not([data-live]) [data-part="events"][data-in]::before { transform: scaleX(1); }
+.advStory[data-arm]:not([data-live]) [data-part="sigil"] :is(circle, path) { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1600ms ease-out; }
+.advStory[data-arm]:not([data-live]) [data-part="sigil"][data-in] :is(circle, path) { stroke-dashoffset: 0; }
+@media (max-width: 900px) {
+  .advStory[data-arm]:not([data-live]) [data-part="events"]::before { transform: scaleY(0); transform-origin: top center; }
+  .advStory[data-arm]:not([data-live]) [data-part="events"][data-in]::before { transform: scaleY(1); }
+}
+
+/* ---------- Seção 3 ---------- */
+.advStory[data-live] .leadSection { height: 100%; display: flex; align-items: center; padding-block: 0; }
+.advStory[data-live] .leadSection > div { width: var(--container); }
+.advStory .items li { display: block; padding: 0; }
+.itemBtn { display: grid; grid-template-columns: clamp(44px, 4.6vw, 68px) minmax(0, 1fr) 40px; align-items: center; gap: 12px; width: 100%; padding: clamp(18px, 2.2vw, 30px) 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; opacity: 1; transition: opacity 300ms ease; }
+.itemBtn:focus-visible { outline: 2px solid #8f7248; outline-offset: -2px; }
+.advStory[data-live] .itemBtn:not([data-on]) { opacity: 0.45; }
+.advStory[data-live] .itemBtn { padding-block: clamp(14px, 2.2vh, 26px); }
+.icon { display: block; justify-self: end; width: 34px; height: 34px; }
+.icon svg { display: block; width: 100%; height: 100%; color: #6b5733; transition: color 300ms ease; }
+.itemBtn[data-on] .icon svg { color: #8f7248; }
+.itemBtn[data-on] { box-shadow: inset 2px 0 0 #a88a58; }
+.itemBtn[data-on] { padding-left: 14px; }
+.itemBtn { transition: opacity 300ms ease, padding-left 300ms cubic-bezier(0.33, 1, 0.68, 1); }
+
+/* O ícone é traçado quando o item é alcançado (palco) ou aparece (celular). */
+.advStory[data-arm] .icon :is(path, circle, rect, line) { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 900ms ease-out; }
+.advStory[data-arm][data-live] li[data-drawn] .icon :is(path, circle, rect, line),
+.advStory[data-arm]:not([data-live]) li[data-in] .icon :is(path, circle, rect, line) { stroke-dashoffset: 0; }
+
+/* Pentágono: círculo e polígono são traçados na entrada; o vértice do item ativo acende, com um pulso do centro até ele. */
+.pent { overflow: visible; }
+.pent .ring { stroke-dasharray: 1; }
+.advStory[data-arm] .pent .ring { stroke-dashoffset: calc(1 - var(--draw, 0)); }
+.advStory[data-arm]:not([data-live]) .pent .ring { transition: stroke-dashoffset 1600ms ease-out; }
+.polyBase { stroke: rgba(40, 24, 59, 0.28); }
+.polyGold { stroke: #a88a58; fill: rgba(168, 138, 88, 0); stroke-dasharray: 1; stroke-dashoffset: 0; transition: stroke-dashoffset 700ms cubic-bezier(0.33, 1, 0.68, 1), fill 700ms ease; }
+.advStory[data-arm] .polyGold { stroke-dashoffset: calc(1 - var(--pg, 0)); }
+.pent[data-all] .polyGold { fill: rgba(168, 138, 88, 0.14); }
+.spoke { stroke: #a88a58; stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0; }
+.spoke[data-on] { stroke-dashoffset: 0; opacity: 1; transition: stroke-dashoffset 600ms cubic-bezier(0.33, 1, 0.68, 1), opacity 200ms ease; }
+.hub { color: #a88a58; }
+.vertex { fill: #28183b; transform-box: fill-box; transform-origin: center; transition: transform 400ms cubic-bezier(0.33, 1, 0.68, 1), fill 300ms ease; }
+.vertex[data-on] { fill: #a88a58; transform: scale(1.9); }
+.roman { transition: fill 300ms ease; }
+.roman[data-on] { fill: #6b5733; font-weight: 700; }
+@media (prefers-reduced-motion: reduce) {
+  .polyGold, .spoke, .vertex, .itemBtn { transition: none; }
+}
+@media (max-width: 900px) {
+  .itemBtn[data-on] { padding-left: 10px; }
+}
