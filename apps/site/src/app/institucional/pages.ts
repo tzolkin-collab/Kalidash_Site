@@ -93,7 +93,7 @@ export type Block =
       type: "showcase";
       eyebrow: string;
       title: string[];
-      /* `hideItems`: oculta a lista Kognis/Spectra (Execução) sem apagar o texto; aguarda a Carol. */
+      /* `hideItems`: oculta a lista Kognis/Spectra (Execução) sem apagar o texto. */
       hideItems?: boolean;
       metrics: ProofMetric[];
       featured: {
@@ -590,6 +590,7 @@ export const execucao: PageContent = {
     },
     {
       type: "showcase",
+      hideItems: true, /* Carol confirmou a saída de Kognis e Spectra (vídeo, 04/11). */
       eyebrow: "Feito para funcionar",
       title: ["Projetos que já estão rodando."],
       metrics: [

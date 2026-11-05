@@ -62,6 +62,11 @@ export const hero = {
 };
 
 export const clients = [
+  { name: "ArcelorMittal", src: "/logos/arcelormittal.svg" },
+  { name: "Cooxupé", src: "/logos/cooxupe.png" },
+  { name: "CBA", src: "/logos/cba.svg" },
+  { name: "Sicoob", src: "/logos/sicoob.svg" },
+  { name: "Clara Resorts", src: "/logos/clara-resorts.svg" },
   { name: "Neon", src: "/home/logo-neon.png" },
   { name: "Arquiteto de Bolso", src: "/home/logo-arquiteto.png" },
   { name: "Spark", src: "/home/logo-spark.png" },
