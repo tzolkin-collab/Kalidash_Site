@@ -227,3 +227,12 @@
 .sobre .timeline .mosaicWrap { margin-top: 0; margin-bottom: clamp(20px, 2.4vw, 36px); }
 .sobre .timeline .acts > li { padding-block: clamp(16px, 2vw, 28px); }
 .sobre .timeline .keyline { margin-top: clamp(20px, 3vw, 40px); padding-top: clamp(20px, 2.4vw, 32px); }
+
+/* ---------- Ajustes do vídeo (04/11): "Nós ensinamos o que vivemos. E vivemos o que ensinamos." esticada, sem corte no meio de cada frase ---------- */
+.sobre .keyline { max-width: none; text-wrap: balance; }
+.keyPart { display: block; white-space: nowrap; }
+@media (max-width: 1099px) { .sobre .keyline { font-size: clamp(20px, 5.6vw, 32px); } }
+@media (min-width: 1100px) {
+  .sobre .keyline { font-size: clamp(28px, 2.9vw, 42px); white-space: nowrap; text-wrap: nowrap; }
+  .keyPart { display: inline; }
+}
