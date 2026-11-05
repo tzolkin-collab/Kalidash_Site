@@ -9,12 +9,12 @@ Veja em `http://localhost:3307` (build de produção). Branch `claude/home-0211-
 - **O que fazemos:** xadrez de três fotos grandes encostadas no texto, sem cartão.
 - **Experiência, case e depoimentos:** como em 02/11, com a galeria, os retratos grandes e o selo do prêmio.
 - **O Problema:** bloco roxo e holograma atuais, e três sintomas abertos, cada um com seu depoimento.
-- **Celular e tablet:** título, texto, holograma e sintomas aparecem. Holograma conferido por imagem em 360, 390 e 768.
+- **Celular e tablet:** título, texto e sintomas aparecem. O holograma fica só no computador (a partir de 1101 px), por decisão do dono, depois do brief.
 - **Mantidos:** 28 logos em cor, loop de 75 s e copy atual (`content.ts` não mudou).
 
 ## Antes e depois
 
-Em `img/`, sempre 3306 à esquerda e 3307 à direita: `<largura>-<seção>.png`, em 1440, 1024, 768 e 390. Primeira tela: `1366x768-primeira-tela-antes.png` e `-depois.png`. Holograma: `holo-360.png`, `holo-390.png`, `holo-768.png`. Quadros de animação: `<largura>-quadro-*.png`.
+Em `img/`, sempre 3306 à esquerda e 3307 à direita: `<largura>-<seção>.png`, em 1440, 1024, 768 e 390. Primeira tela: `1366x768-primeira-tela-antes.png` e `-depois.png`. Quadros de animação: `<largura>-quadro-*.png`.
 
 ## Medições
 
@@ -23,16 +23,15 @@ Em `img/`, sempre 3306 à esquerda e 3307 à direita: `<largura>-<seção>.png`,
 | LCP computador / celular | 668 / 456 ms | 576 / 376 ms |
 | CLS computador / celular, com rolagem | 0,0014 / 0,0012 | 0,0017 / 0,0017 |
 | TBT computador / celular, sem rolar | 330 / 345 ms | 294 / 290 ms |
-| TBT celular, rolando até o fim (outra rodada) | 238 ms | 629 ms |
+| Celular, rodada final sem holograma: LCP / TBT rolando até o fim | 480 / 247 ms | 340 / 240 ms |
 
-Mediana de 3, com CPU 4x mais lenta e sem rede simulada; não é Lighthouse. **Os números de carregamento variam entre rodadas:** no celular, sem rolar, a segunda rodada deu 238 ms na 3300 e 332 ms na 3307.
-
-**Custo do holograma:** o aumento do TBT ao rolar no celular vem, muito provavelmente, de ele agora carregar lá. Antes ele não existia nessa largura. Isso acontece ao chegar na seção, não na abertura da página.
+Mediana de 3, com CPU 4x mais lenta e sem rede simulada; não é Lighthouse. **Os números de carregamento variam entre rodadas:** o LCP da 3300 no celular foi de 388 a 480 ms. As três primeiras linhas são da versão com holograma no celular; só a última foi medida depois de tirá-lo.
 
 - **Rolagem horizontal:** nenhuma em 1440, 1024, 768 e 390.
 - **Console:** sem erros. Só avisos de pré-carregamento de CSS do Next em produção.
 - **`tsc` e build:** passam.
 - **Lint:** 2 erros, em `DiagnosticoClient` e `AdvisoryMotion`, arquivos que esta entrega não mexeu.
+- **Depois de tirar o holograma do celular:** `tsc` e build refeitos; O Problema recapturado nas 4 larguras, sem rolagem horizontal nem erro de console. As demais capturas são do build anterior; essa mudança só afeta o holograma e a ordem de O Problema abaixo de 1101 px.
 - **Outras páginas:** Advisory e Sobre nós têm 0,000% de pixels diferentes da 3300, em 1440 e 390, com movimento reduzido.
 
 ## Animações que saíram
