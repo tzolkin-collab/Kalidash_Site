@@ -412,7 +412,7 @@
   margin-top: 10px;
   padding-bottom: 0;
   border-bottom: none;
-  color: var(--accent);
+  color: #28183b;
   text-decoration: none;
   font-family: var(--font-title);
   font-size: 0.84rem;
@@ -426,7 +426,7 @@
 }
 
 .posts [data-role="read-more"]:hover {
-  color: var(--accent-hover);
+  color: #46304f;
 }
 
 .posts [data-role="read-more"]:hover span {
@@ -750,7 +750,7 @@
 
 /* ==========================================================================
  * Sistema da marca no blog (o mesmo de Advisory, Sobre nós, Execução…): abertura em Imperial com legenda e destaque em
- * dourado, dourado nas legendas, no filtro ativo e nas réguas; o "Ler artigo" segue terracota (CTA sobre fundo claro).
+ * dourado, dourado nas legendas, no filtro ativo e nas réguas; o "Ler artigo" fica roxo (CTA sobre fundo claro).
  * Movimento: a abertura entra ao carregar (só transform) e os cartões surgem na rolagem (CSS onde há suporte; no celular e
  * sem suporte, o ScrollMotion faz o mesmo por IntersectionObserver). Nada nasce escondido; parado com movimento reduzido.
  * ========================================================================== */

@@ -396,24 +396,24 @@
   min-height: 52px;
   padding: 0 20px;
   border-radius: 6px;
-  background: var(--accent, #b6644d);
-  border: 1px solid var(--accent, #b6644d);
+  background: #28183b;
+  border: 1px solid #28183b;
   color: #ffffff;
   font-family: var(--font-title, sans-serif);
   font-size: 15px;
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(182, 100, 77, 0.2);
+  box-shadow: 0 4px 14px rgba(40, 24, 59, 0.2);
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .ctaButton:hover,
 .ctaButton:active {
-  background: #a35641;
-  border-color: #a35641;
+  background: #46304f;
+  border-color: #46304f;
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(182, 100, 77, 0.28);
+  box-shadow: 0 6px 18px rgba(40, 24, 59, 0.28);
 }
 
 .ctaButton svg {

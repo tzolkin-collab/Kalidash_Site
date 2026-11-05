@@ -11,6 +11,8 @@
   --ink: #28183b;
   --purple: #462f4f;
   --accent: #b6644d;
+  --cta: #28183b; /* CTAs em roxo (pedido do dono em 05/11); o terracota fica só como detalhe */
+  --cta-hover: #46304f;
   --gray-1: #f8f8f8;
   --gray-2: #eaeaea;
   --black-1:#0e0e0e;
@@ -54,8 +56,8 @@
 }
 .textLink {
   display: inline-flex; align-items: center; gap: 10px;
-  padding-bottom: 12px; border-bottom: 1px solid var(--accent);
-  color: var(--accent); font-size: 18px; line-height: 23px; text-decoration: none;
+  padding-bottom: 12px; border-bottom: 1px solid var(--cta);
+  color: var(--cta); font-size: 18px; line-height: 23px; text-decoration: none;
 }
 .textLink svg { width: 20px; height: 20px; }
 .arrows { display: flex; gap: 14px; }
@@ -152,7 +154,7 @@
 .navDropdown small { font-size: 12px; font-weight: 400; color: #6b6b6b; }
 .navCta {
   gap: 8px; margin-left: 2px; padding-bottom: 4px;
-  border-bottom: 1px solid var(--accent); color: var(--accent) !important; font-weight: 400;
+  border-bottom: 1px solid #28183b; color: #28183b !important; font-weight: 400;
   transition: all 0.15s ease;
 }
 .navCta:hover {
@@ -841,14 +843,14 @@
 }
 .primaryButton, .secondaryButton {
   display: inline-flex; align-items: center; justify-content: center; gap: 12px;
-  min-height: 56px; padding: 0 24px; border: 1px solid var(--accent); border-radius: 4px;
+  min-height: 56px; padding: 0 24px; border: 1px solid var(--cta); border-radius: 4px;
   font-size: 16px; font-weight: 600; text-decoration: none;
   transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1), filter 160ms ease, background 160ms ease;
 }
-.primaryButton { background: var(--accent); color: #fff !important; }
+.primaryButton { background: var(--cta); color: #fff !important; }
 .secondaryButton { background: transparent; color: var(--ink); }
-.primaryButton:hover { filter: brightness(1.08); transform: translateY(-2px); }
-.secondaryButton:hover { background: #fbf4f1; transform: translateY(-2px); }
+.primaryButton:hover { background: var(--cta-hover); border-color: var(--cta-hover); transform: translateY(-2px); }
+.secondaryButton:hover { background: #f4f1f6; transform: translateY(-2px); }
 .primaryButton svg, .secondaryButton svg { width: 19px; height: 19px; }
 
 /* Animação coordenada: move o CTA primário para a esquerda junto com o selo */
@@ -902,7 +904,12 @@
   transform: translateX(0);
 }
 .heroProof { margin-top: 0; border-top: none; }
-.logoMarquee { overflow: hidden; padding: clamp(24px, 2.8vw, 36px) 0; border-bottom: none; }
+.logoMarquee {
+  --logo-fade: clamp(40px, 9vw, 150px); /* os logos entram e saem suavemente nas bordas */
+  overflow: hidden; padding: clamp(24px, 2.8vw, 36px) 0; border-bottom: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 var(--logo-fade), #000 calc(100% - var(--logo-fade)), transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 var(--logo-fade), #000 calc(100% - var(--logo-fade)), transparent);
+}
 .logoTrack {
   display: flex; align-items: center; width: max-content; gap: 64px; padding: 0; list-style: none;
   animation: logo-loop 75s linear infinite;

@@ -210,14 +210,14 @@
   font-family: var(--f-title);
   font-size: 16px;
   font-weight: 600;
-  color: var(--c-brand-text);
+  color: #28183b;
   text-decoration: none;
   border-bottom: 1px solid currentColor;
   transition: color 160ms var(--ease);
 }
 
 .whatsappDirect:hover {
-  color: var(--accent-hover);
+  color: #46304f;
 }
 
 .whatsappDirect svg {
@@ -563,7 +563,7 @@
 }
 
 .prevButton:hover:not(:disabled) {
-  color: var(--accent-hover);
+  color: #46304f;
 }
 
 .prevButton:disabled {
@@ -585,9 +585,9 @@
   gap: 12px;
   min-height: 56px;
   padding: 0 24px;
-  border: 1px solid var(--accent);
+  border: 1px solid #28183b;
   border-radius: var(--r-control);
-  background: var(--accent);
+  background: #28183b;
   color: #fff;
   font-family: var(--f-title);
   font-size: 16px;
@@ -601,8 +601,8 @@
 .nextButton:hover,
 .submitButton:hover:not(:disabled),
 .successHomeButton:hover {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
+  background: #46304f;
+  border-color: #46304f;
 }
 
 .submitButton:disabled {
@@ -664,14 +664,14 @@
   font-family: var(--f-title);
   font-size: 16px;
   font-weight: 600;
-  color: var(--c-brand-text);
+  color: #28183b;
   text-decoration: none;
   border-bottom: 1px solid currentColor;
   transition: color 160ms var(--ease);
 }
 
 .successWhatsAppButton:hover {
-  color: var(--accent-hover);
+  color: #46304f;
 }
 
 .successWhatsAppButton:focus-visible {

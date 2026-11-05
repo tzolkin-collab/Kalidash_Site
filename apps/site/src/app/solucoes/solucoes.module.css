@@ -125,7 +125,7 @@
   justify-self: start; display: inline-flex; align-items: center; gap: 10px;
   padding-bottom: 10px; border-bottom: 1px solid currentColor; font-size: 18px; text-decoration: none;
 }
-.light .link { color: var(--accent); }
+.light .link { color: #28183b; }
 .dark .link { color: var(--accent-soft); }
 .link svg { width: 20px; height: 20px; }
 .link:focus-visible, .closingCta:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
