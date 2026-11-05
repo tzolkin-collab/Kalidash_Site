@@ -81,7 +81,7 @@ export default function HomePage() {
   const logoLoop = [...clients, ...clients];
 
   return (
-    <div className={`${styles.home} ${styles.homeDark} ${fraunces.variable}`}>
+    <div className={`${styles.home} ${fraunces.variable}`}>
       {/* Kit Adobe (Kepler e Acumin) só na Home e só dentro do <main>. O CSS do kit NÃO bloqueia a primeira pintura (medido: +1,2 s de FCP
           e texto invisível até a fonte chegar): o <link rel="preload"> começa o download cedo; o useEffect abaixo aplica o CSS e só
           marca data-fonts="ready" depois que as fontes carregaram. Até lá vale a fonte de reserva, com métrica ajustada (home.module.css). */}
@@ -105,11 +105,11 @@ export default function HomePage() {
       <HomeHeader />
 
       <main className={styles.v3} ref={mainRef}>
-        <section className={`${styles.hero} ${styles.heroV3}`} data-block="home-hero" data-tone="dark">
+        <section className={styles.hero} data-block="home-hero">
           <div className={heroStyles.main}>
           <div className={heroStyles.text}>
           <Eyebrow>{hero.eyebrow}</Eyebrow>
-          <h1>{hero.title.before}<span className={heroStyles.keep}><em className={styles.gold}>{hero.title.accent}</em>{hero.title.after}</span></h1>
+          <h1>{hero.title}</h1>
           <div className={styles.heroCopy}>
             {hero.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
           </div>
@@ -138,8 +138,7 @@ export default function HomePage() {
           </div>
           </div>
           <div className={heroStyles.bust} aria-hidden="true">
-            <Image src="/home/hero-pensador.jpg" alt="" width={1000} height={1200} priority sizes="(max-width: 1023px) 72vw, 36vw" />
-            <p className={heroStyles.caption}>{hero.caption.before}<em>{hero.caption.accent}</em>{hero.caption.after}</p>
+            <Image src="/kalidash-hero-sculpture.png" alt="" width={1122} height={1402} priority sizes="(max-width: 1023px) 70vw, 36vw" />
           </div>
           </div>
 

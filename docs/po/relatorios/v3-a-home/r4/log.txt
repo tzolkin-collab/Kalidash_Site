@@ -1,0 +1,24 @@
+1440 antes topo: tone=light headerBg=rgba(255, 255, 255, 0.88) headerY=0 h1Top=203 scrollY=0
+1440 antes emenda: tone=light headerBg=rgba(255, 255, 255, 0.96) headerY=0 h1Top=203 scrollY=711
+1440 antes problema: tone=light headerBg=rgba(255, 255, 255, 0.96) headerY=0 h1Top=203 scrollY=1441
+1440 antes diagnostico: tone=light headerBg=rgba(255, 255, 255, 0.96) headerY=0 h1Top=203 scrollY=6976
+1440 antes volta ao topo: tone=light headerBg=rgba(255, 255, 255, 0.88) headerY=0 h1Top=203 scrollY=0
+1440 depois topo: tone=light headerBg=rgba(255, 255, 255, 0.88) headerY=0 h1Top=203 scrollY=0
+1440 depois emenda: tone=light headerBg=rgba(255, 255, 255, 0.96) headerY=0 h1Top=203 scrollY=711
+1440 depois problema: tone=light headerBg=rgba(255, 255, 255, 0.96) headerY=0 h1Top=203 scrollY=1441
+1440 depois diagnostico: tone=dark headerBg=rgba(40, 24, 59, 0.94) headerY=0 h1Top=203 scrollY=6996
+1440 depois volta ao topo: tone=light headerBg=rgba(255, 255, 255, 0.88) headerY=0 h1Top=203 scrollY=0
+390 antes topo: tone=light headerBg=rgba(0, 0, 0, 0) headerY=0 h1Top=168 scrollY=0
+390 antes emenda: tone=light headerBg=rgba(0, 0, 0, 0) headerY=0 h1Top=168 scrollY=1000
+390 antes problema: tone=light headerBg=rgba(0, 0, 0, 0) headerY=0 h1Top=168 scrollY=1730
+390 antes diagnostico: tone=light headerBg=rgba(0, 0, 0, 0) headerY=0 h1Top=168 scrollY=11123
+390 antes volta ao topo: tone=light headerBg=rgba(0, 0, 0, 0) headerY=0 h1Top=168 scrollY=0
+390 depois topo: tone=light headerBg=rgba(0, 0, 0, 0) headerY=0 h1Top=168 scrollY=0
+390 depois emenda: tone=light headerBg=rgba(0, 0, 0, 0) headerY=0 h1Top=168 scrollY=971
+390 depois problema: tone=light headerBg=rgba(0, 0, 0, 0) headerY=0 h1Top=168 scrollY=1701
+390 depois diagnostico: tone=dark headerBg=rgba(0, 0, 0, 0) headerY=0 h1Top=168 scrollY=10968
+390 depois volta ao topo: tone=light headerBg=rgba(0, 0, 0, 0) headerY=0 h1Top=168 scrollY=0
+pixel /advisory 1440: 0 px diferentes de 8779680
+pixel /advisory 390: 0 px diferentes de 2689050
+pixel /sobre-nos 1440: 0 px diferentes de 7630560
+pixel /sobre-nos 390: 0 px diferentes de 2199210

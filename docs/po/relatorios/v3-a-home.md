@@ -129,3 +129,33 @@ Mesmo padrão do Advisory (`kit.module.css .kitDark`), só em `home.module.css` 
 | Desktop r3 | 1042 ms | 0,001 | 0 |
 
 CLS = 0,001, igual ao da rodada 2 (não subiu); em relação à partida (0) é 0,001, da troca de fonte. O bloco do problema no celular não foi tocado.
+
+---
+
+# Rodada 4: hero volta ao de `240a2bb`
+
+Decisão do dono. Capturas em `v3-a-home/r4/` (`antes-*` = `240a2bb`, `depois-*` = agora); quadros de movimento em `r4/movimento/` (`r4-*`, e `r4-reduzido-*`) contra `movimento/antes-*`.
+
+## O que mudou
+- `home-hero` restaurado de `240a2bb`: markup, copy (título, subtexto, eyebrow), estátua `/kalidash-hero-sculpture.png` no arco roxo, botão terracota, faixa de logos e números nas cores originais; sai a legenda "protagonismo". `HomeHero.module.css` voltou ao original; `hero-pensador.jpg` removido.
+- Única diferença visual: título em **Kepler** (regra geral dos h1 da Home), com tamanho `clamp(44px, 5.8vw, 86px)`, entrelinha 1,04 e tracking -0,015em, quebra equilibrada em 3 linhas (1440) e 3 (390). O resto do hero mantém as fontes originais da Home (Source Sans/Inter), restauradas dentro do `.v3 .hero`.
+- O hero ocupa a largura toda com fundo branco (`.v3 .hero`), para não herdar o Limestone do `<main>`.
+- Cabeçalho: saíram o `data-tone="dark"` do hero, `.homeDark` e as compensações de margem e `padding-top` da rodada 3. O Diagnóstico segue com `data-tone="dark"`.
+- Problema, frentes, experiência, case e Diagnóstico: sem alteração.
+
+## Conferido
+- **Cabeçalho** (`r4/log.txt`): topo, emenda, problema e volta ao topo iguais ao de partida (`tone=light`, mesma cor de fundo e posição) em 1440 e 390; no Diagnóstico `tone=dark` e a barra escurece; `h1Top` idêntico a `240a2bb` (203 em 1440, 168 em 390).
+- **Emenda hero × problema:** hero branco, números, depois o cartão Imperial sobre Limestone; o halo do holograma não vaza para os números (`depois-emenda-hero-problema-1440.jpg`).
+- **Animações do hero:** CSS de entrada restaurado byte a byte; quadros antes × depois conferidos em 1440 e 390.
+- **Isolamento:** `/advisory` e `/sobre-nos`, 1440 e 390, página inteira: 0 pixels diferentes das quatro comparações com `240a2bb`.
+
+## Números (Lighthouse 12, mediana de 3, `/`, produção)
+
+| | LCP | CLS | TBT |
+|---|---|---|---|
+| Móvel `240a2bb` | 5236 ms | 0 | 44 ms |
+| Móvel r4 | 5278 ms | 0,001 | 56 ms |
+| Desktop `240a2bb` | 1025 ms | 0 | 0 |
+| Desktop r4 | 1018 ms | 0,001 | 0 |
+
+O elemento de LCP voltou a ser a estátua. O CLS 0,001 vem da troca de fonte (Kepler) nos títulos do `<main>`.

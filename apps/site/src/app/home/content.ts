@@ -48,12 +48,10 @@ export const navCta = { label: "Diagnóstico", href: "/diagnostico" };
 
 export const hero = {
   eyebrow: "Aceleradora de eficiência operacional",
-  /* Partes do título: a palavra de sentido (em itálico dourado) vem separada, não é a última palavra da frase. */
-  title: { before: "A inteligência que ", accent: "falta", after: " na IA." },
+  title: "Prepare sua operação para a era dos agentes de IA.",
   paragraphs: [
-    "A IA executa. Quem define onde chegar são as pessoas. Treinamos equipes, estruturamos a governança e implementamos agentes de IA e automações em empresas da economia real.",
+    "Treinamos equipes, estruturamos a governança e implementamos agentes e automações em operações com mais de 500 pessoas. Eficiência medida no resultado, não na ferramenta.",
   ],
-  caption: { before: "A IA faz a parte operacional. O ", accent: "protagonismo", after: " é nosso." },
   primaryCta: { label: "Preparar minha operação", href: "/diagnostico" },
   secondaryCta: { label: "Conhecer a Kalidash", href: "/#experiencia" },
   stats: [

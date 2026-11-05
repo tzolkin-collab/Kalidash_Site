@@ -1,0 +1,15 @@
+{
+ "mobile /": {
+  "perf": 74,
+  "lcp": 5278,
+  "cls": 0.001,
+  "tbt": 56,
+  "fcp": 1976,
+  "ttfb": 11,
+  "js": 200,
+  "img": 2035,
+  "font": 876,
+  "total": 3241,
+  "lcpEl": "<img alt=\"\" width=\"1122\" height=\"1402\" decoding=\"async\" data-nimg=\"1\" style=\"col"
+ }
+}
