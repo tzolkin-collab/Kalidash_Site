@@ -905,7 +905,7 @@
 .logoMarquee { overflow: hidden; padding: clamp(24px, 2.8vw, 36px) 0; border-bottom: none; }
 .logoTrack {
   display: flex; align-items: center; width: max-content; gap: 64px; padding: 0; list-style: none;
-  animation: logo-loop 32s linear infinite;
+  animation: logo-loop 75s linear infinite;
   will-change: transform;
   transform: translateZ(0);
 }

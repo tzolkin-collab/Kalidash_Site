@@ -3,7 +3,7 @@
 Arquivos em `apps/site/public/logos/`. **"Ajuste"** é tudo o que foi alterado no arquivo de origem, além de recorte das margens e redução de tamanho.
 Uso de marca: a Carol deu ok em 22/10 só para ArcelorMittal, CBA, Sicoob e Cooxupé. As demais ainda precisam de ok antes de novos usos.
 
-## Faixa da Home (em uso)
+## Faixa da Home: marcas originais
 | Empresa | Arquivo | Origem | Ajuste |
 |---|---|---|---|
 | ArcelorMittal | `arcelormittal.svg` | já no repositório | nenhum |
@@ -21,7 +21,7 @@ Uso de marca: a Carol deu ok em 22/10 só para ArcelorMittal, CBA, Sicoob e Coox
 
 **Bázico:** bazico.com.br é a BAZICO Tecnologia e Consultoria (biogás e energia), com logo oval azul, diferente do "BÁZICO" cinza que estava no site. Não troquei: falta confirmar se é a mesma empresa.
 
-## Galeria e "Onde ensinamos" (arquivos prontos, não colocados na faixa)
+## Galeria e "Onde ensinamos" (na faixa da Home por decisão do dono em 05/11)
 | Empresa | Arquivo | Origem | Ajuste |
 |---|---|---|---|
 | Agir Saúde | `agir.png` | agirsaude.org.br | só havia branco; aplicado o azul #00549A do CSS do site |

@@ -74,6 +74,22 @@ export const clients = [
   { name: "Bázico", src: "/home/logo-bazico.png" },
   { name: "Control iD", src: "/logos/control-id.png" },
   { name: "3D Lab", src: "/logos/3dlab.png" },
+  { name: "Agir Saúde", src: "/logos/agir.png" },
+  { name: "Clealco", src: "/logos/clealco.png" },
+  { name: "Fundação Dom Cabral", src: "/logos/fundacao-dom-cabral.svg" },
+  { name: "Grupo Sifra", src: "/logos/grupo-sifra.svg" },
+  { name: "Nexa Resources", src: "/logos/nexa.png" },
+  { name: "Química Anastácio", src: "/logos/quimica-anastacio.png" },
+  { name: "SAAM Towage", src: "/logos/saam-towage.png" },
+  { name: "SKY", src: "/logos/sky.svg" },
+  { name: "TOTVS", src: "/logos/totvs.svg" },
+  { name: "Votorantim", src: "/logos/votorantim.svg" },
+  { name: "ZIG", src: "/logos/zig.svg" },
+  { name: "Conquer", src: "/logos/conquer.svg" },
+  { name: "Xperiun", src: "/logos/xperiun.svg" },
+  { name: "Rocketseat", src: "/logos/rocketseat.svg" },
+  { name: "Hashtag", src: "/logos/hashtag.png" },
+  { name: "Tera", src: "/logos/tera.svg" },
 ];
 
 export const problem = {
