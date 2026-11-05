@@ -812,3 +812,15 @@
 :global(html[data-motion="js"]) .page [data-surge][data-in] { opacity: 1; transform: none; }
 /* Com o filtro no cabeçalho, a barra é branca: a logo fica sempre escura. */
 .page :global(header[data-block="home-header"][data-filters-active="true"]) :global([data-header-logo="true"]) { --logo-body: #28183b; }
+
+/* ---------- Ajustes do vídeo (04/11): filtros de categoria na lateral, no desktop ----------
+ * 1101+: a faixa de filtros vira uma coluna à esquerda da grade, presa na rolagem (sticky). Abaixo disso nada muda: faixa no topo, e a cópia
+ * no cabeçalho em mobile/tablet continua como era. Mesmos elementos e atributos (data-block="category-filter", aria-pressed, ?categoria=). */
+@media (min-width: 1101px) {
+  .layout { display: grid; grid-template-columns: 200px minmax(0, 1fr); column-gap: clamp(24px, 3vw, 48px); max-width: 1328px; margin: 0 auto; padding: clamp(32px, 4vw, 56px) 24px 0; align-items: start; }
+  .page .layout > .filters { position: sticky; top: 88px; z-index: 2; background: transparent; border: 0; width: auto; }
+  .page .layout .filtersInner { max-width: none; margin: 0; padding: 0; flex-direction: column; align-items: stretch; gap: 2px; overflow: visible; }
+  .page .layout .filters button { justify-content: space-between; padding: 12px 0 12px 16px; font-size: 0.95rem; white-space: normal; text-align: left; }
+  .page .layout .filters button::after { left: 0; right: auto; top: 8px; bottom: 8px; width: 2px; height: auto; }
+  .page .layout .posts, .page .layout .posts[data-count] { max-width: none; margin: 0; padding-left: 0; padding-right: 0; padding-top: 0; }
+}

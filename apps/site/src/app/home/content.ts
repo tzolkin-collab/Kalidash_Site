@@ -26,9 +26,9 @@ export const nav: NavItem[] = [
     label: "Para empresas",
     href: "/#o-que-fazemos",
     children: [
-      { label: "AI Culture", href: "/treinamento-corporativo-ia", hint: "Carro-chefe · porta de entrada" },
-      { label: "Advisory", href: "/advisory", hint: "Governança, mentorias e assessorias" },
-      { label: "Execução", href: "/execucao", hint: "Mão na massa · projeto técnico" },
+      { label: "AI Culture", href: "/treinamento-corporativo-ia", hint: "Treinamento corporativo para times e lideranças" },
+      { label: "Advisory", href: "/advisory", hint: "Governança, priorização e acompanhamento" },
+      { label: "Execução", href: "/execucao", hint: "Implementação de agentes, automações e integrações" },
     ],
   },
   { label: "Sobre nós", href: "/sobre-nos" },

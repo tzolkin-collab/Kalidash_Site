@@ -1,13 +1,13 @@
 "use client";
 
 /* AI Culture (/treinamento-corporativo-ia): layout V3 e movimento de rolagem. Toda a copy vem de pages.ts e é só repartida em peças
- * (nenhuma palavra muda). Movimento: framer-motion (useScroll/useTransform/useInView), só opacity e transform. Nada nasce escondido:
- * o estado "armado" (esconder para revelar) só liga depois da hidratação e só sem movimento reduzido. */
+ * (nenhuma palavra muda). Movimento: progresso de rolagem lido do retângulo do elemento e aplicado direto no estilo (opacity, transform e
+ * traço do filete), como na Execução. Sem biblioteca: o framer-motion saiu desta página (ajuste 16 do vídeo da Carol: o código do
+ * movimento pesava no TBT com CPU 4x). Nada nasce escondido: o estado "armado" só liga depois da hidratação e só sem movimento reduzido. */
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRef, useSyncExternalStore, type ReactNode, type SVGProps } from "react";
-import { LazyMotion, domAnimation, m, useInView, useScroll, useTransform } from "framer-motion";
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode, type SVGProps } from "react";
 import home from "../home/home.module.css";
 import { ArrowRight } from "../home/icons";
 import type { Block } from "../institucional/pages";
@@ -33,6 +33,41 @@ function useArmed() {
   return useSyncExternalStore(subscribeRM, () => !window.matchMedia(RM).matches, () => false);
 }
 
+/* Equivalente ao useScroll({ offset: [start, end] }) + useTransform: p = 0 quando a borda de cima do elemento chega a `a` da altura da janela
+ * (0..1) e p = 1 quando a borda de baixo chega a `b`. `apply` recebe p a cada quadro de rolagem e escreve o estilo direto (sem estado). */
+function useScrollProgress<T extends HTMLElement>(armed: boolean, a: number, b: number, apply: (p: number) => void) {
+  const ref = useRef<T>(null);
+  const applyRef = useRef(apply);
+  useEffect(() => {
+    applyRef.current = apply;
+  });
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !armed) return;
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const r = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const span = vh * a - vh * b + r.height;
+      applyRef.current(Math.min(1, Math.max(0, span > 0 ? (vh * a - r.top) / span : 0)));
+    };
+    const on = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", on, { passive: true });
+    window.addEventListener("resize", on);
+    return () => {
+      window.removeEventListener("scroll", on);
+      window.removeEventListener("resize", on);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [armed, a, b]);
+  return ref;
+}
+/* useTransform(p, [i0, i1], [o0, o1]): linear e preso nas pontas. */
+const lerp = (p: number, i0: number, i1: number, o0: number, o1: number) => o0 + (o1 - o0) * Math.min(1, Math.max(0, (p - i0) / (i1 - i0)));
 /* ---------- Ícones de linha (24×24) ---------- */
 const base: SVGProps<SVGSVGElement> = { viewBox: "0 0 24 24", width: 24, height: 24, fill: "none", stroke: "currentColor", strokeWidth: 1.4, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, focusable: false };
 const ICONS: ReactNode[] = [
@@ -55,51 +90,56 @@ function LineIcon({ index }: { index: number }) {
 const TOOLS_RE = /(ChatGPT|Copilot|Gemini)/;
 
 export function AcCapacity({ block }: { block: Of<"text"> }) {
-  const ref = useRef<HTMLElement>(null);
   const armed = useArmed();
-  const { scrollYProgress: p } = useScroll({ target: ref, offset: ["start 75%", "end 35%"] });
-  /* os nomes perdem o foco, um depois do outro */
-  const t0 = useTransform(p, [0.22, 0.42], [1, 0.28]);
-  const t1 = useTransform(p, [0.3, 0.5], [1, 0.28]);
-  const t2 = useTransform(p, [0.38, 0.58], [1, 0.28]);
-  const tools = [t0, t1, t2];
-  const sign = useTransform(p, [0.5, 0.72], [0.35, 1]);
-  const line = useTransform(p, [0.66, 0.9], [0, 1]);
+  const toolEls = useRef<(HTMLSpanElement | null)[]>([]);
+  const signEl = useRef<HTMLParagraphElement>(null);
+  const lineEl = useRef<SVGPathElement>(null);
+  /* start 75% / end 35%: os nomes perdem o foco um depois do outro, a assinatura firma e o filete se traça. */
+  const ref = useScrollProgress<HTMLElement>(armed, 0.75, 0.35, (p) => {
+    [0.22, 0.3, 0.38].forEach((s, i) => {
+      const el = toolEls.current[i];
+      if (el) el.style.opacity = String(lerp(p, s, s + 0.2, 1, 0.28));
+    });
+    if (signEl.current) signEl.current.style.opacity = String(lerp(p, 0.5, 0.72, 0.35, 1));
+    if (lineEl.current) Object.assign(lineEl.current.style, { strokeDasharray: `${lerp(p, 0.66, 0.9, 0, 1)} 1`, strokeDashoffset: "0" });
+  });
   const word = block.highlightAccent ?? "";
   const hl = block.highlight?.join(" ") ?? "";
   const at = word ? hl.indexOf(word) : -1;
   const para = block.paragraphs?.[0] ?? "";
   return (
-    <LazyMotion features={domAnimation}>
-      <section ref={ref} className={`${prod.section} ${s.cap}`} data-state="cap">
+    <section ref={ref} className={`${prod.section} ${s.cap}`} data-state="cap">
+      <div className={prod.wrap}>
+        {block.eyebrow && <Legend>{block.eyebrow}</Legend>}
+        <div className={s.capTop}>
+          <h2>{block.title.join(" ")}</h2>
+          <p className={s.capText}>
+            {para.split(TOOLS_RE).map((part, i) =>
+              TOOLS_RE.test(part)
+                ? <span key={i} ref={(el) => { toolEls.current[(i - 1) / 2] = el; }} className={s.tool}>{part}</span>
+                : part)}
+          </p>
+        </div>
+      </div>
+      <div className={s.capBand}>
         <div className={prod.wrap}>
-          {block.eyebrow && <Legend>{block.eyebrow}</Legend>}
-          <div className={s.capTop}>
-            <h2>{block.title.join(" ")}</h2>
-            <p className={s.capText}>
-              {para.split(TOOLS_RE).map((part, i) =>
-                TOOLS_RE.test(part)
-                  ? <m.span key={i} className={s.tool} style={armed ? { opacity: tools[(i - 1) / 2] } : undefined}>{part}</m.span>
-                  : part)}
-            </p>
-          </div>
-          <m.p className={s.capSign} style={armed ? { opacity: sign } : undefined}>
+          <p ref={signEl} className={s.capSign}>
             {at < 0 ? hl : (
               <>
                 {hl.slice(0, at)}
                 <span className={s.capWord}>
                   <em>{word}</em>
                   <svg viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-                    <m.path d="M1 4C20 1.5 45 1 99 3" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" vectorEffect="non-scaling-stroke" style={{ pathLength: armed ? line : 1 }} />
+                    <path ref={lineEl} pathLength={1} d="M1 4C20 1.5 45 1 99 3" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
                   </svg>
                 </span>
                 {hl.slice(at + word.length)}
               </>
             )}
-          </m.p>
+          </p>
         </div>
-      </section>
-    </LazyMotion>
+      </div>
+    </section>
   );
 }
 
@@ -107,16 +147,17 @@ export function AcCapacity({ block }: { block: Of<"text"> }) {
 
 type Format = Of<"formats">["items"][number];
 
-function Block2Bg({ src, alt, width, height }: { src: string; alt: string; width: number; height: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const armed = useArmed();
-  const { scrollYProgress: p } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const y = useTransform(p, [0, 1], [-18, 18]);
+function Block2Bg({ src, alt, width, height, armed }: { src: string; alt: string; width: number; height: number; armed: boolean }) {
+  const inner = useRef<HTMLDivElement>(null);
+  /* start end / end start: o fundo desliza de -18 a 18 px com a rolagem. */
+  const ref = useScrollProgress<HTMLDivElement>(armed, 1, 0, (p) => {
+    if (inner.current) inner.current.style.transform = `translate3d(0, ${lerp(p, 0, 1, -18, 18).toFixed(2)}px, 0)`;
+  });
   return (
     <div ref={ref} className={s.bg} aria-hidden="true">
-      <m.div className={s.bgInner} style={armed ? { y } : undefined}>
+      <div ref={inner} className={s.bgInner}>
         <Image src={src} alt={alt} width={width} height={height} sizes="(max-width: 900px) 100vw, 1100px" loading="lazy" />
-      </m.div>
+      </div>
     </div>
   );
 }
@@ -124,7 +165,7 @@ function Block2Bg({ src, alt, width, height }: { src: string; alt: string; width
 export function AcFormats({ block }: { block: Of<"formats"> }) {
   const armed = useArmed();
   return (
-    <LazyMotion features={domAnimation}>
+    <>
       <section className={`${prod.section} ${s.formats}`} data-state="formats">
         <div className={prod.wrap}>
           <Legend>{block.eyebrow}</Legend>
@@ -136,17 +177,33 @@ export function AcFormats({ block }: { block: Of<"formats"> }) {
           </ol>
         </div>
       </section>
-    </LazyMotion>
+    </>
   );
 }
 
 function FormatBlock({ item, index, armed, bg }: { item: Format; index: number; armed: boolean; bg?: Of<"formats">["background"] }) {
   const ref = useRef<HTMLLIElement>(null);
-  const seen = useInView(ref, { once: true, margin: "0px 0px -18% 0px" });
+  /* Entra uma vez, quando o bloco passa de 18% acima do pé da janela (o que o useInView com margin -18% fazia). */
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || seen) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setSeen(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "0px 0px -18% 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [seen]);
   const dark = index === 1;
   return (
     <li ref={ref} className={`${s.block} ${dark ? s.dark : s.light}`} data-armed={armed ? "" : undefined} data-in={seen ? "" : undefined}>
-      {bg && <Block2Bg {...bg} />}
+      {bg && <Block2Bg {...bg} armed={armed} />}
       <div className={s.blockHead}>
         <span className={s.blockNum}>{String(index + 1).padStart(2, "0")}</span>
         <i className={s.blockRule} />
@@ -184,13 +241,18 @@ function FormatBlock({ item, index, armed, bg }: { item: Format; index: number; 
 /* ---------- 7. Fechamento ---------- */
 
 export function AcClosing({ text }: { text: string }) {
-  const ref = useRef<HTMLParagraphElement>(null);
   const armed = useArmed();
-  const { scrollYProgress: p } = useScroll({ target: ref, offset: ["start 85%", "end 50%"] });
-  const one = useTransform(p, [0.1, 0.45], [1, 0.45]);
-  const two = useTransform(p, [0.2, 0.55], [0.5, 1]);
-  const gold = useTransform(p, [0.55, 0.85], [0.25, 1]);
-  const line = useTransform(p, [0.7, 1], [0, 1]);
+  const oneEl = useRef<HTMLSpanElement>(null);
+  const twoEl = useRef<HTMLSpanElement>(null);
+  const goldEl = useRef<HTMLSpanElement>(null);
+  const lineEl = useRef<SVGPathElement>(null);
+  /* start 85% / end 50%: a primeira frase recua, a segunda firma, a palavra de ouro acende e o filete se traça. */
+  const ref = useScrollProgress<HTMLParagraphElement>(armed, 0.85, 0.5, (p) => {
+    if (oneEl.current) oneEl.current.style.opacity = String(lerp(p, 0.1, 0.45, 1, 0.45));
+    if (twoEl.current) twoEl.current.style.opacity = String(lerp(p, 0.2, 0.55, 0.5, 1));
+    if (goldEl.current) goldEl.current.style.opacity = String(lerp(p, 0.55, 0.85, 0.25, 1));
+    if (lineEl.current) Object.assign(lineEl.current.style, { strokeDasharray: `${lerp(p, 0.7, 1, 0, 1)} 1`, strokeDashoffset: "0" });
+  });
   const cut = text.indexOf(". ") + 1;
   const first = cut > 0 ? text.slice(0, cut) : text;
   const rest = cut > 0 ? text.slice(cut + 1) : "";
@@ -198,19 +260,17 @@ export function AcClosing({ text }: { text: string }) {
   const lead = wi < 0 ? "" : rest.slice(0, wi + 1);
   const last = wi < 0 ? rest : rest.slice(wi + 1);
   return (
-    <LazyMotion features={domAnimation}>
-      <p ref={ref} className={s.closeP}>
-        <m.span className={s.closeOne} style={armed ? { opacity: one } : undefined}>{first}</m.span>{" "}
-        <m.span className={s.closeTwo} style={armed ? { opacity: two } : undefined}>
-          {lead}
-          <m.span className={s.closeGold} style={armed ? { opacity: gold } : undefined}>
-            {last}
-            <svg viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-              <m.path d="M1 4C20 1.5 45 1 99 3" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" vectorEffect="non-scaling-stroke" style={{ pathLength: armed ? line : 1 }} />
-            </svg>
-          </m.span>
-        </m.span>
-      </p>
-    </LazyMotion>
+    <p ref={ref} className={s.closeP}>
+      <span ref={oneEl} className={s.closeOne}>{first}</span>{" "}
+      <span ref={twoEl} className={s.closeTwo}>
+        {lead}
+        <span ref={goldEl} className={s.closeGold}>
+          {last}
+          <svg viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+            <path ref={lineEl} pathLength={1} d="M1 4C20 1.5 45 1 99 3" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+          </svg>
+        </span>
+      </span>
+    </p>
   );
 }

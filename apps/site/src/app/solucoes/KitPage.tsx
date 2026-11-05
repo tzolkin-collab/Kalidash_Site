@@ -20,7 +20,7 @@ import mo from "./advisory-motion.module.css";
 import { ExecucaoClosing, ExecucaoLead, ExecucaoProof } from "./ExecucaoMotion";
 import dynamic from "next/dynamic";
 import { AcSteps } from "./AiCultureSteps";
-/* Peças com framer-motion abaixo da dobra: carregam em chunk à parte (SSR continua, o HTML vem completo). */
+/* Peças de movimento da AI Culture abaixo da dobra: carregam em chunk à parte (SSR continua, o HTML vem completo). */
 const AcCapacity = dynamic(() => import("./AiCultureMotion").then((m) => m.AcCapacity));
 const AcClosing = dynamic(() => import("./AiCultureMotion").then((m) => m.AcClosing));
 const AcFormats = dynamic(() => import("./AiCultureMotion").then((m) => m.AcFormats));
@@ -345,15 +345,10 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
           );
         })}
         <section className={`${sol.closing}${chaptered ? ` ${styles.curtain}` : ""}`} data-tone={chaptered ? "dark" : undefined} data-motion={chaptered ? "curtain" : undefined}>
-          {page.slug === "advisory" && (
+          {(page.slug === "advisory" || page.slug === "execucao" || isAc) && (
             <ClosingBg className={styles.closingBg}>
               <Image src="/marca/nuvens-douradas.jpg" alt="" fill sizes="100vw" loading="lazy" />
             </ClosingBg>
-          )}
-          {page.slug === "execucao" && (
-            <div className={`${styles.closingBg} ${styles.closingArcs}`} aria-hidden="true">
-              <Image src="/marca/arcos-sepia.webp" alt="" fill sizes="100vw" loading="lazy" />
-            </div>
           )}
           <div className={sol.closingInner}>
             {isAc ? <AcClosing text={closing} /> : page.slug === "execucao" ? <ExecucaoClosing text={closing} /> : v3 ? <ClosingText text={closing} goldClass={styles.gold} /> : <p><LastWord text={closing} /></p>}

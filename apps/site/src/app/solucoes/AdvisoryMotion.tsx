@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { cubicBezier, inView } from "framer-motion";
 import v3 from "./advisory-v3.module.css";
 import m from "./advisory-motion.module.css";
 
@@ -10,7 +9,40 @@ import m from "./advisory-motion.module.css";
  * Sem JS, com movimento reduzido ou em tela pequena (`live` desligado) nada é escondido: tudo aparece empilhado e completo.
  * O estado "armado" (data-arm) só existe depois da hidratação e só se o visitante não pediu movimento reduzido. */
 
-const SETTLE = cubicBezier(0.33, 1, 0.68, 1);
+/* cubic-bezier(0.33, 1, 0.68, 1) (SETTLE): resolvida em x por Newton, sem biblioteca. O framer-motion saiu das páginas do Kit (ajuste 16: pesava no TBT). */
+function bezier(x1: number, y1: number, x2: number, y2: number) {
+  const f = (a: number, b: number, t: number) => 3 * a * (1 - t) * (1 - t) * t + 3 * b * (1 - t) * t * t + t * t * t;
+  const d = (a: number, b: number, t: number) => 3 * a * (1 - t) * (1 - t) + 6 * (b - a) * (1 - t) * t + 3 * (1 - b) * t * t;
+  return (x: number) => {
+    if (x <= 0 || x >= 1) return Math.min(1, Math.max(0, x));
+    let t = x;
+    for (let i = 0; i < 8; i++) {
+      const err = f(x1, x2, t) - x;
+      const slope = d(x1, x2, t);
+      if (Math.abs(err) < 1e-5 || Math.abs(slope) < 1e-6) break;
+      t -= err / slope;
+    }
+    return f(y1, y2, Math.min(1, Math.max(0, t)));
+  };
+}
+const SETTLE = bezier(0.33, 1, 0.68, 1);
+
+/* inView(el, onEnter, { amount, margin }): chama onEnter ao entrar (e a função devolvida ao sair). Devolve o cancelamento. */
+function inView(el: Element, onEnter: () => void | (() => void), opts: { amount: number; margin?: string }) {
+  let leave: (() => void) | void;
+  const io = new IntersectionObserver(
+    ([e]) => {
+      if (e.isIntersecting) leave = onEnter();
+      else if (leave) {
+        leave();
+        leave = undefined;
+      }
+    },
+    { threshold: opts.amount, rootMargin: opts.margin ?? "0px" },
+  );
+  io.observe(el);
+  return () => io.disconnect();
+}
 const c = (v: number) => Math.min(1, Math.max(0, v));
 const seg = (p: number, a: number, b: number) => c((p - a) / (b - a));
 
@@ -88,16 +120,18 @@ const IMPERIAL = "#28183b";
 
 function applyProblem(p: number, el: HTMLElement) {
   const set = (k: string, v: number) => el.style.setProperty(k, v.toFixed(4));
-  set("--line", seg(p, 0.06, 0.52));
-  for (let i = 0; i < 4; i++) set(`--e${i}`, seg(p, 0.08 + i * 0.13, 0.16 + i * 0.13));
-  const s = seg(p, 0.56, 0.74);
+  /* Palco encurtado (260 -> 170 svh): a sequência é a mesma, em janelas de rolagem mais justas. A frase da fase final nunca fica
+   * apagada sem nada legível ao redor: ao entrar, "Não entregamos um plano." já está inteira e "Acompanhamos…" parte de 70%. */
+  set("--line", seg(p, 0.05, 0.44));
+  for (let i = 0; i < 4; i++) set(`--e${i}`, seg(p, 0.07 + i * 0.1, 0.15 + i * 0.1));
+  const s = seg(p, 0.46, 0.62);
   set("--s", SETTLE(s));
-  set("--soft", p < 0.82 ? seg(p, 0.74, 0.8) : 1 - 0.48 * seg(p, 0.82, 0.88));
-  set("--strong", 0.3 + 0.7 * seg(p, 0.8, 0.88));
-  set("--gold", seg(p, 0.89, 0.94));
-  set("--sig", seg(p, 0.78, 0.95));
-  for (let i = 0; i < 4; i++) set(`--m${i}`, seg(p, 0.86 + i * 0.03, 0.91 + i * 0.03));
-  set("--mline", seg(p, 0.86, 0.99));
+  set("--soft", p < 0.78 ? seg(p, 0.52, 0.6) : 1 - 0.45 * seg(p, 0.78, 0.84));
+  set("--strong", 0.7 + 0.3 * seg(p, 0.7, 0.84));
+  set("--gold", seg(p, 0.84, 0.9));
+  set("--sig", seg(p, 0.66, 0.9));
+  for (let i = 0; i < 4; i++) set(`--m${i}`, seg(p, 0.85 + i * 0.03, 0.9 + i * 0.03));
+  set("--mline", seg(p, 0.85, 0.99));
   const dark = s > 0.5;
   const phase = dark ? "dark" : "light";
   if (el.dataset.phase === phase) return;
