@@ -1471,7 +1471,7 @@
 
 /* ====================== Problema: sintomas abertos ======================
  * Sem cartões nem abertura lateral: cada sintoma aparece inteiro, com o depoimento ao lado, separado por filetes.
- * Abaixo de 1101 px o bloco completo aparece: título e texto, holograma e sintomas. */
+ * Abaixo de 1101 px aparecem título, texto e sintomas; o holograma fica só no computador, por decisão do dono. */
 .symptoms { grid-column: 1 / -1; margin: 44px 0 0; padding: 0; list-style: none; border-top: 1px solid #d9d7d5; }
 .symptom {
   display: grid; grid-template-columns: 48px minmax(0, 5fr) minmax(0, 7fr); column-gap: clamp(24px, 3.5vw, 56px);
@@ -1487,8 +1487,7 @@
 @media (max-width: 1100px) {
   .v3 .problem { background: var(--gray-1); padding: 24px 0 72px; }
   .v3 .problemTop { display: block; grid-column: 1 / -1; grid-row: auto; order: 1; min-height: 0; }
-  .v3 .hologramCol { display: flex; grid-column: 1 / -1; grid-row: auto; order: 2; min-height: 0; overflow: hidden; padding: 24px; }
-  .symptoms { order: 3; margin-top: 24px; }
+  .symptoms { order: 2; margin-top: 24px; }
 }
 @media (max-width: 820px) {
   .symptom { grid-template-columns: minmax(0, 1fr); row-gap: 16px; }
