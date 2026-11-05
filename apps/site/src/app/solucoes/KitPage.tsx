@@ -13,7 +13,12 @@ import StepsPin from "./StepsPin";
 import ScrollMotion from "./ScrollMotion";
 import { BlockView, HeroView, Legend, toneMap } from "./ProductPage";
 import KitFonts from "./KitFonts";
-import { AcCapacity, AcClosing, AcFormats, AcSteps } from "./AiCultureMotion";
+import dynamic from "next/dynamic";
+import { AcSteps } from "./AiCultureSteps";
+/* Peças com framer-motion abaixo da dobra: carregam em chunk à parte (SSR continua, o HTML vem completo). */
+const AcCapacity = dynamic(() => import("./AiCultureMotion").then((m) => m.AcCapacity));
+const AcClosing = dynamic(() => import("./AiCultureMotion").then((m) => m.AcClosing));
+const AcFormats = dynamic(() => import("./AiCultureMotion").then((m) => m.AcFormats));
 import ac from "./ai-culture-motion.module.css";
 import { Accent, LeadershipView, ProblemView, RitualsView, canProblem } from "./AdvisoryViews";
 import prod from "./product.module.css";

@@ -111,3 +111,21 @@
 .closeTwo { margin-top: 0.1em; }
 .closeGold { position: relative; display: inline-block; color: var(--gold-light); font-style: italic; }
 .closeGold svg { position: absolute; left: 0; right: 0; bottom: -0.1em; width: 100%; height: 0.22em; overflow: visible; }
+
+/* ---------- 1 · Filete do arco atrás da foto (só pseudo-elemento, não desloca o layout) ---------- */
+.ac main > header:first-child [class*="photo"] { isolation: isolate; }
+.ac main > header:first-child [class*="photo"]::before { content: ""; position: absolute; inset: 0; z-index: -1; border: 1px solid var(--gold); border-bottom: 0; border-radius: 999px 999px 0 0; transform: translate3d(-16px, -14px, 0); pointer-events: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .ac main > header:first-child [class*="photo"]::before { animation: acArc 1500ms var(--ease) both; animation-delay: calc(var(--enter-delay, 0s) + 500ms); }
+}
+@keyframes acArc { from { opacity: 0; transform: translate3d(0, 0, 0) scale(0.985); } to { opacity: 1; transform: translate3d(-16px, -14px, 0); } }
+@media (max-width: 900px) { .ac main > header:first-child [class*="photo"]::before { display: none; } }
+
+/* ---------- 2 · Barra de prova: o filete entre os números cresce ---------- */
+.ac section[aria-label="Resultados"] li { position: relative; }
+.ac section[aria-label="Resultados"] li::before { content: ""; position: absolute; left: -1px; top: 0; bottom: 0; width: 1px; background: var(--gold); transform-origin: 50% 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .ac section[aria-label="Resultados"] li::before { animation: acGrow 1200ms var(--ease) both; animation-delay: calc(var(--enter-delay, 0s) + 700ms); }
+  .ac section[aria-label="Resultados"] li + li::before { animation-delay: calc(var(--enter-delay, 0s) + 900ms); }
+}
+@keyframes acGrow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
