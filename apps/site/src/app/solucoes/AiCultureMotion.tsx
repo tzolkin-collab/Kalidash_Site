@@ -6,8 +6,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState, type ReactNode, type SVGProps } from "react";
-import { LazyMotion, domAnimation, m, useInView, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { useRef, useSyncExternalStore, type ReactNode, type SVGProps } from "react";
+import { LazyMotion, domAnimation, m, useInView, useScroll, useTransform } from "framer-motion";
 import home from "../home/home.module.css";
 import { ArrowRight } from "../home/icons";
 import type { Block } from "../institucional/pages";
@@ -22,11 +22,15 @@ function Rich({ text }: { text: string }) {
 }
 
 /* true só depois da hidratação e sem movimento reduzido: antes disso (SSR, sem JS) tudo aparece completo. */
+const RM = "(prefers-reduced-motion: reduce)";
+function subscribeRM(cb: () => void) {
+  const mq = window.matchMedia(RM);
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+}
 function useArmed() {
-  const reduce = useReducedMotion();
-  const [on, setOn] = useState(false);
-  useEffect(() => setOn(!reduce), [reduce]);
-  return on;
+  /* servidor e hidratação: false (tudo visível); no cliente: true se o movimento não estiver reduzido */
+  return useSyncExternalStore(subscribeRM, () => !window.matchMedia(RM).matches, () => false);
 }
 
 /* ---------- Ícones de linha (24×24) ---------- */
@@ -65,7 +69,6 @@ export function AcCapacity({ block }: { block: Of<"text"> }) {
   const hl = block.highlight?.join(" ") ?? "";
   const at = word ? hl.indexOf(word) : -1;
   const para = block.paragraphs?.[0] ?? "";
-  let n = -1;
   return (
     <LazyMotion features={domAnimation}>
       <section ref={ref} className={`${prod.section} ${s.cap}`} data-state="cap">
@@ -74,11 +77,10 @@ export function AcCapacity({ block }: { block: Of<"text"> }) {
           <div className={s.capTop}>
             <h2>{block.title.join(" ")}</h2>
             <p className={s.capText}>
-              {para.split(TOOLS_RE).map((part, i) => {
-                if (!TOOLS_RE.test(part)) return part;
-                n += 1;
-                return <m.span key={i} className={s.tool} style={armed ? { opacity: tools[n] } : undefined}>{part}</m.span>;
-              })}
+              {para.split(TOOLS_RE).map((part, i) =>
+                TOOLS_RE.test(part)
+                  ? <m.span key={i} className={s.tool} style={armed ? { opacity: tools[(i - 1) / 2] } : undefined}>{part}</m.span>
+                  : part)}
             </p>
           </div>
           <m.p className={s.capSign} style={armed ? { opacity: sign } : undefined}>

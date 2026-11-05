@@ -27,6 +27,7 @@
 .endLine { margin: 0; font-size: clamp(24px, 3vw, 40px); line-height: 1.12; }
 .endLine strong { font-family: var(--font-title); font-weight: var(--w-title, 400); letter-spacing: -0.012em; }
 .endOne, .endTwo { display: inline-block; white-space: nowrap; }
+.endOne { color: var(--limestone, #f1ece4); }
 .endTwo { color: var(--gold-light); font-style: italic; }
 .endSub { margin: 12px 0 0; }
 @media (max-width: 520px) { .endOne, .endTwo { white-space: normal; } }
@@ -45,7 +46,7 @@
 .light { background: var(--limestone-deep, #e9e1d6); color: var(--ink-text); }
 .dark { background: var(--imperial); color: var(--limestone, #f1ece4); }
 @media (hover: hover) { .block:hover { transform: translate3d(0, -3px, 0); } }
-.bg { position: absolute; inset: 0; z-index: 0; opacity: 0.2; overflow: hidden; }
+.bg { position: absolute; inset: 0; z-index: 0; opacity: 0.12; overflow: hidden; }
 .bgInner { position: absolute; inset: -24px 0; }
 .bgInner img { width: 100%; height: 100%; object-fit: cover; }
 .dark::before { content: ""; position: absolute; inset: 0; z-index: 0; background: linear-gradient(100deg, var(--imperial) 30%, rgba(40, 24, 59, 0.72)); }
@@ -76,7 +77,8 @@
 .dark .foot { color: rgba(241, 236, 228, 0.55); }
 .dark .extra { color: rgba(241, 236, 228, 0.8); }
 /* In Company (claro) pede CTA primário; no escuro o botão secundário fica legível sobre Imperial */
-.dark :is(a[class*="secondaryButton"]) { color: var(--limestone, #f1ece4); border-color: var(--gold); }
+.dark a[class*="secondaryButton"] { color: var(--limestone, #f1ece4) !important; border-color: var(--gold-light) !important; background: transparent; }
+.dark a[class*="secondaryButton"]:hover { background: var(--gold) !important; color: #fff !important; }
 
 @media (prefers-reduced-motion: no-preference) {
   /* Estado escondido só com JS armado; ao entrar na tela (data-in) o bloco sobe, o filete e o vertical são traçados, os recursos entram em sequência. */
