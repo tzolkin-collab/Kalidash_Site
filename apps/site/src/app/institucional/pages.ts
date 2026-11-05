@@ -364,6 +364,7 @@ export const aiCulture: PageContent = {
         "Muitas empresas já liberaram ChatGPT, Copilot ou Gemini para o time e a rotina continua igual. O gargalo não é a ferramenta, é saber onde aplicar, testar no próprio trabalho e transformar isso em hábito.",
       ],
       highlight: ["Nosso objetivo é criar capacidade dentro da empresa, não ensinar mais uma ferramenta."],
+      highlightAccent: "capacidade",
     },
     {
       type: "steps",

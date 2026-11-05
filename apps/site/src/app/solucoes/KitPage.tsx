@@ -18,6 +18,13 @@ import { Accent, FaqView, LeadershipView, ProblemView, RitualsView, canProblem }
 import { ClosingBg, ClosingText, HeroArc, MotionRoot } from "./AdvisoryMotion";
 import mo from "./advisory-motion.module.css";
 import { ExecucaoClosing, ExecucaoLead, ExecucaoProof } from "./ExecucaoMotion";
+import dynamic from "next/dynamic";
+import { AcSteps } from "./AiCultureSteps";
+/* Peças com framer-motion abaixo da dobra: carregam em chunk à parte (SSR continua, o HTML vem completo). */
+const AcCapacity = dynamic(() => import("./AiCultureMotion").then((m) => m.AcCapacity));
+const AcClosing = dynamic(() => import("./AiCultureMotion").then((m) => m.AcClosing));
+const AcFormats = dynamic(() => import("./AiCultureMotion").then((m) => m.AcFormats));
+import ac from "./ai-culture-motion.module.css";
 import prod from "./product.module.css";
 import sol from "./solucoes.module.css";
 import styles from "./kit.module.css";
@@ -253,7 +260,8 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
   const portrait = hero.aspect === "landscape" ? false : hero.image.height > hero.image.width;
   /* Ajustes V3: desenho novo (tipografia Kepler/Acumin, Imperial e Limestone) só onde já foi aprovado para ir ao ar; hoje, a Advisory. */
   const advisoryV3 = page.slug === "advisory";
-  const v3 = advisoryV3 || page.slug === "execucao";
+  const isAc = page.slug === "treinamento-corporativo-ia";
+  const v3 = advisoryV3 || page.slug === "execucao" || isAc;
   /* Na Advisory os "rituais" (cards) viram seção Imperial: saem da alternância de fundos claros. */
   const light = advisoryV3 ? LIGHT.filter((t) => t !== "cards") : LIGHT;
   const tones = toneMap(page.blocks, light);
@@ -264,7 +272,7 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
   /* A barra de provas (proofBar) é uma faixa fina colada à abertura, não um capítulo: fica fora da cortina e da contagem. */
   const chapterBlocks = page.blocks.filter((b) => b.type !== "heroMedia" && b.type !== "testimonials" && b.type !== "proofBar");
   return (
-    <div className={`${home.home} ${sol.page} ${fraunces.variable}${darkHero ? ` ${styles.kitDark}` : ""}${v3 ? ` ${styles.v3}` : ""} ${styles.chapters}`} data-page={page.slug}>
+    <div className={`${home.home} ${sol.page} ${fraunces.variable}${darkHero ? ` ${styles.kitDark}` : ""}${v3 ? ` ${styles.v3}` : ""}${isAc ? ` ${ac.ac}` : ""} ${styles.chapters}`} data-page={page.slug}>
       {/* Kit Adobe (Kepler + Acumin), só nesta página e só dentro do <main>: o cabeçalho e o rodapé mantêm as fontes de hoje. O CSS do kit
           não bloqueia a primeira pintura: preload aqui, aplicação e troca de fonte em KitFonts (reserva com métrica ajustada até lá). */}
       {v3 && (
@@ -284,14 +292,15 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
           let node: React.ReactNode;
           switch (block.type) {
             case "text":
-              if (advisoryV3 && block.highlight && canProblem(block)) node = <ProblemView key={key} block={block} soft={soft} />;
+              if (isAc) node = <AcCapacity key={key} block={block} />;
+              else if (advisoryV3 && block.highlight && canProblem(block)) node = <ProblemView key={key} block={block} soft={soft} />;
               else if (advisoryV3 && block.chips) node = <LeadershipView key={key} block={block} soft={soft} />;
               else if (page.slug === "execucao" && block.highlight) node = <ExecucaoLead key={key} block={block} soft={soft} />;
               else node = <TextView key={key} block={block} soft={soft} figure={page.slug === "advisory"} />;
               break;
             case "list": node = <ListView key={key} block={block} soft={soft} motion={v3} />; break;
             case "faq": node = v3 ? <FaqView key={key} block={block} soft={soft} /> : <BlockView key={key} block={block} cardsIndex={1} poster={false} soft={soft} />; break;
-            case "formats": node = <FormatsView key={key} block={block} soft={soft} />; break;
+            case "formats": node = isAc ? <AcFormats key={key} block={block} /> : <FormatsView key={key} block={block} soft={soft} />; break;
             case "showcase": node = page.slug === "execucao" ? <ExecucaoProof key={key} block={block} soft={soft} /> : <ShowcaseView key={key} block={block} soft={soft} />; break;
             /* Depoimentos só vão ao ar com vídeo aprovado e hospedado (ver pages.ts): sem isso, nada. */
             case "testimonials": return null;
@@ -308,7 +317,9 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
               break;
             case "steps":
               /* Execução, "Como entregamos": faixa presa na rolagem, com a linha esticando e os passos acendendo em sequência. */
-              node = page.slug === "execucao" || page.slug === "advisory"
+              node = isAc
+                ? <StepsPin key={key}><AcSteps block={block} /></StepsPin>
+                : page.slug === "execucao" || page.slug === "advisory"
                 ? <StepsPin key={key}><BlockView block={block} cardsIndex={1} poster={false} soft={soft} /></StepsPin>
                 : <BlockView key={key} block={block} cardsIndex={1} poster={false} soft={soft} />;
               break;
@@ -323,7 +334,7 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
           const meta = block as { eyebrow?: string; title?: string | string[] };
           const label = (meta.eyebrow || (Array.isArray(meta.title) ? meta.title.join(" ") : meta.title) || "").toUpperCase();
           /* Tom do capítulo = cor real do bloco (o fundo do capítulo aparece nos cantos e no pé durante a cortina). */
-          const tone = light.includes(block.type) ? (soft ? "soft" : "paper") : "dark";
+          const tone = light.includes(block.type) ? (soft && !(isAc && block.type === "formats") ? "soft" : "paper") : "dark";
           return (
             <div key={key} className={styles.chapter} data-tone={tone} data-motion="curtain">
               <div className={styles.chapterLabel} aria-hidden="true" data-text={`${String(n).padStart(2, "0")} / ${String(chapterBlocks.length + 1).padStart(2, "0")} · ${label}`}>
@@ -345,7 +356,7 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
             </div>
           )}
           <div className={sol.closingInner}>
-            {page.slug === "execucao" ? <ExecucaoClosing text={closing} /> : v3 ? <ClosingText text={closing} goldClass={styles.gold} /> : <p><LastWord text={closing} /></p>}
+            {isAc ? <AcClosing text={closing} /> : page.slug === "execucao" ? <ExecucaoClosing text={closing} /> : v3 ? <ClosingText text={closing} goldClass={styles.gold} /> : <p><LastWord text={closing} /></p>}
             {hero.cta && (
               <Link className={sol.closingCta} href={hero.cta.href}>
                 {hero.cta.label} <ArrowRight />

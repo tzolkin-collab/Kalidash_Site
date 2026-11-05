@@ -1,0 +1,131 @@
+/* AI Culture no desenho V3 e com movimento de rolagem. As variáveis (--gold*, --imperial, --rule, --font-title) vêm do <main> do KitPage.
+ * Só opacity e transform em movimento. Nomes sem "pin", "story", "legend", "tile", "chip", "rule", "steps" onde o kit.module.css
+ * tem seletores por [class*=...]. Sem JS ou com movimento reduzido tudo fica completo (o estado escondido só existe com data-armed). */
+
+.ac { --ease: cubic-bezier(0.33, 1, 0.68, 1); }
+
+/* ---------- C2 · Abertura: H1 cerca de 15% menor, foto entra com escala leve ---------- */
+.ac main > header:first-child h1 { font-size: clamp(32px, 4.25vw, 65px); }
+@media (prefers-reduced-motion: no-preference) {
+  .ac main > header:first-child :is([class*="photo"], [class*="cutout"]) img { animation: acPhoto 1400ms var(--ease) both; animation-delay: calc(var(--enter-delay, 0s) + 150ms); }
+}
+@keyframes acPhoto { from { transform: scale(1.04); } to { transform: scale(1); } }
+
+/* ---------- 3 · "Ter acesso à IA não é saber trabalhar com ela." ---------- */
+.cap { color: var(--ink-text); padding-block: clamp(64px, 7vw, 112px); }
+.capTop { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 4fr); gap: clamp(24px, 6vw, 96px); align-items: start; }
+.cap h2 { margin: 0; font-size: clamp(34px, 4.2vw, 62px); line-height: 1.05; max-width: 15ch; text-wrap: balance; }
+.capText { margin: 0; padding-top: 0.6em; font-size: clamp(16px, 1.3vw, 19px); line-height: 1.6; color: var(--text-2); max-width: 40ch; }
+.tool { color: var(--ink-text); font-weight: var(--w-strong, 700); }
+.capSign { margin: clamp(40px, 5vw, 72px) 0 0; padding-top: 24px; border-top: 1px solid var(--rule); max-width: 46ch; font-family: var(--font-sub, var(--font-title)); font-size: clamp(18px, 1.6vw, 22px); line-height: 1.35; color: var(--text-2); }
+.capWord { position: relative; display: inline-block; color: var(--gold-text); }
+.capWord em { font-style: italic; font-family: var(--font-title); font-size: 1.28em; line-height: 1; }
+.capWord svg { position: absolute; left: 0; right: 0; bottom: -0.2em; width: 100%; height: 0.3em; overflow: visible; }
+
+/* ---------- 4 · Método: fim em dois tempos (o progresso --p vem do StepsPin, herdado) ---------- */
+.method .end { text-wrap: balance; }
+.endLine { margin: 0; font-size: clamp(24px, 3vw, 40px); line-height: 1.12; }
+.endLine strong { font-family: var(--font-title); font-weight: var(--w-title, 400); letter-spacing: -0.012em; }
+.endOne, .endTwo { display: inline-block; white-space: nowrap; }
+.endOne { color: var(--limestone, #f1ece4); }
+.endTwo { color: var(--gold-light); font-style: italic; }
+.endSub { margin: 12px 0 0; }
+@media (max-width: 520px) { .endOne, .endTwo { white-space: normal; } }
+@media (min-width: 1024px) and (min-height: 700px) {
+  @media (prefers-reduced-motion: no-preference) {
+    :global([data-live]) .endOne { opacity: calc(1 - 0.55 * clamp(0, (var(--p, 0) - 0.8) * 12, 1)); }
+    :global([data-live]) .endTwo { opacity: calc(0.25 + 0.75 * clamp(0, (var(--p, 0) - 0.82) * 10, 1)); transform: translate3d(0, calc((1 - clamp(0, (var(--p, 0) - 0.82) * 10, 1)) * 14px), 0); }
+    :global([data-live]) .endSub { opacity: calc(0.3 + 0.7 * clamp(0, (var(--p, 0) - 0.88) * 10, 1)); }
+  }
+}
+
+/* ---------- 5 · Formatos ---------- */
+.formats { padding-block: clamp(56px, 6vw, 96px); }
+.blocks { list-style: none; margin: clamp(32px, 4vw, 56px) 0 0; padding: 0; display: grid; gap: clamp(20px, 2.4vw, 32px); }
+.block { position: relative; overflow: hidden; border-radius: 22px; padding: clamp(28px, 3.6vw, 52px); border-top: 0 !important; border-bottom: 0 !important; transition: transform 500ms var(--ease); }
+.light { background: var(--limestone-deep, #e9e1d6); color: var(--ink-text); }
+.dark { background: var(--imperial); color: var(--limestone, #f1ece4); }
+@media (hover: hover) { .block:hover { transform: translate3d(0, -3px, 0); } }
+.bg { position: absolute; inset: 0; z-index: 0; opacity: 0.12; overflow: hidden; }
+.bgInner { position: absolute; inset: -24px 0; }
+.bgInner img { width: 100%; height: 100%; object-fit: cover; }
+.dark::before { content: ""; position: absolute; inset: 0; z-index: 0; background: linear-gradient(100deg, var(--imperial) 30%, rgba(40, 24, 59, 0.72)); }
+.blockHead, .blockGrid { position: relative; z-index: 1; }
+.blockHead { display: flex; align-items: center; gap: 18px; margin-bottom: clamp(24px, 3vw, 40px); }
+.blockNum { font-family: var(--font-title); font-size: 18px; letter-spacing: 0.04em; color: var(--gold); font-variant-numeric: tabular-nums; }
+.dark .blockNum { color: var(--gold-light); }
+.blockRule { flex: 1; height: 1px; background: var(--gold); opacity: 0.55; transform-origin: 0 50%; }
+.blockGrid { display: grid; grid-template-columns: minmax(0, 5fr) 1px minmax(0, 6fr); gap: clamp(24px, 4vw, 64px); align-items: stretch; }
+.blockMain { display: grid; gap: 18px; align-content: start; justify-items: start; }
+.blockMain h3 { margin: 0; font-size: clamp(30px, 3.6vw, 52px); line-height: 1.04; max-width: 12ch; text-wrap: balance; }
+.audience { margin: 0; font-size: 18px; line-height: 1.5; color: var(--text-2); max-width: 34ch; }
+.dark .audience { color: rgba(241, 236, 228, 0.66); }
+.audience strong { color: var(--ink-text); }
+.dark .audience strong { color: var(--limestone, #f1ece4); }
+.vrule { width: 1px; background: var(--gold); opacity: 0.55; transform-origin: 50% 0; }
+.blockSide { display: grid; gap: 20px; align-content: start; }
+.lede { margin: 0; font-size: clamp(17px, 1.4vw, 20px); line-height: 1.55; }
+.feats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(20px, 3vw, 40px); }
+.feats li { display: grid; grid-template-columns: 28px minmax(0, 1fr); column-gap: 14px; row-gap: 2px; padding: 16px 0; border-top: 1px solid var(--rule); font-size: 15px; line-height: 1.4; }
+.feats li strong { font-size: 16px; }
+.feats li span { grid-column: 2; color: var(--text-2); }
+.dark .feats li span { color: rgba(241, 236, 228, 0.66); }
+.icon { grid-row: span 2; width: 24px; height: 24px; color: var(--gold-text); }
+.dark .icon { color: var(--gold-light); }
+.extra { margin: 0; font-size: 16px; line-height: 1.5; padding-top: 16px; border-top: 1px solid var(--rule); }
+.foot { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--text-3); }
+.dark .foot { color: rgba(241, 236, 228, 0.55); }
+.dark .extra { color: rgba(241, 236, 228, 0.8); }
+/* In Company (claro) pede CTA primário; no escuro o botão secundário fica legível sobre Imperial */
+.dark a[class*="secondaryButton"] { color: var(--limestone, #f1ece4) !important; border-color: var(--gold-light) !important; background: transparent; }
+.dark a[class*="secondaryButton"]:hover { background: var(--gold) !important; color: #fff !important; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Estado escondido só com JS armado; ao entrar na tela (data-in) o bloco sobe, o filete e o vertical são traçados, os recursos entram em sequência. */
+  .block[data-armed] { opacity: 0; transform: translate3d(0, 36px, 0); transition: opacity 800ms var(--ease), transform 900ms var(--ease); }
+  .block[data-armed][data-in] { opacity: 1; transform: none; }
+  .block[data-armed] .blockRule { transform: scaleX(0); transition: transform 1100ms var(--ease) 250ms; }
+  .block[data-armed][data-in] .blockRule { transform: scaleX(1); }
+  .block[data-armed] .vrule { transform: scaleY(0); transition: transform 1100ms var(--ease) 450ms; }
+  .block[data-armed][data-in] .vrule { transform: scaleY(1); }
+  .block[data-armed] .feats li { opacity: 0; transform: translate3d(0, 14px, 0); transition: opacity 600ms var(--ease), transform 700ms var(--ease); transition-delay: calc(500ms + var(--k, 0) * 110ms); }
+  .block[data-armed][data-in] .feats li { opacity: 1; transform: none; }
+  .block[data-armed] .icon path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1100ms var(--ease); transition-delay: calc(650ms + var(--k, 0) * 110ms); }
+  .block[data-armed][data-in] .icon path { stroke-dashoffset: 0; }
+  .block[data-armed]:hover { transition-delay: 0ms; }
+}
+@media (max-width: 900px) {
+  .capTop { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .cap h2 { max-width: none; }
+  .blockGrid { grid-template-columns: minmax(0, 1fr); }
+  .vrule { width: 100%; height: 1px; transform-origin: 0 50%; }
+  .block[data-armed] .vrule { transform: scaleX(0); }
+  .block[data-armed][data-in] .vrule { transform: scaleX(1); }
+  .feats { grid-template-columns: minmax(0, 1fr); }
+  .blockMain h3 { max-width: none; }
+}
+
+/* ---------- 7 · Fechamento ---------- */
+.closeP { margin: 0; text-wrap: balance; }
+.closeOne, .closeTwo { display: block; }
+.closeTwo { margin-top: 0.1em; }
+.closeGold { position: relative; display: inline-block; color: var(--gold-light); font-style: italic; }
+.closeGold svg { position: absolute; left: 0; right: 0; bottom: -0.1em; width: 100%; height: 0.22em; overflow: visible; }
+
+/* ---------- 1 · Filete do arco atrás da foto (só pseudo-elemento, não desloca o layout) ---------- */
+.ac main > header:first-child [class*="photo"] { isolation: isolate; }
+.ac main > header:first-child [class*="photo"]::before { content: ""; position: absolute; inset: 0; z-index: -1; border: 1px solid var(--gold); border-bottom: 0; border-radius: 999px 999px 0 0; transform: translate3d(-16px, -14px, 0); pointer-events: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .ac main > header:first-child [class*="photo"]::before { animation: acArc 1500ms var(--ease) both; animation-delay: calc(var(--enter-delay, 0s) + 500ms); }
+}
+@keyframes acArc { from { opacity: 0; transform: translate3d(0, 0, 0) scale(0.985); } to { opacity: 1; transform: translate3d(-16px, -14px, 0); } }
+@media (max-width: 900px) { .ac main > header:first-child [class*="photo"]::before { display: none; } }
+
+/* ---------- 2 · Barra de prova: o filete entre os números cresce ---------- */
+.ac section[aria-label="Resultados"] li { position: relative; }
+.ac section[aria-label="Resultados"] li::before { content: ""; position: absolute; left: -1px; top: 0; bottom: 0; width: 1px; background: var(--gold); transform-origin: 50% 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .ac section[aria-label="Resultados"] li::before { animation: acGrow 1200ms var(--ease) both; animation-delay: calc(var(--enter-delay, 0s) + 700ms); }
+  .ac section[aria-label="Resultados"] li + li::before { animation-delay: calc(var(--enter-delay, 0s) + 900ms); }
+}
+@keyframes acGrow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
