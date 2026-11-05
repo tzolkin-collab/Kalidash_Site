@@ -365,6 +365,11 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 
 /* Execução V3: fecho com as nuvens do Advisory (ClosingBg, com paralaxe); título sem o tracking apertado herdado. */
 .v3[data-page="execucao"] section[data-tone="dark"] p { letter-spacing: -0.012em; }
+/* Execução, "Como entregamos" (item 4): a frase "O projeto termina quando…" em uma linha esticada, sem o tracking apertado herdado, e o apoio embaixo, mais largo. A animação (--end do StepsPin) não muda. */
+.v3[data-page="execucao"] [class*="stepsNote"] { grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: clamp(32px, 4vw, 56px); padding-top: 24px; }
+.v3[data-page="execucao"] [class*="stepsNote"] p:first-child { letter-spacing: -0.012em; max-width: none; text-wrap: balance; }
+.v3[data-page="execucao"] [class*="stepsNote"] p:last-child { max-width: 80ch; }
+@media (min-width: 1100px) { .v3[data-page="execucao"] [class*="stepsNote"] p:first-child { white-space: nowrap; text-wrap: nowrap; } }
 
 /* Execução V3, abertura: a foto assenta de 1,04 para 1 e a linha fina sai de trás do arco depois da entrada. Só transform e opacity; a foto nunca nasce invisível (LCP). */
 @media (prefers-reduced-motion: no-preference) {
