@@ -1384,29 +1384,30 @@
 .v3 .topVignette {
   background: radial-gradient(ellipse 85% 80% at 25% 65%, rgba(70, 48, 79, 0.55) 0%, rgba(70, 48, 79, 0.16) 60%, transparent 100%);
 }
-.v3 .problemTop h2 { font-size: clamp(34px, 3.8vw, 54px); line-height: 1.02; font-weight: var(--w-title); letter-spacing: -0.015em; text-shadow: none; color: var(--limestone); }
+.v3 .problemTop h2 { font-size: clamp(38px, 4.9vw, 54px); line-height: 1.02; font-weight: var(--w-title); letter-spacing: -0.015em; text-shadow: none; color: var(--limestone); }
 .v3 .problemTop h2 em { margin-top: 10px; font-size: 0.72em; line-height: 1.12; font-weight: var(--w-title); font-style: normal; color: #c4a673; text-shadow: none; }
 .v3 .problemTop p { color: rgba(241, 236, 228, 0.86); text-shadow: none; font-size: 18px; line-height: 28px; }
 .v3 .problemArrow { color: var(--gold); }
 
 /* ---- O que fazemos ---- */
 .v3 .fronts { background: #fff; }
-.v3 .frontsIntro h2 { font-size: clamp(40px, 5.1vw, 74px); line-height: 1; letter-spacing: -0.02em; }
+.v3 .frontsIntro h2 { font-size: clamp(44px, 6vw, 74px); line-height: 1; letter-spacing: -0.02em; }
 .v3 .frontText { background: #fff; }
-.v3 .frontText h3 { font-size: clamp(32px, 3.4vw, 48px); line-height: 1.02; letter-spacing: -0.015em; }
+.v3 .frontText h3 { font-size: clamp(34px, 4.6vw, 48px); line-height: 1.02; letter-spacing: -0.015em; }
 .v3 .frontLabel { color: var(--accent); }
 @media (min-width: 1101px) { .v3 .frontRow { min-height: 40vw; } } /* 02/11: fotos de 640 x 550 a 593 em 1440 */
 
 /* ---- Experiência ---- */
 .v3 .experience { background: var(--gray-1); }
-.v3 .expIntroLeft h2 { font-size: clamp(38px, 4.8vw, 68px); line-height: 1; letter-spacing: -0.02em; }
+.v3 .expIntroLeft h2 { font-size: clamp(40px, 5.6vw, 68px); line-height: 1; letter-spacing: -0.02em; }
 .v3 .expAuthItems { letter-spacing: -0.01em; }
 
 /* ---- Case CBA e depoimentos: como em 02/11 ---- */
-.v3 .caseFeature h2 { font-size: clamp(34px, 4vw, 56px); line-height: 1.02; letter-spacing: -0.015em; }
+.v3 .caseFeature { align-items: start; }
+.v3 .caseFeature h2 { font-size: clamp(36px, 5.2vw, 56px); line-height: 1.02; letter-spacing: -0.015em; }
 .v3 .caseKey { color: var(--black-2); font-size: 17px; font-weight: var(--w-strong); line-height: 26px; }
 .v3 .caseActions { display: grid; gap: 20px; justify-items: start; }
-.v3 .resultsHead h2 { font-size: clamp(36px, 4.2vw, 60px); line-height: 1.02; letter-spacing: -0.02em; }
+.v3 .resultsHead h2 { font-size: clamp(38px, 5vw, 60px); line-height: 1.02; letter-spacing: -0.02em; }
 .v3 .resultMetric strong, .v3 .resultPhoto span { font-family: var(--kepler); font-weight: var(--w-title); }
 
 /* ---- Diagnóstico: fecha a página em Imperial ---- */
@@ -1416,7 +1417,7 @@
 }
 .v3 .diagTexture { z-index: -1; object-fit: cover; opacity: 0.13; pointer-events: none; }
 .v3 .diagnosticoText .eyebrow { color: #c4a673; }
-.v3 .diagnosticoText h2 { margin-top: 24px; max-width: 14em; font-size: clamp(40px, 4.8vw, 70px); line-height: 1; letter-spacing: -0.02em; color: var(--limestone); }
+.v3 .diagnosticoText h2 { margin-top: 24px; max-width: 14em; font-size: clamp(42px, 5.6vw, 70px); line-height: 1; letter-spacing: -0.02em; color: var(--limestone); }
 .v3 .diagnosticoText h2 .gold { display: block; }
 .v3 .diagnosticoCtaBox { border-left-color: rgba(168, 138, 88, 0.4); }
 .v3 .diagnosticoCtaBox p { color: rgba(241, 236, 228, 0.86); }
@@ -1477,7 +1478,7 @@
   align-items: start; padding: clamp(32px, 3vw, 44px) 0; border-bottom: 1px solid #d9d7d5;
 }
 .symptomIcon { width: 32px; height: 32px; margin-top: 6px; color: var(--accent); }
-.symptomBody h3 { font-size: clamp(30px, 2.9vw, 42px); line-height: 1.04; color: var(--black-2); }
+.symptomBody h3 { font-size: clamp(32px, 3.6vw, 42px); line-height: 1.04; color: var(--black-2); }
 .symptomBody p { max-width: 460px; margin-top: 12px; color: #514c53; font-size: 17px; line-height: 27px; }
 .symptomQuote { margin: 0; }
 .symptomQuote blockquote { margin: 0; color: #3c373f; font-size: 19px; line-height: 30px; }
