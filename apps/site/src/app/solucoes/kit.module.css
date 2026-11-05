@@ -345,6 +345,8 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 .v3 .heroArch img { object-position: 50% 50%; }
 /* Aberturas claras (Execução e AI Culture) em branco, não em Limestone: pedido do dono. */
 .v3 .main > header:first-child:not(.heroBrand) { --paper: #fff; background: #fff; }
+/* A faixa grega (z-index 3) ficava dentro dos 64px que o capítulo seguinte cobre e passava por cima do rótulo "nº / total": a abertura da Execução (a AI Culture tem a barra de provas entre as duas, sem sobreposição) ganha 72px no pé para a faixa ficar acima da cortina. */
+.v3[data-page="execucao"] .main > header:first-child:not(.heroBrand) { padding-bottom: 72px; }
 /* Execução: H1 no mesmo nível visual da Advisory e da AI Culture (era 5vw, até 76 px, em coluna de 62%). */
 .v3[data-page="execucao"] .main > header:first-child h1 { font-size: clamp(36px, 4.4vw, 64px); line-height: 1.04; max-width: 56%; }
 
