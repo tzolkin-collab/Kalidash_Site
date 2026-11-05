@@ -13,6 +13,7 @@ import StepsPin from "./StepsPin";
 import ScrollMotion from "./ScrollMotion";
 import { BlockView, HeroView, Legend, toneMap } from "./ProductPage";
 import KitFonts from "./KitFonts";
+import { ExecucaoClosing, ExecucaoLead, ExecucaoProof } from "./ExecucaoMotion";
 import { Accent, LeadershipView, ProblemView, RitualsView, canProblem } from "./AdvisoryViews";
 import prod from "./product.module.css";
 import sol from "./solucoes.module.css";
@@ -278,11 +279,12 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
             case "text":
               if (advisoryV3 && block.highlight && canProblem(block)) node = <ProblemView key={key} block={block} soft={soft} />;
               else if (advisoryV3 && block.chips) node = <LeadershipView key={key} block={block} soft={soft} />;
+              else if (page.slug === "execucao" && block.highlight) node = <ExecucaoLead key={key} block={block} soft={soft} />;
               else node = <TextView key={key} block={block} soft={soft} figure={page.slug === "advisory"} />;
               break;
             case "list": node = <ListView key={key} block={block} soft={soft} />; break;
             case "formats": node = <FormatsView key={key} block={block} soft={soft} />; break;
-            case "showcase": node = <ShowcaseView key={key} block={block} soft={soft} />; break;
+            case "showcase": node = page.slug === "execucao" ? <ExecucaoProof key={key} block={block} soft={soft} /> : <ShowcaseView key={key} block={block} soft={soft} />; break;
             /* Depoimentos só vão ao ar com vídeo aprovado e hospedado (ver pages.ts): sem isso, nada. */
             case "testimonials": return null;
             case "cards":
@@ -329,8 +331,13 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
               <Image src="/marca/nuvens-douradas.jpg" alt="" fill sizes="100vw" loading="lazy" />
             </div>
           )}
+          {page.slug === "execucao" && (
+            <div className={`${styles.closingBg} ${styles.closingArcs}`} aria-hidden="true">
+              <Image src="/marca/arcos-sepia.webp" alt="" fill sizes="100vw" loading="lazy" />
+            </div>
+          )}
           <div className={sol.closingInner}>
-            <p><LastWord text={closing} /></p>
+            {page.slug === "execucao" ? <ExecucaoClosing text={closing} /> : <p><LastWord text={closing} /></p>}
             {hero.cta && (
               <Link className={sol.closingCta} href={hero.cta.href}>
                 {hero.cta.label} <ArrowRight />

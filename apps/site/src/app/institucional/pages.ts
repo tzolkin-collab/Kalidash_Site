@@ -93,6 +93,8 @@ export type Block =
       type: "showcase";
       eyebrow: string;
       title: string[];
+      /* `hideItems`: oculta a lista Kognis/Spectra (Execução) sem apagar o texto; aguarda a Carol. */
+      hideItems?: boolean;
       metrics: ProofMetric[];
       featured: {
         eyebrow: string;
