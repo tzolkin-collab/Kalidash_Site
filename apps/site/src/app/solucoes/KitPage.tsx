@@ -345,7 +345,7 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
           );
         })}
         <section className={`${sol.closing}${chaptered ? ` ${styles.curtain}` : ""}`} data-tone={chaptered ? "dark" : undefined} data-motion={chaptered ? "curtain" : undefined}>
-          {page.slug === "advisory" && (
+          {(page.slug === "advisory" || isAc) && (
             <ClosingBg className={styles.closingBg}>
               <Image src="/marca/nuvens-douradas.jpg" alt="" fill sizes="100vw" loading="lazy" />
             </ClosingBg>
