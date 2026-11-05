@@ -4,7 +4,7 @@
 .main { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(24px, 4vw, 64px); align-items: start; }
 .text { text-align: left; }
 .main .text > p:first-child { text-align: left; }
-.main .text h1 { max-width: none; margin: 20px 0 0; text-align: left; text-wrap: balance; font-size: clamp(44px, 5.8vw, 86px); line-height: 1.04; letter-spacing: -0.015em; } /* Kepler (mais estreita que a Fraunces): tamanho e entrelinha revistos */
+.main .text h1 { max-width: none; margin: 20px 0 0; text-align: left; text-wrap: balance; font-size: clamp(44px, 6.8vw, 104px); line-height: 0.98; letter-spacing: -0.02em; } /* Kepler (mais estreita que a Fraunces): tamanho e entrelinha revistos */
 .main .text > div:first-of-type { max-width: 540px; margin: 32px 0 0; }
 .main .text > div:nth-of-type(2) { justify-content: flex-start; }
 
@@ -17,7 +17,7 @@
 
 @media (max-width: 1023px) {
   .main { grid-template-columns: minmax(0, 1fr); gap: 32px; }
-  .main .text h1 { font-size: clamp(40px, 9vw, 68px); }
+  .main .text h1 { font-size: clamp(46px, 10.5vw, 78px); }
   .bust { justify-self: center; width: min(72%, 360px); }
 }
 

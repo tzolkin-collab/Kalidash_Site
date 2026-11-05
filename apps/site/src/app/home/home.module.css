@@ -1371,7 +1371,7 @@
 }
 .v3 :is(h1, h2, h3) { --font-title: var(--kepler); font-family: var(--kepler); font-weight: var(--w-title); letter-spacing: -0.015em; text-wrap: balance; }
 .v3 :is(strong, b) { font-weight: var(--w-strong); }
-.v3 .gold { color: var(--gold); font-style: italic; font-weight: var(--w-title); }
+.v3 .gold { color: #c4a673; font-style: normal; font-weight: var(--w-title); }
 
 /* ---- Problema: Imperial no lugar do terracota ---- */
 .v3 .problem { background: linear-gradient(#fff 0 126px, var(--gray-1) 126px); overflow: clip; } /* 02/11: branco sob o hero, cinza claro depois */
@@ -1415,15 +1415,12 @@
   background: var(--imperial); color: var(--limestone); overflow: hidden;
 }
 .v3 .diagTexture { z-index: -1; object-fit: cover; opacity: 0.13; pointer-events: none; }
-.v3 .diagnosticoText .eyebrow { display: flex; align-items: center; gap: 16px; color: var(--gold); }
-.v3 .diagnosticoText .eyebrow::before { content: ""; width: 48px; height: 1px; background: var(--gold); }
-.v3 .diagnosticoText h2 { margin-top: 24px; max-width: 14em; font-size: clamp(36px, 4.4vw, 62px); line-height: 1.04; letter-spacing: -0.01em; color: var(--limestone); }
+.v3 .diagnosticoText .eyebrow { color: #c4a673; }
+.v3 .diagnosticoText h2 { margin-top: 24px; max-width: 14em; font-size: clamp(40px, 4.8vw, 70px); line-height: 1; letter-spacing: -0.02em; color: var(--limestone); }
 .v3 .diagnosticoText h2 .gold { display: block; }
 .v3 .diagnosticoCtaBox { border-left-color: rgba(168, 138, 88, 0.4); }
 .v3 .diagnosticoCtaBox p { color: rgba(241, 236, 228, 0.86); }
-.v3 .diagnosticoCtaBox > strong {
-  font-family: var(--kepler); font-style: italic; font-weight: var(--w-title); font-size: clamp(20px, 1.8vw, 24px); line-height: 1.3; color: var(--gold);
-}
+.v3 .diagnosticoCtaBox > strong { color: var(--limestone); font-weight: var(--w-strong); }
 .v3 .diagPrimary, .v3 .diagSecondary {
   display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-height: 56px; padding: 0 28px;
   border-radius: 999px; font-size: 16px; font-weight: 600; text-decoration: none;
@@ -1449,7 +1446,6 @@
 .v3 .diagPrimary, .v3 .diagSecondary { border-radius: 4px; }
 
 /* Serifa pequena: abaixo de ~30px a Display fica apertada e fina; usa a Subhead com tracking 0. Títulos grandes seguem em Display. */
-.v3 .diagnosticoCtaBox > strong { font-family: var(--kepler-sub); letter-spacing: 0; }
 .v3 .resultMetric strong { font-family: var(--kepler-sub); letter-spacing: 0; }
 @media (max-width: 1000px) {
   .v3 .frontText h3, .v3 .caseFeature h2, .v3 .resultsHead h2, .v3 .expIntroLeft h2 { font-family: var(--kepler-sub); letter-spacing: 0; }
