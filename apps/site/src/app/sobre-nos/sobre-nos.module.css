@@ -236,3 +236,17 @@
   .sobre .keyline { font-size: clamp(28px, 2.9vw, 42px); white-space: nowrap; text-wrap: nowrap; }
   .keyPart { display: inline; }
 }
+
+/* ---------- Ajustes do vídeo (04/11): "A inteligência artificial está a serviço da inteligência humana." ----------
+ * A Criação de Adão (Brand Guide, pinturas/criacao-de-adao, otimizada em public/marca) ao fundo, à direita, em baixa opacidade e com
+ * máscara que apaga para a esquerda, onde está o texto. Só pseudo-elemento: nada se move e o contraste do texto não depende dele. */
+.sobre .beliefs { position: relative; overflow: hidden; }
+.sobre .beliefs::before {
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: url("/marca/criacao-de-adao.webp") right center / auto 100% no-repeat; opacity: 0.2;
+  -webkit-mask-image: linear-gradient(to right, transparent 25%, #000 75%); mask-image: linear-gradient(to right, transparent 25%, #000 75%);
+}
+.sobre .beliefs > div { position: relative; z-index: 1; }
+@media (max-width: 900px) {
+  .sobre .beliefs::before { background-size: cover; background-position: 70% 30%; opacity: 0.14; -webkit-mask-image: none; mask-image: none; }
+}
