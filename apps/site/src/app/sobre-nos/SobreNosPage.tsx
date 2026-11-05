@@ -31,6 +31,18 @@ function LastWord({ text }: { text: string }) {
   return <>{text.slice(0, i + 1)}<span className={kit.gold}>{text.slice(i + 1)}</span></>;
 }
 
+/* Frase-manifesto em duas partes (uma por frase): numa linha só no desktop largo, uma frase por linha abaixo disso. O texto e o espaço entre as frases não mudam. */
+function Keyline({ text }: { text: string }) {
+  const cut = text.indexOf(". ") + 1;
+  if (cut <= 0) return <LastWord text={text} />;
+  return (
+    <>
+      <span className={styles.keyPart}>{text.slice(0, cut)}</span>{" "}
+      <span className={styles.keyPart}><LastWord text={text.slice(cut + 1)} /></span>
+    </>
+  );
+}
+
 function Legend({ children }: { children: React.ReactNode }) {
   return <p className={prod.legend}><span>{children}</span></p>;
 }
@@ -99,7 +111,7 @@ function Timeline({ block }: { block: Of<"timeline"> }) {
                 ))}
                 {item.quote && <blockquote>{item.quote}</blockquote>}
               </div>
-              {item.highlight && <p className={styles.keyline}><LastWord text={item.highlight} /></p>}
+              {item.highlight && <p className={styles.keyline}><Keyline text={item.highlight} /></p>}
             </li>
           ))}
         </ol>

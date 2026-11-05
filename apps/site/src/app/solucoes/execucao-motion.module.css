@@ -1,0 +1,58 @@
+/* Movimento da /execucao (seções 2, 5 e fecho). Só transform e opacity. O estado de partida existe apenas com [data-fx="ready"],
+ * posto por JS depois de montar e só com movimento permitido; sem JS ou com movimento reduzido tudo aparece completo. */
+.lead { --settle: cubic-bezier(0.33, 1, 0.68, 1); }
+/* Ajuste do vídeo (item 3): seção mais compacta (era ~550 px) e título em duas linhas equilibradas, sem a quebra em três. */
+section.lead { padding-block: clamp(36px, 3.6vw, 56px); }
+section.lead h2 { max-width: 30ch; }
+section.lead [class*="manifesto"] { margin-top: clamp(20px, 2.4vw, 32px); padding-top: 0; }
+
+/* Seção 2: gargalos acendem em sequência com a rolagem (--g, 0..1; sem JS vale 1). */
+.gap { --r: clamp(0, calc(var(--g, 1) * 3.4 - var(--i, 0) - 0.2), 1); position: relative; display: inline-block; opacity: calc(0.45 + 0.55 * var(--r)); }
+.gap::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: #a88a58; transform-origin: 0 50%; transform: scaleX(var(--r)); }
+.manifesto { --m: clamp(0, calc((var(--g, 1) - 0.7) * 4), 1); border-top-color: transparent; position: relative; }
+.manifesto::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: #a88a58; transform-origin: 0 50%; transform: scaleX(var(--m)); }
+.manifesto p { opacity: calc(0.25 + 0.75 * var(--m)); transform: translate3d(0, calc((1 - var(--m)) * 14px), 0); }
+
+/* Seção 5. */
+.proof { --settle: cubic-bezier(0.33, 1, 0.68, 1); }
+.numbers { position: relative; }
+.numbers::before { content: ""; position: absolute; left: 0; right: 0; top: -20px; height: 1px; background: #a88a58; transform-origin: 0 50%; transition: transform 1.1s var(--settle); }
+.numbers[data-fx="ready"]::before { transform: scaleX(0); }
+.numbers[data-fx="ready"] li { opacity: 0; transform: translate3d(0, 16px, 0); }
+.numbers li { transition: opacity 0.7s var(--settle), transform 0.7s var(--settle); }
+.numbers li:nth-child(2) { transition-delay: 0.12s; }
+.numbers li:nth-child(3) { transition-delay: 0.24s; }
+
+/* Foto do case: máscara que abre (painel Limestone sobe) e leve deslocamento da imagem. */
+.photo { position: relative; }
+.photo::after { content: ""; position: absolute; inset: 0; background: var(--paper, #f1ece4); transform-origin: 50% 0; transform: scaleY(0); transition: transform 1.1s var(--settle); pointer-events: none; }
+.photo img { transition: transform 1.4s var(--settle); }
+.case[data-fx="ready"] .photo::after { transform: scaleY(1); }
+.case[data-fx="ready"] .photo img { transform: scale(1.1) translate3d(0, 3%, 0); }
+.case[data-fx="ready"] > div:last-child { opacity: 0; transform: translate3d(0, 18px, 0); }
+.case > div:last-child { transition: opacity 0.8s var(--settle) 0.25s, transform 0.8s var(--settle) 0.25s; }
+
+/* Os dois números do piloto em destaque (ouro) com sublinhado traçado. */
+.mark { position: relative; font-style: normal; font-weight: 700; color: #8f7248; white-space: nowrap; }
+.mark::after { content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 1px; background: #a88a58; transform-origin: 0 50%; transition: transform 0.9s var(--settle) 0.7s; }
+.case[data-fx="ready"] .mark::after { transform: scaleX(0); }
+
+/* Lista: linhas em stagger; a seta desliza no hover. */
+.products li { transition: opacity 0.7s var(--settle), transform 0.7s var(--settle); transition-delay: calc(var(--i, 0) * 0.12s); }
+.products[data-fx="ready"] li { opacity: 0; transform: translate3d(0, 18px, 0); }
+.products a svg { transition: transform 0.3s var(--settle); }
+.products a:hover svg, .products a:focus-visible svg { transform: translate3d(5px, 0, 0); }
+
+/* Fecho: linhas entram em sequência e "começar." por último. */
+.closing { --settle: cubic-bezier(0.33, 1, 0.68, 1); }
+.cl { display: inline-block; transition: opacity 0.8s var(--settle), transform 0.8s var(--settle); transition-delay: calc(var(--i, 0) * 0.18s); }
+.closing[data-fx="ready"] .cl { opacity: 0; transform: translate3d(0, 20px, 0); }
+.last { display: inline-block; transition: opacity 0.8s var(--settle) 0.55s, transform 0.8s var(--settle) 0.55s; }
+.closing[data-fx="ready"] .last { opacity: 0; transform: translate3d(0, 14px, 0); }
+
+@media (prefers-reduced-motion: reduce) {
+  .gap, .manifesto p { opacity: 1; transform: none; }
+  .gap::after, .manifesto::before, .numbers::before { transform: scaleX(1); }
+  .manifesto { border-top-color: #a88a58; }
+  .manifesto::before { display: none; }
+}

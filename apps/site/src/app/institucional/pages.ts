@@ -93,6 +93,8 @@ export type Block =
       type: "showcase";
       eyebrow: string;
       title: string[];
+      /* `hideItems`: oculta a lista Kognis/Spectra (Execução) sem apagar o texto. */
+      hideItems?: boolean;
       metrics: ProofMetric[];
       featured: {
         eyebrow: string;
@@ -107,7 +109,6 @@ export type Block =
         image?: Media;
       };
       items: Array<{ title: string; text: string; href?: string }>;
-      hideItems?: boolean;
     }
   | { type: "formats"; eyebrow: string; title: string[]; background: Media; items: FormatCard[] }
   | { type: "testimonials"; eyebrow: string; title: string[]; items: Testimonial[] };
@@ -216,10 +217,10 @@ export const sobreNos: PageContent = {
             height: 800,
           },
           {
-            src: "/home/g21-cba-premio.jpg",
-            alt: "CBA e Kalidash no Prêmio Inovativos",
-            width: 1000,
-            height: 750,
+            src: "/home/g06-saam.jpg",
+            alt: "Executivos reunidos em torno de uma mesa de trabalho, com laptops, em uma jornada de alta gestão",
+            width: 700,
+            height: 525,
           },
         ],
       },
@@ -556,7 +557,7 @@ export const execucao: PageContent = {
         "Processos manuais, tarefas repetitivas, sistemas que não conversam. A maioria das empresas sabe onde estão os gargalos. O que falta é tempo, time técnico e método para resolver sem parar a operação.",
       ],
       highlight: ["É aí que a Kalidash entra."],
-      highlightAccent: "entra.",
+      highlightAccent: "entra",
     },
     {
       type: "cards",
@@ -589,9 +590,9 @@ export const execucao: PageContent = {
     },
     {
       type: "showcase",
+      hideItems: true, /* Carol confirmou a saída de Kognis e Spectra (vídeo, 04/11). */
       eyebrow: "Feito para funcionar",
       title: ["Projetos que já estão rodando."],
-      hideItems: true,
       metrics: [
         { value: "+100", label: "processos automatizados", confirmed: true },
         { value: "170", label: "operações atendidas", confirmed: true },

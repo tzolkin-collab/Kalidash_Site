@@ -172,7 +172,9 @@ export function BlogGalleryView({
       const header = document.querySelector("header");
       const solidHeader = window.matchMedia("(min-width: 1101px)").matches;
       const headerBottom = solidHeader && header ? header.getBoundingClientRect().bottom : 0;
-      const isDocked = rect.bottom <= headerBottom;
+      // Desktop (1101+): os filtros ficam presos na lateral, à esquerda da grade; não sobem para o cabeçalho.
+      const sidebar = window.matchMedia("(min-width: 1101px)").matches;
+      const isDocked = !sidebar && rect.bottom <= headerBottom;
       setScrolled((prev) => (prev !== isDocked ? isDocked : prev));
     };
 
@@ -260,101 +262,103 @@ export function BlogGalleryView({
           </section>
         )}
 
-        {categories.length > 0 && (
-          <nav
-            ref={filtersRef}
-            className={styles.filters}
-            data-block="category-filter"
-            data-docked={scrolled ? "true" : "false"}
-            aria-label="Filtrar por categoria"
-          >
-            {renderFilterButtons(false)}
-          </nav>
-        )}
+        <div className={styles.layout} data-block="blog-layout">
+          {categories.length > 0 && (
+            <nav
+              ref={filtersRef}
+              className={styles.filters}
+              data-block="category-filter"
+              data-docked={scrolled ? "true" : "false"}
+              aria-label="Filtrar por categoria"
+            >
+              {renderFilterButtons(false)}
+            </nav>
+          )}
 
-        {visible.length > 0 ? (
-          <section className={styles.posts} data-block="gallery" data-count={visible.length}>
-            {visible.map((item, index) => {
-              const total = visible.length;
-              let isFeatured = false;
-              let layoutRole = "default";
+          {visible.length > 0 ? (
+            <section className={styles.posts} data-block="gallery" data-count={visible.length}>
+              {visible.map((item, index) => {
+                const total = visible.length;
+                let isFeatured = false;
+                let layoutRole = "default";
 
-              if (total === 1) {
-                // Caso único: 1 artigo solitário na categoria inteira (apresentação editorial refinada max ~920px)
-                isFeatured = true;
-                layoutRole = "single";
-              } else if (total === 2) {
-                // Caso de 2 artigos: dupla de abertura equilibrada lado a lado (50% / 50%)
-                isFeatured = false;
-                layoutRole = "duo";
-              } else {
-                // 3 ou mais artigos: 1º é destaque de capa (100%)
-                isFeatured = index === 0;
-                if (isFeatured) {
-                  layoutRole = "featured";
+                if (total === 1) {
+                  // Caso único: 1 artigo solitário na categoria inteira (apresentação editorial refinada max ~920px)
+                  isFeatured = true;
+                  layoutRole = "single";
+                } else if (total === 2) {
+                  // Caso de 2 artigos: dupla de abertura equilibrada lado a lado (50% / 50%)
+                  isFeatured = false;
+                  layoutRole = "duo";
                 } else {
-                  // Distribuição harmônica: nunca deixa 1 artigo órfão
-                  const remaining = total - 1;
-                  const remainder = remaining % 3;
-
-                  if (remainder === 2 && index >= total - 2) {
-                    // Últimos 2 artigos fecham a linha em dupla (50% / 50%)
-                    layoutRole = "duo";
-                  } else if (remainder === 1 && index >= total - 4) {
-                    // Se sobraria 1 órfão, equilibra os últimos 4 em 2 duplas perfeitas (2 + 2)
-                    layoutRole = "duo";
+                  // 3 ou mais artigos: 1º é destaque de capa (100%)
+                  isFeatured = index === 0;
+                  if (isFeatured) {
+                    layoutRole = "featured";
                   } else {
-                    layoutRole = "default";
+                    // Distribuição harmônica: nunca deixa 1 artigo órfão
+                    const remaining = total - 1;
+                    const remainder = remaining % 3;
+
+                    if (remainder === 2 && index >= total - 2) {
+                      // Últimos 2 artigos fecham a linha em dupla (50% / 50%)
+                      layoutRole = "duo";
+                    } else if (remainder === 1 && index >= total - 4) {
+                      // Se sobraria 1 órfão, equilibra os últimos 4 em 2 duplas perfeitas (2 + 2)
+                      layoutRole = "duo";
+                    } else {
+                      layoutRole = "default";
+                    }
                   }
                 }
-              }
 
-              return (
-                <article
-                  key={item.blockId ?? item.id}
-                  data-block="article-card"
-                  data-variant={isFeatured ? "featured" : "default"}
-                  data-layout={layoutRole}
-                  data-focus="card"
-                  data-block-id={item.blockId}
-                  data-motion={index === 0 ? undefined : "surge"}
-                >
-                  {item.coverImageUrl && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      data-role="cover"
-                      src={item.coverImageUrl}
-                      alt={item.title || ""}
-                      width={1280}
-                      height={720}
-                      loading={index === 0 ? "eager" : "lazy"}
-                      fetchPriority={index === 0 ? "high" : undefined}
-                      decoding="async"
-                      style={{ objectPosition: `50% ${item.coverImagePos}%` }}
-                    />
-                  )}
-                  <p>{item.meta}</p>
-                  <h2>
-                    <Link href={item.href}>{item.title}</Link>
-                  </h2>
-                  <div>{item.excerpt}</div>
-                  <span>{item.authorName || "Equipe Kalidash"}</span>
-                  <Link data-role="read-more" href={item.href}>
-                    Ler artigo <span aria-hidden="true">→</span>
-                  </Link>
-                </article>
-              );
-            })}
-          </section>
-        ) : (
-          <section className={styles.posts} data-block="gallery">
-            <article data-block="article-card" data-variant="default">
-              <p>{activeLabel ?? "Kalidash"}</p>
-              <h2>{active ? "Ainda não há conteúdo nesta categoria." : "Os primeiros artigos estão a caminho."}</h2>
-              <div>{active ? "Veja todos os conteúdos do blog ou volte em breve." : "Nenhum artigo publicado ainda — volte em breve."}</div>
-            </article>
-          </section>
-        )}
+                return (
+                  <article
+                    key={item.blockId ?? item.id}
+                    data-block="article-card"
+                    data-variant={isFeatured ? "featured" : "default"}
+                    data-layout={layoutRole}
+                    data-focus="card"
+                    data-block-id={item.blockId}
+                    data-motion={index === 0 ? undefined : "surge"}
+                  >
+                    {item.coverImageUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        data-role="cover"
+                        src={item.coverImageUrl}
+                        alt={item.title || ""}
+                        width={1280}
+                        height={720}
+                        loading={index === 0 ? "eager" : "lazy"}
+                        fetchPriority={index === 0 ? "high" : undefined}
+                        decoding="async"
+                        style={{ objectPosition: `50% ${item.coverImagePos}%` }}
+                      />
+                    )}
+                    <p>{item.meta}</p>
+                    <h2>
+                      <Link href={item.href}>{item.title}</Link>
+                    </h2>
+                    <div>{item.excerpt}</div>
+                    <span>{item.authorName || "Equipe Kalidash"}</span>
+                    <Link data-role="read-more" href={item.href}>
+                      Ler artigo <span aria-hidden="true">→</span>
+                    </Link>
+                  </article>
+                );
+              })}
+            </section>
+          ) : (
+            <section className={styles.posts} data-block="gallery">
+              <article data-block="article-card" data-variant="default">
+                <p>{activeLabel ?? "Kalidash"}</p>
+                <h2>{active ? "Ainda não há conteúdo nesta categoria." : "Os primeiros artigos estão a caminho."}</h2>
+                <div>{active ? "Veja todos os conteúdos do blog ou volte em breve." : "Nenhum artigo publicado ainda — volte em breve."}</div>
+              </article>
+            </section>
+          )}
+        </div>
       </main>
 
       <ScrollMotion />

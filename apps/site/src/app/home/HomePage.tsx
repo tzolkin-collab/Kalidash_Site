@@ -17,7 +17,6 @@ import {
   ArrowRight,
   ChartIcon,
   DatabaseOffIcon,
-  MessageIcon,
   ShareIcon,
   WhatsApp,
 } from "./icons";
@@ -56,6 +55,9 @@ function TextLink({ href, children, onClick }: { href: string; children: React.R
   );
 }
 
+const symptomIcons = [ChartIcon, DatabaseOffIcon, ShareIcon];
+const symptomQuotes = [problem.quote, ...problem.pairedQuotes];
+
 const TYPEKIT_KIT = "https://use.typekit.net/krs4uwp.css";
 
 export default function HomePage() {
@@ -76,12 +78,11 @@ export default function HomePage() {
     const timeout = window.setTimeout(finish, 5000);
     return () => window.clearTimeout(timeout);
   }, []);
-  const [activeQuoteIndex, setActiveQuoteIndex] = useState<number | null>(null);
   const [isBadgeHovered, setIsBadgeHovered] = useState(false);
   const logoLoop = [...clients, ...clients];
 
   return (
-    <div className={`${styles.home} ${styles.homeDark} ${fraunces.variable}`}>
+    <div className={`${styles.home} ${fraunces.variable}`}>
       {/* Kit Adobe (Kepler e Acumin) só na Home e só dentro do <main>. O CSS do kit NÃO bloqueia a primeira pintura (medido: +1,2 s de FCP
           e texto invisível até a fonte chegar): o <link rel="preload"> começa o download cedo; o useEffect abaixo aplica o CSS e só
           marca data-fonts="ready" depois que as fontes carregaram. Até lá vale a fonte de reserva, com métrica ajustada (home.module.css). */}
@@ -105,11 +106,11 @@ export default function HomePage() {
       <HomeHeader />
 
       <main className={styles.v3} ref={mainRef}>
-        <section className={`${styles.hero} ${styles.heroV3}`} data-block="home-hero" data-tone="dark">
+        <section className={styles.hero} data-block="home-hero">
           <div className={heroStyles.main}>
           <div className={heroStyles.text}>
           <Eyebrow>{hero.eyebrow}</Eyebrow>
-          <h1>{hero.title.before}<span className={heroStyles.keep}><em className={styles.gold}>{hero.title.accent}</em>{hero.title.after}</span></h1>
+          <h1>{hero.title}</h1>
           <div className={styles.heroCopy}>
             {hero.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
           </div>
@@ -138,8 +139,7 @@ export default function HomePage() {
           </div>
           </div>
           <div className={heroStyles.bust} aria-hidden="true">
-            <Image src="/home/hero-pensador.jpg" alt="" width={1000} height={1200} priority sizes="(max-width: 1023px) 72vw, 36vw" />
-            <p className={heroStyles.caption}>{hero.caption.before}<em>{hero.caption.accent}</em>{hero.caption.after}</p>
+            <Image src="/kalidash-hero-sculpture.png" alt="" width={1122} height={1402} priority sizes="(max-width: 1023px) 70vw, 36vw" />
           </div>
           </div>
 
@@ -168,7 +168,6 @@ export default function HomePage() {
 
         {/* 2. O Desafio / Problema — Layout Único com Bento Grid & SVGs Animados */}
         <section id="desafio" className={styles.problem} data-block="home-problem">
-          <span className={styles.watermark} aria-hidden>{problem.watermark}</span>
           <div className={styles.problemGrid}>
             <div className={styles.hologramCol}>
               <ProblemHologram tags={problem.hologramTags} />
@@ -193,172 +192,28 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div
-              className={styles.problemCardsRow}
-              onMouseLeave={() => setActiveQuoteIndex(null)}
-            >
-              {/* Card 01: Trabalho manual */}
-              <article
-                className={styles.problemCard}
-                data-role="problem-card"
-                data-active={activeQuoteIndex === 0}
-                data-dimmed={activeQuoteIndex !== null && activeQuoteIndex !== 0}
-                onMouseEnter={() => setActiveQuoteIndex(0)}
-                onClick={() => setActiveQuoteIndex((prev) => (prev === 0 ? null : 0))}
-              >
-                <FlickeringGrid
-                  squareSize={3.5}
-                  gridGap={5.5}
-                  color="rgb(182, 100, 77)"
-                  maxOpacity={0.28}
-                  flickerChance={0.2}
-                />
-                <div className={styles.cardVignette} aria-hidden="true" />
-                <div className={styles.problemCardHeader}>
-                  <div className={styles.problemCardIconWrap}>
-                    <ChartIcon className={styles.cardIcon} />
-                  </div>
-                </div>
-                <div className={styles.problemCardContent}>
-                  <h3>{problem.cards[0].title}</h3>
-                  <p>{problem.cards[0].text}</p>
-                </div>
-                <div className={styles.cardQuoteCue}>
-                  <MessageIcon className={styles.cardQuoteCueIcon} />
-                  <span>Depoimento real</span>
-                </div>
-              </article>
-
-              {/* Card 01 Quote: Depoimento fotográfico (Iasmin Ramiro) */}
-              <article
-                className={styles.quoteCard}
-                data-role="problem-quote"
-                data-active={activeQuoteIndex === 0}
-                onMouseEnter={() => setActiveQuoteIndex(0)}
-              >
-                <Image src={problem.quote.image ?? "/home/depoimento-fundo.jpg"} alt="" fill sizes="(min-width: 1100px) 380px, 100vw" />
-                <div className={styles.problemCardHeader}>
-                  <span className={styles.problemCardNumber} style={{ color: "rgba(255,255,255,0.7)" }}>DEPOIMENTO</span>
-                  <div className={styles.problemCardIconWrap} style={{ background: "rgba(255,255,255,0.16)", color: "#fff" }}>
-                    <MessageIcon className={styles.cardIcon} />
-                  </div>
-                </div>
-                <div>
-                  <p>“{problem.quote.text}”</p>
-                  <p className={styles.quoteAuthor}>
-                    <strong>{problem.quote.author},</strong> {problem.quote.role}
-                  </p>
-                </div>
-              </article>
-
-              {/* Card 02: IA superficial */}
-              <article
-                className={styles.problemCard}
-                data-role="problem-card"
-                data-active={activeQuoteIndex === 1}
-                data-dimmed={activeQuoteIndex !== null && activeQuoteIndex !== 1}
-                onMouseEnter={() => setActiveQuoteIndex(1)}
-                onClick={() => setActiveQuoteIndex((prev) => (prev === 1 ? null : 1))}
-              >
-                <FlickeringGrid
-                  squareSize={3.5}
-                  gridGap={5.5}
-                  color="rgb(168, 138, 88)"
-                  maxOpacity={0.28}
-                  flickerChance={0.2}
-                />
-                <div className={styles.cardVignette} aria-hidden="true" />
-                <div className={styles.problemCardHeader}>
-                  <div className={styles.problemCardIconWrap}>
-                    <DatabaseOffIcon className={styles.cardIcon} />
-                  </div>
-                </div>
-                <div className={styles.problemCardContent}>
-                  <h3>{problem.cards[1].title}</h3>
-                  <p>{problem.cards[1].text}</p>
-                </div>
-                <div className={styles.cardQuoteCue}>
-                  <MessageIcon className={styles.cardQuoteCueIcon} />
-                  <span>Depoimento real</span>
-                </div>
-              </article>
-
-              {/* Card 02 Quote: Depoimento pareado (Fernando Torquetti) */}
-              <article
-                className={styles.quoteCard}
-                data-role="problem-quote"
-                data-active={activeQuoteIndex === 1}
-                onMouseEnter={() => setActiveQuoteIndex(1)}
-              >
-                <Image src="/home/evento-mesa.jpg" alt="" fill sizes="(min-width: 1100px) 380px, 100vw" />
-                <div className={styles.problemCardHeader}>
-                  <span className={styles.problemCardNumber} style={{ color: "rgba(255,255,255,0.7)" }}>DEPOIMENTO</span>
-                  <div className={styles.problemCardIconWrap} style={{ background: "rgba(255,255,255,0.16)", color: "#fff" }}>
-                    <MessageIcon className={styles.cardIcon} />
-                  </div>
-                </div>
-                <div>
-                  <p>“{problem.pairedQuotes[0].text}”</p>
-                  <p className={styles.quoteAuthor}>
-                    <strong>{problem.pairedQuotes[0].author},</strong> {problem.pairedQuotes[0].role}
-                  </p>
-                </div>
-              </article>
-
-              {/* Card 03: Operação desconectada */}
-              <article
-                className={styles.problemCard}
-                data-role="problem-card"
-                data-active={activeQuoteIndex === 2}
-                data-dimmed={activeQuoteIndex !== null && activeQuoteIndex !== 2}
-                onMouseEnter={() => setActiveQuoteIndex(2)}
-                onClick={() => setActiveQuoteIndex((prev) => (prev === 2 ? null : 2))}
-              >
-                <FlickeringGrid
-                  squareSize={3.5}
-                  gridGap={5.5}
-                  color="rgb(182, 100, 77)"
-                  maxOpacity={0.28}
-                  flickerChance={0.2}
-                />
-                <div className={styles.cardVignette} aria-hidden="true" />
-                <div className={styles.problemCardHeader}>
-                  <div className={styles.problemCardIconWrap}>
-                    <ShareIcon className={styles.cardIcon} />
-                  </div>
-                </div>
-                <div className={styles.problemCardContent}>
-                  <h3>{problem.cards[2].title}</h3>
-                  <p>{problem.cards[2].text}</p>
-                </div>
-                <div className={styles.cardQuoteCue}>
-                  <MessageIcon className={styles.cardQuoteCueIcon} />
-                  <span>Depoimento real</span>
-                </div>
-              </article>
-
-              {/* Card 03 Quote: Depoimento pareado (Geraldo Nunes) */}
-              <article
-                className={styles.quoteCard}
-                data-role="problem-quote"
-                data-active={activeQuoteIndex === 2}
-                onMouseEnter={() => setActiveQuoteIndex(2)}
-              >
-                <Image src="/home/evento-sala.jpg" alt="" fill sizes="(min-width: 1100px) 380px, 100vw" />
-                <div className={styles.problemCardHeader}>
-                  <span className={styles.problemCardNumber} style={{ color: "rgba(255,255,255,0.7)" }}>DEPOIMENTO</span>
-                  <div className={styles.problemCardIconWrap} style={{ background: "rgba(255,255,255,0.16)", color: "#fff" }}>
-                    <MessageIcon className={styles.cardIcon} />
-                  </div>
-                </div>
-                <div>
-                  <p>“{problem.pairedQuotes[1].text}”</p>
-                  <p className={styles.quoteAuthor}>
-                    <strong>{problem.pairedQuotes[1].author},</strong> {problem.pairedQuotes[1].role}
-                  </p>
-                </div>
-              </article>
-            </div>
+            {/* Os três sintomas abertos, sem clique, cada um com o seu depoimento. */}
+            <ol className={styles.symptoms} data-role="problem-symptoms">
+              {problem.cards.map((card, index) => {
+                const Icon = symptomIcons[index];
+                const quote = symptomQuotes[index];
+                return (
+                  <li key={card.number} className={styles.symptom}>
+                    <Icon className={styles.symptomIcon} aria-hidden="true" />
+                    <div className={styles.symptomBody}>
+                      <h3>{card.title}</h3>
+                      <p>{card.text}</p>
+                    </div>
+                    <figure className={styles.symptomQuote}>
+                      <blockquote>“{quote.text}”</blockquote>
+                      <figcaption>
+                        <strong>{quote.author},</strong> {quote.role}
+                      </figcaption>
+                    </figure>
+                  </li>
+                );
+              })}
+            </ol>
           </div>
         </section>
 

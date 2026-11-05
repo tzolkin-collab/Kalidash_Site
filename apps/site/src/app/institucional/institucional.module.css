@@ -285,7 +285,7 @@
 .logoStrip { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 40px; padding: 0 0 28px; }
 .logoStrip p { font-size: 14px; font-weight: 600; letter-spacing: 0.04em; color: #6b6670; }
 .logoStrip ul { display: flex; flex-wrap: wrap; gap: 12px 36px; margin: 0; padding: 0; list-style: none; font-weight: 600; color: #3c373f; }
-.logoStrip img { height: 28px; width: auto; filter: grayscale(1); opacity: 0.8; }
+.logoStrip img { height: 28px; width: auto; }
 
 /* ---- Formatos: dois cards com o mesmo peso, foto ao fundo com blur ---- */
 .formats { position: relative; isolation: isolate; overflow: hidden; border-top: 1px solid var(--line); }

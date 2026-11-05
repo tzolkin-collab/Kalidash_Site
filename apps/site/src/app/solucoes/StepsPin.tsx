@@ -23,6 +23,10 @@ export default function StepsPin({ children }: { children: ReactNode }) {
       on = wide.matches && !reduce.matches;
       setLive(on);
     };
+    /* Instantes em que cada passo acende (--t), espalhados de 0,08 a 0,68 qualquer que seja o número de passos (3 na Advisory, 4 na
+     * Execução); a linha termina em 0,78, logo depois do último. */
+    const steps = el.querySelectorAll<HTMLElement>('[class*="sequence"] > li');
+    steps.forEach((li, i) => li.style.setProperty("--t", (0.08 + (steps.length > 1 ? (i * 0.6) / (steps.length - 1) : 0)).toFixed(3)));
     sync();
     wide.addEventListener("change", sync);
     reduce.addEventListener("change", sync);

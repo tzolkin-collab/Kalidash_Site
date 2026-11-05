@@ -18,6 +18,17 @@
       opacity: calc(0.28 + 0.72 * var(--reveal));
       transform: translate3d(0, calc((1 - var(--reveal)) * 20px), 0);
     }
+    /* Número em ouro que acende com o passo e filete que se traça abaixo do texto. */
+    .pin[data-live] [class*="sequence"] li [class*="stepNum"] { color: var(--gold-light, #c8ab78); opacity: calc(0.3 + 0.7 * var(--reveal)); }
+    .pin[data-live] [class*="sequence"] li::after {
+      content: ""; position: absolute; left: 0; right: 0; bottom: -14px; height: 1px; background: var(--gold-light, #c8ab78);
+      transform-origin: 0 50%; transform: scaleX(var(--reveal)); opacity: 0.8;
+    }
+    /* A frase final entra quando a linha termina. */
+    .pin[data-live] [class*="stepsNote"] {
+      --end: clamp(0, calc((var(--p, 0) - 0.78) * 8), 1);
+      opacity: calc(0.15 + 0.85 * var(--end)); transform: translate3d(0, calc((1 - var(--end)) * 18px), 0);
+    }
     .pin[data-live] [class*="sequence"] li:nth-child(1) { --t: 0.08; }
     .pin[data-live] [class*="sequence"] li:nth-child(2) { --t: 0.28; }
     .pin[data-live] [class*="sequence"] li:nth-child(3) { --t: 0.48; }
