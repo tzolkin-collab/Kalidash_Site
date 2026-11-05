@@ -20,7 +20,7 @@ import mo from "./advisory-motion.module.css";
 import { ExecucaoClosing, ExecucaoLead, ExecucaoProof } from "./ExecucaoMotion";
 import dynamic from "next/dynamic";
 import { AcSteps } from "./AiCultureSteps";
-/* Peças com framer-motion abaixo da dobra: carregam em chunk à parte (SSR continua, o HTML vem completo). */
+/* Peças de movimento da AI Culture abaixo da dobra: carregam em chunk à parte (SSR continua, o HTML vem completo). */
 const AcCapacity = dynamic(() => import("./AiCultureMotion").then((m) => m.AcCapacity));
 const AcClosing = dynamic(() => import("./AiCultureMotion").then((m) => m.AcClosing));
 const AcFormats = dynamic(() => import("./AiCultureMotion").then((m) => m.AcFormats));

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { cubicBezier, inView } from "framer-motion";
 import v3 from "./advisory-v3.module.css";
 import m from "./advisory-motion.module.css";
 
@@ -10,7 +9,40 @@ import m from "./advisory-motion.module.css";
  * Sem JS, com movimento reduzido ou em tela pequena (`live` desligado) nada é escondido: tudo aparece empilhado e completo.
  * O estado "armado" (data-arm) só existe depois da hidratação e só se o visitante não pediu movimento reduzido. */
 
-const SETTLE = cubicBezier(0.33, 1, 0.68, 1);
+/* cubic-bezier(0.33, 1, 0.68, 1) (SETTLE): resolvida em x por Newton, sem biblioteca. O framer-motion saiu das páginas do Kit (ajuste 16: pesava no TBT). */
+function bezier(x1: number, y1: number, x2: number, y2: number) {
+  const f = (a: number, b: number, t: number) => 3 * a * (1 - t) * (1 - t) * t + 3 * b * (1 - t) * t * t + t * t * t;
+  const d = (a: number, b: number, t: number) => 3 * a * (1 - t) * (1 - t) + 6 * (b - a) * (1 - t) * t + 3 * (1 - b) * t * t;
+  return (x: number) => {
+    if (x <= 0 || x >= 1) return Math.min(1, Math.max(0, x));
+    let t = x;
+    for (let i = 0; i < 8; i++) {
+      const err = f(x1, x2, t) - x;
+      const slope = d(x1, x2, t);
+      if (Math.abs(err) < 1e-5 || Math.abs(slope) < 1e-6) break;
+      t -= err / slope;
+    }
+    return f(y1, y2, Math.min(1, Math.max(0, t)));
+  };
+}
+const SETTLE = bezier(0.33, 1, 0.68, 1);
+
+/* inView(el, onEnter, { amount, margin }): chama onEnter ao entrar (e a função devolvida ao sair). Devolve o cancelamento. */
+function inView(el: Element, onEnter: () => void | (() => void), opts: { amount: number; margin?: string }) {
+  let leave: (() => void) | void;
+  const io = new IntersectionObserver(
+    ([e]) => {
+      if (e.isIntersecting) leave = onEnter();
+      else if (leave) {
+        leave();
+        leave = undefined;
+      }
+    },
+    { threshold: opts.amount, rootMargin: opts.margin ?? "0px" },
+  );
+  io.observe(el);
+  return () => io.disconnect();
+}
 const c = (v: number) => Math.min(1, Math.max(0, v));
 const seg = (p: number, a: number, b: number) => c((p - a) / (b - a));
 
