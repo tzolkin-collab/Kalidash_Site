@@ -250,3 +250,7 @@
 @media (max-width: 900px) {
   .sobre .beliefs::before { background-size: cover; background-position: 70% 30%; opacity: 0.14; -webkit-mask-image: none; mask-image: none; }
 }
+
+/* ---------- Ajustes do vídeo (04/11): foto da equipe sem cortar cabeças ----------
+ * O teto de 560-600 px com object-fit: cover recortava o alto e o pé da foto 16:9 (cabeças de quem está atrás). Sem teto, a foto aparece inteira em qualquer largura. */
+.sobre .teamFigure img { max-height: none; height: auto; object-fit: contain; }
