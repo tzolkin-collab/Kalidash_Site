@@ -244,9 +244,10 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
   /* `aspect: "landscape"` pede a abertura larga (HeroWide) mesmo com foto em pé: o arco recorta. */
   const portrait = hero.aspect === "landscape" ? false : hero.image.height > hero.image.width;
   /* Ajustes V3: desenho novo (tipografia Kepler/Acumin, Imperial e Limestone) só onde já foi aprovado para ir ao ar; hoje, a Advisory. */
-  const v3 = page.slug === "advisory";
+  const advisoryV3 = page.slug === "advisory";
+  const v3 = advisoryV3 || page.slug === "execucao";
   /* Na Advisory os "rituais" (cards) viram seção Imperial: saem da alternância de fundos claros. */
-  const light = v3 ? LIGHT.filter((t) => t !== "cards") : LIGHT;
+  const light = advisoryV3 ? LIGHT.filter((t) => t !== "cards") : LIGHT;
   const tones = toneMap(page.blocks, light);
   /* Movimento de rolagem em CSS (capítulos em cortina, rótulo "nº / total", surge) em todas as páginas do Kit. Sem JS; a cortina só
    * vale no desktop alto e sem movimento reduzido. O ajuste do cabeçalho no celular (kitDark) é só da Advisory, a única com hero Imperial. */
@@ -275,8 +276,8 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
           let node: React.ReactNode;
           switch (block.type) {
             case "text":
-              if (v3 && block.highlight && canProblem(block)) node = <ProblemView key={key} block={block} soft={soft} />;
-              else if (v3 && block.chips) node = <LeadershipView key={key} block={block} soft={soft} />;
+              if (advisoryV3 && block.highlight && canProblem(block)) node = <ProblemView key={key} block={block} soft={soft} />;
+              else if (advisoryV3 && block.chips) node = <LeadershipView key={key} block={block} soft={soft} />;
               else node = <TextView key={key} block={block} soft={soft} figure={page.slug === "advisory"} />;
               break;
             case "list": node = <ListView key={key} block={block} soft={soft} />; break;
@@ -285,7 +286,7 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
             /* Depoimentos só vão ao ar com vídeo aprovado e hospedado (ver pages.ts): sem isso, nada. */
             case "testimonials": return null;
             case "cards":
-              if (v3) { node = <RitualsView key={key} block={block} />; break; }
+              if (advisoryV3) { node = <RitualsView key={key} block={block} />; break; }
               /* Execução, "O que construímos": índice em acordeão preso na rolagem, com a tela ilustrativa de cada frente. */
               if (page.slug === "execucao" && block.items.some((it) => it.example)) {
                 const t = Array.isArray(block.title) ? block.title.join(" ") : block.title;

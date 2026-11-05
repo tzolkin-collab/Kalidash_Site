@@ -343,3 +343,10 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 /* O arco sobe 44 px do pé da abertura: a cortina do capítulo seguinte não corta mais o palestrante. */
 .v3 .heroArch { background: #46304f; margin-bottom: 44px; border-radius: 999px 999px 18px 18px; }
 .v3 .heroArch img { object-position: 50% 50%; }
+
+/* ---------- Execução V3: linha fina deslocada atrás da foto em arco (doc-26). Só CSS, fora do fluxo. ---------- */
+.v3[data-page="execucao"] .main > header:first-child [class*="photo"]::before {
+  content: ""; position: absolute; z-index: -1; inset: 0; transform: translate3d(14px, 14px, 0);
+  border: 1px solid rgba(143, 114, 72, 0.7); border-radius: 999px 999px 0 0; pointer-events: none;
+}
+.v3[data-page="execucao"] .main :is(h1, h2, h3) em { font-style: italic; }

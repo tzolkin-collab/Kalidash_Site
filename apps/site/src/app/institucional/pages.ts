@@ -554,6 +554,7 @@ export const execucao: PageContent = {
         "Processos manuais, tarefas repetitivas, sistemas que não conversam. A maioria das empresas sabe onde estão os gargalos. O que falta é tempo, time técnico e método para resolver sem parar a operação.",
       ],
       highlight: ["É aí que a Kalidash entra."],
+      highlightAccent: "entra",
     },
     {
       type: "cards",
