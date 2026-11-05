@@ -220,3 +220,10 @@
 @media (max-width: 1100px) { .sobre .hero { padding-top: 92px; } }
 /* A abertura também ganha os 36px no pé que compensam a sobreposição maior da cortina (kit.module.css). */
 .sobre .hero { padding-bottom: 36px; }
+
+/* ---------- Ajustes do vídeo (04/11): menos vazio na linha do tempo, logo depois do mosaico ----------
+ * Era a seção mais cheia de ar (~2090 px): 100 px de respiro acima do mosaico, 64 px abaixo dele e atos com 36 px entre si. */
+.sobre .timeline { padding-block: clamp(24px, 2.6vw, 40px) clamp(40px, 4vw, 64px); }
+.sobre .timeline .mosaicWrap { margin-top: 0; margin-bottom: clamp(20px, 2.4vw, 36px); }
+.sobre .timeline .acts > li { padding-block: clamp(16px, 2vw, 28px); }
+.sobre .timeline .keyline { margin-top: clamp(20px, 3vw, 40px); padding-top: clamp(20px, 2.4vw, 32px); }
