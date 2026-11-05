@@ -345,6 +345,8 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 .v3 .heroArch img { object-position: 50% 50%; }
 /* Aberturas claras (Execução e AI Culture) em branco, não em Limestone: pedido do dono. */
 .v3 .main > header:first-child:not(.heroBrand) { --paper: #fff; background: #fff; }
+/* Execução: H1 no mesmo nível visual da Advisory e da AI Culture (era 5vw, até 76 px, em coluna de 62%). */
+.v3[data-page="execucao"] .main > header:first-child h1 { font-size: clamp(36px, 4.4vw, 64px); line-height: 1.04; max-width: 56%; }
 
 /* ---------- Advisory (movimento): separação entre os dois capítulos Imperial seguidos (rituais e três passos) e seta do CTA do fecho ---------- */
 .v3 .chapter[data-tone="dark"] section[class*="steps"] { box-shadow: inset 0 1px 0 rgba(196, 166, 115, 0.45); }
