@@ -1,6 +1,10 @@
 /* Movimento da /execucao (seções 2, 5 e fecho). Só transform e opacity. O estado de partida existe apenas com [data-fx="ready"],
  * posto por JS depois de montar e só com movimento permitido; sem JS ou com movimento reduzido tudo aparece completo. */
 .lead { --settle: cubic-bezier(0.33, 1, 0.68, 1); }
+/* Ajuste do vídeo (item 3): seção mais compacta (era ~550 px) e título em duas linhas equilibradas, sem a quebra em três. */
+section.lead { padding-block: clamp(36px, 3.6vw, 56px); }
+section.lead h2 { max-width: 30ch; }
+section.lead [class*="manifesto"] { margin-top: clamp(20px, 2.4vw, 32px); padding-top: 0; }
 
 /* Seção 2: gargalos acendem em sequência com a rolagem (--g, 0..1; sem JS vale 1). */
 .gap { --r: clamp(0, calc(var(--g, 1) * 3.4 - var(--i, 0) - 0.2), 1); position: relative; display: inline-block; opacity: calc(0.45 + 0.55 * var(--r)); }
