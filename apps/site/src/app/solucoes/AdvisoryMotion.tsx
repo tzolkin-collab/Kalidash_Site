@@ -262,3 +262,139 @@ export function MotionRoot({ children, className = "" }: { children: ReactNode; 
     </div>
   );
 }
+
+/* ---------- Seção 1: filete em arco da abertura ---------- */
+
+/* Filete ouro fino que contorna o arco da foto, um pouco dentro dela (a foto fica recortada pelo arco, então o traço vive no mesmo
+ * quadro). Medido no cliente; traçado por pathLength depois da entrada. Decorativo: sem JS não existe e nada falta. */
+export function HeroArc() {
+  const ref = useRef<SVGSVGElement>(null);
+  const [box, setBox] = useState<{ w: number; h: number } | null>(null);
+  useEffect(() => {
+    const host = ref.current?.parentElement;
+    if (!host) return;
+    const read = () => setBox({ w: host.offsetWidth, h: host.offsetHeight });
+    read();
+    const ro = new ResizeObserver(read);
+    ro.observe(host);
+    return () => ro.disconnect();
+  }, []);
+  const inset = 14;
+  const w = box ? box.w - inset * 2 : 0;
+  const h = box ? box.h - inset * 2 : 0;
+  const r = w / 2;
+  return (
+    <svg ref={ref} className={m.arc} width={box?.w ?? 0} height={box?.h ?? 0} viewBox={`0 0 ${box?.w ?? 0} ${box?.h ?? 0}`} fill="none" aria-hidden="true" focusable="false">
+      {box && (
+        <path pathLength={1} d={`M ${inset} ${inset + h} V ${inset + r} A ${r} ${r} 0 0 1 ${inset + w} ${inset + r} V ${inset + h}`} stroke="#c4a673" strokeWidth="1" strokeLinecap="round" />
+      )}
+    </svg>
+  );
+}
+
+/* ---------- Seção 7: perguntas (abertura com altura por grid-template-rows) ---------- */
+
+type Qa = { q: string; a: string };
+
+function FaqItem({ item, armed }: { item: Qa; armed: boolean }) {
+  const [open, setOpen] = useState(false); /* atributo [open] do <details>: fica ligado enquanto fecha */
+  const [rows, setRows] = useState(false); /* 1fr / 0fr */
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  const toggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    clearTimeout(timer.current);
+    if (!rows) {
+      setOpen(true);
+      if (!armed) return setRows(true);
+      requestAnimationFrame(() => requestAnimationFrame(() => setRows(true)));
+    } else {
+      setRows(false);
+      if (!armed) return setOpen(false);
+      timer.current = setTimeout(() => setOpen(false), 420);
+    }
+  };
+  return (
+    <details open={open} className={m.faqItem} data-s={rows ? "open" : "closed"} data-arm={armed ? "" : undefined}>
+      <summary onClick={toggle} aria-expanded={rows}>{item.q}</summary>
+      <div className={m.faqBody}>
+        <div className={m.faqInner}>
+          <p>{item.a}</p>
+        </div>
+      </div>
+    </details>
+  );
+}
+
+export function FaqList({ items, className }: { items: Qa[]; className?: string }) {
+  const { armed } = useMotionMode();
+  return (
+    <div className={className}>
+      {items.map((it) => (
+        <FaqItem key={it.q} item={it} armed={armed} />
+      ))}
+    </div>
+  );
+}
+
+/* ---------- Seção 8: fechamento ---------- */
+
+/* Nuvens com deslocamento vertical leve ligado à rolagem (só transform). */
+export function ClosingBg({ className, children }: { className?: string; children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    const host = el?.parentElement;
+    if (!el || !host || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const r = host.getBoundingClientRect();
+      const t = c((window.innerHeight - r.top) / (window.innerHeight + r.height));
+      el.style.transform = `translate3d(0, ${((0.5 - t) * 64).toFixed(1)}px, 0) scale(1.14)`;
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+      el.style.transform = "";
+    };
+  }, []);
+  return (
+    <div ref={ref} className={className} aria-hidden="true">
+      {children}
+    </div>
+  );
+}
+
+/* A frase entra por linhas (uma por sentença) e a última palavra, em ouro, por último. O texto e a ordem das palavras não mudam. */
+export function ClosingText({ text, goldClass }: { text: string; goldClass: string }) {
+  const lines = text.split(/(?<=\.)\s+/);
+  const last = lines.length - 1;
+  const cut = lines[last].lastIndexOf(" ");
+  return (
+    <MotionRoot>
+      <p>
+        {lines.map((line, i) => (
+          <span key={i} className={m.line} data-r="" style={{ "--i": i } as CSSProperties}>
+            {i === last && cut > 0 ? (
+              <>
+                {line.slice(0, cut + 1)}
+                <span className={`${goldClass} ${m.goldWord}`} data-r="" style={{ "--i": lines.length + 1 } as CSSProperties}>{line.slice(cut + 1)}</span>
+              </>
+            ) : (
+              line
+            )}
+            {i < last ? " " : ""}
+          </span>
+        ))}
+      </p>
+    </MotionRoot>
+  );
+}

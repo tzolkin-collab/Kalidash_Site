@@ -2,7 +2,8 @@ import type { SVGProps } from "react";
 import type { Block } from "../institucional/pages";
 import { Legend } from "./ProductPage";
 import styles from "./advisory-v3.module.css";
-import { LeadStage, MotionRoot, ProblemStage } from "./AdvisoryMotion";
+import { FaqList, LeadStage, MotionRoot, ProblemStage } from "./AdvisoryMotion";
+import prod from "./product.module.css";
 import mo from "./advisory-motion.module.css";
 
 /* Seções da Advisory no desenho V3 (Ajustes V3, itens V2 a V4). Todo o texto vem de pages.ts e é só repartido em peças
@@ -222,5 +223,30 @@ export function RitualsView({ block }: { block: Of<"cards"> }) {
       </div>
     </section>
     </MotionRoot>
+  );
+}
+
+/* ---------- Seção 7 · perguntas: mesmo desenho de sempre, com abertura animada (FaqList) e o mesmo JSON-LD FAQPage ---------- */
+
+export function FaqView({ block, soft }: { block: Of<"faq">; soft: boolean }) {
+  return (
+    <section className={`${prod.section} ${prod.split}${soft ? ` ${prod.soft}` : ""}`}>
+      <div className={`${prod.wrap} ${prod.splitGrid}`}>
+        <header className={prod.sticky}>
+          <h2>{block.title}</h2>
+        </header>
+        <FaqList className={prod.faq} items={block.items} />
+      </div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: block.items.map((item) => ({ "@type": "Question", name: item.q, acceptedAnswer: { "@type": "Answer", text: item.a } })),
+          }).replace(/</g, "\\u003c"),
+        }}
+      />
+    </section>
   );
 }

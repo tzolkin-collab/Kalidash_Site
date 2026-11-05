@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import home from "../home/home.module.css";
@@ -13,7 +14,9 @@ import StepsPin from "./StepsPin";
 import ScrollMotion from "./ScrollMotion";
 import { BlockView, HeroView, Legend, toneMap } from "./ProductPage";
 import KitFonts from "./KitFonts";
-import { Accent, LeadershipView, ProblemView, RitualsView, canProblem } from "./AdvisoryViews";
+import { Accent, FaqView, LeadershipView, ProblemView, RitualsView, canProblem } from "./AdvisoryViews";
+import { ClosingBg, ClosingText, HeroArc, MotionRoot } from "./AdvisoryMotion";
+import mo from "./advisory-motion.module.css";
 import prod from "./product.module.css";
 import sol from "./solucoes.module.css";
 import styles from "./kit.module.css";
@@ -37,7 +40,7 @@ function LastWord({ text, accent }: { text: string; accent?: string }) {
 }
 
 /* Abertura da Advisory: Imperial, texto à esquerda e a foto (pages.ts) num arco à direita. */
-function HeroWide({ block }: { block: Of<"heroMedia"> }) {
+function HeroWide({ block, arc = false }: { block: Of<"heroMedia">; arc?: boolean }) {
   const last = block.title.length - 1;
   return (
     <header className={styles.heroBrand} data-tone="dark" data-motion="hero">
@@ -61,7 +64,8 @@ function HeroWide({ block }: { block: Of<"heroMedia"> }) {
           </div>
         </div>
         <div className={styles.heroArch}>
-          <Image src={block.image.src} alt={block.image.alt} width={block.image.width} height={block.image.height} priority sizes="(max-width: 900px) 78vw, 460px" />
+          <Image src={block.image.src} alt={block.image.alt} width={block.image.width} height={block.image.height} priority sizes="(max-width: 900px) 78vw, 460px" className={arc ? mo.photo : undefined} />
+          {arc && <HeroArc />}
         </div>
       </div>
     </header>
@@ -108,8 +112,10 @@ function TextView({ block, soft, figure }: { block: Of<"text">; soft: boolean; f
   );
 }
 
-function ListView({ block, soft }: { block: Of<"list">; soft: boolean }) {
+function ListView({ block, soft, motion = false }: { block: Of<"list">; soft: boolean; motion?: boolean }) {
+  const Wrap = motion ? MotionRoot : Fragment;
   return (
+    <Wrap>
     <section className={`${prod.section} ${prod.split}${soft ? ` ${prod.soft}` : ""}`}>
       <div className={`${prod.wrap} ${prod.splitGrid}`}>
         <header className={prod.sticky}>
@@ -117,9 +123,9 @@ function ListView({ block, soft }: { block: Of<"list">; soft: boolean }) {
           <h2>{block.title.join(" ")}</h2>
         </header>
         <div>
-          <ul className={styles.criteria}>
-            {block.items.map((item) => (
-              <li key={item}>{item}</li>
+          <ul className={`${styles.criteria}${motion ? ` ${mo.crit}` : ""}`}>
+            {block.items.map((item, i) => (
+              <li key={item} data-r={motion ? "" : undefined} style={motion ? ({ "--i": i } as React.CSSProperties) : undefined}>{item}</li>
             ))}
           </ul>
           {(block.note || block.noteLink) && (
@@ -135,6 +141,7 @@ function ListView({ block, soft }: { block: Of<"list">; soft: boolean }) {
         </div>
       </div>
     </section>
+    </Wrap>
   );
 }
 
@@ -267,7 +274,7 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
       )}
       <HomeHeader />
       <main className={styles.main}>
-        {portrait ? <HeroView hero={hero} kind="photo" /> : <HeroWide block={hero} />}
+        {portrait ? <HeroView hero={hero} kind="photo" /> : <HeroWide block={hero} arc={v3} />}
         {page.blocks.map((block, index) => {
           if (block.type === "heroMedia") return null;
           const key = `${block.type}-${index}`;
@@ -279,7 +286,8 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
               else if (v3 && block.chips) node = <LeadershipView key={key} block={block} soft={soft} />;
               else node = <TextView key={key} block={block} soft={soft} figure={page.slug === "advisory"} />;
               break;
-            case "list": node = <ListView key={key} block={block} soft={soft} />; break;
+            case "list": node = <ListView key={key} block={block} soft={soft} motion={v3} />; break;
+            case "faq": node = v3 ? <FaqView key={key} block={block} soft={soft} /> : <BlockView key={key} block={block} cardsIndex={1} poster={false} soft={soft} />; break;
             case "formats": node = <FormatsView key={key} block={block} soft={soft} />; break;
             case "showcase": node = <ShowcaseView key={key} block={block} soft={soft} />; break;
             /* Depoimentos só vão ao ar com vídeo aprovado e hospedado (ver pages.ts): sem isso, nada. */
@@ -297,7 +305,7 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
               break;
             case "steps":
               /* Execução, "Como entregamos": faixa presa na rolagem, com a linha esticando e os passos acendendo em sequência. */
-              node = page.slug === "execucao"
+              node = page.slug === "execucao" || page.slug === "advisory"
                 ? <StepsPin key={key}><BlockView block={block} cardsIndex={1} poster={false} soft={soft} /></StepsPin>
                 : <BlockView key={key} block={block} cardsIndex={1} poster={false} soft={soft} />;
               break;
@@ -324,12 +332,12 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
         })}
         <section className={`${sol.closing}${chaptered ? ` ${styles.curtain}` : ""}`} data-tone={chaptered ? "dark" : undefined} data-motion={chaptered ? "curtain" : undefined}>
           {page.slug === "advisory" && (
-            <div className={styles.closingBg} aria-hidden="true">
+            <ClosingBg className={styles.closingBg}>
               <Image src="/marca/nuvens-douradas.jpg" alt="" fill sizes="100vw" loading="lazy" />
-            </div>
+            </ClosingBg>
           )}
           <div className={sol.closingInner}>
-            <p><LastWord text={closing} /></p>
+            {v3 ? <ClosingText text={closing} goldClass={styles.gold} /> : <p><LastWord text={closing} /></p>}
             {hero.cta && (
               <Link className={sol.closingCta} href={hero.cta.href}>
                 {hero.cta.label} <ArrowRight />
