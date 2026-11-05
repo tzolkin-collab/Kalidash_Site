@@ -359,15 +359,7 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 }
 .v3[data-page="execucao"] .main :is(h1, h2, h3) em { font-style: italic; }
 
-/* Execução V3: fecho com arcos sépia em baixa opacidade, deslocados de leve na rolagem (só transform), e título sem o tracking apertado herdado. */
-.v3[data-page="execucao"] .closingArcs { opacity: 0.32; overflow: hidden; }
-.v3[data-page="execucao"] .closingArcs img { transform: scale(1.12); }
-@media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    .v3[data-page="execucao"] .closingArcs img { animation: arcsDrift linear both; animation-timeline: view(); animation-range: entry 0% exit 100%; }
-  }
-}
-@keyframes arcsDrift { from { transform: scale(1.12) translate3d(0, -4%, 0); } to { transform: scale(1.12) translate3d(0, 4%, 0); } }
+/* Execução V3: fecho com as nuvens do Advisory (ClosingBg, com paralaxe); título sem o tracking apertado herdado. */
 .v3[data-page="execucao"] section[data-tone="dark"] p { letter-spacing: -0.012em; }
 
 /* Execução V3, abertura: a foto assenta de 1,04 para 1 e a linha fina sai de trás do arco depois da entrada. Só transform e opacity; a foto nunca nasce invisível (LCP). */
