@@ -83,20 +83,24 @@ export function AcCapacity({ block }: { block: Of<"text"> }) {
                   : part)}
             </p>
           </div>
-          <m.p className={s.capSign} style={armed ? { opacity: sign } : undefined}>
-            {at < 0 ? hl : (
-              <>
-                {hl.slice(0, at)}
-                <span className={s.capWord}>
-                  <em>{word}</em>
-                  <svg viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-                    <m.path d="M1 4C20 1.5 45 1 99 3" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" vectorEffect="non-scaling-stroke" style={{ pathLength: armed ? line : 1 }} />
-                  </svg>
-                </span>
-                {hl.slice(at + word.length)}
-              </>
-            )}
-          </m.p>
+        </div>
+        <div className={s.capBand}>
+          <div className={prod.wrap}>
+              <m.p className={s.capSign} style={armed ? { opacity: sign } : undefined}>
+                {at < 0 ? hl : (
+                  <>
+                    {hl.slice(0, at)}
+                    <span className={s.capWord}>
+                      <em>{word}</em>
+                      <svg viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                        <m.path d="M1 4C20 1.5 45 1 99 3" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" vectorEffect="non-scaling-stroke" style={{ pathLength: armed ? line : 1 }} />
+                      </svg>
+                    </span>
+                    {hl.slice(at + word.length)}
+                  </>
+                )}
+              </m.p>
+          </div>
         </div>
       </section>
     </LazyMotion>
