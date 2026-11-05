@@ -88,16 +88,18 @@ const IMPERIAL = "#28183b";
 
 function applyProblem(p: number, el: HTMLElement) {
   const set = (k: string, v: number) => el.style.setProperty(k, v.toFixed(4));
-  set("--line", seg(p, 0.06, 0.52));
-  for (let i = 0; i < 4; i++) set(`--e${i}`, seg(p, 0.08 + i * 0.13, 0.16 + i * 0.13));
-  const s = seg(p, 0.56, 0.74);
+  /* Palco encurtado (260 -> 170 svh): a sequência é a mesma, em janelas de rolagem mais justas. A frase da fase final nunca fica
+   * apagada sem nada legível ao redor: ao entrar, "Não entregamos um plano." já está inteira e "Acompanhamos…" parte de 70%. */
+  set("--line", seg(p, 0.05, 0.44));
+  for (let i = 0; i < 4; i++) set(`--e${i}`, seg(p, 0.07 + i * 0.1, 0.15 + i * 0.1));
+  const s = seg(p, 0.46, 0.62);
   set("--s", SETTLE(s));
-  set("--soft", p < 0.82 ? seg(p, 0.74, 0.8) : 1 - 0.48 * seg(p, 0.82, 0.88));
-  set("--strong", 0.3 + 0.7 * seg(p, 0.8, 0.88));
-  set("--gold", seg(p, 0.89, 0.94));
-  set("--sig", seg(p, 0.78, 0.95));
-  for (let i = 0; i < 4; i++) set(`--m${i}`, seg(p, 0.86 + i * 0.03, 0.91 + i * 0.03));
-  set("--mline", seg(p, 0.86, 0.99));
+  set("--soft", p < 0.78 ? seg(p, 0.52, 0.6) : 1 - 0.45 * seg(p, 0.78, 0.84));
+  set("--strong", 0.7 + 0.3 * seg(p, 0.7, 0.84));
+  set("--gold", seg(p, 0.84, 0.9));
+  set("--sig", seg(p, 0.66, 0.9));
+  for (let i = 0; i < 4; i++) set(`--m${i}`, seg(p, 0.85 + i * 0.03, 0.9 + i * 0.03));
+  set("--mline", seg(p, 0.85, 0.99));
   const dark = s > 0.5;
   const phase = dark ? "dark" : "light";
   if (el.dataset.phase === phase) return;

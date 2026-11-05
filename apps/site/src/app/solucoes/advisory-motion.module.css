@@ -13,8 +13,8 @@
 /* ================= Palco preso (seções 2 e 3) ================= */
 .stick { position: relative; }
 .advStory[data-live] { position: relative; margin-bottom: -36px; }
-.advStory[data-live][data-stage="problem"] { height: 260svh; }
-.advStory[data-live][data-stage="lead"] { height: 230svh; }
+.advStory[data-live][data-stage="problem"] { height: 170svh; }
+.advStory[data-live][data-stage="lead"] { height: 170svh; }
 .advStory[data-live] .stick { position: sticky; top: calc(var(--header, 56px) + 40px); height: calc(100svh - var(--header, 56px) - 40px); overflow: clip; background: var(--limestone); }
 .advStory.soft[data-live] .stick { background: var(--limestone-deep); }
 
@@ -34,8 +34,8 @@
 
 /* Fase 3: a assinatura. */
 .advStory[data-live] [data-part="soft"] { opacity: var(--soft, 0); }
-.advStory[data-live] [data-part="strong"] { opacity: var(--strong, 0.3); }
-.advStory[data-live] [data-part="strong"] em { opacity: var(--gold, 0); }
+.advStory[data-live] [data-part="strong"] { opacity: var(--strong, 0.7); }
+.advStory[data-live] [data-part="strong"] em { opacity: calc(0.4 + 0.6 * var(--gold, 0)); }
 .advStory[data-live] [data-part="sigil"] :is(circle, path) { stroke-dasharray: 1; stroke-dashoffset: calc(1 - var(--sig, 0)); }
 .advStory[data-live] [data-part="sigil"] circle:last-of-type { opacity: var(--sig, 0); }
 .advStory[data-live] [data-part="marks"] { position: relative; border-top-color: rgba(196, 166, 115, 0.18); }
