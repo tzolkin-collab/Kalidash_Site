@@ -18,7 +18,7 @@
 .capText { margin: 0; padding-top: 0.6em; font-size: clamp(16px, 1.3vw, 19px); line-height: 1.6; color: var(--text-2); max-width: 40ch; }
 .tool { color: var(--ink-text); font-weight: var(--w-strong, 700); }
 /* Frase-assinatura: faixa roxa baixa (Aubergine, para não se fundir ao Imperial do capítulo seguinte), esticada em largura. Desce 36px sobre o pé do capítulo e 64px sob a cortina seguinte, que a cobre. */
-.capBand { margin: clamp(40px, 4.5vw, 64px) 0 -36px; padding-block: 26px calc(26px + 64px); background: #46304f; color: #f1ece4; }
+.capBand { margin: clamp(40px, 4.5vw, 64px) 0 -36px; padding-block: 32px calc(32px + 64px); background: #46304f; color: #f1ece4; }
 .capSign { margin: 0; max-width: none; font-family: var(--font-sub, var(--font-title)); font-size: clamp(19px, 2vw, 29px); line-height: 1.3; letter-spacing: -0.005em; color: #f1ece4; text-wrap: balance; }
 @media (min-width: 1100px) { .capSign { white-space: nowrap; text-wrap: nowrap; } }
 .capBand .capWord { color: var(--gold-light); }
@@ -31,13 +31,12 @@
 .endLine { margin: 0; font-size: clamp(24px, 3vw, 40px); line-height: 1.12; }
 .endLine strong { font-family: var(--font-title); font-weight: var(--w-title, 400); letter-spacing: -0.012em; }
 .endOne, .endTwo { display: inline-block; white-space: nowrap; }
-.endOne { color: var(--limestone, #f1ece4); }
+.endOne { color: #fff; }
 .endTwo { color: var(--gold-light); font-style: italic; }
 .endSub { margin: 12px 0 0; }
 @media (max-width: 520px) { .endOne, .endTwo { white-space: normal; } }
 @media (min-width: 1024px) and (min-height: 700px) {
   @media (prefers-reduced-motion: no-preference) {
-    :global([data-live]) .endOne { opacity: calc(1 - 0.55 * clamp(0, (var(--p, 0) - 0.8) * 12, 1)); }
     :global([data-live]) .endTwo { opacity: calc(0.25 + 0.75 * clamp(0, (var(--p, 0) - 0.82) * 10, 1)); transform: translate3d(0, calc((1 - clamp(0, (var(--p, 0) - 0.82) * 10, 1)) * 14px), 0); }
     :global([data-live]) .endSub { opacity: calc(0.3 + 0.7 * clamp(0, (var(--p, 0) - 0.88) * 10, 1)); }
   }

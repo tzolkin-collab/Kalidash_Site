@@ -85,7 +85,7 @@
   line-height: 1.15;
   letter-spacing: calc(-0.03em * var(--tk, 1));
   text-transform: uppercase;
-  color: var(--black-2, #0a0a0a);
+  color: var(--black-2, #0a0a0a); font-family: var(--font-label) !important;
 }
 
 .cardText {

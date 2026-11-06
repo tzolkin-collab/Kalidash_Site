@@ -117,7 +117,7 @@
   font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.14em;
-  text-transform: uppercase;
+  text-transform: uppercase; font-family: var(--font-label) !important;
 }
 
 .metaDot {
@@ -279,7 +279,7 @@
   font-size: 0.86rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-muted); font-family: var(--font-label) !important;
 }
 
 .body p {
@@ -504,7 +504,7 @@
   font-size: 0.78rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ink);
+  color: var(--ink); font-family: var(--font-label) !important;
 }
 
 .body :is(td, th, li) > p {
@@ -631,7 +631,7 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent); font-family: var(--font-label) !important;
 }
 .body :global(.split-title) {
   font-family: var(--font-title);
@@ -682,7 +682,7 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent); font-family: var(--font-label) !important;
 }
 .body :global(.col-title) {
   font-family: var(--font-title);
@@ -861,7 +861,7 @@
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  margin-right: 4px;
+  margin-right: 4px; font-family: var(--font-label) !important;
 }
 
 .shareCopyBtn {
@@ -938,7 +938,7 @@
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  margin: 0 0 12px;
+  margin: 0 0 12px; font-family: var(--font-label) !important;
 }
 
 .ctaTitle {
@@ -1029,7 +1029,7 @@
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  margin-bottom: 8px;
+  margin-bottom: 8px; font-family: var(--font-label) !important;
 }
 
 .relatedTitle {
@@ -1098,7 +1098,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  margin-bottom: 10px;
+  margin-bottom: 10px; font-family: var(--font-label) !important;
 }
 
 .relatedCardTitle {

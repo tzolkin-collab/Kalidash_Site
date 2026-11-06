@@ -54,7 +54,7 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 .caseText { display: grid; gap: 16px; justify-items: start; }
 .caseText h3 { margin: 0; font-family: var(--font-title); font-weight: 500; font-size: clamp(28px, 3.4vw, 50px); line-height: 1.02; letter-spacing: calc(-0.045em * var(--tk, 1)); }
 .caseText p { margin: 0; font-size: 18px; line-height: 1.55; color: var(--text-2); }
-.caseText .badge { font-size: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--brand-text); }
+.caseText .badge { font-size: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--brand-text); font-family: var(--font-label) !important; }
 .caseText .stat { color: var(--ink-text); }
 .products { list-style: none; margin: clamp(56px, 8vw, 104px) 0 0; padding: 0; }
 .products li { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 5fr) minmax(0, 3fr); gap: clamp(16px, 3vw, 48px); padding: 28px 0; border-top: 1px solid var(--rule); align-items: baseline; }
@@ -122,7 +122,7 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 .heroBrand { position: relative; background: var(--imperial); color: #f8f9fa; padding-top: clamp(28px, 5vh, 56px); overflow: hidden; }
 .heroGrid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(24px, 5vw, 80px); align-items: end; }
 .heroCopy { align-self: center; padding-bottom: clamp(40px, 6vw, 80px); }
-.heroMeta { margin: 0 0 clamp(16px, 2.4vh, 28px); font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold-light); }
+.heroMeta { margin: 0 0 clamp(16px, 2.4vh, 28px); font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold-light); font-family: var(--font-label) !important; }
 .heroBrand h1 { margin: 0; font-family: var(--font-title); font-weight: 400; font-size: clamp(38px, 4.8vw, 68px); line-height: 1.05; letter-spacing: -0.02em; color: #f8f9fa; text-wrap: balance; }
 .line { display: block; }
 .heroBrand .gold { color: var(--gold-light); }
@@ -172,7 +172,7 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 .chapterLabel { display: none; }
 
 @media (min-width: 901px) {
-  .chapterLabel { display: flex; position: sticky; top: var(--header); z-index: 6; align-items: center; gap: 20px; height: 40px; padding: 0 var(--gutter); background: var(--lbl-bg); color: var(--lbl-fg); font-family: var(--font-archivo), "Archivo", system-ui, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; border-bottom: 1px solid rgba(168, 138, 88, 0.35); }
+  .chapterLabel { display: flex; position: sticky; top: var(--header); z-index: 6; align-items: center; gap: 20px; height: 40px; padding: 0 var(--gutter); background: var(--lbl-bg); color: var(--lbl-fg); font-family: var(--font-archivo), "Archivo", system-ui, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; border-bottom: 1px solid rgba(168, 138, 88, 0.35); font-family: var(--font-label) !important; }
   .chapterLabel::before { content: attr(data-text) / ""; flex: none; font-variant-numeric: tabular-nums; }
   .chapterLabel i { position: relative; flex: 1; height: 1px; background: rgba(168, 138, 88, 0.3); }
   .chapterLabel i::after { content: ""; position: absolute; inset: 0; background: var(--gold); transform: scaleX(0); transform-origin: left center; }
@@ -454,3 +454,13 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 
 /* Números da barra de prova em Kepler, não na fonte do corpo (vídeo da Carol, item 21; vale também para a AI Culture). */
 .v3 .main [class*="rule"] strong { font-family: var(--font-title); font-weight: var(--w-title); letter-spacing: -0.01em; }
+
+/* Fim dos passos em Kepler, branco e dourado, não na fonte do corpo. */
+.v3 .main [class*="stepsNote"] strong { font-family: var(--font-title); font-weight: var(--w-title); }
+
+/* AI Culture, faixa "Nosso objetivo...": o capítulo seguinte não faz a subida extra de 56 px. Nessa subida a frase ficava alta na faixa e abria uma tira clara entre a faixa e o capítulo. */
+.chapter:has([data-state="cap"]) + .chapter { animation: none; transform: none; }
+:global(html[data-motion="js"]) .chapter:has([data-state="cap"]) + .chapter { transform: none; transition: none; }
+
+/* Cantos dos capítulos: o recorte passa a ser máscara. Só com overflow: clip, o rótulo preso (camada própria) podia sair do arredondamento durante a rolagem e deixar o canto torto. */
+.chapter, .curtain { clip-path: inset(0 round 28px 28px 0 0); }

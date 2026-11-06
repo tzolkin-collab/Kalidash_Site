@@ -116,7 +116,7 @@
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--c-brand-text);
+  color: var(--c-brand-text); font-family: var(--font-label) !important;
 }
 
 .editorialTitle {
@@ -190,7 +190,7 @@
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--c-brand-text);
+  color: var(--c-brand-text); font-family: var(--font-label) !important;
 }
 
 .proofNames {
@@ -263,7 +263,7 @@
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--c-brand-text);
+  color: var(--c-brand-text); font-family: var(--font-label) !important;
 }
 
 .exitButton {
@@ -357,7 +357,7 @@
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--c-brand-text);
+  color: var(--c-brand-text); font-family: var(--font-label) !important;
 }
 
 .stepHeading {

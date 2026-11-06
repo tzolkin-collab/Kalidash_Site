@@ -214,7 +214,7 @@
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #000000;
+  color: #000000; font-family: var(--font-label) !important;
 }
 
 /* Keyframes */

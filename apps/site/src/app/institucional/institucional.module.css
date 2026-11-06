@@ -147,7 +147,7 @@
 /* ---- Ofertas (In Company, Experiências, Kognis, Spectra AI) ---- */
 .offers { background: var(--gray-1); border-top: 1px solid var(--line); }
 .offers .offer:first-child { border-top: 0; }
-.offerMarker { font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #6b6670; }
+.offerMarker { font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #6b6670; font-family: var(--font-label) !important; }
 .offerMarker span { color: var(--accent); }
 .features {
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; margin: 8px 0 0; padding: 0; list-style: none;
@@ -416,7 +416,7 @@
 }
 .featuredCaseContent { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
 .featuredCase p { font-size: 17px; line-height: 1.6; color: #f1eef4; }
-.featuredCase .caseEyebrow { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #f0b39f; }
+.featuredCase .caseEyebrow { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #f0b39f; font-family: var(--font-label) !important; }
 .caseTitle { font-family: var(--font-title); font-size: clamp(24px, 2.5vw, 32px); line-height: 1.15; letter-spacing: calc(-0.035em * var(--tk, 1)); color: #fff; }
 .featuredCase .caseBadge {
   margin-top: auto; padding: 8px 14px; border: 1px solid rgba(240, 179, 159, 0.45); border-radius: 4px;
@@ -557,7 +557,7 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #6b6670;
+  color: #6b6670; font-family: var(--font-label) !important;
 }
 .timelinePhotos {
   display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 460px;
@@ -601,7 +601,7 @@
   filter: saturate(0.92) contrast(1.02);
 }
 .timelinePhoto figcaption {
-  font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6b6670;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6b6670; font-family: var(--font-label) !important;
 }
 
 .timeline {
@@ -628,7 +628,7 @@
   transition-delay: calc(var(--i) * 140ms);
 }
 .timelineMarker {
-  font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #6b6670;
+  font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #6b6670; font-family: var(--font-label) !important;
 }
 .timelineMarker span { color: var(--accent); }
 .timelineLead {

@@ -7,7 +7,7 @@
 .lead p { margin: 0; font-size: 18px; line-height: 1.55; color: var(--text-2); }
 .lead strong { font-weight: 600; color: var(--ink-text); }
 .lead a { justify-self: start; margin-top: 8px; }
-.lead .support { font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--brand-text); line-height: 1.6; }
+.lead .support { font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--brand-text); line-height: 1.6; font-family: var(--font-label) !important; }
 
 .cutout, .photo { position: absolute; z-index: 1; line-height: 0; transform: translate3d(0, calc(var(--h, 0) * -40px), 0); }
 .cutout { right: 0; bottom: 0; width: min(46%, 600px); }
@@ -29,7 +29,7 @@
 .section { padding: clamp(56px, 6.4vw, 96px) 0; background: var(--paper); color: var(--ink-text); }
 .soft { background: var(--soft); }
 
-.legend { display: flex; align-items: center; gap: 16px; margin: 0 0 clamp(20px, 3vw, 36px); font-size: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--brand-text); }
+.legend { display: flex; align-items: center; gap: 16px; margin: 0 0 clamp(20px, 3vw, 36px); font-size: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--brand-text); font-family: var(--font-label) !important; }
 .legend span { flex: none; }
 .legend::after { content: ""; flex: 1; height: 1px; background: currentColor; opacity: 0.35; }
 .split .legend { margin-bottom: 20px; }
@@ -165,7 +165,7 @@
 /* AI Culture: logos abaixo dos números (Copy V2, alteração 1). */
 .wrapPlain { width: var(--container); margin: 0 auto; }
 .proofLogos { display: flex; flex-wrap: wrap; align-items: center; gap: 16px clamp(24px, 4vw, 56px); padding: 0 0 clamp(24px, 3vw, 36px); }
-.proofLogos p { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--brand-text); }
+.proofLogos p { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--brand-text); font-family: var(--font-label) !important; }
 .proofLogos ul { display: flex; flex-wrap: wrap; align-items: center; gap: 16px clamp(24px, 4vw, 56px); margin: 0; padding: 0; list-style: none; }
 .proofLogos li { display: block; border: 0; padding: 0; }
 .proofLogos img { display: block; width: auto; height: 34px; max-width: 130px; object-fit: contain; }

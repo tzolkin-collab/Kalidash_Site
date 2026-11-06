@@ -362,7 +362,7 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #8c8590;
-  transition: color 0.2s ease;
+  transition: color 0.2s ease; font-family: var(--font-label) !important;
 }
 .cardQuoteCueIcon {
   width: 14px;
@@ -478,7 +478,7 @@
 .journeyRail { margin-top: 67px; }
 .slide { display: grid; flex: 0 0 100%; grid-template-columns: 627fr 637fr; min-height: 420px; scroll-snap-align: start; }
 .slideText { display: flex; flex-direction: column; align-items: flex-start; padding: 64px 58px 60px; background: #fff; }
-.slideText small { font-size: 14px; line-height: 18px; letter-spacing: 0.03em; text-transform: uppercase; color: #3c3c3c; }
+.slideText small { font-size: 14px; line-height: 18px; letter-spacing: 0.03em; text-transform: uppercase; color: #3c3c3c; font-family: var(--font-label) !important; }
 .slideText h3 { max-width: 400px; margin-top: 7px; font-size: 33px; line-height: 36px; letter-spacing: -0.02em; }
 .slideText p { max-width: 490px; margin-top: 13px; font-size: 18px; line-height: 26px; }
 .slideText p + p { margin-top: 13px; }
@@ -787,7 +787,7 @@
 
 .eyebrow {
   color: var(--accent); font-size: 13px; line-height: 18px; font-weight: 700;
-  letter-spacing: 0.14em; text-transform: uppercase;
+  letter-spacing: 0.14em; text-transform: uppercase; font-family: var(--font-label) !important;
 }
 .eyebrow[data-inverse="true"] { color: #f0b39f; }
 /* `.hero p` (regra antiga do hero centralizado) tem mais força que `.eyebrow` e deslocava o texto e o aumentava para 22px. */
@@ -952,7 +952,7 @@
 .frontImage { position: relative; min-height: 430px; overflow: hidden; background: var(--gray-2); border: none !important; }
 .frontImage img { object-fit: cover; border: none !important; }
 .frontText { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: 64px 64px 84px 64px; background: #fff; border: none !important; }
-.frontLabel { display: flex; gap: 18px; color: var(--accent); font-size: 13px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+.frontLabel { display: flex; gap: 18px; color: var(--accent); font-size: 13px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; font-family: var(--font-label) !important; }
 .frontLabel span { color: #979096; }
 .frontText h3 { max-width: 470px; margin-top: 24px; font-size: 40px; line-height: 1.06; }
 .frontText > p:not(.frontLabel) { max-width: 520px; margin-top: 20px; color: #514c53; font-size: 17px; line-height: 27px; }

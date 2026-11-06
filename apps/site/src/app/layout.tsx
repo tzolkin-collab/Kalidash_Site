@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, Inter, Source_Sans_3 } from "next/font/google";
+import { Archivo, Google_Sans_Flex, Inter, Source_Sans_3 } from "next/font/google";
 import GoogleTagManager from "./components/GoogleTagManager";
 import RouteTransition from "./components/RouteTransition";
 import "./globals.css";
@@ -14,6 +14,9 @@ const archivo = Archivo({
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 // Texto corrido: Source Sans 3, alternativa aberta (da Adobe) no mesmo estilo da Myriad e da Acumin do brand guide.
 const sourceSans = Source_Sans_3({ subsets: ["latin"], variable: "--font-source-sans", display: "swap" });
+
+/* Rótulos pequenos em caixa-alta, em todas as páginas (pedido do dono em 06/11). */
+const googleSansFlex = Google_Sans_Flex({ subsets: ["latin"], variable: "--font-label", display: "swap", preload: false });
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://kalidash.com"),
@@ -72,7 +75,7 @@ export default function RootLayout({
       lang="pt-BR"
       suppressHydrationWarning
       data-scroll-behavior="smooth"
-      className={`${archivo.variable} ${inter.variable} ${sourceSans.variable}`}
+      className={`${archivo.variable} ${inter.variable} ${sourceSans.variable} ${googleSansFlex.variable}`}
       style={{ backgroundColor: "#ffffff" }}
     >
       <head>
