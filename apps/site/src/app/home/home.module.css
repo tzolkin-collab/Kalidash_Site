@@ -655,7 +655,7 @@
   .headerInner {
     width: 100%;
     height: auto;
-    padding: 16px 0;
+    padding: 12px 0; /* cabeçalho do celular com 60 px, em vez de 76: mantém o respiro e reduz os itens */
     pointer-events: none;
   }
   .header[data-bg="white"] .headerInner,
@@ -681,11 +681,12 @@
   }
   .nav { display: none !important; }
   .burger {
+    position: relative;
     pointer-events: auto;
     display: grid !important;
     place-items: center;
-    width: 44px;
-    height: 44px;
+    width: 36px;
+    height: 36px;
     padding: 0;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.95);
@@ -706,10 +707,17 @@
   .burger:active {
     transform: scale(0.95);
   }
+  .burger::before { content: ""; position: absolute; inset: -4px; } /* área de toque segue com 44 px */
   .burger svg {
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
   }
+  .header .logo {
+    zoom: 0.84;
+    min-height: 40px; /* com o zoom, fica abaixo dos 36 px do botão: quem define a altura é o botão */
+  }
+  /* Os filtros do blog só ocupam altura quando sobem para o cabeçalho; antes empurravam o cabeçalho e abriam uma faixa branca. */
+  .header:not([data-filters-active="true"]) .headerFilters { height: 0; overflow: hidden; }
   .logo {
     transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
   }
@@ -1398,7 +1406,12 @@
 
 /* ---- O que fazemos ---- */
 .v3 .fronts { background: #fff; }
-.v3 .frontsIntro h2 { font-size: clamp(44px, 6vw, 74px); line-height: 1; letter-spacing: -0.02em; }
+/* Título em linha larga, uma frase por linha, e o texto logo abaixo: em duas colunas ele quebrava em cinco linhas ao lado de um parágrafo pequeno. */
+.v3 .frontsIntro { grid-template-columns: minmax(0, 1fr); gap: 28px; margin-bottom: clamp(48px, 5vw, 72px); }
+.v3 .frontsIntro .eyebrow { margin-bottom: -8px; }
+.v3 .frontsIntro h2 { max-width: none; font-size: clamp(38px, 4.5vw, 66px); line-height: 1.06; letter-spacing: -0.02em; text-wrap: balance; }
+.v3 .frontsIntro h2 span { display: block; }
+.v3 .frontsIntro > div { max-width: 780px; }
 .v3 .frontText { background: #fff; }
 .v3 .frontText h3 { font-size: clamp(34px, 4.6vw, 48px); line-height: 1.02; letter-spacing: -0.015em; }
 .v3 .frontLabel { color: var(--accent); }
@@ -1492,12 +1505,93 @@
 .symptomQuote figcaption { margin-top: 14px; color: #514c53; font-size: 15px; line-height: 22px; }
 .symptomQuote figcaption strong { color: var(--black-2); }
 @media (max-width: 1100px) {
-  .v3 .problem { background: var(--gray-1); padding: 24px 0 72px; }
-  .v3 .problemTop { display: block; grid-column: 1 / -1; grid-row: auto; order: 1; min-height: 0; }
-  .symptoms { order: 2; margin-top: 24px; }
+  .v3 .problem { background: #fff; padding: 24px 0 72px; }
+  .v3 .problemTop { display: block; grid-column: 1 / -1; grid-row: auto; order: 2; margin-top: 24px; min-height: 0; }
+  .symptoms { order: 1; margin-top: 0; border-top: 0; } /* no celular o cartão roxo vem depois da lista (pedido do dono em 05/11) */
+  .v3 .problemArrow { transform: rotate(90deg); } /* a seta aponta para a lista, agora acima */
 }
 @media (max-width: 820px) {
   .symptom { grid-template-columns: minmax(0, 1fr); row-gap: 16px; }
   .symptomQuote { margin-top: 4px; }
 }
 .v3 .hero :is(strong, b) { font-weight: inherit; }
+
+/* Faixa de números em roxo, de ponta a ponta da tela (pedido do dono em 05/11). */
+.v3 .stats { background: #28183b; box-shadow: 0 0 0 100vmax #28183b; clip-path: inset(0 -100vmax); }
+.v3 .stats > div { border-color: rgba(196, 166, 115, 0.3); }
+.v3 .stats dt { color: #fff; }
+.v3 .stats dd { color: #dcd9e0; }
+
+/* Respiro entre a faixa roxa e os blocos roxos de "O Problema": encostados, viravam uma mancha só. */
+@media (min-width: 1101px) {
+  .v3 .problem { padding-top: 64px; background: linear-gradient(#fff 0 190px, var(--gray-1) 190px); }
+}
+@media (max-width: 1100px) {
+  .v3 .problem { padding-top: 40px; }
+}
+
+/* "O que fazemos" em cards (pedido do dono em 05/11): foto em cima, texto embaixo e o link alinhado no pé. Três colunas no computador, empilhados abaixo disso. */
+.v3 .frontRows { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.v3 .frontRow { display: flex; flex-direction: column; min-height: 0; overflow: hidden; border: 1px solid #e6e3e8 !important; border-radius: 14px; background: #fff; box-shadow: 0 10px 30px rgba(40, 24, 59, 0.06); transition: transform 0.3s cubic-bezier(0.33, 1, 0.68, 1), box-shadow 0.3s ease; }
+.v3 .frontRow[data-reverse="true"] .frontImage { order: 0; }
+.v3 .frontImage { flex: none; min-height: 0; aspect-ratio: 4 / 3; }
+.v3 .frontImage img { transition: transform 0.6s cubic-bezier(0.33, 1, 0.68, 1); }
+.v3 .frontText { flex: 1; justify-content: flex-start; padding: clamp(24px, 2.2vw, 32px); }
+.v3 .frontText h3 { margin-top: 14px; font-size: clamp(28px, 2.5vw, 36px); line-height: 1.08; }
+.v3 .frontText > p:not(.frontLabel) { margin-top: 14px; font-size: 16px; line-height: 25px; }
+.v3 .frontText > strong { margin-top: 14px; font-size: 16px; line-height: 24px; }
+.v3 .frontText .textLink { margin-top: auto; padding-top: 22px !important; font-size: 17px; }
+@media (hover: hover) {
+  .v3 .frontRow:hover { transform: translateY(-4px); box-shadow: 0 18px 40px rgba(40, 24, 59, 0.12); }
+  .v3 .frontRow:hover .frontImage img { transform: scale(1.03); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .v3 .frontRow, .v3 .frontImage img { transition: none; }
+}
+@media (max-width: 1100px) {
+  .v3 .frontRows { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .v3 .frontImage { aspect-ratio: 16 / 9; }
+  .v3 .frontText { padding: 24px; }
+  .v3 .frontText h3 { font-size: clamp(28px, 7.4vw, 36px); }
+}
+
+/* "A gente vive o que ensina. E ensina o que vive.": assinatura da seção, em Kepler itálica dourada, uma frase por linha e filete acima (pedido do dono em 05/11). */
+.v3 .expProof { position: relative; margin-top: 32px; padding-top: 24px; color: #8f7248; font-size: inherit; letter-spacing: 0; }
+.v3 .expProof::before { content: ""; position: absolute; top: 0; left: 0; width: 72px; height: 1px; background: #a88a58; }
+.v3 .expProof strong { display: block; font-family: var(--kepler, var(--font-title)); font-style: italic; font-weight: 400; font-size: clamp(28px, 2.9vw, 40px); line-height: 1.14; letter-spacing: -0.01em; color: inherit; }
+.v3 .expProof strong span { display: block; }
+
+/* "O que fazemos" no celular e no tablet: as nuvens da marca ficam presas atrás enquanto a seção sobe; no fim da seção o fundo acaba e desce junto com ela.
+ * Só position: sticky, sem script nem ouvinte de rolagem. Sem espaço acima do fundo: o respiro do topo passa para o bloco de texto. */
+.frontsBg { display: none; }
+@media (max-width: 1100px) {
+  /* Fundo e conteúdo na mesma grade: o limite do sticky é o fim da seção. Com margem negativa o fundo passava dela e cobria a seção seguinte. */
+  .v3 .fronts { position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(0, 1fr); padding: 0; background: #28183b; }
+  .v3 .frontsBg { display: block; position: sticky; z-index: -1; grid-column: 1; grid-row: 1 / span 2; align-self: start; top: 0; height: 100svh; overflow: hidden; pointer-events: none; }
+  .v3 .frontsBg img { object-fit: cover; object-position: 50% 50%; opacity: 0.13; } /* o mesmo tratamento do fundo de Diagnóstico: roxo com as nuvens bem discretas */
+  .v3 .frontsIntro { grid-column: 1; grid-row: 1; padding-top: 72px; }
+  .v3 .frontRows { grid-column: 1; grid-row: 2; margin-bottom: 72px; }
+  .v3 .frontsIntro .eyebrow { color: #c4a673; }
+  .v3 .frontsIntro h2 { color: #fff; }
+  .v3 .frontsIntro > div p { color: #f1eef3; }
+}
+
+/* "Quem viveu a transformação" em roxo, de ponta a ponta da tela (pedido do dono em 05/11). Os cartões continuam brancos. */
+.v3 .results { background: #28183b; box-shadow: 0 0 0 100vmax #28183b; clip-path: inset(0 -100vmax); }
+.v3 .resultsHead .eyebrow { color: #c4a673; }
+.v3 .resultsHead h2 { color: #fff; }
+
+/* ---- Entradas ao rolar (HomeMotion.tsx): sobe e aparece; foto dos cards e filete da assinatura têm movimento próprio. Só opacity e transform. ---- */
+.v3 [data-hm="out"] { opacity: 0; transform: translate3d(0, 26px, 0); }
+.v3 [data-hm="in"] { opacity: 1; transform: none; transition: opacity 650ms ease-out var(--hm-d, 0ms), transform 800ms cubic-bezier(0.22, 1, 0.36, 1) var(--hm-d, 0ms); }
+.v3 .frontRow[data-hm="out"] .frontImage img, .v3 .caseMedia[data-hm="out"] img { transform: scale(1.06); }
+.v3 .frontRow[data-hm="in"] .frontImage img, .v3 .caseMedia[data-hm="in"] img { transform: none; transition: transform 1300ms cubic-bezier(0.22, 1, 0.36, 1) var(--hm-d, 0ms); }
+.v3 .expProof::before { transform-origin: left center; }
+.v3 .expProof[data-hm="out"]::before { transform: scaleX(0); }
+.v3 .expProof[data-hm="in"]::before { transform: none; transition: transform 900ms cubic-bezier(0.33, 1, 0.68, 1) 250ms; }
+.v3 .caseMedia { overflow: hidden; }
+
+/* Depoimentos + Diagnóstico: um só fundo, roxo com as nuvens a 13%, sem emenda nem filete entre as duas seções (pedido do dono em 05/11). */
+.closingBand { position: relative; isolation: isolate; overflow: hidden; background: var(--imperial, #28183b); }
+.v3 .results { background: transparent; box-shadow: none; clip-path: none; }
+.v3 .diagnostico { background: transparent; border-top: 0; isolation: auto; overflow: visible; }

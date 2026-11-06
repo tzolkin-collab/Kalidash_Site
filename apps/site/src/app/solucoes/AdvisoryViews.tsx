@@ -117,7 +117,7 @@ export function ProblemView({ block, soft }: { block: Of<"text">; soft: boolean 
         </div>
         <ol className={styles.avEvents} data-part="events" data-r="line">
           {s.events.map((e, i) => (
-            <li key={e} data-r="" style={{ "--i": i } as React.CSSProperties}><span>{e}</span></li>
+            <li key={e} data-r="" style={{ "--i": i } as React.CSSProperties}><b className={styles.avEventNum} aria-hidden="true">{i + 1}.</b><span>{e}</span></li>
           ))}
         </ol>
       </div>

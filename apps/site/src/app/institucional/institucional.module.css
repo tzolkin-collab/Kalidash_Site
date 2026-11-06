@@ -1019,3 +1019,8 @@
   .page[data-page="treinamento-corporativo-ia"] .formatCards { padding-right: 18px; }
   .page[data-page="treinamento-corporativo-ia"] .formatCard:first-child { flex-basis: min(84vw, 360px); }
 }
+
+/* Celular e tablet: hero mais perto do cabeçalho de 60 px. */
+@media (max-width: 1100px) {
+  main > .heroMedia { padding-top: 8px; }
+}

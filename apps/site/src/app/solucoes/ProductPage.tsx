@@ -10,7 +10,7 @@ import CountUp from "./CountUp";
 import { HeroParallax } from "./SolucoesStory";
 import sol from "./solucoes.module.css";
 import styles from "./product.module.css";
-import { fraunces } from "./kit-font";
+import KitFonts from "./KitFonts";
 
 /* Página de produto (Kognis, Spectra AI): mesma linguagem da /solucoes — abertura escura em cartaz,
  * régua de números, seções em tabela/índice, faixa escura única para a sequência e fecho quente.
@@ -158,6 +158,16 @@ export function BlockView({ block, cardsIndex, poster, soft }: { block: Block; c
               </li>
             ))}
           </ul>
+          {block.logos?.confirmed && block.logos.items.every((l) => l.src) && (
+            <div className={`${styles.wrapPlain} ${styles.proofLogos}`}>
+              <p>{block.logos.caption}</p>
+              <ul>
+                {block.logos.items.map((l) => (
+                  <li key={l.slug}><Image src={l.src as string} alt={l.name} width={140} height={44} sizes="140px" /></li>
+                ))}
+              </ul>
+            </div>
+          )}
         </section>
       );
     case "cards":
@@ -235,7 +245,10 @@ export default function ProductPage({ page, kind, closing, heroOnly = false }: {
   let cardsSeen = 0;
   const tones = toneMap(page.blocks, ["cards", "faq"]);
   return (
-    <div className={`${home.home} ${sol.page} ${styles.brandTitles} ${fraunces.variable}`} data-page={page.slug}>
+    <div className={`${home.home} ${sol.page} ${sol.brandV3} ${styles.brandTitles}`} data-page={page.slug}>
+      <link rel="preconnect" href="https://use.typekit.net" crossOrigin="anonymous" />
+      <link rel="preload" as="style" href="https://use.typekit.net/krs4uwp.css" />
+      <KitFonts />
       <HomeHeader />
       <main>
         <HeroView hero={hero} kind={kind} />

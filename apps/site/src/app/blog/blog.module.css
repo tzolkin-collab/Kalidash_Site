@@ -779,8 +779,8 @@
 
 /* Celular/tablet: o cabeçalho flutua sobre a abertura (sem faixa branca acima) e a logo clareia sobre o Imperial (HeaderTone) */
 @media (max-width: 1100px) {
-  .page :global(header[data-block="home-header"]:not([data-filters-active="true"])) { margin-bottom: -76px; background: transparent; box-shadow: none; border-bottom-color: transparent; }
-  .page .hero { padding-top: 112px; }
+  .page :global(header[data-block="home-header"]:not([data-filters-active="true"])) { margin-bottom: -60px; background: transparent; box-shadow: none; border-bottom-color: transparent; }
+  .page .hero { padding-top: 68px; }
 }
 
 /* Filtro e cartões em dourado */

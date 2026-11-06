@@ -47,7 +47,7 @@ export default function CountUp({ value }: { value: string }) {
         if (performance.now() - mountedAt < 600) return;
         run();
       },
-      { threshold: 0.6 },
+      { threshold: 0.25 },
     );
     observer.observe(el);
     return () => {

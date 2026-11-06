@@ -3,6 +3,7 @@ import { ADMIN_ORIGINS } from "./src/lib/adminOrigins";
 
 const nextConfig: NextConfig = {
   images: {
+    qualities: [75, 90], // 90 só na foto de abertura da Advisory
     remotePatterns: [
       {
         protocol: "https",

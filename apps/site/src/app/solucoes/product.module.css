@@ -161,3 +161,18 @@
 /* Serifa da marca (Fraunces) nos títulos, números e frases das páginas de produto (Kognis e Spectra AI); texto corrido na fonte de leitura. */
 .brandTitles { --font-title: var(--font-fraunces), Georgia, "Times New Roman", serif; }
 .brandTitles :is(h1, h2, h3) { font-weight: 400; letter-spacing: calc(-0.03em * var(--tk, 1)); }
+
+/* AI Culture: logos abaixo dos números (Copy V2, alteração 1). */
+.wrapPlain { width: var(--container); margin: 0 auto; }
+.proofLogos { display: flex; flex-wrap: wrap; align-items: center; gap: 16px clamp(24px, 4vw, 56px); padding: 0 0 clamp(24px, 3vw, 36px); }
+.proofLogos p { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--brand-text); }
+.proofLogos ul { display: flex; flex-wrap: wrap; align-items: center; gap: 16px clamp(24px, 4vw, 56px); margin: 0; padding: 0; list-style: none; }
+.proofLogos li { display: block; border: 0; padding: 0; }
+.proofLogos img { display: block; width: auto; height: 34px; max-width: 130px; object-fit: contain; }
+
+/* Kognis e Spectra no sistema V3: título no nível do Advisory, sem letras grudadas (vídeo da Carol, itens 19 e 22). */
+.brandTitles .hero h1 { font-size: clamp(38px, 4.6vw, 66px); line-height: 1.05; letter-spacing: -0.012em; }
+
+.rule .proofLogos { padding-bottom: clamp(44px, 5vw, 64px); }
+.rule .proofLogos li { border: 0; padding: 0; margin: 0; }
+.rule .proofLogos li::before, .rule .proofLogos li::after { display: none !important; content: none !important; }

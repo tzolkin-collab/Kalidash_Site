@@ -48,7 +48,7 @@ function LastWord({ text, accent }: { text: string; accent?: string }) {
 }
 
 /* Abertura da Advisory: Imperial, texto à esquerda e a foto (pages.ts) num arco à direita. */
-function HeroWide({ block, arc = false }: { block: Of<"heroMedia">; arc?: boolean }) {
+function HeroWide({ block, arc = false, panel = false }: { block: Of<"heroMedia">; arc?: boolean; panel?: boolean }) {
   const last = block.title.length - 1;
   return (
     <header className={styles.heroBrand} data-tone="dark" data-motion="hero">
@@ -64,17 +64,30 @@ function HeroWide({ block, arc = false }: { block: Of<"heroMedia">; arc?: boolea
             {block.lead.map((p) => (
               <p key={p}><Rich text={p} /></p>
             ))}
-            {block.cta && (
+            {block.cta && !panel && (
               <Link className={home.primaryButton} href={block.cta.href}>
                 {block.cta.label} <ArrowRight />
               </Link>
             )}
           </div>
         </div>
+        {panel ? (
+          <div className={styles.heroPanel}>
+            <div className={styles.heroArch}>
+              <Image src={block.image.src} alt={block.image.alt} width={block.image.width} height={block.image.height} priority quality={90} sizes="(max-width: 1100px) 100vw, 56vw" className={mo.photo} />
+            </div>
+            {block.cta && (
+              <Link className={`${home.primaryButton} ${styles.heroEdgeCta}`} href={block.cta.href}>
+                {block.cta.label} <ArrowRight />
+              </Link>
+            )}
+          </div>
+        ) : (
         <div className={styles.heroArch}>
           <Image src={block.image.src} alt={block.image.alt} width={block.image.width} height={block.image.height} priority sizes="(max-width: 900px) 78vw, 460px" className={arc ? mo.photo : undefined} />
           {arc && <HeroArc />}
         </div>
+        )}
       </div>
     </header>
   );
@@ -284,7 +297,7 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
       )}
       <HomeHeader />
       <main className={styles.main}>
-        {portrait ? <HeroView hero={hero} kind="photo" /> : <HeroWide block={hero} arc={v3} />}
+        {portrait ? <HeroView hero={hero} kind="photo" /> : <HeroWide block={hero} arc={v3} panel={advisoryV3} />}
         {page.blocks.map((block, index) => {
           if (block.type === "heroMedia") return null;
           const key = `${block.type}-${index}`;

@@ -10,6 +10,8 @@ import HomeHeader from "./HomeHeader";
 import LogoIntro from "../components/LogoIntro";
 import SiteFooter from "./SiteFooter";
 import ExperienceSyncGallery from "./ExperienceSyncGallery";
+import HomeMotion from "./HomeMotion";
+import CountUp from "../solucoes/CountUp";
 import ProblemHologram from "./ProblemHologram";
 import { Reveal } from "../institucional/Motion";
 import {
@@ -158,7 +160,7 @@ export default function HomePage() {
             <dl className={styles.stats}>
               {hero.stats.map((stat) => (
                 <div key={stat.label}>
-                  <dt>{stat.value}</dt>
+                  <dt><CountUp value={stat.value} /></dt>
                   <dd>{stat.label}</dd>
                 </div>
               ))}
@@ -218,9 +220,13 @@ export default function HomePage() {
         </section>
 
         <section id="o-que-fazemos" className={styles.fronts} data-block="home-fronts">
+          {/* Só no celular e no tablet: fundo que fica parado enquanto a seção sobe; no fim da seção ele sai junto com ela. */}
+          <div className={styles.frontsBg} aria-hidden="true">
+            <Image src="/marca/nuvens-douradas.jpg" alt="" fill sizes="(max-width: 1100px) 100vw, 1px" loading="lazy" />
+          </div>
           <div className={styles.frontsIntro}>
             <Eyebrow>{fronts.eyebrow}</Eyebrow>
-            <h2>{fronts.title}</h2>
+            <h2>{fronts.title.split(/(?<=\.)\s+/).map((sentence) => <span key={sentence}>{sentence} </span>)}</h2>
             <div>
               {fronts.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
             </div>
@@ -229,7 +235,7 @@ export default function HomePage() {
             {fronts.items.map((item, index) => (
               <article key={item.name} className={styles.frontRow} data-reverse={index % 2 === 1}>
                 <div className={styles.frontImage}>
-                  <Image src={item.image.src} alt={item.image.alt} fill sizes="(min-width: 1100px) 50vw, 100vw" />
+                  <Image src={item.image.src} alt={item.image.alt} fill sizes="(min-width: 1101px) 33vw, 100vw" />
                 </div>
                 <div className={styles.frontText}>
                   <p className={styles.frontLabel}>{item.name}</p>
@@ -252,7 +258,7 @@ export default function HomePage() {
             <div className={styles.expIntroLeft}>
               <h2>{experience.title}</h2>
               <p className={styles.expProof}>
-                <strong>{experience.proof[0]} {experience.proof[1]}</strong>
+                <strong><span>{experience.proof[0]}</span> <span>{experience.proof[1]}</span></strong>
               </p>
             </div>
             <div className={styles.expIntroRight}>
@@ -316,6 +322,9 @@ export default function HomePage() {
           )}
         </section>
 
+        {/* Depoimentos e Diagnóstico dividem o mesmo fundo contínuo: roxo com as nuvens discretas. */}
+        <div className={styles.closingBand} data-tone="dark">
+          <Image className={styles.diagTexture} src="/marca/nuvens-douradas.jpg" alt="" fill sizes="100vw" loading="lazy" aria-hidden="true" />
         <section className={styles.results} data-block="home-testimonial">
           <header className={styles.resultsHead}>
             <Eyebrow>{testimonial.eyebrow}</Eyebrow>
@@ -347,8 +356,7 @@ export default function HomePage() {
           </Reveal>
         </section>
 
-        <section id="diagnostico" className={styles.diagnostico} data-block="home-diagnostico" data-tone="dark">
-          <Image className={styles.diagTexture} src="/marca/nuvens-douradas.jpg" alt="" fill sizes="100vw" loading="lazy" aria-hidden="true" />
+        <section id="diagnostico" className={styles.diagnostico} data-block="home-diagnostico">
           <div className={styles.diagnosticoText}>
             <Eyebrow>Diagnóstico</Eyebrow>
             <h2>{diagnostico.title.before}<em className={styles.gold}>{diagnostico.title.accent}</em></h2>
@@ -373,8 +381,10 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+        </div>
       </main>
 
+      <HomeMotion />
       <SiteFooter />
 
       {config.whatsappUrl && (

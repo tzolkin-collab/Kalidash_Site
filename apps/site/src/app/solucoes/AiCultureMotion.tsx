@@ -183,7 +183,7 @@ export function AcFormats({ block }: { block: Of<"formats"> }) {
 
 function FormatBlock({ item, index, armed, bg }: { item: Format; index: number; armed: boolean; bg?: Of<"formats">["background"] }) {
   const ref = useRef<HTMLLIElement>(null);
-  /* Entra uma vez, quando o bloco passa de 18% acima do pé da janela (o que o useInView com margin -18% fazia). */
+  /* Entra uma vez, quando o bloco passa de 5% acima do pé da janela (o que o useInView com margin -18% fazia). */
   const [seen, setSeen] = useState(false);
   useEffect(() => {
     const el = ref.current;
@@ -195,7 +195,7 @@ function FormatBlock({ item, index, armed, bg }: { item: Format; index: number; 
           io.disconnect();
         }
       },
-      { rootMargin: "0px 0px -18% 0px" },
+      { rootMargin: "0px 0px -5% 0px" },
     );
     io.observe(el);
     return () => io.disconnect();

@@ -94,8 +94,8 @@
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
     .tile { animation: tileRise linear both; animation-timeline: view(); animation-range: entry 0% entry 85%; }
-    .heroPhoto img { animation: photoSettle linear both; animation-timeline: view(); animation-range: entry 0% cover 45%; }
-    .teamFigure img { animation: photoSettle linear both; animation-timeline: view(); animation-range: entry 0% cover 40%; }
+    .heroPhoto img { animation: photoSettle linear both; animation-timeline: view(); animation-range: entry 0% cover 25%; }
+    .teamFigure img { animation: photoSettle linear both; animation-timeline: view(); animation-range: entry 0% cover 22%; }
   }
 }
 @keyframes tileRise { from { transform: translateY(var(--rise)); } to { transform: none; } }
@@ -143,7 +143,7 @@
 
 /* Serifa da marca (Fraunces) nos títulos, nas frases do credo e nos números; o texto corrido continua na fonte de leitura.
  * A manchete segue o teto de tamanho das outras páginas (D24). */
-.sobre { --font-title: var(--font-fraunces), Georgia, "Times New Roman", serif; }
+/* --font-title vem do sistema V3 (.brandV3 em solucoes.module.css): Kepler, com reserva até o kit carregar. */
 .sobre :is(h1, h2, h3) { letter-spacing: calc(-0.03em * var(--tk, 1)); }
 .sobre .hero h1 { font-weight: 400; font-size: clamp(42px, 5.6vw, 84px); line-height: 1; letter-spacing: calc(-0.035em * var(--tk, 1)); }
 
@@ -217,7 +217,7 @@
 }
 /* .hero (desta página) e .heroBrand (kit) estão no mesmo elemento: o Imperial e o respiro valem aqui, sem depender da ordem dos CSS */
 .sobre .hero { background: var(--imperial); color: #f8f9fa; padding-top: clamp(28px, 5vh, 56px); }
-@media (max-width: 1100px) { .sobre .hero { padding-top: 92px; } }
+@media (max-width: 1100px) { .sobre .hero { padding-top: 68px; } }
 /* A abertura também ganha os 36px no pé que compensam a sobreposição maior da cortina (kit.module.css). */
 .sobre .hero { padding-bottom: 36px; }
 
@@ -254,3 +254,12 @@
 /* ---------- Ajustes do vídeo (04/11): foto da equipe sem cortar cabeças ----------
  * O teto de 560-600 px com object-fit: cover recortava o alto e o pé da foto 16:9 (cabeças de quem está atrás). Sem teto, a foto aparece inteira em qualquer largura. */
 .sobre .teamFigure img { max-height: none; height: auto; object-fit: contain; }
+
+/* Selos da faixa de números: "Parceira" e "Finalista" como legenda pequena, sem peso de estatística. */
+.sobre .credentials .seal { align-content: end; gap: 10px; }
+.sobre .credentials .seal strong { font-family: var(--font-body); font-size: 12px; font-weight: 600; line-height: 1.4; letter-spacing: 0.14em; text-transform: uppercase; white-space: normal; color: var(--gold-light); }
+.sobre .credentials .seal > span:not(.srOnly) { font-family: var(--font-sub); font-size: clamp(20px, 1.9vw, 26px); line-height: 1.2; color: #f8f9fa; }
+.sealMark { display: block; width: min(100%, 150px); height: auto; color: #f8f9fa; }
+.srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.sobre .credentials li:not(.seal) strong, .sobre .credentials li:not(.seal) strong * { font-family: var(--font-title); font-weight: 400; letter-spacing: -0.01em; }

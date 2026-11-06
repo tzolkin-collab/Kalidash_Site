@@ -118,7 +118,7 @@ export type Media = { src: string; alt: string; width: number; height: number };
 /* `confirmed: false` = o dado ainda não tem fonte/autorização da Carol; o renderizador NÃO publica o item. */
 export type ProofMetric = { value: string; label: string; confirmed: boolean };
 /* Logos vêm de public/logos/<slug>.(svg|png|webp). A faixa só aparece com `confirmed: true` E os arquivos de todos os itens presentes. */
-export type ProofLogos = { caption: string; confirmed: boolean; items: Array<{ name: string; slug: string }> };
+export type ProofLogos = { caption: string; confirmed: boolean; items: Array<{ name: string; slug: string; src?: string }> };
 
 export type FormatCard = {
   title: string;
@@ -326,7 +326,7 @@ export const aiCulture: PageContent = {
   blocks: [
     {
       type: "heroMedia",
-      eyebrow: "AI Culture · Treinamento corporativo em IA",
+      eyebrow: "Treinamento corporativo em IA",
       title: ["Não basta aprender IA. Seu time precisa saber o que fazer com ela."],
       lead: [
         "Treinamento in company construído sobre a rotina, os processos e os casos reais da sua empresa. Trilhas por área e governança desde o primeiro dia.",
@@ -338,21 +338,19 @@ export const aiCulture: PageContent = {
     {
       type: "proofBar",
       metrics: [
-        { value: "+10 mil", label: "pessoas capacitadas", confirmed: true },
-        { value: "170", label: "operações atendidas", confirmed: true },
-        // NPS 97: falta a fonte (pergunta 1 do brief). Ligar `confirmed` só quando a Carol responder.
-        { value: "97", label: "média de NPS", confirmed: false },
+        /* Ajustes V3, AI Culture, Ajuste 1 (Carol, 02/11). */
+        { value: "+200", label: "Times treinados", confirmed: true },
+        { value: "+10.000", label: "Profissionais capacitados", confirmed: true },
       ],
-      // Logos: a Carol deu o ok de uso (22/10). Faltam os ARQUIVOS cba, sicoob e cooxupe em public/logos/
-      // (hoje só existe arcelormittal.svg). Quando os quatro existirem, basta trocar `confirmed` para true.
+      // Logos: a Carol deu o ok de uso (22/10) e os quatro arquivos já estão em public/logos/.
       logos: {
         caption: "Times treinados em",
-        confirmed: false,
+        confirmed: true,
         items: [
-          { name: "ArcelorMittal", slug: "arcelormittal" },
-          { name: "CBA", slug: "cba" },
-          { name: "Sicoob", slug: "sicoob" },
-          { name: "Cooxupé", slug: "cooxupe" },
+          { name: "ArcelorMittal", slug: "arcelormittal", src: "/logos/arcelormittal.svg" },
+          { name: "CBA", slug: "cba", src: "/logos/cba.svg" },
+          { name: "Sicoob", slug: "sicoob", src: "/logos/sicoob.svg" },
+          { name: "Cooxupé", slug: "cooxupe", src: "/logos/cooxupe.png" },
         ],
       },
     },
@@ -438,7 +436,7 @@ export const advisory: PageContent = {
   blocks: [
     {
       type: "heroMedia",
-      eyebrow: "Advisory · Consultoria e governança de IA",
+      eyebrow: "Consultoria e governança de IA",
       title: ["Sua estratégia de IA, acompanhada até virar resultado."],
       accent: "resultado.",
       lead: [
@@ -447,7 +445,7 @@ export const advisory: PageContent = {
       support: "Ao lado da liderança. Dentro da execução.",
       cta: { label: "Conversar com um sócio", href: formHref("advisory") },
       /* Foto da capacitação na Fundação Dom Cabral (Drive), recortada para não mostrar as plaquinhas com os nomes dos alunos. */
-      image: { src: "/advisory/comite-fdc.webp", alt: "Palestrante da Kalidash conduz uma capacitação em IA numa sala da Fundação Dom Cabral, com a tela do assistente projetada ao fundo", width: 664, height: 830 },
+      image: { src: "/advisory/a-cupula.jpg", alt: "Grupo reunido e sorrindo em A Cúpula, numa sala de treinamento, com a apresentação da Kalidash projetada ao fundo", width: 2080, height: 1800 },
       aspect: "landscape",
     },
     {
@@ -540,7 +538,7 @@ export const execucao: PageContent = {
   blocks: [
     {
       type: "heroMedia",
-      eyebrow: "Execução · Implementação de IA e automação",
+      eyebrow: "Implementação de IA e automação",
       title: ["Da ideia à solução de IA rodando na sua operação."],
       lead: [
         "Implementamos agentes de IA, automações, integrações e soluções de dados para resolver problemas reais da operação. Do mapeamento do processo à entrega, com o seu time treinado.",

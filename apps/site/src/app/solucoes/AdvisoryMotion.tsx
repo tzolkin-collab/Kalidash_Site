@@ -77,7 +77,7 @@ function useReveal(root: React.RefObject<HTMLElement | null>, armed: boolean) {
           t.setAttribute("data-run", "");
           return () => t.removeAttribute("data-run");
         },
-        { amount: 0.2, margin: "0px 0px -8% 0px" },
+        { amount: 0.05, margin: "0px 0px -4% 0px" },
       ),
     );
     return () => stops.forEach((s) => s());
@@ -118,7 +118,9 @@ function useStage(live: boolean, apply: (p: number, el: HTMLElement) => void) {
 const GOLD_LIGHT = "#c4a673";
 const IMPERIAL = "#28183b";
 
-function applyProblem(p: number, el: HTMLElement) {
+function applyProblem(raw: number, el: HTMLElement) {
+  /* A sequência termina em 85% do palco: o último estado fica parado na tela antes de a seção soltar, em vez de acabar junto com ela. */
+  const p = c(raw / 0.85);
   const set = (k: string, v: number) => el.style.setProperty(k, v.toFixed(4));
   /* Palco encurtado (260 -> 170 svh): a sequência é a mesma, em janelas de rolagem mais justas. A frase da fase final nunca fica
    * apagada sem nada legível ao redor: ao entrar, "Não entregamos um plano." já está inteira e "Acompanhamos…" parte de 70%. */
@@ -225,7 +227,7 @@ export function LeadStage({ intro, items, soft }: { intro: ReactNode; items: { t
   const n = items.length;
   const apply = useRef((p: number, el: HTMLElement) => {
     el.style.setProperty("--draw", seg(p, 0.0, 0.12).toFixed(4));
-    const idx = p < 0.14 ? -1 : Math.min(n - 1, Math.floor(seg(p, 0.14, 0.98) * n));
+    const idx = p < 0.1 ? -1 : Math.min(n - 1, Math.floor(seg(p, 0.1, 0.8) * n)); /* acaba em 80% do palco: o último item fica aceso antes de a seção soltar */
     setScrollActive((prev) => (prev === idx ? prev : idx));
   });
   const ref = useStage(live, apply.current);
@@ -235,7 +237,7 @@ export function LeadStage({ intro, items, soft }: { intro: ReactNode; items: { t
   useEffect(() => {
     const fig = figRef.current;
     if (!fig || !armed || live) return;
-    return inView(fig, () => void ref.current?.style.setProperty("--draw", "1"), { amount: 0.4 });
+    return inView(fig, () => void ref.current?.style.setProperty("--draw", "1"), { amount: 0.12 });
   }, [armed, live, ref]);
 
   const active = hover ?? (live ? scrollActive : sel);

@@ -42,7 +42,7 @@ export default function ScrollMotion() {
           }
         }
       },
-      { rootMargin: "0px 0px -12% 0px", threshold: 0 },
+      { rootMargin: "0px 0px -4% 0px", threshold: 0 },
     );
     [...chapters, ...surge].forEach((el) => io.observe(el));
 

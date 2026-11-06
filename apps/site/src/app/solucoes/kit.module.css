@@ -119,10 +119,10 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 .main [class*="stepsNote"] p:first-child { color: var(--gold-light); }
 
 /* Hero: Imperial, texto à esquerda e a pintura (Escola de Atenas) num arco à direita */
-.heroBrand { background: var(--imperial); color: #f8f9fa; padding-top: clamp(28px, 5vh, 56px); overflow: hidden; }
+.heroBrand { position: relative; background: var(--imperial); color: #f8f9fa; padding-top: clamp(28px, 5vh, 56px); overflow: hidden; }
 .heroGrid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(24px, 5vw, 80px); align-items: end; }
 .heroCopy { align-self: center; padding-bottom: clamp(40px, 6vw, 80px); }
-.heroMeta { margin: 0 0 clamp(20px, 3vh, 36px); font-size: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-light); }
+.heroMeta { margin: 0 0 clamp(16px, 2.4vh, 28px); font-size: 11px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold-light); }
 .heroBrand h1 { margin: 0; font-family: var(--font-title); font-weight: 400; font-size: clamp(38px, 4.8vw, 68px); line-height: 1.05; letter-spacing: -0.02em; color: #f8f9fa; text-wrap: balance; }
 .line { display: block; }
 .heroBrand .gold { color: var(--gold-light); }
@@ -194,16 +194,16 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 
 /* ---------- Advisory: cabeçalho do site no celular/tablet (revisão do PO e do dono) ----------
  * O cabeçalho da Home fica como está (flutuante e transparente, some ao rolar para baixo, volta ao subir, logo recolhe).
- * Aqui só se corrige o que atrapalhava nesta página: a faixa branca de 76px acima do hero Imperial (o cabeçalho não
+ * Aqui só se corrige o que atrapalhava nesta página: a faixa branca de 60px acima do hero Imperial (o cabeçalho não
  * ocupa mais espaço no fluxo, o hero sobe para baixo dele) e a cor da logo, que acompanha o fundo sob ela (HeaderTone). */
 @media (max-width: 1100px) {
-  .kitDark :global(header[data-block="home-header"]) { margin-bottom: -76px; }
-  .kitDark .heroBrand { padding-top: 92px; }
+  .kitDark :global(header[data-block="home-header"]) { margin-bottom: -60px; }
+  .kitDark .heroBrand { padding-top: 68px; }
   .kitDark :global(header[data-block="home-header"]) [data-header-logo="true"] { --logo-body: #f8f9fa; }
   :global(html[data-header-tone="light"]) .kitDark :global(header[data-block="home-header"]) [data-header-logo="true"] { --logo-body: #28183b; }
 }
 @media (min-width: 901px) and (max-width: 1100px) {
-  .chapterLabel { top: 76px; }
+  .chapterLabel { top: 60px; }
 }
 /* Só o rótulo do capítulo atual fica no topo: o do capítulo que está saindo some antes de o próximo aparecer */
 @supports (animation-timeline: scroll()) {
@@ -230,7 +230,7 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
     .chapter:not(:has([class*="story"], [class*="pin"], [class*="countup"], [data-state], [data-live])) :is(h2, h3, p, li, figure, details, img):not(li *, figure *, details *, [class*="tile"] *, [class*="chapterLabel"]) {
-      animation: surge ease-out both; animation-timeline: view(); animation-range: entry 0% cover 28%;
+      animation: surge ease-out both; animation-timeline: view(); animation-range: entry 0% cover 12%;
     }
   }
 }
@@ -338,7 +338,7 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 .v3 .chapter[data-tone="soft"] { background: var(--limestone-deep); --lbl-bg: var(--limestone-deep); }
 .v3 .heroBrand h1 { font-size: clamp(42px, 5.2vw, 76px); line-height: 1.04; }
 .v3 .heroBrand .gold { color: var(--gold-light); }
-.v3 .heroLead p { color: rgba(241, 236, 228, 0.66); }
+.v3 .heroLead p { color: #dcd9e0; } /* cinza claro sobre o Imperial (pedido do dono em 05/11) */
 .v3 .heroLead strong { color: var(--limestone); }
 .v3 .heroMeta { color: var(--gold-light); }
 /* O arco da foto: a mesma proporção do recorte (4:5), sem esticar. */
@@ -380,3 +380,77 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 }
 @keyframes photoSettle { from { transform: scale(1.04); } to { transform: scale(1); } }
 @keyframes lineOut { from { opacity: 0; transform: translate3d(0, 0, 0); } to { opacity: 1; transform: translate3d(14px, 14px, 0); } }
+
+/* ---------- Advisory: a foto ocupa a lateral inteira da abertura, sem arco e sem caixa, com o botão na divisa dela com o roxo (pedido do dono em 05/11) ---------- */
+.heroPanel { position: relative; }
+.v3[data-page="advisory"] .heroArch { position: relative; width: 100%; height: 100%; margin: 0; border-radius: 0; background: var(--imperial); }
+.v3[data-page="advisory"] .heroArch img { object-position: 50% 50%; }
+/* Filete dourado na junção com o roxo: desenha na entrada, no lugar do filete em arco. */
+.v3[data-page="advisory"] .heroArch::before { content: ""; position: absolute; z-index: 2; top: 0; bottom: 0; left: 0; width: 1px; background: var(--gold-light); transform-origin: 50% 0; pointer-events: none; }
+.main a.heroEdgeCta { position: absolute; z-index: 3; white-space: nowrap; }
+@media (prefers-reduced-motion: no-preference) {
+  .v3[data-page="advisory"] .heroArch::before { animation: heroEdgeDraw 1800ms cubic-bezier(0.33, 1, 0.68, 1) both 500ms; }
+  .main a.heroEdgeCta { animation: heroCtaIn 900ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards; animation-delay: calc(var(--enter-delay, 0s) + 300ms); }
+}
+@keyframes heroEdgeDraw { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes heroEdgeDrawX { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes heroCtaIn { from { opacity: 0; transform: translate3d(0, 18px, 0); } to { opacity: 1; transform: none; } }
+@media (min-width: 1101px) {
+  .v3[data-page="advisory"] .heroBrand { display: grid; align-items: center; min-height: clamp(640px, calc(70svh + 56px), 800px); padding-top: calc(56px + clamp(28px, 5vh, 56px)); padding-bottom: 176px; } /* cortina (64) + botão + respiro: o texto nunca encosta no botão */
+  .v3[data-page="advisory"] .heroGrid { grid-template-columns: minmax(0, 1fr); }
+  .v3[data-page="advisory"] .heroCopy { width: calc(44vw - var(--gutter) - clamp(48px, 5vw, 96px)); padding-bottom: 0; }
+  .v3[data-page="advisory"] .heroBrand h1 { font-size: clamp(42px, 4.7vw, 72px); }
+  .heroPanel { position: absolute; top: 0; right: 0; bottom: 0; width: 56vw; }
+  /* Centrado na linha da divisa, na altura do fim do texto e sobre as cadeiras da foto. */
+  .main a.heroEdgeCta { left: 0; bottom: 96px; translate: -50% 0; }
+}
+@media (max-width: 1100px) {
+  .v3[data-page="advisory"] .heroBrand { padding-bottom: 28px; }
+  .v3[data-page="advisory"] .heroGrid { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .v3[data-page="advisory"] .heroCopy { padding-bottom: 56px; }
+  .heroPanel { width: 100vw; margin-left: calc(50% - 50vw); }
+  .v3[data-page="advisory"] .heroArch { justify-self: stretch; height: auto; aspect-ratio: 16 / 9; }
+  .v3[data-page="advisory"] .heroArch::before { bottom: auto; right: 0; width: auto; height: 1px; transform-origin: 0 50%; }
+  /* Centrado na divisa horizontal entre o roxo e a foto. */
+  .main a.heroEdgeCta { top: 0; left: 50%; width: auto; translate: -50% -50%; }
+  @media (prefers-reduced-motion: no-preference) {
+    .v3[data-page="advisory"] .heroArch::before { animation-name: heroEdgeDrawX; }
+  }
+}
+@media (max-width: 640px) {
+  .v3[data-page="advisory"] .heroArch { aspect-ratio: 4 / 3; }
+}
+/* Entre 901 e 1100 px o cabeçalho flutua sobre a abertura: presa em --header, ela deixava uma faixa clara sob a logo branca. */
+@media (min-width: 901px) and (max-width: 1100px) {
+  .v3[data-page="advisory"] .heroBrand { top: 0; }
+}
+/* O painel encosta nas bordas: a paralaxe só desloca, sem encolher, para não abrir fresta. */
+:global(html[data-motion="js"]) .v3[data-page="advisory"] [data-motion="hero"] .heroArch { transform: translate3d(0, calc(var(--drift, 0) * -48px), 0); }
+
+/* ---------- Advisory: "A estratégia foi definida. E agora?" em branco (pedido do dono em 05/11) ---------- */
+.v3[data-page="advisory"] .chapter:has([data-stage="problem"]) { background: #fff; --lbl-bg: #fff; }
+
+/* O rótulo do capítulo já mostra o progresso: sem o fio acima do cabeçalho nas páginas que usam esse rótulo (Advisory, AI Culture, Execução, Sobre nós). */
+[data-page]:has(.chapterLabel)::before { display: none; }
+/* Advisory no desktop: colunas centradas entre si na altura, sem a coluna menor presa no topo com um vazio embaixo. As perguntas ficam no topo: centradas, o título pularia ao abrir uma resposta. */
+@media (min-width: 901px) {
+  .v3[data-page="advisory"] [class*="avLeadGrid"],
+  .v3[data-page="advisory"] [class*="splitGrid"]:has(.criteria) { align-items: center; }
+}
+
+/* Advisory: no topo o cabeçalho não tem fundo, só os links sobre a abertura; a abertura sobe para baixo dele. Ao rolar ele volta a ter barra.
+ */
+@media (min-width: 1101px) {
+  .kitDark[data-page="advisory"] :global(header[data-block="home-header"]) { margin-bottom: -56px; }
+  .kitDark[data-page="advisory"] :global(header[data-block="home-header"]):not([data-scrolled="true"]) { background: transparent !important; border-bottom-color: transparent !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+  .v3[data-page="advisory"] .heroBrand { top: 0; }
+  /* Sem degradê: sobre a parede clara da foto, o menu fica escuro. */
+  .kitDark[data-page="advisory"][data-page] :global(header[data-block="home-header"]):not([data-scrolled="true"]) :global(nav) :is(a, button) { color: #28183b !important; border-bottom-color: #28183b !important; }
+  .kitDark[data-page="advisory"][data-page] :global(header[data-block="home-header"]):not([data-scrolled="true"]) :global(nav) :is(a, button):hover { color: #7d6338 !important; }
+}
+
+/* Advisory: capítulo "Ajudamos sua liderança" em branco e preto, inclusive o rótulo. */
+.v3[data-page="advisory"] .chapter:has([data-stage="lead"]) { background: #fff; --lbl-bg: #fff; --lbl-fg: #000; }
+
+/* Números da barra de prova em Kepler, não na fonte do corpo (vídeo da Carol, item 21; vale também para a AI Culture). */
+.v3 .main [class*="rule"] strong { font-family: var(--font-title); font-weight: var(--w-title); letter-spacing: -0.01em; }

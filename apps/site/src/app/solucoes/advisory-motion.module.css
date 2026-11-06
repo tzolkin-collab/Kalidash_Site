@@ -17,6 +17,7 @@
 .advStory[data-live][data-stage="lead"] { height: 170svh; }
 .advStory[data-live] .stick { position: sticky; top: calc(var(--header, 56px) + 40px); height: calc(100svh - var(--header, 56px) - 40px); overflow: clip; background: var(--limestone); }
 .advStory.soft[data-live] .stick { background: var(--limestone-deep); }
+.advStory[data-stage="problem"][data-live] .stick, .advStory.soft[data-stage="problem"][data-live] .stick { background: #fff; }
 
 /* ---------- Seção 2 ---------- */
 .advStory[data-live] .layA, .advStory[data-live] .layB { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; will-change: transform, opacity; }
@@ -59,6 +60,10 @@
 /* ---------- Seção 3 ---------- */
 .advStory[data-live] .leadSection { height: 100%; display: flex; align-items: center; padding-block: 0; }
 .advStory[data-live] .leadSection > div { width: var(--container); }
+/* Em telas baixas (1366x768) título e pentágono passavam da altura do palco: encolhem pela altura, para o conjunto caber centrado. */
+.advStory[data-live] .leadSection h2 { font-size: min(clamp(36px, 4.3vw, 62px), 7.2svh); }
+.advStory[data-live] .leadSection [class*="avLeadIntro"] p { margin-top: min(22px, 2.4svh); }
+.advStory[data-live] .leadSection [class*="avPentFig"] { width: min(100%, 360px, 34svh); margin-top: min(52px, 3svh); }
 .advStory .items li { display: block; padding: 0; }
 .itemBtn { display: grid; grid-template-columns: clamp(44px, 4.6vw, 68px) minmax(0, 1fr) 40px; align-items: center; gap: 12px; width: 100%; padding: clamp(18px, 2.2vw, 30px) 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; opacity: 1; transition: opacity 300ms ease; }
 .itemBtn:focus-visible { outline: 2px solid #8f7248; outline-offset: -2px; }
@@ -167,3 +172,17 @@
 .line { display: block; }
 .goldWord { display: inline-block; }
 @keyframes liftIn { from { translate: 0 36px; scale: 0.98; } to { translate: 0 0; scale: 1; } }
+
+/* ---------- Seção 3 em preto e branco (pedido do dono em 05/11): fundo branco e todo o texto preto. O ouro fica só no traço do pentágono.
+ * Sem apagar os itens inativos, o item da vez é marcado pelo filete preto embaixo e pelo numeral em negrito. ---------- */
+.advStory[data-stage="lead"] { --ink-text: #000; --text-2: #000; --gold-text: #000; color: #000; }
+.advStory[data-stage="lead"][data-live] .stick, .advStory.soft[data-stage="lead"][data-live] .stick { background: #fff; }
+.advStory[data-stage="lead"][data-live] .itemBtn:not([data-on]) { opacity: 1; }
+.advStory[data-stage="lead"] .itemBtn { transition: box-shadow 300ms ease; }
+.advStory[data-stage="lead"][data-live] .itemBtn[data-on] { box-shadow: inset 0 -2px 0 #000; }
+.advStory[data-stage="lead"] .itemBtn[data-on] [class*="avRomanNum"] { font-weight: 700; }
+.advStory[data-stage="lead"] .icon svg, .advStory[data-stage="lead"] .itemBtn[data-on] .icon svg { color: #000; }
+.advStory[data-stage="lead"] .pent { color: #000; }
+.advStory[data-stage="lead"] .polyBase { stroke: rgba(0, 0, 0, 0.28); }
+.advStory[data-stage="lead"] .vertex:not([data-on]) { fill: #000; }
+.advStory[data-stage="lead"] .roman[data-on] { fill: #000; }

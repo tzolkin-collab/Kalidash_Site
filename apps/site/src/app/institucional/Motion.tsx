@@ -39,7 +39,7 @@ export function Reveal({
           observer.disconnect();
         }
       },
-      { threshold: 0.25 },
+      { rootMargin: "0px 0px -6% 0px", threshold: 0 }, /* em bloco alto, 25% visível só chegava com o bloco já no meio da tela */
     );
     observer.observe(el);
     return () => observer.disconnect();

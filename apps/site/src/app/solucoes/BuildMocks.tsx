@@ -255,7 +255,7 @@ export function InlineScene({ index }: { index: number }) {
         };
         frame = requestAnimationFrame(run);
       },
-      { threshold: 0.35 },
+      { threshold: 0.15 },
     );
     io.observe(el);
     return () => {

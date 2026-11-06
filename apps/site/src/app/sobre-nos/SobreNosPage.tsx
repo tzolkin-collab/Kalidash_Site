@@ -9,7 +9,8 @@ import type { Block, PageContent } from "../institucional/pages";
 import CountUp from "../solucoes/CountUp";
 import prod from "../solucoes/product.module.css";
 import sol from "../solucoes/solucoes.module.css";
-import { fraunces } from "../solucoes/kit-font";
+import KitFonts from "../solucoes/KitFonts";
+import { AnthropicWordmark } from "../home/AnthropicPartnerBadge";
 import kit from "../solucoes/kit.module.css";
 import ScrollMotion from "../solucoes/ScrollMotion";
 import styles from "./sobre-nos.module.css";
@@ -180,12 +181,25 @@ function Proof({ block }: { block: Of<"proof"> }) {
       <div className={prod.wrap}>
         {block.credentials && (
           <ul className={styles.credentials}>
-            {block.credentials.map((c) => (
-              <li key={c.strong}>
-                <strong>{c.strong ? <CountUp value={c.strong} /> : null}</strong>
-                <span>{c.text}</span>
-              </li>
-            ))}
+            {block.credentials.map((c) => {
+              /* "Parceira" e "Finalista" não são números: viram selo, com legenda pequena; a Anthropic aparece com a marca dela. */
+              const seal = !/\d/.test(c.strong ?? "");
+              if (seal) {
+                return (
+                  <li key={c.strong} className={styles.seal}>
+                    <strong>{c.strong}</strong>
+                    {c.text === "Anthropic" ? <AnthropicWordmark className={styles.sealMark} /> : null}
+                    <span className={c.text === "Anthropic" ? styles.srOnly : undefined}>{c.text}</span>
+                  </li>
+                );
+              }
+              return (
+                <li key={c.strong}>
+                  <strong>{c.strong ? <CountUp value={c.strong} /> : null}</strong>
+                  <span>{c.text}</span>
+                </li>
+              );
+            })}
           </ul>
         )}
         <dl className={styles.where}>
@@ -235,7 +249,10 @@ function BlockView({ block }: { block: Block }) {
 export default function SobreNosPage({ page }: { page: PageContent }) {
   const chapters = page.blocks.filter((b) => b.type !== "heroMedia");
   return (
-    <div className={`${home.home} ${sol.page} ${fraunces.variable} ${kit.kitDark}`} data-page={page.slug}>
+    <div className={`${home.home} ${sol.page} ${sol.brandV3} ${kit.kitDark}`} data-page={page.slug}>
+      <link rel="preconnect" href="https://use.typekit.net" crossOrigin="anonymous" />
+      <link rel="preload" as="style" href="https://use.typekit.net/krs4uwp.css" />
+      <KitFonts />
       <HomeHeader />
       <main className={`${kit.main} ${styles.sobre}`}>
         {page.blocks.map((block, i) => {
