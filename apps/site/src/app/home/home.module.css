@@ -1598,6 +1598,9 @@
   .footerBottom { padding-bottom: 80px; }
 }
 
+/* Carrossel de logos da Home em cinza (decisão do dono em 06/11). */
+.v3 .logoTrack img { filter: grayscale(1) contrast(0.9); opacity: 0.72; }
+
 /* Rodapé: CNPJ ao lado dos direitos; ícones das redes em dourado, com o desenho interno na cor do fundo. Só aqui: o menu lateral mantém as cores das marcas. */
 .footerLegal { display: flex; flex-wrap: wrap; gap: 4px 20px; }
 .footerBottom { gap: 16px; }
