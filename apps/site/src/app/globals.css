@@ -202,3 +202,9 @@ html[data-route-cover] { --enter-delay: 0.32s; }
 /* translate/scale (propriedades próprias), não transform: somam-se ao paralaxe e ao zoom que essas peças já têm em transform. */
 @keyframes enterRise { from { opacity: 0; translate: 0 26px; } to { opacity: 1; translate: 0 0; } }
 @keyframes enterLift { from { translate: 0 36px; scale: 0.98; } to { translate: 0 0; scale: 1; } }
+
+/* Rolagem controlada (SmoothScroll.tsx): o Lenis assume a suavização, sem brigar com o scroll-behavior do html. */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: clip; }

@@ -119,14 +119,14 @@ const GOLD_LIGHT = "#c4a673";
 const IMPERIAL = "#28183b";
 
 function applyProblem(raw: number, el: HTMLElement) {
-  /* A sequência termina em 85% do palco: o último estado fica parado na tela antes de a seção soltar, em vez de acabar junto com ela. */
-  const p = c(raw / 0.85);
+  /* A sequência termina em 72% do palco: o último estado fica parado na tela antes de a seção soltar, em vez de acabar junto com ela. */
+  const p = c(raw / 0.72);
   const set = (k: string, v: number) => el.style.setProperty(k, v.toFixed(4));
   /* Palco encurtado (260 -> 170 svh): a sequência é a mesma, em janelas de rolagem mais justas. A frase da fase final nunca fica
    * apagada sem nada legível ao redor: ao entrar, "Não entregamos um plano." já está inteira e "Acompanhamos…" parte de 70%. */
-  set("--line", seg(p, 0.05, 0.44));
-  for (let i = 0; i < 4; i++) set(`--e${i}`, seg(p, 0.07 + i * 0.1, 0.15 + i * 0.1));
-  const s = seg(p, 0.46, 0.62);
+  set("--line", seg(p, 0.04, 0.34)); /* a lista acaba de aparecer bem antes da troca de fundo, para dar tempo de ler */
+  for (let i = 0; i < 4; i++) set(`--e${i}`, seg(p, 0.05 + i * 0.08, 0.13 + i * 0.08));
+  const s = seg(p, 0.5, 0.64);
   set("--s", SETTLE(s));
   set("--soft", p < 0.78 ? seg(p, 0.52, 0.6) : 1 - 0.45 * seg(p, 0.78, 0.84));
   set("--strong", 0.7 + 0.3 * seg(p, 0.7, 0.84));
@@ -227,7 +227,7 @@ export function LeadStage({ intro, items, soft }: { intro: ReactNode; items: { t
   const n = items.length;
   const apply = useRef((p: number, el: HTMLElement) => {
     el.style.setProperty("--draw", seg(p, 0.0, 0.12).toFixed(4));
-    const idx = p < 0.1 ? -1 : Math.min(n - 1, Math.floor(seg(p, 0.1, 0.8) * n)); /* acaba em 80% do palco: o último item fica aceso antes de a seção soltar */
+    const idx = p < 0.08 ? -1 : Math.min(n - 1, Math.floor(seg(p, 0.08, 0.68) * n)); /* acaba em 68% do palco: o último item fica aceso antes de a seção soltar */
     setScrollActive((prev) => (prev === idx ? prev : idx));
   });
   const ref = useStage(live, apply.current);

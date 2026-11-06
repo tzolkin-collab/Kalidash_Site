@@ -1595,3 +1595,9 @@
 .closingBand { position: relative; isolation: isolate; overflow: hidden; background: var(--imperial, #28183b); }
 .v3 .results { background: transparent; box-shadow: none; clip-path: none; }
 .v3 .diagnostico { background: transparent; border-top: 0; isolation: auto; overflow: visible; }
+
+/* Fim da página: espaço abaixo das redes sociais para o botão fixo do WhatsApp não ficar em cima delas (40 + 54 + 20 px; no celular, 16 + 48 + 16). */
+.footerBottom { padding-bottom: 114px; }
+@media (max-width: 1100px) {
+  .footerBottom { padding-bottom: 80px; }
+}

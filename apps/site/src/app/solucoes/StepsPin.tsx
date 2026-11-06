@@ -37,7 +37,7 @@ export default function StepsPin({ children }: { children: ReactNode }) {
       if (!on) return;
       const rect = el.getBoundingClientRect();
       const run = rect.height - window.innerHeight;
-      el.style.setProperty("--p", (run > 0 ? clamp(-rect.top / run / 0.85) : 0).toFixed(4)); /* termina em 85% do palco: o fim fica parado antes de a seção soltar */
+      el.style.setProperty("--p", (run > 0 ? clamp(-rect.top / run / 0.75) : 0).toFixed(4)); /* termina em 75% do palco: o fim fica parado antes de a seção soltar */
     };
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(update);

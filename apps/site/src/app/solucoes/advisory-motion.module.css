@@ -13,8 +13,8 @@
 /* ================= Palco preso (seções 2 e 3) ================= */
 .stick { position: relative; }
 .advStory[data-live] { position: relative; margin-bottom: -36px; }
-.advStory[data-live][data-stage="problem"] { height: 170svh; }
-.advStory[data-live][data-stage="lead"] { height: 170svh; }
+.advStory[data-live][data-stage="problem"] { height: 230svh; } /* mais rolagem para ler: a lista e o fim ficam parados na tela antes de a seção soltar */
+.advStory[data-live][data-stage="lead"] { height: 210svh; }
 .advStory[data-live] .stick { position: sticky; top: calc(var(--header, 56px) + 40px); height: calc(100svh - var(--header, 56px) - 40px); overflow: clip; background: var(--limestone); }
 .advStory.soft[data-live] .stick { background: var(--limestone-deep); }
 .advStory[data-stage="problem"][data-live] .stick, .advStory.soft[data-stage="problem"][data-live] .stick { background: #fff; }

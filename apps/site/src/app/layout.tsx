@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Archivo, Google_Sans_Flex, Inter, Source_Sans_3 } from "next/font/google";
 import GoogleTagManager from "./components/GoogleTagManager";
 import RouteTransition from "./components/RouteTransition";
+import SmoothScroll from "./components/SmoothScroll";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -86,6 +87,7 @@ export default function RootLayout({
         <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID} />
         {children}
         <RouteTransition />
+        <SmoothScroll />
       </body>
     </html>
   );

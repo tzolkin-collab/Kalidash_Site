@@ -18,11 +18,12 @@
       opacity: calc(0.28 + 0.72 * var(--reveal));
       transform: translate3d(0, calc((1 - var(--reveal)) * 20px), 0);
     }
-    /* Número em ouro que acende com o passo e filete que se traça abaixo do texto. */
+    /* Número em ouro que acende com o passo e filete curto que se traça à esquerda do texto. */
     .pin[data-live] [class*="sequence"] li [class*="stepNum"] { color: var(--gold-light, #c8ab78); opacity: calc(0.3 + 0.7 * var(--reveal)); }
-    .pin[data-live] [class*="sequence"] li::after {
-      content: ""; position: absolute; left: 0; right: 0; bottom: -14px; height: 1px; background: var(--gold-light, #c8ab78);
-      transform-origin: 0 50%; transform: scaleX(var(--reveal)); opacity: 0.8;
+    .pin[data-live] [class*="sequence"] li > p:last-child { position: relative; }
+    .pin[data-live] [class*="sequence"] li > p:last-child::before {
+      content: ""; position: absolute; left: -16px; top: 4px; bottom: 4px; width: 1px; background: var(--gold-light, #c8ab78);
+      transform-origin: 50% 100%; transform: scaleY(var(--reveal)); opacity: 0.8;
     }
     /* A frase final entra quando a linha termina. */
     .pin[data-live] [class*="stepsNote"] {
