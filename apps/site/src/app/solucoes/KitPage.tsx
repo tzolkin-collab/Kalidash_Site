@@ -74,7 +74,7 @@ function HeroWide({ block, arc = false, panel = false }: { block: Of<"heroMedia"
         {panel ? (
           <div className={styles.heroPanel}>
             <div className={styles.heroArch}>
-              <Image src={block.image.src} alt={block.image.alt} width={block.image.width} height={block.image.height} priority quality={90} sizes="(max-width: 1100px) 100vw, 56vw" className={mo.photo} />
+              <Image src={block.image.src} alt={block.image.alt} width={block.image.width} height={block.image.height} priority quality={90} sizes="(max-width: 1100px) 100vw, 60vw" className={mo.photo} />
             </div>
             {block.cta && (
               <Link className={`${home.primaryButton} ${styles.heroEdgeCta}`} href={block.cta.href}>

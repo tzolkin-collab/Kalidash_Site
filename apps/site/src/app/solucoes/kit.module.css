@@ -384,7 +384,7 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 /* ---------- Advisory: a foto ocupa a lateral inteira da abertura, sem arco e sem caixa, com o botão na divisa dela com o roxo (pedido do dono em 05/11) ---------- */
 .heroPanel { position: relative; }
 .v3[data-page="advisory"] .heroArch { position: relative; width: 100%; height: 100%; margin: 0; border-radius: 0; background: var(--imperial); }
-.v3[data-page="advisory"] .heroArch img { object-position: 50% 50%; }
+.v3[data-page="advisory"] .heroArch img { object-position: 50% 35%; } /* se cortar na altura, corta mais o chão que as cabeças */
 /* Filete dourado na junção com o roxo: desenha na entrada, no lugar do filete em arco. */
 .v3[data-page="advisory"] .heroArch::before { content: ""; position: absolute; z-index: 2; top: 0; bottom: 0; left: 0; width: 1px; background: var(--gold-light); transform-origin: 50% 0; pointer-events: none; }
 .main a.heroEdgeCta { position: absolute; z-index: 3; white-space: nowrap; }
@@ -396,11 +396,11 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 @keyframes heroEdgeDrawX { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes heroCtaIn { from { opacity: 0; transform: translate3d(0, 18px, 0); } to { opacity: 1; transform: none; } }
 @media (min-width: 1101px) {
-  .v3[data-page="advisory"] .heroBrand { display: grid; align-items: center; min-height: clamp(640px, calc(70svh + 56px), 800px); padding-top: calc(56px + clamp(28px, 5vh, 56px)); padding-bottom: 176px; } /* cortina (64) + botão + respiro: o texto nunca encosta no botão */
+  .v3[data-page="advisory"] .heroBrand { display: grid; align-items: center; --hero-gutter: max(24px, calc((100vw - 1280px) / 2)); --hero-copy: clamp(380px, 36vw, 520px); --hero-panel: calc(100vw - var(--hero-gutter) - var(--hero-copy) - clamp(48px, 5vw, 72px)); /* a foto ocupa o que sobra depois do texto, e a altura acompanha a proporção dela (sem passar da tela) */ min-height: max(640px, min(100svh, calc(var(--hero-panel) / 1.12 + 64px))); padding-top: calc(56px + clamp(28px, 5vh, 56px)); padding-bottom: 176px; } /* cortina (64) + botão + respiro: o texto nunca encosta no botão */
   .v3[data-page="advisory"] .heroGrid { grid-template-columns: minmax(0, 1fr); }
-  .v3[data-page="advisory"] .heroCopy { width: calc(44vw - var(--gutter) - clamp(48px, 5vw, 96px)); padding-bottom: 0; }
+  .v3[data-page="advisory"] .heroCopy { width: var(--hero-copy); padding-bottom: 0; }
   .v3[data-page="advisory"] .heroBrand h1 { font-size: clamp(42px, 4.7vw, 72px); }
-  .heroPanel { position: absolute; top: 0; right: 0; bottom: 0; width: 56vw; }
+  .heroPanel { position: absolute; top: 0; right: 0; bottom: 0; width: var(--hero-panel); }
   /* Centrado na linha da divisa, na altura do fim do texto e sobre as cadeiras da foto. */
   .main a.heroEdgeCta { left: 0; bottom: 96px; translate: -50% 0; }
 }
@@ -445,7 +445,7 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
   .kitDark[data-page="advisory"] :global(header[data-block="home-header"]):not([data-scrolled="true"]) { background: transparent !important; border-bottom-color: transparent !important; box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
   .v3[data-page="advisory"] .heroBrand { top: 0; }
   /* Sem degradê: sobre a parede clara da foto, o menu fica escuro. */
-  .kitDark[data-page="advisory"][data-page] :global(header[data-block="home-header"]):not([data-scrolled="true"]) :global(nav) :is(a, button) { color: #28183b !important; border-bottom-color: #28183b !important; }
+  .kitDark[data-page="advisory"][data-page] :global(header[data-block="home-header"]):not([data-scrolled="true"]) :global(nav) :is(a, button) { color: #28183b !important; border-bottom-color: #28183b !important; text-shadow: 0 0 2px #fff, 0 0 6px #fff, 0 0 12px #fff; } /* halo claro: o texto continua legível quando passa sobre a moldura preta da tela da foto */
   .kitDark[data-page="advisory"][data-page] :global(header[data-block="home-header"]):not([data-scrolled="true"]) :global(nav) :is(a, button):hover { color: #7d6338 !important; }
 }
 
