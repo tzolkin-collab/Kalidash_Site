@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./diagnostico.module.css";
 import BrandLogo from "../components/BrandLogo";
+import CasesCarousel from "./CasesCarousel";
 import { fraunces } from "../solucoes/kit-font";
 import { config, diagnostico } from "../home/content";
 import { ArrowLeft, ArrowRight, WhatsApp } from "../home/icons";
@@ -235,13 +237,17 @@ export default function DiagnosticoClient() {
   return (
     <div className={`${styles.splitLayout} ${fraunces.variable}`}>
       {/* ========================================================
-          LADO ESQUERDO: Painel Editorial Institucional (Oculto no Mobile)
+          LADO ESQUERDO: Painel Editorial Institucional (no mobile, só o carrossel, abaixo do form)
           ======================================================== */}
       <aside className={styles.editorialPane}>
         <div className={styles.editorialContent}>
+          <div className={styles.editorialTop}>
+          <figure className={styles.teamPhoto}>
+            <Image src="/time-kalidash.jpg" alt="Time da Kalidash reunido no escritório" fill priority sizes="(max-width: 1023px) 1px, 100vw" />
+          </figure>
           <div className={styles.brandRow}>
             <Link href="/" className={styles.editorialLogoLink} aria-label="Kalidash — Início">
-              <BrandLogo tone="dark" />
+              <BrandLogo tone="light" />
             </Link>
           </div>
 
@@ -253,28 +259,11 @@ export default function DiagnosticoClient() {
             <p className={styles.editorialLead}>
               Conte um pouco sobre o momento da sua empresa e vamos entender o desafio antes de propor qualquer solução.
             </p>
-
-            <div className={styles.quoteCard}>
-              <strong className={styles.quoteText}>
-                “Primeiro entendemos. Depois construímos juntos.”
-              </strong>
-              <p className={styles.quoteSub}>
-                Mapeamos fluxos, rotinas e dores reais antes de qualquer automação ou agente de IA.
-              </p>
-            </div>
+          </div>
           </div>
 
           <div className={styles.editorialFooter}>
-            <div className={styles.proofColumns}>
-              <div>
-                <span className={styles.proofLabel}>Onde aplicamos</span>
-                <p className={styles.proofNames}>ArcelorMittal · CBA · Sicoob · Cooxupé</p>
-              </div>
-              <div>
-                <span className={styles.proofLabel}>Onde ensinamos</span>
-                <p className={styles.proofNames}>Conquer · Xperiun · Rocketseat · Hashtag · Tera</p>
-              </div>
-            </div>
+            <CasesCarousel />
 
             {config.whatsappUrl && (
               <a
@@ -341,7 +330,7 @@ export default function DiagnosticoClient() {
               <div className={styles.successScreen}>
                 <h2 className={styles.successHeading}>Solicitação enviada com sucesso!</h2>
                 <p className={styles.successBody}>
-                  Nossa equipe de consultoria entrará em contato em até <strong>24 horas úteis</strong> para confirmar os detalhes e agendar a sessão de diagnóstico.
+                  Nossa equipe entrará em contato em até <strong>24 horas úteis</strong> para confirmar os detalhes e agendar a sessão de diagnóstico.
                 </p>
                 <div className={styles.successActions}>
                   <Link href="/" className={styles.successHomeButton}>

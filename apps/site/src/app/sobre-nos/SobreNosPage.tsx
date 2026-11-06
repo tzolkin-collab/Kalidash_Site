@@ -182,7 +182,7 @@ function Proof({ block }: { block: Of<"proof"> }) {
         {block.credentials && (
           <ul className={styles.credentials}>
             {block.credentials.map((c) => {
-              /* "Parceira" e "Finalista" não são números: viram selo, com legenda pequena; a Anthropic aparece com a marca dela. */
+              /* "Parceira" e "Vencedora" não são números: viram selo, com legenda pequena; a Anthropic aparece com a marca dela. */
               const seal = !/\d/.test(c.strong ?? "");
               if (seal) {
                 return (
@@ -258,10 +258,9 @@ export default function SobreNosPage({ page }: { page: PageContent }) {
         {page.blocks.map((block, i) => {
           const key = `${block.type}-${i}`;
           if (block.type === "heroMedia") return <BlockView key={key} block={block} />;
-          const n = chapters.indexOf(block) + 2;
           return (
             <div key={key} className={kit.chapter} data-tone={TONE[block.type] ?? "paper"} data-motion="curtain">
-              <div className={kit.chapterLabel} aria-hidden="true" data-text={`${String(n).padStart(2, "0")} / ${String(chapters.length + 1).padStart(2, "0")} · ${label(block)}`}>
+              <div className={kit.chapterLabel} aria-hidden="true" data-text={label(block)}>
                 <i />
               </div>
               <BlockView block={block} />

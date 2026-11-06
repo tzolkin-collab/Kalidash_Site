@@ -31,6 +31,32 @@ function CtaLink({ href, className, children }: { href: string; className: strin
   return <Link className={className} href={href}>{children}</Link>;
 }
 
+/* Parede de fotos dentro do arco: duas colunas que correm devagar em sentidos opostos. Cada coluna vem duas vezes para o laço não ter emenda; a segunda cópia é só visual. */
+function PhotoWall({ columns }: { columns: NonNullable<Hero["wall"]> }) {
+  return (
+    <div className={styles.wall}>
+      {columns.map((photos, c) => (
+        <div key={c} className={styles.wallCol}>
+          <div className={styles.wallTrack}>
+            {[...photos, ...photos].map((photo, i) => (
+              <Image
+                key={i}
+                src={photo.src}
+                alt={i >= photos.length ? "" : photo.alt}
+                width={photo.width}
+                height={photo.height}
+                sizes="(max-width: 900px) 46vw, 250px"
+                priority={i === 0}
+                loading={i === 0 ? undefined : "eager"}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function HeroView({ hero, kind }: { hero: Hero; kind: "cutout" | "photo" }) {
   const [lead, ...rest] = hero.lead;
   return (
@@ -43,15 +69,17 @@ export function HeroView({ hero, kind }: { hero: Hero; kind: "cutout" | "photo" 
           ))}
         </h1>
         <div className={kind === "cutout" ? styles.cutout : styles.photo} aria-hidden={kind === "cutout" ? true : undefined}>
-          <Image
-            src={hero.image.src}
-            alt={kind === "cutout" ? "" : hero.image.alt}
-            width={hero.image.width}
-            height={hero.image.height}
-            priority
-            fetchPriority="high"
-            sizes="(max-width: 900px) 90vw, 44vw"
-          />
+          {hero.wall ? <PhotoWall columns={hero.wall} /> : (
+            <Image
+              src={hero.image.src}
+              alt={kind === "cutout" ? "" : hero.image.alt}
+              width={hero.image.width}
+              height={hero.image.height}
+              priority
+              fetchPriority="high"
+              sizes="(max-width: 900px) 90vw, 44vw"
+            />
+          )}
         </div>
         <div className={styles.lead}>
           <p><Rich text={lead} /></p>

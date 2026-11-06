@@ -458,9 +458,21 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 /* Fim dos passos em Kepler, branco e dourado, não na fonte do corpo. */
 .v3 .main [class*="stepsNote"] strong { font-family: var(--font-title); font-weight: var(--w-title); }
 
+/* AI Culture: só branco e Imperial; os dois tons de bege saem (pedido do dono em 06/11). A cor fica nas fotos. */
+.v3[data-page="treinamento-corporativo-ia"], .v3[data-page="treinamento-corporativo-ia"] .main { --limestone: #fff; --limestone-deep: #fff; --paper: #fff; --soft: #fff; background: #fff; }
+
+/* AI Culture: sem a barra de números entre eles, o primeiro capítulo não sobe sobre a abertura nem cobre a faixa grega. */
+.v3[data-page="treinamento-corporativo-ia"] .chapter:has([data-state="cap"]) { margin-top: 0; animation: none; transform: none; }
+
 /* AI Culture, faixa "Nosso objetivo...": o capítulo seguinte não faz a subida extra de 56 px. Nessa subida a frase ficava alta na faixa e abria uma tira clara entre a faixa e o capítulo. */
 .chapter:has([data-state="cap"]) + .chapter { animation: none; transform: none; }
 :global(html[data-motion="js"]) .chapter:has([data-state="cap"]) + .chapter { transform: none; transition: none; }
+
+/* AI Culture, "Por que capacitar?": o rótulo não desbota no fim. Desbotando, a frase da faixa aparecia através dele. Fica sólido até o capítulo seguinte cobrir. */
+.chapter:has([data-state="cap"]) .chapterLabel { animation: none; }
+
+/* Capítulo depois da faixa: o rótulo já traz a linha; a do bloco de passos, 37 px abaixo, sobrava. */
+@media (min-width: 901px) { .v3 .chapter:has([data-state="cap"]) + .chapter[data-tone="dark"] section[class*="steps"] { box-shadow: none; } }
 
 /* Cantos dos capítulos: o recorte passa a ser máscara. Só com overflow: clip, o rótulo preso (camada própria) podia sair do arredondamento durante a rolagem e deixar o canto torto. */
 .chapter, .curtain { clip-path: inset(0 round 28px 28px 0 0); }

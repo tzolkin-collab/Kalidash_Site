@@ -1472,11 +1472,7 @@
   .v3 .frontText h3, .v3 .caseFeature h2, .v3 .resultsHead h2, .v3 .expIntroLeft h2 { font-family: var(--kepler-sub); letter-spacing: 0; }
 }
 
-/* Problema: o holograma ganha painel Imperial (o ouro tem presença) e o texto do cartão se distribui no meio da altura. */
-.v3 .hologramCol {
-  background: linear-gradient(160deg, #28183b 0%, #31204a 60%, #46304f 100%);
-  border: 1px solid rgba(168, 138, 88, 0.5); border-radius: 20px; box-shadow: 0 18px 44px rgba(40, 24, 59, 0.28);
-}
+/* Problema: holograma terracota direto sobre o fundo, sem painel (pedido do dono em 06/11); o texto do cartão se distribui no meio da altura. */
 .v3 .problemTopContent { max-width: 700px; }
 
 /* ====================== Rodada 4: hero como em 240a2bb ======================
@@ -1524,7 +1520,7 @@
 
 /* Respiro entre a faixa roxa e os blocos roxos de "O Problema": encostados, viravam uma mancha só. */
 @media (min-width: 1101px) {
-  .v3 .problem { padding-top: 64px; background: linear-gradient(#fff 0 190px, var(--gray-1) 190px); }
+  .v3 .problem { padding-top: 64px; background: #fff; /* sem o painel, a emenda branco/cinza cortava o holograma */ }
 }
 @media (max-width: 1100px) {
   .v3 .problem { padding-top: 40px; }
@@ -1601,3 +1597,10 @@
 @media (max-width: 1100px) {
   .footerBottom { padding-bottom: 80px; }
 }
+
+/* Rodapé: CNPJ ao lado dos direitos; ícones das redes em dourado, com o desenho interno na cor do fundo. Só aqui: o menu lateral mantém as cores das marcas. */
+.footerLegal { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+.footerBottom { gap: 16px; }
+.social a { color: #d9c08a; }
+.social svg path { fill: currentColor; }
+.social svg path:is([fill="#fff" i], [fill="#ffffff" i]) { fill: #28183b; }

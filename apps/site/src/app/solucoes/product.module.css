@@ -176,3 +176,33 @@
 .rule .proofLogos { padding-bottom: clamp(44px, 5vw, 64px); }
 .rule .proofLogos li { border: 0; padding: 0; margin: 0; }
 .rule .proofLogos li::before, .rule .proofLogos li::after { display: none !important; content: none !important; }
+
+/* AI Culture: o arco vira janela para uma parede de turmas (pedido do dono em 06/11). Passar o mouse pausa. Com movimento reduzido, as fotos ficam paradas. */
+.photo:has(.wall) { width: min(38%, 500px); overflow: visible; }
+.wall { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: 100%; height: 100%; overflow: hidden; border-radius: 999px 999px 0 0; background: #fff; }
+.wallCol { min-width: 0; height: 100%; overflow: hidden; -webkit-mask-image: linear-gradient(to bottom, #000 90%, transparent); mask-image: linear-gradient(to bottom, #000 90%, transparent); }
+.wallTrack { display: block; }
+.photo .wall img { display: block; width: 100%; height: auto; margin-bottom: 10px; border-radius: 10px; object-fit: initial; animation: none !important; }
+@media (prefers-reduced-motion: no-preference) {
+  .wallTrack { animation: wallUp 90s linear infinite; will-change: transform; }
+  .wallCol:nth-child(2) .wallTrack { animation-name: wallDown; animation-duration: 105s; }
+  .wall:hover .wallTrack { animation-play-state: paused; }
+}
+@keyframes wallUp { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(0, -50%, 0); } }
+@keyframes wallDown { from { transform: translate3d(0, -50%, 0); } to { transform: translate3d(0, 0, 0); } }
+@media (max-width: 900px) {
+  /* Altura fixa: sem ela as duas colunas abriam o painel inteiro e o hero virava uma tira de fotos de vários metros. */
+  .photo:has(.wall) { width: 100%; height: min(90vw, 420px); aspect-ratio: auto; margin-top: 28px; overflow: hidden; }
+  .hero:has(.wall) { min-height: 0; padding-bottom: 0; }
+  .page .hero .heroInner:has(.wall), .heroInner:has(.wall) { min-height: 0; padding-bottom: 0; height: auto; }
+  .heroInner:has(.wall) .lead p { font-size: 16px; line-height: 1.5; }
+  .heroInner:has(.wall) .lead .support { font-size: 11px; letter-spacing: 0.08em; line-height: 1.55; }
+}
+
+/* AI Culture, abertura no computador: título em três linhas sem encostar no arco, texto mais perto do título, arco mais alto em telas grandes e linha dourada que some em vez de terminar seca. */
+@media (min-width: 901px) {
+  .heroInner:has(.wall) h1 { max-width: 57%; text-wrap: balance; }
+  .heroInner:has(.wall) .lead { margin-top: clamp(20px, 3vh, 32px); }
+  .photo:has(.wall) { height: min(720px, 88%); }
+  .photo:has(.wall)::before { -webkit-mask-image: linear-gradient(to bottom, #000 80%, transparent); mask-image: linear-gradient(to bottom, #000 80%, transparent); }
+}

@@ -219,7 +219,7 @@ export const caseCba = {
   title: "Captura Inteligente do Conhecimento",
   text: "O que se decidia nas reuniões diárias de rotina ficava só na memória de quem estava na sala. Criamos uma solução de IA que transcreve essas conversas, mesmo com ruído industrial, e as transforma em dado estruturado: problema, solução, criticidade e prazo, validados por quem conhece o processo.",
   keyPhrase: "Consultas que antes eram impossíveis agora levam segundos.",
-  badge: "Finalista Prêmio Inovativos 2026 — categoria Dados, Insights e Decisão",
+  badge: "Vencedora Prêmio Inovativos 2026 — categoria Dados, Insights e Decisão",
   cta: { label: "Ver o case completo", href: "/blog?categoria=cases" },
   pageReady: true,
   image: {
@@ -229,6 +229,17 @@ export const caseCba = {
     height: 563,
   },
 };
+
+/* Carrossel do painel do Diagnóstico. "done" vem do case da CBA e das legendas da galeria da Home; "business" é descrição pública da empresa, a revisar com a Carol. */
+export const diagnosticoCases = [
+  { name: "CBA", logo: "/logos/cba.svg", business: "Produtora brasileira de alumínio.", done: "Solução de IA que transcreve as reuniões diárias, mesmo com ruído industrial, e as transforma em dado estruturado." },
+  { name: "ArcelorMittal", logo: "/logos/arcelormittal.svg", business: "Uma das maiores produtoras de aço do mundo.", done: "Treinamento de IA para os times." },
+  { name: "Sicoob", logo: "/logos/sicoob.svg", business: "Sistema de cooperativas de crédito.", done: "Treinamento de IA para a alta liderança." },
+  { name: "Cooxupé", logo: "/logos/cooxupe.png", business: "Cooperativa de cafeicultores de Guaxupé (MG).", done: "Treinamento de N8N para o time de T.I." },
+  { name: "Nexa Resources", logo: "/logos/nexa.png", business: "Mineradora de zinco com operações no Brasil e no Peru.", done: "Treinamento de IA para o jurídico." },
+  { name: "SAAM Towage", logo: "/logos/saam-towage.png", business: "Operadora de rebocadores em portos das Américas.", done: "Treinamento de IA para a alta liderança." },
+  { name: "Votorantim", logo: "/logos/votorantim.svg", business: "Um dos maiores grupos empresariais do Brasil.", done: "Treinamento de análise de dados suportada por IA." },
+];
 
 export const testimonial = {
   eyebrow: "Quem viveu a transformação",
@@ -338,4 +349,5 @@ export const footer = {
     },
   ] as FooterColumn[],
   copyright: "© 2026 Kalidash. Todos os direitos reservados.",
+  cnpj: "CNPJ 44.737.698/0001-06",
 };

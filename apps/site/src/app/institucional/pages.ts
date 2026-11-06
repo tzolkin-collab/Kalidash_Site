@@ -9,7 +9,7 @@ export type Cta = { label: string; href: string };
 export type Block =
   | { type: "hero"; eyebrow: string; title: string[]; lead: string[]; tagline?: string; meta?: string; cta: Cta }
   /* `accent` / `highlightAccent`: a palavra de sentido que vai em itálico dourado no título e na frase-manifesto (sem ela, vale o comportamento antigo). */
-  | { type: "text"; eyebrow?: string; title: string[]; paragraphs?: string[]; chips?: string[]; highlight?: string[]; accent?: string; highlightAccent?: string }
+  | { type: "text"; eyebrow?: string; title: string[]; paragraphs?: string[]; chips?: string[]; highlight?: string[]; image?: Media; accent?: string; highlightAccent?: string }
   | {
       type: "cards";
       eyebrow?: string;
@@ -57,6 +57,8 @@ export type Block =
       image: Media;
       aspect?: "portrait" | "landscape";
       frame?: "card" | "none";
+      /* Parede de fotos no lugar da foto única: uma lista por coluna. */
+      wall?: Media[][];
     }
   | {
       type: "timeline";
@@ -307,7 +309,7 @@ export const sobreNos: PageContent = {
         { strong: "+10 mil", text: "pessoas capacitadas" },
         { strong: "170", text: "operações atendidas" },
         { strong: "Parceira", text: "Anthropic" },
-        { strong: "Finalista", text: "Prêmio Inovativos 2026" },
+        { strong: "Vencedora", text: "Prêmio Inovativos 2026" },
       ],
       items: [
         { label: "Onde ensinamos", names: "Conquer · Xperiun · Rocketseat · Hashtag · Tera" },
@@ -333,7 +335,26 @@ export const aiCulture: PageContent = {
       ],
       support: "Turmas a partir de 12 pessoas · Online ou presencial · Carga horária personalizada",
       cta: { label: "Solicitar proposta", href: formHref("ai-culture") },
-      image: { src: "/home/evento-sala.jpg", alt: "Turma em sala durante um treinamento da Kalidash", width: 633, height: 814 },
+      image: { src: "/home/g18-fdc-tech-week-2.jpg", alt: "Fundação Dom Cabral ∙ Tech Week", width: 1000, height: 1333 },
+      /* Abertura com várias turmas, legendas iguais às da galeria da Home (pedido do dono em 06/11). */
+      wall: [
+        [
+          { src: "/home/g17-fdc-tech-week-1.jpg", alt: "Fundação Dom Cabral ∙ Tech Week", width: 1000, height: 750 },
+          { src: "/home/g20-sifra-2.jpg", alt: "Grupo Sifra ∙ Treinamento de Claude e Lovable", width: 1000, height: 1333 },
+          { src: "/home/g06-saam.jpg", alt: "SAAM Towage ∙ IA para alta liderança", width: 700, height: 525 },
+          { src: "/home/g13-bigdata.jpg", alt: "Big Data Experience", width: 700, height: 933 },
+          { src: "/home/g16-votorantim.jpg", alt: "Votorantim ∙ Análise de Dados suportada por IA", width: 700, height: 525 },
+          { src: "/home/front-2-comite.jpg", alt: "Turma reunida em volta da mesa durante um treinamento da Kalidash", width: 1200, height: 900 },
+        ],
+        [
+          { src: "/home/front-3-entrega.jpg", alt: "Palestra da Kalidash para um auditório cheio", width: 1086, height: 1448 },
+          { src: "/home/g04-quimica.jpg", alt: "Química Anastácio ∙ IA para lideranças", width: 700, height: 525 },
+          { src: "/home/g14-sicoob.jpg", alt: "Sicoob ∙ IA para alta liderança", width: 700, height: 933 },
+          { src: "/home/g19-sifra-1.jpg", alt: "Grupo Sifra ∙ Treinamento de Claude e Lovable", width: 1000, height: 750 },
+          { src: "/home/g09-nexa.jpg", alt: "Nexa Resources ∙ IA para jurídico", width: 700, height: 525 },
+          { src: "/home/g05-sao-carlos.jpg", alt: "São Carlos Experience", width: 700, height: 401 },
+        ],
+      ],
     },
     {
       type: "proofBar",
@@ -363,6 +384,7 @@ export const aiCulture: PageContent = {
       ],
       highlight: ["Nosso objetivo é criar capacidade dentro da empresa, não ensinar mais uma ferramenta."],
       highlightAccent: "capacidade",
+      image: { src: "/home/front-1-workshop.jpg", alt: "Turma em treinamento da Kalidash, com notebooks abertos diante das telas da sala", width: 1200, height: 900 },
     },
     {
       type: "steps",
@@ -602,7 +624,7 @@ export const execucao: PageContent = {
         title: "Captura Inteligente do Conhecimento",
         text: "As reuniões diárias da operação viraram dado estruturado.",
         stats: { text: "1.681 problemas registrados em 3 meses de piloto, com 97% de encaminhamento definido.", confirmed: true },
-        badge: "Finalista Prêmio Inovativos 2026",
+        badge: "Vencedora Prêmio Inovativos 2026",
         image: { src: "/home/g21-cba-premio.jpg", alt: "CBA e Kalidash no Prêmio Inovativos 2026", width: 1200, height: 900 },
         cta: { label: "Ver o case", href: "/blog?categoria=cases" },
         pageReady: true,

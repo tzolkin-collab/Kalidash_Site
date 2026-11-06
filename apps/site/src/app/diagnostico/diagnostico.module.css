@@ -81,11 +81,9 @@
 .editorialPane {
   background: var(--c-warm);
   border-right: 1px solid var(--c-rule);
-  padding: clamp(32px, 4vw, 56px) clamp(32px, 5vw, 72px);
+  --pane-x: clamp(32px, 5vw, 72px);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: var(--s-6);
   min-width: 0;
 }
 
@@ -122,7 +120,7 @@
 .editorialTitle {
   margin-top: var(--s-1);
   font-family: var(--f-title);
-  font-size: clamp(30px, 3vw, 46px);
+  font-size: clamp(28px, 2.7vw, 42px);
   line-height: 1.06;
   font-weight: 500;
   letter-spacing: calc(-0.05em * var(--tk, 1));
@@ -131,36 +129,10 @@
 }
 
 .editorialLead {
-  margin-top: var(--s-3);
-  max-width: 40ch;
-  font-size: clamp(19px, 1.6vw, 22px);
-  line-height: 1.55;
-  color: var(--c-text-2);
-}
-
-/* frase-chave: hairline + tipo (sem barra lateral) */
-.quoteCard {
-  margin-top: var(--s-5);
-  padding-top: var(--s-3);
-  border-top: 1px solid var(--c-rule-strong);
-}
-
-.quoteText {
-  display: block;
-  font-family: var(--f-title);
-  font-size: clamp(20px, 1.7vw, 24px);
-  font-weight: 500;
-  line-height: 1.25;
-  letter-spacing: calc(-0.025em * var(--tk, 1));
-  color: var(--c-title);
-  text-wrap: balance;
-}
-
-.quoteSub {
-  margin-top: var(--s-1);
-  max-width: 40ch;
-  font-size: 15px;
-  line-height: 1.55;
+  margin-top: var(--s-2);
+  max-width: 44ch;
+  font-size: clamp(17px, 1.35vw, 19px);
+  line-height: 1.5;
   color: var(--c-text-2);
 }
 
@@ -168,37 +140,6 @@
 .editorialFooter {
   display: grid;
   gap: var(--s-3);
-}
-
-.proofColumns {
-  display: grid;
-  border-top: 1px solid var(--c-rule-strong);
-}
-
-.proofColumns > div {
-  display: grid;
-  gap: 4px;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--c-rule);
-}
-
-.proofLabel {
-  display: block;
-  font-family: var(--f-title);
-  font-size: 13px;
-  line-height: 18px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--c-brand-text); font-family: var(--font-label) !important;
-}
-
-.proofNames {
-  font-family: var(--f-title);
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 1.4;
-  color: var(--c-text-1);
 }
 
 .whatsappDirect {
@@ -703,7 +644,7 @@
     order: 2;
     border-right: 0;
     border-top: 1px solid var(--c-rule);
-    padding: var(--s-5) 20px var(--s-6);
+    --pane-x: 20px;
   }
 
   .brandRow {
@@ -801,3 +742,72 @@
   color: inherit;
 }
 .interestChip button:hover { background: rgba(0, 0, 0, 0.08); }
+
+/* ============================================================
+   PAINEL: foto do time, filete dourado e carrossel sem card (pedido do dono em 06/11)
+   ============================================================ */
+
+
+
+
+.cases { display: grid; gap: 14px; }
+.casesHead { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.casesLabel { font-size: 13px; line-height: 18px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--c-brand-text); font-family: var(--font-label) !important; }
+.casesNav { display: flex; gap: 4px; margin: -10px -10px -10px 0; }
+.casesNav button { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; background: none; color: var(--ink); cursor: pointer; transition: color 160ms var(--ease); }
+.casesNav button:hover { color: #a88a58; }
+.casesNav button:focus-visible { outline: 2px solid var(--ink); outline-offset: -4px; }
+.casesNav svg { width: 18px; height: 18px; }
+.casesStage { display: grid; }
+.caseItem { grid-area: 1 / 1; display: grid; align-content: start; gap: 8px; opacity: 0; visibility: hidden; transform: translate3d(0, 8px, 0); transition: opacity 500ms var(--ease), transform 500ms var(--ease), visibility 500ms; }
+.caseItem[data-on="true"] { opacity: 1; visibility: visible; transform: none; }
+.caseLogo { display: block; width: auto; height: 30px; max-width: 150px; margin-bottom: 4px; object-fit: contain; object-position: left center; }
+.caseBusiness { font-size: 14px; line-height: 1.4; color: var(--c-text-2); }
+.caseDone { font-family: var(--f-title); font-size: 17px; font-weight: 500; line-height: 1.35; color: var(--c-title); text-wrap: pretty; }
+.casesDots { display: flex; gap: 6px; }
+.casesDots i { flex: 1; height: 2px; background: var(--c-rule); transition: background 300ms var(--ease); }
+.casesDots i[data-on="true"] { background: #a88a58; }
+@media (prefers-reduced-motion: reduce) {
+  .caseItem { transform: none; transition: none; }
+}
+
+/* Painel no computador: a foto do time é o fundo inteiro, do logo ao WhatsApp. O texto fica embaixo, sobre a parte escurecida (pedido do dono em 06/11). */
+.editorialFooter { padding: var(--s-3) var(--pane-x); }
+.teamPhoto { position: relative; }
+@media (min-width: 1024px) {
+  .editorialPane { position: relative; isolation: isolate; background: var(--ink); border-right: 0; overflow: hidden; }
+  .editorialTop { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: space-between; gap: var(--s-4); padding: clamp(24px, 3vw, 40px) var(--pane-x) var(--s-3); }
+  .teamPhoto { position: absolute; inset: 0; z-index: -1; margin: 0; }
+  .teamPhoto img { object-fit: cover; object-position: 50% 50%; }
+  .teamPhoto::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(40, 24, 59, 0.55) 0%, rgba(40, 24, 59, 0.05) 14%, rgba(40, 24, 59, 0.15) 26%, rgba(40, 24, 59, 0.9) 42%, rgba(40, 24, 59, 0.96) 100%); }
+  .editorialTop .eyebrow { color: #d9c08a; }
+  .editorialTop .editorialTitle { color: #fff; }
+  .editorialTop .editorialLead { color: rgba(255, 255, 255, 0.88); }
+  .editorialTop .editorialLogoLink:focus-visible { outline-color: #fff; }
+  .editorialFooter { padding-top: 0; }
+  .cases { padding-top: var(--s-3); border-top: 1px solid #a88a58; }
+  .casesLabel { color: #d9c08a; }
+  .casesNav button { color: #fff; }
+  .casesNav button:hover { color: #d9c08a; }
+  .casesNav button:focus-visible { outline-color: #fff; }
+  /* Sobre a foto, os logos dos clientes ficam em branco: em cor, vários deles sumiriam no roxo. */
+  .caseLogo { filter: brightness(0) invert(1); }
+  .caseBusiness { color: rgba(255, 255, 255, 0.78); }
+  .caseDone { color: #fff; }
+  .casesDots i { background: rgba(255, 255, 255, 0.28); }
+  .casesDots i[data-on="true"] { background: #d9c08a; }
+  .whatsappDirect { color: #fff; }
+  .whatsappDirect:hover { color: #d9c08a; }
+  .whatsappDirect:focus-visible { outline-color: #fff; }
+}
+
+/* Celular e tablet: só o formulário e, abaixo dele, o carrossel (pedido do dono em 06/11). */
+@media (max-width: 1023px) {
+  .editorialTop, .whatsappDirect { display: none; }
+  .editorialFooter { padding-block: var(--s-4) var(--s-5); }
+}
+
+/* Notebook baixo: o texto começa mais alto, então o roxo também. */
+@media (min-width: 1024px) and (max-height: 820px) {
+  .teamPhoto::after { background: linear-gradient(to bottom, rgba(40, 24, 59, 0.55) 0%, rgba(40, 24, 59, 0.1) 12%, rgba(40, 24, 59, 0.2) 18%, rgba(40, 24, 59, 0.9) 31%, rgba(40, 24, 59, 0.96) 100%); }
+}

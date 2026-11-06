@@ -23,7 +23,7 @@ const ROW_1: PhotoItem[] = [
   // Fotos novas enviadas pela Carol em 21/10/2026 (Drive "fotos dos treinamentos").
   { src: "/home/g17-fdc-tech-week-1.jpg", alt: "Fundação Dom Cabral ∙ Tech Week", tag: "Fundação Dom Cabral ∙ Tech Week" },
   { src: "/home/g19-sifra-1.jpg", alt: "Grupo Sifra ∙ Treinamento de Claude e Lovable", tag: "Grupo Sifra ∙ Treinamento de Claude e Lovable" },
-  { src: "/home/g21-cba-premio.jpg", alt: "CBA ∙ Finalista Prêmio Inovativos 2026", tag: "CBA ∙ Finalista Prêmio Inovativos 2026" },
+  { src: "/home/g21-cba-premio.jpg", alt: "CBA ∙ Vencedora Prêmio Inovativos 2026", tag: "CBA ∙ Vencedora Prêmio Inovativos 2026" },
 ];
 
 const ROW_2: PhotoItem[] = [

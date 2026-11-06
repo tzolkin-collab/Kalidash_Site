@@ -38,7 +38,10 @@ export default function SiteFooter() {
         ))}
       </div>
       <div className={styles.footerBottom}>
-        <span>{footer.copyright}</span>
+        <div className={styles.footerLegal}>
+          <span>{footer.copyright}</span>
+          <span>{footer.cnpj}</span>
+        </div>
         <div className={styles.social}>
           {config.social.instagram && <a href={config.social.instagram} aria-label="Instagram" target="_blank" rel="noopener noreferrer"><Instagram /></a>}
           {config.social.linkedin && <a href={config.social.linkedin} aria-label="LinkedIn" target="_blank" rel="noopener noreferrer"><Linkedin /></a>}

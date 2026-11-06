@@ -37,7 +37,8 @@ export const isReservedArticleSlug = (slug: string) => slug === GALLERY_SLUG;
 // o erro (o Next mantém a página anterior); só um 404 da própria API significa "não existe".
 // Durante `next build` a API pode estar fora do ar (EasyPanel/Vercel): aí devolvemos vazio e a
 // página é gerada no primeiro acesso.
-const building = () => process.env.NEXT_PHASE === "phase-production-build";
+// Em desenvolvimento também: a API local costuma ficar desligada, porque ao iniciar ela roda comandos no banco remoto. O Blog abre vazio em vez de quebrar. Produção não muda.
+const apiMayBeOff = () => process.env.NEXT_PHASE === "phase-production-build" || process.env.NODE_ENV === "development";
 const unreachable = (what: string, error: unknown) =>
   new Error(
     `Não consegui buscar ${what} na API (${API_URL}). Confira se a API está no ar e se API_URL aponta para ela. ${
@@ -53,8 +54,8 @@ export async function fetchPublishedArticles(): Promise<Article[]> {
     if (!res.ok) throw new Error(`API respondeu ${res.status}`);
     return await res.json();
   } catch (error) {
-    if (building()) {
-      console.error("Falha ao buscar artigos do blog durante o build", error);
+    if (apiMayBeOff()) {
+      console.warn("Falha ao buscar artigos do blog (API fora do ar)", error);
       return [];
     }
     throw unreachable("os artigos do blog", error);
@@ -71,8 +72,8 @@ export async function fetchArticleBySlug(slug: string): Promise<Article | null> 
     if (!res.ok) throw new Error(`API respondeu ${res.status}`);
     return await res.json();
   } catch (error) {
-    if (building()) {
-      console.error("Falha ao buscar artigo do blog durante o build", error);
+    if (apiMayBeOff()) {
+      console.warn("Falha ao buscar artigo do blog (API fora do ar)", error);
       return null;
     }
     throw unreachable(`o artigo "${slug}"`, error);
@@ -155,8 +156,8 @@ export async function fetchBlogCategories(onlyVisible = false): Promise<BlogCate
     if (Array.isArray(list) && list.length > 0) return list;
     return DEFAULT_BLOG_CATEGORIES;
   } catch (error) {
-    if (building()) {
-      console.error("Falha ao buscar categorias do blog durante o build", error);
+    if (apiMayBeOff()) {
+      console.warn("Falha ao buscar categorias do blog (API fora do ar)", error);
     }
     return DEFAULT_BLOG_CATEGORIES;
   }

@@ -92,16 +92,14 @@ const TOOLS_RE = /(ChatGPT|Copilot|Gemini)/;
 export function AcCapacity({ block }: { block: Of<"text"> }) {
   const armed = useArmed();
   const toolEls = useRef<(HTMLSpanElement | null)[]>([]);
-  const signEl = useRef<HTMLParagraphElement>(null);
   const lineEl = useRef<SVGPathElement>(null);
-  /* start 75% / end 35%: os nomes perdem o foco um depois do outro, a assinatura firma e o filete se traça. */
+  /* start 75% / end 35%: os nomes perdem o foco um depois do outro, sem sumir, e o filete se traça. A frase da faixa fica legível o tempo todo. */
   const ref = useScrollProgress<HTMLElement>(armed, 0.75, 0.35, (p) => {
     [0.22, 0.3, 0.38].forEach((s, i) => {
       const el = toolEls.current[i];
-      if (el) el.style.opacity = String(lerp(p, s, s + 0.2, 1, 0.28));
+      if (el) el.style.opacity = String(lerp(p, s, s + 0.2, 1, 0.6));
     });
-    if (signEl.current) signEl.current.style.opacity = String(lerp(p, 0.5, 0.72, 0.35, 1));
-    if (lineEl.current) Object.assign(lineEl.current.style, { strokeDasharray: `${lerp(p, 0.66, 0.9, 0, 1)} 1`, strokeDashoffset: "0" });
+    if (lineEl.current) Object.assign(lineEl.current.style, { strokeDasharray: `${lerp(p, 0.66, 0.9, 0, 1)} 4`, strokeDashoffset: "0" });
   });
   const word = block.highlightAccent ?? "";
   const hl = block.highlight?.join(" ") ?? "";
@@ -123,14 +121,19 @@ export function AcCapacity({ block }: { block: Of<"text"> }) {
       </div>
       <div className={s.capBand}>
         <div className={prod.wrap}>
-          <p ref={signEl} className={s.capSign}>
+          {block.image && (
+            <figure className={s.capPhoto}>
+              <Image src={block.image.src} alt={block.image.alt} fill sizes="(max-width: 900px) 100vw, 1280px" />
+            </figure>
+          )}
+          <p className={s.capSign}>
             {at < 0 ? hl : (
               <>
                 {hl.slice(0, at)}
                 <span className={s.capWord}>
                   <em>{word}</em>
                   <svg viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-                    <path ref={lineEl} pathLength={1} d="M1 4C20 1.5 45 1 99 3" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+                    <path ref={lineEl} pathLength={1} d="M1 4C20 1.5 45 1 99 3" fill="none" stroke="currentColor" strokeWidth="1.4" vectorEffect="non-scaling-stroke" />
                   </svg>
                 </span>
                 {hl.slice(at + word.length)}
@@ -267,7 +270,7 @@ export function AcClosing({ text }: { text: string }) {
         <span ref={goldEl} className={s.closeGold}>
           {last}
           <svg viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-            <path ref={lineEl} pathLength={1} d="M1 4C20 1.5 45 1 99 3" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+            <path ref={lineEl} pathLength={1} d="M1 4C20 1.5 45 1 99 3" fill="none" stroke="currentColor" strokeWidth="1.4" vectorEffect="non-scaling-stroke" />
           </svg>
         </span>
       </span>

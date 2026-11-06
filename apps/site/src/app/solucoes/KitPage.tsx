@@ -284,6 +284,7 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
   const darkHero = page.slug === "advisory";
   /* A barra de provas (proofBar) é uma faixa fina colada à abertura, não um capítulo: fica fora da cortina e da contagem. */
   const chapterBlocks = page.blocks.filter((b) => b.type !== "heroMedia" && b.type !== "testimonials" && b.type !== "proofBar");
+  const acProof = isAc ? page.blocks.find((b) => b.type === "proofBar") : undefined;
   return (
     <div className={`${home.home} ${sol.page} ${fraunces.variable}${darkHero ? ` ${styles.kitDark}` : ""}${v3 ? ` ${styles.v3}` : ""}${isAc ? ` ${ac.ac}` : ""} ${styles.chapters}`} data-page={page.slug}>
       {/* Kit Adobe (Kepler + Acumin), só nesta página e só dentro do <main>: o cabeçalho e o rodapé mantêm as fontes de hoje. O CSS do kit
@@ -300,12 +301,14 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
         {portrait ? <HeroView hero={hero} kind="photo" /> : <HeroWide block={hero} arc={v3} panel={advisoryV3} />}
         {page.blocks.map((block, index) => {
           if (block.type === "heroMedia") return null;
+          if (isAc && block.type === "proofBar") return null;
           const key = `${block.type}-${index}`;
           const soft = tones[index];
           let node: React.ReactNode;
           switch (block.type) {
             case "text":
-              if (isAc) node = <AcCapacity key={key} block={block} />;
+              /* AI Culture: números e logos fecham o capítulo "Por que capacitar?" (pedido do dono em 06/11). */
+              if (isAc) node = <><AcCapacity key={key} block={block} />{acProof && <BlockView block={acProof} cardsIndex={1} poster={false} soft={false} />}</>;
               else if (advisoryV3 && block.highlight && canProblem(block)) node = <ProblemView key={key} block={block} soft={soft} />;
               else if (advisoryV3 && block.chips) node = <LeadershipView key={key} block={block} soft={soft} />;
               else if (page.slug === "execucao" && block.highlight) node = <ExecucaoLead key={key} block={block} soft={soft} />;
@@ -341,16 +344,15 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
           }
           if (!chaptered) return node;
           if (block.type === "proofBar") return <div key={key} className={styles.flatBar} data-tone="soft">{node}</div>;
-          /* Capítulo: cortina que sobe sobre o anterior + cabeçalho fino (número / total · título) que acompanha a leitura.
+          /* Capítulo: cortina que sobe sobre o anterior + cabeçalho fino (só o título, sem número, a pedido do dono em 06/11) que acompanha a leitura.
            * O rótulo vem de data-text (CSS), então não entra no texto da página. */
-          const n = chapterBlocks.indexOf(block) + 2;
           const meta = block as { eyebrow?: string; title?: string | string[] };
           const label = (meta.eyebrow || (Array.isArray(meta.title) ? meta.title.join(" ") : meta.title) || "").toUpperCase();
           /* Tom do capítulo = cor real do bloco (o fundo do capítulo aparece nos cantos e no pé durante a cortina). */
           const tone = light.includes(block.type) ? (soft && !(isAc && block.type === "formats") ? "soft" : "paper") : "dark";
           return (
             <div key={key} className={styles.chapter} data-tone={tone} data-motion="curtain">
-              <div className={styles.chapterLabel} aria-hidden="true" data-text={`${String(n).padStart(2, "0")} / ${String(chapterBlocks.length + 1).padStart(2, "0")} · ${label}`}>
+              <div className={styles.chapterLabel} aria-hidden="true" data-text={label}>
                 <i />
               </div>
               {node}

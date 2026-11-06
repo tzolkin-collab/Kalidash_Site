@@ -255,7 +255,7 @@
  * O teto de 560-600 px com object-fit: cover recortava o alto e o pé da foto 16:9 (cabeças de quem está atrás). Sem teto, a foto aparece inteira em qualquer largura. */
 .sobre .teamFigure img { max-height: none; height: auto; object-fit: contain; }
 
-/* Selos da faixa de números: "Parceira" e "Finalista" como legenda pequena, sem peso de estatística. */
+/* Selos da faixa de números: "Parceira" e "Vencedora" como legenda pequena, sem peso de estatística. */
 .sobre .credentials .seal { align-content: end; gap: 10px; }
 .sobre .credentials .seal strong { font-family: var(--font-body); font-size: 12px; font-weight: 600; line-height: 1.4; letter-spacing: 0.14em; text-transform: uppercase; white-space: normal; color: var(--gold-light); font-family: var(--font-label) !important; }
 .sobre .credentials .seal > span:not(.srOnly) { font-family: var(--font-sub); font-size: clamp(20px, 1.9vw, 26px); line-height: 1.2; color: #f8f9fa; }
