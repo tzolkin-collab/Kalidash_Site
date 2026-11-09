@@ -28,7 +28,7 @@
 .avEvents li span { display: block; max-width: 18ch; }
 .avEvents li span::first-letter { text-transform: uppercase; }
 
-.avProblemBottom { background: var(--imperial); color: var(--limestone); padding: clamp(56px, 6.4vw, 96px) 0 calc(clamp(56px, 6.4vw, 96px) + 36px); margin-bottom: -36px; }
+.avProblemBottom { background: var(--imperial); color: var(--limestone); padding: clamp(56px, 6.4vw, 96px) 0 calc(clamp(56px, 6.4vw, 96px) + 68px); margin-bottom: -68px; } /* acompanha o pé de 68px do capítulo */
 .avSignature { display: grid; grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); gap: clamp(24px, 5vw, 80px); align-items: center; }
 .avSignature p { margin: 0; font-family: var(--font-title); font-weight: var(--w-title); font-size: clamp(34px, 4vw, 58px); line-height: 1.08; letter-spacing: -0.015em; }
 .avSoft { display: block; color: rgba(241, 236, 228, 0.52); }

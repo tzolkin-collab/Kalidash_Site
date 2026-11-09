@@ -273,13 +273,15 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 /* ---------- Sem fresta na cortina ----------
  * O capítulo começa 56px abaixo e sobe; com só 28px de sobreposição abria uma fresta por onde aparecia o Imperial da abertura
  * (presa no fundo da página). A sobreposição passa a 64px, maior que o deslocamento, e cada bloco ganha 36px no pé para o
- * espaço visível continuar o mesmo (64 - 36 = 28, como antes). */
-.chapter, .curtain { margin-top: -64px; padding-bottom: 36px; }
-.heroBrand { padding-bottom: 36px; }
+ * espaço visível continuar o mesmo (64 - 36 = 28, como antes).
+ * 09/11: 64px ainda abria os cantos. Enquanto o capítulo sobe, o canto arredondado (28px) fica de 56px a 84px abaixo da emenda e
+ * mostrava a abertura nos dois cantos. A sobreposição passa a 96px (deslocamento 56 + raio 28 + folga) e o pé a 68px (96 - 68 = 28). */
+.chapter, .curtain { margin-top: -96px; padding-bottom: 68px; }
+.heroBrand { padding-bottom: 68px; }
 
 /* Barra de provas (AI Culture) fora dos capítulos: sem cortina, cantos ou sobreposição. Fica acima da abertura no empilhamento
- * e ganha 36px no pé, que o capítulo seguinte cobre ao subir (64px de sobreposição, como entre capítulos). */
-.flatBar { position: relative; z-index: 1; padding-bottom: 36px; background: var(--soft); }
+ * e ganha 68px no pé, que o capítulo seguinte cobre ao subir (96px de sobreposição, como entre capítulos). */
+.flatBar { position: relative; z-index: 1; padding-bottom: 68px; background: var(--soft); }
 
 /* Entrada da abertura Imperial (Advisory, Sobre nós), depois do carregamento (--enter-delay em globals.css). Só nas peças de
  * dentro (texto e arco), para não brigar com o paralaxe/afundar aplicado ao bloco inteiro. */
@@ -446,8 +448,8 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
   /* Links do menu em pílulas Imperial com texto branco sobre a foto (pedido do dono em 09/11). Os itens do submenu ficam como estão. */
   .kitDark[data-page="advisory"][data-page] :global(header[data-block="home-header"]):not([data-scrolled="true"]) :global(nav) > div > :is(span, [data-has-children]) > a { padding: 7px 14px; border-radius: 999px; background: #28183b; color: #fff !important; border-bottom-color: transparent !important; text-shadow: none; transition: background-color 0.2s ease; }
   .kitDark[data-page="advisory"][data-page] :global(header[data-block="home-header"]):not([data-scrolled="true"]) :global(nav) > div > :is(span, [data-has-children]) > a:hover { background: #46304f; color: #fff !important; }
-  .kitDark[data-page="advisory"][data-page] :global(header[data-block="home-header"]):not([data-scrolled="true"]) :global(nav) > a { background: #28183b; border-color: #28183b !important; color: #fff !important; text-shadow: none; }
-  .kitDark[data-page="advisory"][data-page] :global(header[data-block="home-header"]):not([data-scrolled="true"]) :global(nav) > a:hover { background: #46304f; border-color: #46304f !important; }
+  .kitDark[data-page="advisory"][data-page] :global(header[data-block="home-header"]):not([data-scrolled="true"]) :global(nav) > a { padding: 7px 14px; border: 0 !important; border-radius: 999px; background: #28183b; color: #fff !important; text-shadow: none; transition: background-color 0.2s ease; } /* Diagnóstico: mesma pílula dos links */
+  .kitDark[data-page="advisory"][data-page] :global(header[data-block="home-header"]):not([data-scrolled="true"]) :global(nav) > a:hover { background: #46304f; color: #fff !important; }
 }
 
 /* Advisory: capítulo "Ajudamos sua liderança" em branco e preto, inclusive o rótulo. */

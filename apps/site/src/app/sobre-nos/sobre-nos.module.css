@@ -218,8 +218,8 @@
 /* .hero (desta página) e .heroBrand (kit) estão no mesmo elemento: o Imperial e o respiro valem aqui, sem depender da ordem dos CSS */
 .sobre .hero { background: var(--imperial); color: #f8f9fa; padding-top: clamp(28px, 5vh, 56px); }
 @media (max-width: 1100px) { .sobre .hero { padding-top: 68px; } }
-/* A abertura também ganha os 36px no pé que compensam a sobreposição maior da cortina (kit.module.css). */
-.sobre .hero { padding-bottom: 36px; }
+/* A abertura também ganha os 68px no pé que compensam a sobreposição maior da cortina (kit.module.css). */
+.sobre .hero { padding-bottom: 68px; }
 
 /* ---------- Ajustes do vídeo (04/11): menos vazio na linha do tempo, logo depois do mosaico ----------
  * Era a seção mais cheia de ar (~2090 px): 100 px de respiro acima do mosaico, 64 px abaixo dele e atos com 36 px entre si. */
