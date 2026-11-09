@@ -37,24 +37,36 @@ export default function ProblemHologram({
   const [inView, setInView] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
-  // Viewport intersection observer: lazy load Three.js & GLTF
+  /* Dois observadores: um, com folga grande, começa a baixar o Three.js e o modelo (2,7 MB) bem antes da seção chegar, para o
+   * cérebro já estar pronto quando aparece; o outro só liga e desliga o laço de render conforme a peça está de fato na tela. */
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
 
-    const observer = new IntersectionObserver(
+    const preload = new IntersectionObserver(
       ([entry]) => {
-        isVisibleRef.current = !!entry?.isIntersecting;
-        if (isVisibleRef.current) {
+        if (entry?.isIntersecting) {
           setInView(true);
-          restartRef.current?.();
+          preload.disconnect();
         }
       },
-      { rootMargin: "50px", threshold: 0.05 }
+      { rootMargin: "1200px 0px" }
     );
 
-    observer.observe(el);
-    return () => observer.disconnect();
+    const visibility = new IntersectionObserver(
+      ([entry]) => {
+        isVisibleRef.current = !!entry?.isIntersecting;
+        if (isVisibleRef.current) restartRef.current?.();
+      },
+      { rootMargin: "100px 0px" }
+    );
+
+    preload.observe(el);
+    visibility.observe(el);
+    return () => {
+      preload.disconnect();
+      visibility.disconnect();
+    };
   }, []);
 
   // Mouse parallax interaction
@@ -267,8 +279,11 @@ export default function ProblemHologram({
         }
       };
 
+      /* Desenha o primeiro quadro já aqui, mesmo fora da tela, e só então revela o canvas: assim ele nunca aparece vazio. */
+      renderer.compile(scene, camera);
+      renderer.render(scene, camera);
       setLoaded(true);
-      animId = requestAnimationFrame(renderLoop);
+      if (isVisibleRef.current) animId = requestAnimationFrame(renderLoop);
 
       cleanupFn = () => {
         cancelAnimationFrame(animId);

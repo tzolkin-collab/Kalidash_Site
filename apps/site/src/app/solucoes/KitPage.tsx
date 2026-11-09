@@ -64,7 +64,7 @@ function HeroWide({ block, arc = false, panel = false }: { block: Of<"heroMedia"
             {block.lead.map((p) => (
               <p key={p}><Rich text={p} /></p>
             ))}
-            {block.cta && !panel && (
+            {block.cta && (
               <Link className={home.primaryButton} href={block.cta.href}>
                 {block.cta.label} <ArrowRight />
               </Link>
@@ -76,11 +76,6 @@ function HeroWide({ block, arc = false, panel = false }: { block: Of<"heroMedia"
             <div className={styles.heroArch}>
               <Image src={block.image.src} alt={block.image.alt} width={block.image.width} height={block.image.height} priority quality={90} sizes="(max-width: 1100px) 100vw, 60vw" className={mo.photo} />
             </div>
-            {block.cta && (
-              <Link className={`${home.primaryButton} ${styles.heroEdgeCta}`} href={block.cta.href}>
-                {block.cta.label} <ArrowRight />
-              </Link>
-            )}
           </div>
         ) : (
         <div className={styles.heroArch}>

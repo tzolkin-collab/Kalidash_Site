@@ -13,7 +13,7 @@
 /* ================= Palco preso (seções 2 e 3) ================= */
 .stick { position: relative; }
 .advStory[data-live] { position: relative; margin-bottom: -36px; }
-.advStory[data-live][data-stage="problem"] { height: 230svh; } /* mais rolagem para ler: a lista e o fim ficam parados na tela antes de a seção soltar */
+.advStory[data-live][data-stage="problem"] { height: 400svh; } /* texto até 29%, depois uma janela para cada ilustração dos passos e o fim parado na tela */
 .advStory[data-live][data-stage="lead"] { height: 210svh; }
 .advStory[data-live] .stick { position: sticky; top: calc(var(--header, 56px) + 40px); height: calc(100svh - var(--header, 56px) - 40px); overflow: clip; background: var(--limestone); }
 .advStory.soft[data-live] .stick { background: var(--limestone-deep); }
@@ -39,13 +39,15 @@
 .advStory[data-live] [data-part="strong"] em { opacity: calc(0.4 + 0.6 * var(--gold, 0)); }
 .advStory[data-live] [data-part="sigil"] :is(circle, path) { stroke-dasharray: 1; stroke-dashoffset: calc(1 - var(--sig, 0)); }
 .advStory[data-live] [data-part="sigil"] circle:last-of-type { opacity: var(--sig, 0); }
-.advStory[data-live] [data-part="marks"] { position: relative; border-top-color: rgba(196, 166, 115, 0.18); }
-.advStory[data-live] [data-part="marks"]::before { content: ""; position: absolute; left: 0; right: 0; top: -1px; height: 1px; background: #c4a673; transform: scaleX(var(--mline, 0)); transform-origin: left center; }
-.advStory[data-live] [data-part="marks"] > li { opacity: calc(0.22 + 0.78 * var(--mi, 0)); }
-.advStory[data-live] [data-part="marks"] > li:nth-child(1) { --mi: var(--m0, 0); }
-.advStory[data-live] [data-part="marks"] > li:nth-child(2) { --mi: var(--m1, 0); }
-.advStory[data-live] [data-part="marks"] > li:nth-child(3) { --mi: var(--m2, 0); }
-.advStory[data-live] [data-part="marks"] > li:nth-child(4) { --mi: var(--m3, 0); }
+/* Os quatro passos: sem acender/apagar (pedido do dono em 09/11); cada ilustração corre na sua janela de rolagem (--k0..--k3, MarkArt). */
+.advStory[data-live] [data-part="marks"] > li { --k: 0; }
+.advStory[data-live] [data-part="marks"] > li:nth-child(1) { --k: var(--k0, 0); }
+.advStory[data-live] [data-part="marks"] > li:nth-child(2) { --k: var(--k1, 0); }
+.advStory[data-live] [data-part="marks"] > li:nth-child(3) { --k: var(--k2, 0); }
+.advStory[data-live] [data-part="marks"] > li:nth-child(4) { --k: var(--k3, 0); }
+/* Fora do palco (celular, tablet): a ilustração toca uma vez, reta, quando o passo aparece. */
+.advStory[data-arm]:not([data-live]) [data-part="marks"] > li { transition: opacity 700ms ease-out, transform 800ms cubic-bezier(0.33, 1, 0.68, 1), --k 2400ms linear; transition-delay: calc(var(--i, 0) * 90ms); }
+.advStory[data-arm]:not([data-live]) [data-part="marks"] > li:not([data-in]) { --k: 0; }
 
 /* Fora do palco, a linha também é traçada e a assinatura/sigilo entram ao aparecer. */
 .advStory[data-arm]:not([data-live]) [data-part="events"]::before { transform: scaleX(0); transform-origin: left center; transition: transform 1400ms cubic-bezier(0.33, 1, 0.68, 1); }

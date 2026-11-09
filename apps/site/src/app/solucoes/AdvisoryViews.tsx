@@ -5,6 +5,7 @@ import styles from "./advisory-v3.module.css";
 import { FaqList, LeadStage, MotionRoot, ProblemStage } from "./AdvisoryMotion";
 import prod from "./product.module.css";
 import mo from "./advisory-motion.module.css";
+import { markArts } from "./MarkArt";
 
 /* Seções da Advisory no desenho V3 (Ajustes V3, itens V2 a V4). Todo o texto vem de pages.ts e é só repartido em peças
  * (nenhuma string nova): a ordem de leitura e os níveis mudam, a copy não. Numerais romanos, numerais 01-04 e ícones são desenho.
@@ -138,6 +139,10 @@ export function ProblemView({ block, soft }: { block: Of<"text">; soft: boolean 
         <ol className={styles.avMarks} data-part="marks">
           {s.steps.map((step, i) => (
             <li key={step} data-r="" style={{ "--i": i } as React.CSSProperties}>
+              {markArts[i] && (() => {
+                const Art = markArts[i];
+                return <figure className={styles.avMarkArt} aria-hidden="true"><Art /></figure>;
+              })()}
               <span className={styles.avNum}>{String(i + 1).padStart(2, "0")}</span>
               <span>{step}</span>
             </li>

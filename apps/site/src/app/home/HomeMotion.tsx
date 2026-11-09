@@ -11,7 +11,6 @@ const c = (name: string) => `.${styles[name]}`;
 
 const TARGETS = [
   `${c("problemTop")}`,
-  `${c("hologramCol")}`,
   `${c("symptom")}`,
   `${c("frontsIntro")} > *`,
   `${c("frontRow")}`,

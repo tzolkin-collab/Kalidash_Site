@@ -120,7 +120,12 @@ const IMPERIAL = "#28183b";
 
 function applyProblem(raw: number, el: HTMLElement) {
   /* A sequência termina em 72% do palco: o último estado fica parado na tela antes de a seção soltar, em vez de acabar junto com ela. */
-  const p = c(raw / 0.72);
+  /* Palco de 400 svh: as fases de texto (a lista, a troca de fundo, a assinatura) acabam em 29% e, sem pausa, cada um dos quatro passos
+   * ganha a sua janela de rolagem (--k0..--k3), em linha reta e emendadas; o último estado fica parado de 87% em diante. */
+  const p = c(raw / 0.322);
+  const K0 = 0.29;
+  const K = 0.145;
+  for (let i = 0; i < 4; i++) el.style.setProperty(`--k${i}`, seg(raw, K0 + i * K, K0 + (i + 1) * K).toFixed(4));
   const set = (k: string, v: number) => el.style.setProperty(k, v.toFixed(4));
   /* Palco encurtado (260 -> 170 svh): a sequência é a mesma, em janelas de rolagem mais justas. A frase da fase final nunca fica
    * apagada sem nada legível ao redor: ao entrar, "Não entregamos um plano." já está inteira e "Acompanhamos…" parte de 70%. */
@@ -132,8 +137,6 @@ function applyProblem(raw: number, el: HTMLElement) {
   set("--strong", 0.7 + 0.3 * seg(p, 0.7, 0.84));
   set("--gold", seg(p, 0.84, 0.9));
   set("--sig", seg(p, 0.66, 0.9));
-  for (let i = 0; i < 4; i++) set(`--m${i}`, seg(p, 0.85 + i * 0.03, 0.9 + i * 0.03));
-  set("--mline", seg(p, 0.85, 0.99));
   const dark = s > 0.5;
   const phase = dark ? "dark" : "light";
   if (el.dataset.phase === phase) return;
