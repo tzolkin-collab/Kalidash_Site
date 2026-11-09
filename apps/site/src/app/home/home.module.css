@@ -85,7 +85,7 @@
 }
 .header[data-scrolled="true"],
 :global(html[data-header-collapsed="true"]) .header {
-  background: rgba(255, 255, 255, 0.96);
+  background: #fff; /* sólido: com transparência o texto da página aparecia atrás do menu */
 
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
 }
@@ -642,6 +642,17 @@
     background: transparent !important;
     border-bottom: none !important;
     box-shadow: none !important;
+  }
+  /* Depois de rolar, o cabeçalho visível vira barra sólida na cor do fundo sob ele (pedido do dono em 09/11): sem barra, a logo passava por cima dos textos e, entre 901 e 1100 px, o conteúdo aparecia acima do rótulo do capítulo.
+   * Continua sumindo ao rolar para baixo no celular e voltando ao subir. A linha é sombra para a altura não mudar. */
+  .header[data-scrolled="true"]:not([data-hidden="true"]):not([data-filters-active="true"]) {
+    background: #fff !important;
+    box-shadow: inset 0 -1px 0 rgba(40, 24, 59, 0.1) !important;
+    pointer-events: auto;
+  }
+  :global(html[data-header-tone="dark"]) .header[data-scrolled="true"]:not([data-hidden="true"]):not([data-filters-active="true"]) {
+    background: #28183b !important;
+    box-shadow: inset 0 -1px 0 rgba(196, 166, 115, 0.28) !important;
   }
   /* Header com background no mobile APENAS depois de scrollar quando os filtros sobem para o header */
   .header[data-filters-active="true"] {
@@ -1343,10 +1354,11 @@
 @media (min-width: 1101px) {
   .header { transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease; }
   :global(html[data-header-tone="dark"]) .header:not([data-filters-active="true"]):not([data-bg="white"]) {
-    background: rgba(40, 24, 59, 0.94);
+    background: #28183b; /* sólido: a 94% ficava mais claro que a abertura e o texto aparecia atrás do menu */
     border-bottom-color: rgba(196, 166, 115, 0.28);
     box-shadow: none;
   }
+  :global(html[data-header-tone="dark"]) .header[data-scrolled="false"]:not([data-filters-active="true"]):not([data-bg="white"]) { border-bottom-color: transparent; } /* no topo, barra e abertura são uma peça só */
   :global(html[data-header-tone="dark"]) .header:not([data-filters-active="true"]):not([data-bg="white"]) .nav { color: #f8f9fa; }
   :global(html[data-header-tone="dark"]) .header:not([data-filters-active="true"]):not([data-bg="white"]) .nav a:hover,
   :global(html[data-header-tone="dark"]) .header:not([data-filters-active="true"]):not([data-bg="white"]) .nav a[data-active="true"] { color: #c4a673; }

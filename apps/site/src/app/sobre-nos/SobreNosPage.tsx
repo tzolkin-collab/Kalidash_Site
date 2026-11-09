@@ -82,27 +82,17 @@ function Hero({ block }: { block: Of<"heroMedia"> }) {
   );
 }
 
-const MOSAIC_SLOTS = ["a", "b", "c", "d", "e", "f", "g"] as const;
+/* As 7 fotos do mosaico entram nos atos a que pertencem (índices de mosaic.items). A quantidade cresce com a história: 1, 2 e 4. */
+const ACT_PHOTOS = [[0], [2, 4], [1, 3, 5, 6]];
 
 function Timeline({ block }: { block: Of<"timeline"> }) {
   return (
     <section className={`${prod.section} ${styles.timeline}`} data-timeline>
       <div className={prod.wrap}>
         <Legend>{block.eyebrow}</Legend>
-        {block.mosaic && (
-          <figure className={styles.mosaicWrap}>
-            <div className={styles.mosaic} role="group" aria-label={block.mosaic.caption || "Mosaico da nossa história"}>
-              {block.mosaic.items.map((item, i) => (
-                <div key={item.src} className={styles.tile} data-slot={MOSAIC_SLOTS[i]}>
-                  <Image src={item.src} alt={item.alt} fill sizes="(max-width: 900px) 48vw, 420px" loading={i < 2 ? "eager" : "lazy"} />
-                </div>
-              ))}
-            </div>
-            {block.mosaic.caption && <figcaption>{block.mosaic.caption}</figcaption>}
-          </figure>
-        )}
+        {block.mosaic?.caption && <p className={styles.timelineTitle}>{block.mosaic.caption}</p>}
         <ol className={styles.acts}>
-          {block.items.map((item) => (
+          {block.items.map((item, act) => (
             <li key={item.title}>
               <p className={styles.actMeta}>{item.marker ? `${item.marker} · ${item.title}` : item.title}</p>
               <div className={styles.actBody}>
@@ -112,6 +102,19 @@ function Timeline({ block }: { block: Of<"timeline"> }) {
                 ))}
                 {item.quote && <blockquote>{item.quote}</blockquote>}
               </div>
+              {block.mosaic && (
+                <div className={styles.actPhotos} data-n={ACT_PHOTOS[act]?.length}>
+                  {ACT_PHOTOS[act]?.map((p) => {
+                    const photo = block.mosaic?.items[p];
+                    if (!photo) return null;
+                    return (
+                      <div key={photo.src} className={styles.tile} data-photo={photo.src.includes("cooxupe") ? "base" : undefined}>
+                        <Image src={photo.src} alt={photo.alt} fill sizes="(max-width: 900px) 92vw, 720px" loading={act === 0 ? "eager" : "lazy"} />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
               {item.highlight && <p className={styles.keyline}><Keyline text={item.highlight} /></p>}
             </li>
           ))}

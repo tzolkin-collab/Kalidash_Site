@@ -198,7 +198,7 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
  * ocupa mais espaço no fluxo, o hero sobe para baixo dele) e a cor da logo, que acompanha o fundo sob ela (HeaderTone). */
 @media (max-width: 1100px) {
   .kitDark :global(header[data-block="home-header"]) { margin-bottom: -60px; }
-  .kitDark .heroBrand { padding-top: 68px; }
+  .kitDark .heroBrand { top: 0; padding-top: 68px; } /* top: 0: entre 901 e 1100 px a abertura presa a 56 px deixava uma faixa branca com a logo branca em cima */
   .kitDark :global(header[data-block="home-header"]) [data-header-logo="true"] { --logo-body: #f8f9fa; }
   :global(html[data-header-tone="light"]) .kitDark :global(header[data-block="home-header"]) [data-header-logo="true"] { --logo-body: #28183b; }
 }

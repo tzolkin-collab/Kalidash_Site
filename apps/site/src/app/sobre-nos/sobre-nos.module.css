@@ -14,21 +14,8 @@
 
 /* ---------- História ---------- */
 .timeline { background: var(--soft); }
-.mosaicWrap { margin: clamp(8px, 2vw, 24px) 0 clamp(56px, 8vw, 112px); container-type: inline-size; }
-/* Grade exata: 12 colunas, vão --g (4px). O retrato ocupa 3 colunas x 4 linhas; as 6 horizontais ocupam 3 colunas x 2 linhas
- * cada, todas em 3:2. A altura da linha vem da largura do container (cqw): r = W/12 - 0,75 x vão, o que fecha a conta
- * sem sobra nem corte irregular. Cantos retos, sem sombra. */
-.mosaic { --g: 4px; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-auto-rows: calc(100cqw / 12 - 0.75 * var(--g)); gap: var(--g); }
 .tile { position: relative; overflow: hidden; border-radius: 0; background: #e4e4e4; }
 .tile img { object-fit: cover; object-position: 50% 30%; }
-.tile[data-slot="a"] { grid-column: 1 / 4; grid-row: 1 / 5; }
-.tile[data-slot="b"] { grid-column: 4 / 7; grid-row: 1 / 3; }
-.tile[data-slot="c"] { grid-column: 7 / 10; grid-row: 1 / 3; }
-.tile[data-slot="d"] { grid-column: 10 / 13; grid-row: 1 / 3; }
-.tile[data-slot="e"] { grid-column: 4 / 7; grid-row: 3 / 5; }
-.tile[data-slot="f"] { grid-column: 7 / 10; grid-row: 3 / 5; }
-.tile[data-slot="g"] { grid-column: 10 / 13; grid-row: 3 / 5; }
-.mosaicWrap figcaption { margin-top: 16px; font-size: 14px; letter-spacing: 0.02em; color: var(--text-3); }
 
 .acts { list-style: none; margin: 0; padding: 0; }
 .acts > li { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 9fr); column-gap: clamp(24px, 5vw, 80px); padding: clamp(32px, 5vw, 64px) 0; border-top: 1px solid var(--rule); }
@@ -77,9 +64,6 @@
 @media (max-width: 900px) {
   .heroTop, .beliefHead, .teamHead { grid-template-columns: minmax(0, 1fr); }
   .heroPhoto { aspect-ratio: 4 / 3; }
-  .mosaic { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: calc((100cqw - var(--g)) / 3); }
-  .tile[data-slot] { grid-column: auto; grid-row: auto; }
-  .tile[data-slot="a"] { grid-row: span 2; }
   .acts > li { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .credo li { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .credentials { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 20px; }
@@ -134,7 +118,6 @@
 .sobre .keyline { max-width: 32ch; }
 .sobre .teamFigure { margin-top: clamp(28px, 4vw, 48px); }
 .sobre .teamFigure img { max-height: 560px; object-fit: cover; }
-.sobre .mosaicWrap { margin-bottom: clamp(32px, 4vw, 64px); }
 .sobre .where { margin-top: clamp(32px, 4vw, 56px); }
 @media (max-width: 900px) {
   .sobre .heroPhoto { aspect-ratio: 4 / 3; }
@@ -174,9 +157,7 @@
 .sobre .heroArch img { object-position: 46% 30%; }
 
 /* História: mosaico mais calmo (vão maior, cantos do sistema) e atos com título à esquerda e texto à direita */
-.sobre .mosaic { --g: 8px; }
 .sobre .tile { border-radius: 6px; }
-.sobre .mosaicWrap figcaption { color: var(--gold-text); font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; font-family: var(--font-label) !important; }
 .sobre .actMeta { color: var(--gold-text); font-size: 12px; }
 .sobre .actBody h2 { font-size: var(--t-claim); line-height: 1.14; max-width: 26ch; }
 .sobre .actBody p { font-size: 17px; color: var(--text-2); max-width: 62ch; }
@@ -224,7 +205,6 @@
 /* ---------- Ajustes do vídeo (04/11): menos vazio na linha do tempo, logo depois do mosaico ----------
  * Era a seção mais cheia de ar (~2090 px): 100 px de respiro acima do mosaico, 64 px abaixo dele e atos com 36 px entre si. */
 .sobre .timeline { padding-block: clamp(24px, 2.6vw, 40px) clamp(40px, 4vw, 64px); }
-.sobre .timeline .mosaicWrap { margin-top: 0; margin-bottom: clamp(20px, 2.4vw, 36px); }
 .sobre .timeline .acts > li { padding-block: clamp(16px, 2vw, 28px); }
 .sobre .timeline .keyline { margin-top: clamp(20px, 3vw, 40px); padding-top: clamp(20px, 2.4vw, 32px); }
 
@@ -266,8 +246,6 @@
 
 /* ---------- Nossa história refeita (pedido do dono em 09/11: estava mal acabada perto das outras seções) ----------
  * Fundo branco, como as demais páginas. Os três atos viram uma linha do tempo: fio dourado que se preenche na rolagem, um ponto por ato, nome do ato em serifa grande e texto ocupando a largura. A frase final fecha o fio. */
-.sobre .timeline .mosaicWrap { margin-bottom: clamp(48px, 6vw, 96px); }
-.sobre .tile[data-slot="f"] img { object-position: 50% 100%; }
 .sobre .timeline .acts { --thread: 28px; position: relative; }
 .sobre .timeline .acts::before, .sobre .timeline .acts::after { content: ""; position: absolute; left: 3px; top: calc(clamp(24px, 3vw, 44px) + 13px); bottom: 0; width: 1px; background: var(--rule); }
 .sobre .timeline .acts::after { background: var(--gold); transform-origin: 50% 0; }
@@ -281,14 +259,23 @@
 .sobre .timeline .keyline::before { content: ""; position: absolute; left: calc(var(--thread) * -1); top: calc(clamp(28px, 3vw, 44px) + 0.5em); width: 7px; height: 7px; border-radius: 50%; background: var(--gold); }
 /* O fio termina no ponto da frase final: um recorte branco cobre o que sobraria abaixo dele, em qualquer número de linhas. */
 .sobre .timeline .keyline::after { content: ""; position: absolute; z-index: 1; left: calc(var(--thread) * -1); top: calc(clamp(28px, 3vw, 44px) + 0.5em + 7px); bottom: calc(clamp(24px, 3vw, 44px) * -1); width: 8px; background: #fff; }
+/* Fotos e texto no mesmo ato: nada de galeria solta acima da história. */
+.sobre .timelineTitle { margin: 0 0 clamp(24px, 3vw, 44px); max-width: 24ch; font-family: var(--font-title); font-weight: 400; font-size: var(--t-title); line-height: 1.12; letter-spacing: -0.015em; color: var(--ink-text); text-wrap: balance; }
+.actPhotos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.actPhotos .tile { aspect-ratio: 3 / 2; }
+.actPhotos[data-n="1"] { grid-template-columns: minmax(0, 1fr); }
+.actPhotos[data-n="1"] .tile { aspect-ratio: 16 / 10; }
+.actPhotos[data-n="1"] .tile img { object-position: 50% 8%; }
+.actPhotos[data-n="2"] .tile { aspect-ratio: 4 / 5; }
+.actPhotos .tile[data-photo="base"] img { object-position: 50% 100%; }
 @media (min-width: 901px) {
-  .sobre .timeline .acts > li { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); column-gap: clamp(32px, 5vw, 80px); }
-  .sobre .timeline .actBody { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(24px, 3vw, 48px); align-items: start; }
-  .sobre .timeline .actBody h2 { grid-column: 1 / -1; }
-  .sobre .timeline .actBody p:only-of-type { grid-column: 1 / -1; }
+  .sobre .timeline .acts > li { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); grid-template-rows: auto 1fr; column-gap: clamp(32px, 5vw, 72px); row-gap: 16px; align-items: start; }
+  .sobre .timeline .actMeta { grid-column: 1; grid-row: 1; }
+  .sobre .timeline .actBody { grid-column: 1; grid-row: 2; }
+  .actPhotos { grid-column: 2; grid-row: 1 / 3; margin-top: 0; }
 }
+
 @media (min-width: 1101px) {
-  .sobre .timeline .actMeta { position: sticky; top: 120px; align-self: start; }
   .sobre .timeline .keyline { font-size: clamp(36px, 3.5vw, 52px); }
 }
 @supports (animation-timeline: view()) {
