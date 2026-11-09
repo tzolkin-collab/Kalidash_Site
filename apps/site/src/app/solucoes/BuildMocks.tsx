@@ -12,11 +12,19 @@ import styles from "./build-story.module.css";
 /* Peça com início e duração dentro do progresso. */
 const at = (a: number, d = 0.2): CSSProperties => ({ ["--a" as string]: a, ["--d" as string]: d });
 
+/* Molduras dos aparelhos: MacBook Pro, iPhone 14 Pro e iPad Pro portados do devices.css (MIT, ver build-story.module.css).
+ * O mesmo conteúdo de "notebook" vai no MacBook (desktop) e no iPad (tablet): só a moldura muda, por CSS. */
 function Mac({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className={styles.mac}>
-      <div className={styles.macBar}><i /><i /><i /><span>{title}</span></div>
-      <div className={styles.macBody}>{children}</div>
+      <div className={styles.macLid}>
+        <i className={styles.macNotch} />
+        <div className={styles.macScreen}>
+          <div className={styles.macBar}><span>{title}</span></div>
+          <div className={styles.macBody}>{children}</div>
+        </div>
+      </div>
+      <div className={styles.macBase} />
     </div>
   );
 }
@@ -24,8 +32,15 @@ function Mac({ title, children }: { title: string; children: ReactNode }) {
 function Phone({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className={styles.phone}>
-      <div className={styles.phoneTop}><span>9:41</span><b>{title}</b></div>
-      <div className={styles.phoneBody}>{children}</div>
+      <div className={styles.phoneFrame}>
+        <div className={styles.phoneScreen}>
+          <div className={styles.phoneTop}><span>9:41</span><b>{title}</b></div>
+          <div className={styles.phoneBody}>{children}</div>
+        </div>
+      </div>
+      <i className={styles.island} />
+      <i className={styles.phoneBtns} />
+      <i className={styles.phonePower} />
     </div>
   );
 }
@@ -259,7 +274,7 @@ export default function BuildMocks({ active }: { active: number }) {
   );
 }
 
-/* Celular, tela baixa e movimento reduzido: dentro do próprio item, a versão de celular da tela (o notebook não cabe). Toca uma vez ao entrar na vista. */
+/* Fora do palco preso (celular, tablet, tela baixa, movimento reduzido): a tela fica dentro do próprio item. No celular, o iPhone; a partir de 640px, o iPad com a tela larga. Toca uma vez ao entrar na vista. */
 export function InlineScene({ index }: { index: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const count = useCount();

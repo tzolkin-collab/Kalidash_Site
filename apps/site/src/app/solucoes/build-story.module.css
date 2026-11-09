@@ -35,7 +35,7 @@
  * Cada peça lê o progresso --s (0..1, herdado; sem ele vale 1) e o seu intervalo --a/--d: --k vai de 0 a 1 só dentro dele.
  * Só opacity e transform (e dashoffset em SVG). */
 @property --num { syntax: "<integer>"; initial-value: 0; inherits: false; }
-.stage { --settle: cubic-bezier(0.33, 1, 0.68, 1); position: relative; width: 100%; aspect-ratio: 52 / 30; container-type: inline-size; margin-bottom: 34px; }
+.stage { --settle: cubic-bezier(0.33, 1, 0.68, 1); position: relative; width: 100%; aspect-ratio: 52 / 29.2; container-type: inline-size; margin-bottom: 34px; }
 .scene {
   position: absolute; inset: 0; font-size: calc(100cqw / 52); color: var(--ink);
   opacity: 0; transform: translate3d(0, 1.6em, 0); transition: opacity 0.55s var(--settle), transform 0.7s var(--settle); pointer-events: none;
@@ -58,15 +58,6 @@
 .struck { position: relative; }
 .struck::after { content: ""; position: absolute; left: 0; right: 0; top: 55%; height: 1px; background: var(--imperial); transform-origin: 0 50%; transform: scaleX(var(--k)); }
 
-.mac { position: absolute; left: 0; top: 2.4em; width: 40em; height: 27em; background: #fbf9f5; border: 0.45em solid var(--imperial); border-radius: 1.2em; overflow: hidden; box-shadow: 0 2em 4em rgba(40, 24, 59, 0.22); }
-.macBar { display: flex; align-items: center; gap: 0.5em; height: 2.4em; padding: 0 1em; background: var(--imperial); font-size: 0.9em; color: rgba(241, 236, 228, 0.66); }
-.macBar i { width: 0.7em; height: 0.7em; border-radius: 50%; background: rgba(168, 138, 88, 0.55); }
-.macBar span { margin-left: 1em; font-weight: 600; color: var(--limestone); }
-.macBody { padding: 1.5em 3.4em 1.5em 1.6em; font-size: 0.95em; } /* direita maior: o celular passa por cima da borda, nunca do conteúdo */
-.phone { position: absolute; right: 0; top: 0; width: 13.6em; height: 29.6em; background: #fbf9f5; border: 0.5em solid var(--imperial); border-radius: 2.4em; overflow: hidden; box-shadow: 0 2em 4em rgba(40, 24, 59, 0.28); }
-.phoneTop { display: grid; gap: 0.7em; padding: 1.1em 1.5em 0.4em; font-size: 0.8em; font-weight: 700; }
-.phoneTop b { font-size: 1.35em; font-weight: 600; }
-.phoneBody { display: grid; gap: 0.8em; align-content: start; padding: 0.8em 1em 1.2em; font-size: 0.9em; }
 .prow { display: flex; align-items: center; gap: 0.6em; padding: 0.6em 0; border-top: 1px solid #e7dfd2; font-size: 0.9em; }
 .plink { display: grid; justify-items: stretch; }
 .plink .node { width: auto; padding: 0.8em 1em; }
@@ -75,6 +66,45 @@
 .band { display: flex; align-items: center; gap: 1.2em; margin-top: 0.9em; padding: 0.9em 1.1em; border-radius: 0.8em; background: var(--limestone); font-size: 0.9em; line-height: 1.4; }
 .band p { flex: 1; margin: 0; }
 .foot { margin: 0.9em 0 0; font-size: 0.85em; color: var(--gold-text); }
+
+/* ---------- Aparelhos ----------
+ * MacBook Pro, iPhone 14 Pro e iPad Pro portados de devices.css (https://github.com/picturepan2/devices.css), em unidades relativas
+ * (--u = um "pixel" do desenho original) para escalarem com o palco. Cores e proporções são as do original.
+ *
+ * devices.css — MIT License — Copyright (c) 2017 Yan Zhu
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
+ * (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
+ * publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do
+ * so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. */
+
+/* MacBook Pro (740 x 434 no original): tampa de 618 com tela de 600 x 375, base de 740. */
+.mac { --u: calc(46em / 740); position: absolute; left: 0; top: 1.6em; width: calc(var(--u) * 740); filter: drop-shadow(0 1.6em 2em rgba(40, 24, 59, 0.2)); }
+.macLid { position: relative; margin: 0 auto; width: calc(var(--u) * 618); height: calc(var(--u) * 418); padding: calc(var(--u) * 9) calc(var(--u) * 9) calc(var(--u) * 23); background: #0d0d0d; border-radius: calc(var(--u) * 20); box-shadow: inset 0 0 0 2px #c8cacc; }
+.macLid::after { content: ""; position: absolute; left: 2px; right: 2px; bottom: 2px; height: calc(var(--u) * 24 - 2px); border-radius: 0 0 calc(var(--u) * 20) calc(var(--u) * 20); background: linear-gradient(to bottom, #262626, #0d0d0d); }
+.macNotch { position: absolute; z-index: 2; top: calc(var(--u) * 11); left: 50%; width: calc(var(--u) * 64); height: calc(var(--u) * 12); margin-left: calc(var(--u) * -32); background: #0d0d0d; border-radius: 0 0 calc(var(--u) * 4) calc(var(--u) * 4); }
+.macScreen { position: relative; z-index: 1; width: calc(var(--u) * 600); height: calc(var(--u) * 375); border: 2px solid #121212; border-radius: calc(var(--u) * 10) calc(var(--u) * 10) 0 0; background: #fbf9f5; overflow: hidden; }
+.macBase { position: relative; z-index: 3; width: 100%; height: calc(var(--u) * 24); margin-top: calc(var(--u) * -10); background: radial-gradient(circle at center, #e2e3e4 85%, #c8cacc 100%); border: solid #a1a4a7; border-width: 1px 2px 0; border-radius: calc(var(--u) * 2) calc(var(--u) * 2) calc(var(--u) * 12) calc(var(--u) * 12); box-shadow: inset 0 -2px 8px 0 #6f7377; }
+.macBase::after { content: ""; position: absolute; top: 0; left: 50%; width: calc(var(--u) * 120); height: calc(var(--u) * 10); margin-left: calc(var(--u) * -60); background: #e2e3e4; border-radius: 0 0 calc(var(--u) * 10) calc(var(--u) * 10); box-shadow: inset 0 0 4px 2px #bbbdc0; }
+/* Dentro da tela: título da janela e conteúdo. A direita tem folga maior: o iPhone passa por cima da borda, nunca do conteúdo. */
+.macBar { display: flex; align-items: center; height: 2.3em; padding: 0.5em 1.5em 0; font-size: 0.82em; font-weight: 600; color: var(--imperial); border-bottom: 1px solid #e7dfd2; }
+.macBody { padding: 1.1em 3.8em 1.2em 1.5em; font-size: 0.9em; }
+
+/* iPhone 14 Pro (428 x 868 no original), na cor Deep Purple. --pw é a largura do aparelho. */
+.phone { --pw: 13.2em; --u: calc(var(--pw) / 428); position: absolute; right: 0; top: 0; width: var(--pw); height: calc(var(--u) * 868); filter: drop-shadow(0 1.6em 2em rgba(40, 24, 59, 0.26)); }
+.phoneFrame { width: 100%; height: 100%; padding: calc(var(--u) * 19); background: #010101; border: 1px solid #1c1722; border-radius: calc(var(--u) * 68); box-shadow: inset 0 0 calc(var(--u) * 4) calc(var(--u) * 2) #cfc7dc, inset 0 0 0 calc(var(--u) * 6) #342c3f; }
+.phoneScreen { height: 100%; border-radius: calc(var(--u) * 49); background: #fbf9f5; overflow: hidden; }
+.island { position: absolute; z-index: 2; top: calc(var(--u) * 29); left: 50%; width: calc(var(--u) * 120); height: calc(var(--u) * 35); margin-left: calc(var(--u) * -60); border-radius: calc(var(--u) * 20); background: #010101; }
+.phoneBtns, .phonePower { position: absolute; width: 3px; border-radius: 2px; background: #1c1722; }
+.phoneBtns { left: -2px; top: calc(var(--u) * 115); height: calc(var(--u) * 32); }
+.phoneBtns::before, .phoneBtns::after { content: ""; position: absolute; left: 0; width: 3px; height: calc(var(--u) * 62); border-radius: 2px; background: #1c1722; }
+.phoneBtns::before { top: calc(var(--u) * 140); }
+.phoneBtns::after { top: calc(var(--u) * 60); }
+.phonePower { right: -2px; top: calc(var(--u) * 200); height: calc(var(--u) * 100); }
+/* A hora fica à esquerda da ilha, como no aparelho; o título da tela vem logo abaixo. */
+.phoneTop { display: grid; gap: calc(var(--u) * 40); padding: calc(var(--u) * 18) calc(var(--u) * 34) 0.3em; font-size: 0.78em; font-weight: 700; }
+.phoneTop b { font-size: 1.4em; font-weight: 600; }
+.phoneBody { display: grid; gap: 0.8em; align-content: start; padding: 0.6em calc(var(--u) * 22) 1.2em; font-size: 0.9em; }
 
 .split { display: grid; grid-template-columns: 1.7fr 1fr; gap: 1.6em; }
 .side { align-self: start; padding: 1.1em; border-radius: 0.8em; background: var(--limestone); font-size: 0.9em; line-height: 1.45; }
@@ -113,7 +143,7 @@
 .kpis b { font-size: 1.6em; font-variant-numeric: tabular-nums; }
 .count { display: block; }
 .big { margin: 0; font-size: 2.2em; font-weight: 700; }
-.chart { position: relative; display: flex; align-items: flex-end; gap: 0.8em; height: 12.5em; margin-top: 1.4em; }
+.chart { position: relative; display: flex; align-items: flex-end; gap: 0.8em; height: 11em; margin-top: 1.2em; }
 .chart > i { flex: 1; border-radius: 0.4em 0.4em 0 0; background: linear-gradient(180deg, var(--gold), var(--imperial)); }
 .trend { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .trend .draw { stroke: var(--limestone); }
@@ -134,15 +164,33 @@
 .stage[data-count] .real { display: none; }
 .stage[data-count] .count::after { --num: calc(var(--k) * var(--to)); counter-reset: v var(--num); content: var(--pre) counter(v) var(--unit); }
 
-/* Celular, tela baixa, movimento reduzido: dentro do item vai a versão de celular da tela (o notebook espremido numa coluna não se lia).
- * Texto em tamanho de leitura (14px no corpo). O aviso de tela ilustrativa aparece uma vez só, no último item. */
-.inline { aspect-ratio: auto; margin: 22px 0 36px; max-width: 320px; }
-.inline .scene { position: relative; inset: auto; font-size: 16px; opacity: 1; transform: none; transition: none; }
+/* Fora do palco preso (celular, tablet, tela baixa, movimento reduzido): a tela fica dentro do item, alinhada ao texto.
+ * Celular: o iPhone, com a tela em tamanho de leitura; a parte de baixo do aparelho some num esmaecido em vez de ocupar a altura real
+ * (868 de altura para 428 de largura deixaria meia tela vazia). A partir de 640px: o iPad Pro deitado, com a tela larga do notebook.
+ * O aviso de tela ilustrativa aparece uma vez só, no último item. */
+.inline { aspect-ratio: auto; margin: 24px 0 32px; max-width: 300px; } /* sem deslocar para fora da coluna: o item corta o que passa da borda */
+.inline .scene { position: relative; inset: auto; font-size: 15px; opacity: 1; transform: none; transition: none; }
 .inline .mac { display: none; }
-.inline .phone { position: relative; right: auto; top: auto; width: 100%; height: auto; min-height: 20em; box-shadow: none; } /* sem sombra: o item corta o que passa da borda e a sombra virava uma faixa cinza */
+.inline .phone { --u: calc(100cqw / 428); position: relative; right: auto; top: auto; width: 100%; height: auto; filter: none; -webkit-mask-image: linear-gradient(#000 calc(100% - 3.5em), transparent); mask-image: linear-gradient(#000 calc(100% - 3.5em), transparent); }
+.inline .phoneFrame { height: auto; padding-bottom: 0; border-bottom: 0; border-radius: calc(var(--u) * 68) calc(var(--u) * 68) 0 0; }
+.inline .phoneScreen { height: auto; min-height: 24em; padding-bottom: 3.6em; border-radius: calc(var(--u) * 49) calc(var(--u) * 49) 0 0; }
 .inline .caption { position: static; margin-top: 12px; }
 .list li:not(:last-child) .inline .caption { display: none; }
-.list li:not(:last-child) .inline { margin-bottom: 28px; }
+
+@media (min-width: 640px) {
+  .inline { max-width: 620px; }
+  .inline .scene { font-size: calc(100cqw / 46); }
+  .inline .phone { display: none; }
+  /* iPad Pro deitado (778 x 560 no original): a tampa do notebook vira a moldura do tablet. */
+  .inline .mac { --u: calc(46em / 778); display: block; position: relative; top: auto; width: 100%; filter: none; }
+  .inline .macLid { width: 100%; height: calc(var(--u) * 560); padding: calc(var(--u) * 27); border-radius: calc(var(--u) * 36); box-shadow: inset 0 0 0 1px #b9bbbd, inset 0 0 1px 3px #e2e3e4; }
+  .inline .macLid::after { content: none; }
+  .inline .macNotch { top: calc(var(--u) * 11); width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: #24303a; }
+  .inline .macScreen { width: 100%; height: 100%; border-radius: calc(var(--u) * 11); }
+  .inline .macBase { display: none; }
+  .inline .macBar { font-size: 1.05em; }
+  .inline .macBody { padding-right: 1.5em; font-size: 1.22em; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .scene { transition: none; }
