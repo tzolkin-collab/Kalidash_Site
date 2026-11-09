@@ -18,14 +18,14 @@
 .list li[data-on="true"] .name { color: var(--ink); }
 .detail { display: grid; grid-template-rows: 1fr; padding-left: 46px; }
 .detail > div { overflow: hidden; }
-.detail p { margin: 0 0 6px; max-width: 46ch; font-size: 17px; line-height: 1.5; color: rgba(25, 23, 27, 0.78); }
-.detail p.example { margin-bottom: 18px; font-size: 15px; color: var(--gold-text); }
+.detail > div > p { margin: 0 0 6px; max-width: 46ch; font-size: 17px; line-height: 1.5; color: rgba(25, 23, 27, 0.78); }
+.detail > div > p.example { margin-bottom: 18px; font-size: 15px; color: var(--gold-text); }
 .visual { display: none; }
 
 @media (min-width: 1024px) and (min-height: 600px) {
   .story[data-live] { height: calc(var(--n) * 78svh + 40svh); padding: 0; }
   .story[data-live] .sticky { position: sticky; top: calc(var(--header, 56px) + 40px); height: calc(100svh - var(--header, 56px) - 40px); display: flex; align-items: center; }
-  .story[data-live] .inner { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(32px, 5vw, 72px); align-items: center; }
+  .story[data-live] .inner { display: grid; grid-template-columns: minmax(0, 9fr) minmax(0, 16fr); gap: clamp(28px, 4vw, 64px); align-items: center; }
   .story[data-live] .detail { grid-template-rows: 0fr; transition: grid-template-rows 0.4s ease; }
   .story[data-live] .list li[data-on="true"] .detail { grid-template-rows: 1fr; }
   .story[data-live] .visual { display: block; }
@@ -35,9 +35,9 @@
  * Cada peça lê o progresso --s (0..1, herdado; sem ele vale 1) e o seu intervalo --a/--d: --k vai de 0 a 1 só dentro dele.
  * Só opacity e transform (e dashoffset em SVG). */
 @property --num { syntax: "<integer>"; initial-value: 0; inherits: false; }
-.stage { --settle: cubic-bezier(0.33, 1, 0.68, 1); position: relative; width: 100%; aspect-ratio: 60 / 34; container-type: inline-size; margin-bottom: 34px; }
+.stage { --settle: cubic-bezier(0.33, 1, 0.68, 1); position: relative; width: 100%; aspect-ratio: 52 / 30; container-type: inline-size; margin-bottom: 34px; }
 .scene {
-  position: absolute; inset: 0; font-size: calc(100cqw / 60); color: var(--ink);
+  position: absolute; inset: 0; font-size: calc(100cqw / 52); color: var(--ink);
   opacity: 0; transform: translate3d(0, 1.6em, 0); transition: opacity 0.55s var(--settle), transform 0.7s var(--settle); pointer-events: none;
 }
 .scene[data-state="on"] { opacity: 1; transform: none; }
@@ -58,14 +58,23 @@
 .struck { position: relative; }
 .struck::after { content: ""; position: absolute; left: 0; right: 0; top: 55%; height: 1px; background: var(--imperial); transform-origin: 0 50%; transform: scaleX(var(--k)); }
 
-.mac { position: absolute; left: 0; top: 3em; width: 46em; height: 28em; background: #fbf9f5; border: 0.45em solid var(--imperial); border-radius: 1.2em; overflow: hidden; box-shadow: 0 2em 4em rgba(40, 24, 59, 0.22); }
+.mac { position: absolute; left: 0; top: 2.4em; width: 40em; height: 27em; background: #fbf9f5; border: 0.45em solid var(--imperial); border-radius: 1.2em; overflow: hidden; box-shadow: 0 2em 4em rgba(40, 24, 59, 0.22); }
 .macBar { display: flex; align-items: center; gap: 0.5em; height: 2.4em; padding: 0 1em; background: var(--imperial); font-size: 0.9em; color: rgba(241, 236, 228, 0.66); }
 .macBar i { width: 0.7em; height: 0.7em; border-radius: 50%; background: rgba(168, 138, 88, 0.55); }
 .macBar span { margin-left: 1em; font-weight: 600; color: var(--limestone); }
-.macBody { padding: 1.6em; font-size: 0.95em; }
-.phone { position: absolute; right: 0; top: 0; width: 15em; height: 31em; background: #fbf9f5; border: 0.5em solid var(--imperial); border-radius: 2.4em; overflow: hidden; box-shadow: 0 2em 4em rgba(40, 24, 59, 0.28); }
-.phoneTop { height: 3em; padding: 1.2em 1.8em 0; font-size: 0.8em; font-weight: 700; }
-.phoneBody { display: grid; gap: 0.8em; align-content: start; padding: 1em; font-size: 0.9em; }
+.macBody { padding: 1.5em 3.4em 1.5em 1.6em; font-size: 0.95em; } /* direita maior: o celular passa por cima da borda, nunca do conteúdo */
+.phone { position: absolute; right: 0; top: 0; width: 13.6em; height: 29.6em; background: #fbf9f5; border: 0.5em solid var(--imperial); border-radius: 2.4em; overflow: hidden; box-shadow: 0 2em 4em rgba(40, 24, 59, 0.28); }
+.phoneTop { display: grid; gap: 0.7em; padding: 1.1em 1.5em 0.4em; font-size: 0.8em; font-weight: 700; }
+.phoneTop b { font-size: 1.35em; font-weight: 600; }
+.phoneBody { display: grid; gap: 0.8em; align-content: start; padding: 0.8em 1em 1.2em; font-size: 0.9em; }
+.prow { display: flex; align-items: center; gap: 0.6em; padding: 0.6em 0; border-top: 1px solid #e7dfd2; font-size: 0.9em; }
+.plink { display: grid; justify-items: stretch; }
+.plink .node { width: auto; padding: 0.8em 1em; }
+.plink .node b { font-size: 1.15em; }
+.pwire { display: block; width: 2px; height: 1.6em; margin: 0 auto; background: var(--gold); transform-origin: 50% 0; }
+.band { display: flex; align-items: center; gap: 1.2em; margin-top: 0.9em; padding: 0.9em 1.1em; border-radius: 0.8em; background: var(--limestone); font-size: 0.9em; line-height: 1.4; }
+.band p { flex: 1; margin: 0; }
+.foot { margin: 0.9em 0 0; font-size: 0.85em; color: var(--gold-text); }
 
 .split { display: grid; grid-template-columns: 1.7fr 1fr; gap: 1.6em; }
 .side { align-self: start; padding: 1.1em; border-radius: 0.8em; background: var(--limestone); font-size: 0.9em; line-height: 1.45; }
@@ -93,7 +102,7 @@
 .sheet:nth-child(4) { width: 90%; }
 .docBar { display: block; height: 3.2em; border-radius: 0.3em 0.3em 0 0; background: linear-gradient(180deg, var(--gold), var(--imperial)); }
 .link { display: flex; align-items: center; gap: 1em; margin-bottom: 1.4em; }
-.node { flex: none; width: 14em; padding: 1.2em; border-radius: 0.9em; background: var(--imperial); color: var(--limestone); }
+.node { flex: none; width: 11.5em; padding: 1.2em; border-radius: 0.9em; background: var(--imperial); color: var(--limestone); }
 .node b { display: block; font-size: 1.4em; }
 .node span { font-size: 0.85em; color: var(--gold); }
 .wire { position: relative; flex: 1; height: 2px; overflow: hidden; background: rgba(168, 138, 88, 0.35); }
@@ -104,7 +113,7 @@
 .kpis b { font-size: 1.6em; font-variant-numeric: tabular-nums; }
 .count { display: block; }
 .big { margin: 0; font-size: 2.2em; font-weight: 700; }
-.chart { position: relative; display: flex; align-items: flex-end; gap: 0.8em; height: 11em; margin-top: 1.6em; }
+.chart { position: relative; display: flex; align-items: flex-end; gap: 0.8em; height: 12.5em; margin-top: 1.4em; }
 .chart > i { flex: 1; border-radius: 0.4em 0.4em 0 0; background: linear-gradient(180deg, var(--gold), var(--imperial)); }
 .trend { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .trend .draw { stroke: var(--limestone); }
@@ -125,19 +134,15 @@
 .stage[data-count] .real { display: none; }
 .stage[data-count] .count::after { --num: calc(var(--k) * var(--to)); counter-reset: v var(--num); content: var(--pre) counter(v) var(--unit); }
 
-/* Celular, tela baixa, movimento reduzido: a tela fica dentro do item, empilhada e sem o celular. */
-.inline { aspect-ratio: auto; margin: 22px 0 36px; max-width: 560px; }
-.inline .scene { position: relative; inset: auto; font-size: clamp(12px, 3.3vw, 15px); opacity: 1; transform: none; transition: none; }
-.inline .mac { position: relative; top: auto; width: 100%; height: auto; }
-.inline .phone { display: none; }
-.inline .caption { position: static; margin-top: 10px; }
-@container (max-width: 520px) {
-  .split, .capture { grid-template-columns: 1fr; }
-  .kpis { grid-template-columns: 1fr; }
-  .link { flex-direction: column; }
-  .wire { width: 2px; height: 3em; flex: none; }
-  .pulse { width: 100%; height: 28%; transform: translate3d(0, calc(var(--k) * 360% - 100%), 0); }
-}
+/* Celular, tela baixa, movimento reduzido: dentro do item vai a versão de celular da tela (o notebook espremido numa coluna não se lia).
+ * Texto em tamanho de leitura (14px no corpo). O aviso de tela ilustrativa aparece uma vez só, no último item. */
+.inline { aspect-ratio: auto; margin: 22px 0 36px; max-width: 320px; }
+.inline .scene { position: relative; inset: auto; font-size: 16px; opacity: 1; transform: none; transition: none; }
+.inline .mac { display: none; }
+.inline .phone { position: relative; right: auto; top: auto; width: 100%; height: auto; min-height: 20em; box-shadow: none; } /* sem sombra: o item corta o que passa da borda e a sombra virava uma faixa cinza */
+.inline .caption { position: static; margin-top: 12px; }
+.list li:not(:last-child) .inline .caption { display: none; }
+.list li:not(:last-child) .inline { margin-bottom: 28px; }
 
 @media (prefers-reduced-motion: reduce) {
   .scene { transition: none; }

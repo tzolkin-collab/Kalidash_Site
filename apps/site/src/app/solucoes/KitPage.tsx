@@ -11,6 +11,7 @@ import CountUp from "./CountUp";
 import { fraunces } from "./kit-font";
 import BuildStory from "./BuildStory";
 import StepsPin from "./StepsPin";
+import ExecucaoPillars from "./ExecucaoPillars";
 import ScrollMotion from "./ScrollMotion";
 import { BlockView, HeroView, Legend, toneMap } from "./ProductPage";
 import KitFonts from "./KitFonts";
@@ -330,7 +331,9 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
               /* Execução, "Como entregamos": faixa presa na rolagem, com a linha esticando e os passos acendendo em sequência. */
               node = isAc
                 ? <StepsPin key={key}><AcSteps block={block} /></StepsPin>
-                : page.slug === "execucao" || page.slug === "advisory"
+                : page.slug === "execucao"
+                ? <ExecucaoPillars key={key} block={block} />
+                : page.slug === "advisory"
                 ? <StepsPin key={key}><BlockView block={block} cardsIndex={1} poster={false} soft={soft} /></StepsPin>
                 : <BlockView key={key} block={block} cardsIndex={1} poster={false} soft={soft} />;
               break;
@@ -344,7 +347,8 @@ export default function KitPage({ page, closing }: { page: PageContent; closing:
           const meta = block as { eyebrow?: string; title?: string | string[] };
           const label = (meta.eyebrow || (Array.isArray(meta.title) ? meta.title.join(" ") : meta.title) || "").toUpperCase();
           /* Tom do capítulo = cor real do bloco (o fundo do capítulo aparece nos cantos e no pé durante a cortina). */
-          const tone = light.includes(block.type) ? (soft && !(isAc && block.type === "formats") ? "soft" : "paper") : "dark";
+          /* Execução, "Como entregamos": céu claro ao fundo (ExecucaoPillars), então o capítulo é claro. */
+          const tone = page.slug === "execucao" && block.type === "steps" ? "soft" : light.includes(block.type) ? (soft && !(isAc && block.type === "formats") ? "soft" : "paper") : "dark";
           return (
             <div key={key} className={styles.chapter} data-tone={tone} data-motion="curtain">
               <div className={styles.chapterLabel} aria-hidden="true" data-text={label}>

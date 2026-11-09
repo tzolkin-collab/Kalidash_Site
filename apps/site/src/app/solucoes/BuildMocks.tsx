@@ -21,16 +21,27 @@ function Mac({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-function Phone({ children }: { children: ReactNode }) {
+function Phone({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className={styles.phone}>
-      <div className={styles.phoneTop}>9:41</div>
+      <div className={styles.phoneTop}><span>9:41</span><b>{title}</b></div>
       <div className={styles.phoneBody}>{children}</div>
     </div>
   );
 }
 
 const Ok = ({ a }: { a: number }) => <b className={`${styles.ok} ${styles.pop}`} style={at(a, 0.1)}>✓</b>;
+
+/* Linha curta da tela do celular: marca, texto e um detalhe à direita. */
+function PRow({ a, label, meta }: { a: number; label: string; meta?: string }) {
+  return (
+    <div className={`${styles.prow} ${styles.rise}`} style={at(a, 0.14)}>
+      <Ok a={a + 0.04} />
+      <span className={styles.grow}>{label}</span>
+      {meta && <span className={styles.muted}>{meta}</span>}
+    </div>
+  );
+}
 
 function Agentes() {
   const rows: Array<[string, string, string, string]> = [
@@ -42,29 +53,29 @@ function Agentes() {
   return (
     <>
       <Mac title="Triagem de solicitações">
-        <div className={styles.split}>
-          <div>
-            <p className={styles.h}>Solicitações recebidas</p>
-            {rows.map(([area, what, status, tone], i) => (
-              <div key={what} className={`${styles.row} ${styles.rise}`} style={at(0.04 + i * 0.1, 0.16)}>
-                <span className={`${styles.tag} ${styles.pop}`} style={at(0.36 + i * 0.08, 0.12)}>{area}</span>
-                <span className={styles.grow}>{what}</span>
-                <span className={`${styles.pill} ${styles.pop}`} data-tone={tone} style={at(0.56 + i * 0.07, 0.12)}>{status}</span>
-                {tone === "wait" && <i className={`${styles.flag} ${styles.pop}`} style={at(0.78, 0.12)} />}
-              </div>
-            ))}
+        <p className={styles.h}>Solicitações recebidas</p>
+        {rows.map(([area, what, status, tone], i) => (
+          <div key={what} className={`${styles.row} ${styles.rise}`} style={at(0.04 + i * 0.1, 0.16)}>
+            <span className={`${styles.tag} ${styles.pop}`} style={at(0.36 + i * 0.08, 0.12)}>{area}</span>
+            <span className={styles.grow}>{what}</span>
+            <span className={`${styles.pill} ${styles.pop}`} data-tone={tone} style={at(0.56 + i * 0.07, 0.12)}>{status}</span>
+            {tone === "wait" && <i className={`${styles.flag} ${styles.pop}`} style={at(0.78, 0.12)} />}
           </div>
-          <div className={`${styles.side} ${styles.rise}`} style={at(0.7, 0.2)}>
-            <p className={styles.h}>Resumo do agente</p>
-            <p>Classificou, priorizou e roteou. O que exige decisão sobe para uma pessoa.</p>
-            <span className={styles.pill} data-tone="wait">Supervisão humana</span>
-          </div>
+        ))}
+        <div className={`${styles.band} ${styles.rise}`} style={at(0.7, 0.2)}>
+          <p><b>Resumo do agente.</b> Classificou, priorizou e roteou. O que exige decisão sobe para uma pessoa.</p>
+          <span className={styles.pill} data-tone="wait">Supervisão humana</span>
         </div>
       </Mac>
-      <Phone>
-        <p className={`${styles.bubble} ${styles.rise}`} style={at(0.1, 0.2)}>Preciso da segunda via do contrato.</p>
-        <p className={`${styles.bubble} ${styles.rise}`} data-me="true" style={at(0.4, 0.2)}>Encontrei o contrato e encaminhei ao Jurídico.</p>
-        <p className={`${styles.note} ${styles.rise}`} style={at(0.78, 0.2)}>Aguardando aprovação de uma pessoa</p>
+      <Phone title="Assistente">
+        <p className={`${styles.bubble} ${styles.rise}`} style={at(0.06, 0.18)}>Preciso da segunda via do contrato.</p>
+        <p className={`${styles.bubble} ${styles.rise}`} data-me="true" style={at(0.3, 0.18)}>Encontrei o contrato e encaminhei ao Jurídico.</p>
+        <p className={`${styles.note} ${styles.rise}`} style={at(0.5, 0.16)}>Aguardando aprovação de uma pessoa</p>
+        <div>
+          <PRow a={0.62} label="Reembolso" meta="Financeiro" />
+          <PRow a={0.72} label="Cotação" meta="Compras" />
+          <PRow a={0.82} label="Escala" meta="Operação" />
+        </div>
       </Phone>
     </>
   );
@@ -81,10 +92,11 @@ function Automacoes() {
             {steps.map((s, i) => (
               <div key={s} className={styles.row}>
                 <Ok a={0.1 + i * 0.16} />
-                <span className={`${styles.grow} ${styles.struck}`} style={at(0.1 + i * 0.16, 0.12)}>{s}</span>
+                <span className={styles.grow}><span className={styles.struck} style={at(0.1 + i * 0.16, 0.12)}>{s}</span></span>
                 <span className={`${styles.muted} ${styles.rise}`} style={at(0.14 + i * 0.16, 0.12)}>automático</span>
               </div>
             ))}
+            <p className={`${styles.foot} ${styles.rise}`} style={at(0.84, 0.14)}>Próxima execução: segunda, 08:00</p>
           </div>
           <div className={styles.side}>
             <p className={styles.h}>Pré-visualização</p>
@@ -98,7 +110,10 @@ function Automacoes() {
           </div>
         </div>
       </Mac>
-      <Phone>
+      <Phone title="Relatórios">
+        <div>
+          {steps.map((s, i) => <PRow key={s} a={0.1 + i * 0.16} label={s} />)}
+        </div>
         <div className={`${styles.card} ${styles.rise}`} style={at(0.78, 0.2)}>
           <p className={styles.h}>Relatório semanal pronto</p>
           <p className={styles.muted}>14 páginas · enviado às 08:00</p>
@@ -110,7 +125,7 @@ function Automacoes() {
 }
 
 function Integracoes() {
-  const recs = ["Cliente", "Pedido", "Status de entrega"];
+  const recs = ["Cliente", "Pedido", "Status de entrega", "Nota fiscal"];
   return (
     <>
       <Mac title="Integrações ativas">
@@ -124,15 +139,22 @@ function Integracoes() {
         </div>
         {recs.map((r, i) => (
           <div key={r} className={styles.row}>
-            <Ok a={0.5 + i * 0.12} />
+            <Ok a={0.5 + i * 0.1} />
             <span className={styles.grow}>{r}</span>
-            <span className={`${styles.muted} ${styles.rise}`} style={at(0.52 + i * 0.12, 0.14)}>{i === 2 ? "há 2 min" : "sincronizado"}</span>
+            <span className={`${styles.muted} ${styles.rise}`} style={at(0.52 + i * 0.1, 0.14)}>{i === 2 ? "há 2 min" : "sincronizado"}</span>
           </div>
         ))}
       </Mac>
-      <Phone>
-        <div className={`${styles.card} ${styles.rise}`} style={at(0.4, 0.2)}><p className={styles.h}>Sincronização</p><p className={styles.muted}>Sem retrabalho entre áreas</p></div>
-        <div className={`${styles.card} ${styles.rise}`} style={at(0.7, 0.2)}><p className={styles.h}>3 de 3 campos</p><p className={styles.muted}>em dia</p></div>
+      <Phone title="Sincronização">
+        <div className={styles.plink}>
+          <div className={`${styles.node} ${styles.rise}`} style={at(0.06, 0.16)}><b>ERP</b><span>Pedidos · Estoque</span></div>
+          <i className={`${styles.pwire} ${styles.grow2}`} style={at(0.2, 0.2)} />
+          <div className={`${styles.node} ${styles.pop}`} style={at(0.4, 0.12)}><b>CRM</b><span>Clientes · Funil</span></div>
+        </div>
+        <div>
+          {recs.slice(0, 3).map((r, i) => <PRow key={r} a={0.52 + i * 0.1} label={r} />)}
+        </div>
+        <p className={`${styles.note} ${styles.rise}`} style={at(0.86, 0.12)}>Sem retrabalho entre áreas</p>
       </Phone>
     </>
   );
@@ -166,9 +188,10 @@ function Dados() {
           </svg>
         </div>
       </Mac>
-      <Phone>
-        <div className={styles.card}><p className={styles.muted}>Produção</p><p className={styles.big}><Count to={100} prefix="+" a={0.1} /></p></div>
+      <Phone title="Produção">
+        <div className={styles.card}><p className={styles.muted}>Processos automatizados</p><p className={styles.big}><Count to={100} prefix="+" a={0.1} /></p></div>
         <svg viewBox="0 0 100 40" className={styles.spark} aria-hidden="true"><polyline pathLength="1" className={styles.draw} style={at(0.3, 0.5)} points="0,32 16,26 32,29 48,18 64,21 80,10 100,6" /></svg>
+        <div className={styles.card}><p className={styles.muted}>Operações atendidas</p><p className={styles.big}><Count to={170} a={0.5} /></p></div>
       </Phone>
     </>
   );
@@ -187,7 +210,7 @@ function SobMedida() {
               {wave.map((h, i) => <i key={i} className={styles.bar} style={{ ...at(0.02 + i * 0.015, 0.2), height: `${h * 0.12}em` }} />)}
             </div>
             <div className={styles.lines}>
-              {[100, 84, 92, 66, 78].map((w, i) => <i key={i} className={styles.rise} style={{ ...at(0.3 + i * 0.07, 0.14), width: `${w}%` }} />)}
+              {[100, 84, 92, 66, 78, 88, 58].map((w, i) => <i key={i} className={styles.rise} style={{ ...at(0.3 + i * 0.05, 0.14), width: `${w}%` }} />)}
             </div>
           </div>
           <div className={styles.cap}>
@@ -201,10 +224,13 @@ function SobMedida() {
           </div>
         </div>
       </Mac>
-      <Phone>
-        <div className={styles.wave} aria-hidden="true">{wave.slice(0, 9).map((h, i) => <i key={i} className={styles.bar} style={{ ...at(i * 0.02, 0.2), height: `${h}px` }} />)}</div>
+      <Phone title="Gravação">
+        <div className={styles.wave} aria-hidden="true">{wave.slice(0, 9).map((h, i) => <i key={i} className={styles.bar} style={{ ...at(i * 0.02, 0.2), height: `${h * 0.09}em` }} />)}</div>
         <p className={`${styles.note} ${styles.rise}`} style={at(0.1, 0.2)}>Gravando · 02:14</p>
-        <div className={`${styles.card} ${styles.rise}`} style={at(0.7, 0.2)}><p className={styles.h}>1.681 problemas registrados</p></div>
+        <div>
+          {fields.slice(0, 3).map((f, i) => <PRow key={f} a={0.4 + i * 0.1} label={f} meta="registrado" />)}
+        </div>
+        <div className={`${styles.card} ${styles.rise}`} style={at(0.76, 0.2)}><p className={styles.h}>1.681 problemas registrados</p></div>
       </Phone>
     </>
   );
@@ -233,7 +259,7 @@ export default function BuildMocks({ active }: { active: number }) {
   );
 }
 
-/* Celular, tela baixa e movimento reduzido: a tela fica dentro do próprio item, empilhada. No celular toca uma vez ao entrar na vista. */
+/* Celular, tela baixa e movimento reduzido: dentro do próprio item, a versão de celular da tela (o notebook não cabe). Toca uma vez ao entrar na vista. */
 export function InlineScene({ index }: { index: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const count = useCount();
