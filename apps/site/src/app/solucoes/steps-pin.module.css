@@ -4,8 +4,17 @@
 @media (min-width: 1024px) and (min-height: 700px) {
   @media (prefers-reduced-motion: no-preference) {
     .pin[data-live] { height: 240svh; }
-    .pin[data-live] .sticky { position: sticky; top: var(--header, 56px); height: calc(100svh - var(--header, 56px)); display: flex; flex-direction: column; justify-content: center; overflow: hidden; background: var(--night, var(--imperial, #28183b)); }
+    /* --lbl: altura da faixa do capítulo (40px), que também fica presa sob o cabeçalho e cortava o título do palco. */
+    .pin[data-live] .sticky { --lbl: 40px; position: sticky; top: calc(var(--header, 56px) + var(--lbl)); height: calc(100svh - var(--header, 56px) - var(--lbl)); display: flex; flex-direction: column; justify-content: center; overflow: hidden; background: var(--night, var(--imperial, #28183b)); }
     .pin[data-live] .sticky > section { padding-block: clamp(24px, 4vh, 56px); }
+    /* Tela baixa (até 900px de altura): os respiros encolhem com a altura para a frase final caber no palco, que perdeu os 40px da faixa.
+     * "safe center": se ainda assim não couber, sobra embaixo, nunca corta o título. */
+    @media (max-height: 900px) {
+      .pin[data-live] .sticky { justify-content: safe center; }
+      .pin[data-live] .sticky > section { padding-block: clamp(8px, 2vh, 24px); }
+      .pin[data-live] .sticky [class*="sequence"] { margin-top: clamp(16px, calc(20vh - 124px), 64px); }
+      .pin[data-live] .sticky [class*="stepsNote"] { margin-top: clamp(16px, calc(16vh - 96px), 56px); }
+    }
 
     /* A linha estica de 0 a 1 entre p = 0,08 e 0,78. */
     .pin[data-live] [class*="sequence"]::before {

@@ -21,6 +21,8 @@
 .capBand { margin-top: clamp(40px, 4.5vw, 64px); padding-bottom: clamp(16px, 2vw, 24px); }
 .capPhoto { position: relative; margin: 0 0 clamp(24px, 3vw, 40px); aspect-ratio: 16 / 7; overflow: hidden; border-radius: 8px; background: var(--rule, #e6e1d8); }
 .capPhoto img { object-fit: cover; object-position: 50% 45%; }
+/* Faixa de números logo abaixo da frase: o respiro de 80px em cima e embaixo (padrão do .rule) deixava o vão grande demais (pedido do dono em 09/11). */
+.ac section[class*="rule"] ul:not([class*="proofLogos"] ul) { padding-block: clamp(20px, 2.4vw, 32px) clamp(28px, 3vw, 44px); }
 .capSign { margin: 0; max-width: none; font-family: var(--font-sub, var(--font-title)); font-size: clamp(19px, 2vw, 29px); line-height: 1.3; letter-spacing: -0.005em; color: var(--ink-text); text-wrap: balance; }
 @media (min-width: 1100px) { .capSign { white-space: nowrap; text-wrap: nowrap; } }
 .capWord { position: relative; display: inline-block; color: var(--gold-text); }

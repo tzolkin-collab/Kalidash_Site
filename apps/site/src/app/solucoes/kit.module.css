@@ -216,6 +216,10 @@ header.long h1 { font-size: clamp(40px, 6vw, 88px); }
 /* Páginas em capítulos (Advisory, Execução, AI Culture): menos linhas e nada repetido. O rótulo de cada seção já aparece na faixa fina do capítulo ("03 / 07 · O QUE FAZEMOS"),
  * então a legenda dentro da seção sai da tela (continua no HTML, para leitor de tela e busca). As réguas ficam só ENTRE os itens. */
 .chapters .main [class*="legend"] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+/* O "eyebrow" da história presa (BuildStory) repetia o rótulo do capítulo ("O QUE CONSTRUÍMOS" duas vezes seguidas): também sai da tela. */
+.chapters .main section[class*="story"] [class*="eyebrow"] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+/* A faixa grega do hero ficava sob os 28px em que o capítulo sobe (margin-top: -28px) e o rótulo do capítulo aparecia por cima dela: ganha folga embaixo. */
+.chapters [class*="meander"] { margin-bottom: 28px; }
 .chapters .main [class*="manifesto"] { border-top: 0; }
 .chapters .main [class*="footnote"] { border-top: 0; }
 .chapters .main li:first-child { border-top: 0; }

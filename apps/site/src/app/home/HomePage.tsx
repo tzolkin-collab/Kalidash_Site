@@ -59,6 +59,8 @@ function TextLink({ href, children, onClick }: { href: string; children: React.R
 
 const symptomIcons = [ChartIcon, DatabaseOffIcon, ShareIcon];
 const symptomQuotes = [problem.quote, ...problem.pairedQuotes];
+/* Retratos dos autores (nome → arquivo em /public/home). Ainda não temos os retratos: sem entrada aqui, a bolinha mostra as iniciais. */
+const quoteAvatars: Record<string, string> = {};
 
 const TYPEKIT_KIT = "https://use.typekit.net/krs4uwp.css";
 
@@ -208,8 +210,15 @@ export default function HomePage() {
                     </div>
                     <figure className={styles.symptomQuote}>
                       <blockquote>“{quote.text}”</blockquote>
-                      <figcaption>
-                        <strong>{quote.author},</strong> {quote.role}
+                      <figcaption className={styles.symptomAuthor}>
+                        <span className={styles.symptomAvatar} aria-hidden="true">
+                          {quoteAvatars[quote.author] ? (
+                            <Image src={quoteAvatars[quote.author]} alt="" width={96} height={96} sizes="48px" />
+                          ) : (
+                            quote.author.split(" ").map((part) => part[0]).slice(0, 2).join("")
+                          )}
+                        </span>
+                        <span><strong>{quote.author},</strong> {quote.role}</span>
                       </figcaption>
                     </figure>
                   </li>
