@@ -226,8 +226,8 @@ function Proof({ block }: { block: Of<"proof"> }) {
   );
 }
 
-/* Tom de cada capítulo: a história em Limestone, o credo em Imperial, o time em branco e os números fecham em Imperial. */
-const TONE: Partial<Record<Block["type"], "soft" | "dark" | "paper">> = { timeline: "soft", beliefs: "dark", team: "paper", proof: "dark" };
+/* Tom de cada capítulo: a história em branco, o credo em Imperial, o time em branco e os números fecham em Imperial. */
+const TONE: Partial<Record<Block["type"], "soft" | "dark" | "paper">> = { timeline: "paper", beliefs: "dark", team: "paper", proof: "dark" };
 
 function label(block: Block) {
   const meta = block as { eyebrow?: string; title?: string | string[] };

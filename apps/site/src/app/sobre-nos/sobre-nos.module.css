@@ -263,3 +263,38 @@
 .srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 .sobre .credentials li:not(.seal) strong, .sobre .credentials li:not(.seal) strong * { font-family: var(--font-title); font-weight: 400; letter-spacing: -0.01em; }
+
+/* ---------- Nossa história refeita (pedido do dono em 09/11: estava mal acabada perto das outras seções) ----------
+ * Fundo branco, como as demais páginas. Os três atos viram uma linha do tempo: fio dourado que se preenche na rolagem, um ponto por ato, nome do ato em serifa grande e texto ocupando a largura. A frase final fecha o fio. */
+.sobre .timeline .mosaicWrap { margin-bottom: clamp(48px, 6vw, 96px); }
+.sobre .tile[data-slot="f"] img { object-position: 50% 100%; }
+.sobre .timeline .acts { --thread: 28px; position: relative; }
+.sobre .timeline .acts::before, .sobre .timeline .acts::after { content: ""; position: absolute; left: 3px; top: calc(clamp(24px, 3vw, 44px) + 13px); bottom: 0; width: 1px; background: var(--rule); }
+.sobre .timeline .acts::after { background: var(--gold); transform-origin: 50% 0; }
+.sobre .timeline .acts > li { position: relative; padding: clamp(24px, 3vw, 44px) 0 clamp(24px, 3vw, 44px) var(--thread); border-top: 0; }
+.sobre .timeline .acts > li::before { content: ""; position: absolute; left: 0; top: calc(clamp(24px, 3vw, 44px) + 10px); width: 7px; height: 7px; border-radius: 50%; background: var(--gold); }
+.sobre .timeline .actMeta { padding: 0; font-family: var(--font-title) !important; font-size: clamp(30px, 3vw, 44px); font-weight: 400; line-height: 1.08; letter-spacing: -0.015em; text-transform: none; color: var(--ink-text); text-wrap: balance; }
+.sobre .timeline .actBody { max-width: none; gap: 16px; }
+.sobre .timeline .actBody h2 { max-width: 34ch; font-size: clamp(21px, 1.9vw, 27px); line-height: 1.24; }
+.sobre .timeline .actBody p { max-width: 62ch; }
+.sobre .timeline .keyline { position: relative; margin-top: clamp(16px, 2vw, 28px); padding-top: clamp(28px, 3vw, 44px); border-top: 0; }
+.sobre .timeline .keyline::before { content: ""; position: absolute; left: calc(var(--thread) * -1); top: calc(clamp(28px, 3vw, 44px) + 0.5em); width: 7px; height: 7px; border-radius: 50%; background: var(--gold); }
+/* O fio termina no ponto da frase final: um recorte branco cobre o que sobraria abaixo dele, em qualquer número de linhas. */
+.sobre .timeline .keyline::after { content: ""; position: absolute; z-index: 1; left: calc(var(--thread) * -1); top: calc(clamp(28px, 3vw, 44px) + 0.5em + 7px); bottom: calc(clamp(24px, 3vw, 44px) * -1); width: 8px; background: #fff; }
+@media (min-width: 901px) {
+  .sobre .timeline .acts > li { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); column-gap: clamp(32px, 5vw, 80px); }
+  .sobre .timeline .actBody { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(24px, 3vw, 48px); align-items: start; }
+  .sobre .timeline .actBody h2 { grid-column: 1 / -1; }
+  .sobre .timeline .actBody p:only-of-type { grid-column: 1 / -1; }
+}
+@media (min-width: 1101px) {
+  .sobre .timeline .actMeta { position: sticky; top: 120px; align-self: start; }
+  .sobre .timeline .keyline { font-size: clamp(36px, 3.5vw, 52px); }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .sobre .timeline .acts { view-timeline: --acts block; }
+    .sobre .timeline .acts::after { animation: actsFill linear both; animation-timeline: --acts; animation-range: cover 18% cover 82%; }
+  }
+}
+@keyframes actsFill { from { transform: scaleY(0); } to { transform: scaleY(1); } }
