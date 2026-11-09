@@ -40,7 +40,10 @@ export default function SmoothScroll() {
     let lenis: LenisLike | null = null;
     let cancelled = false;
 
+    /* A instância fica em window.__lenis para quem precisa rolar por código (o índice clicável de "O que construímos"). */
+    const shared = window as unknown as { __lenis?: LenisLike };
     const stop = () => {
+      if (shared.__lenis === lenis) delete shared.__lenis;
       lenis?.destroy();
       lenis = null;
     };
@@ -80,6 +83,7 @@ export default function SmoothScroll() {
         },
       });
       lenis = instance;
+      shared.__lenis = instance;
     };
 
     void sync();

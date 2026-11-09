@@ -62,7 +62,12 @@ export default function BuildStory({ eyebrow, title, items }: { eyebrow?: string
     const el = ref.current;
     if (!el || !live) return setActive(i);
     const run = el.offsetHeight - window.innerHeight;
-    window.scrollTo({ top: el.offsetTop + run * ((i + 0.5) / items.length), behavior: "smooth" });
+    /* Posição no documento (offsetTop é relativo ao capítulo, não à página) e 80% do trecho do item, onde a tela já terminou de montar. */
+    const top = el.getBoundingClientRect().top + window.scrollY + run * ((i + 0.8) / items.length);
+    /* Com a rolagem suave (Lenis) ligada, o salto passa por ela; a rolagem nativa "smooth" brigaria com a Lenis. */
+    const lenis = (window as unknown as { __lenis?: { scrollTo: (to: number, opts?: { duration?: number; force?: boolean }) => void } }).__lenis;
+    if (lenis) lenis.scrollTo(top, { duration: 0.9, force: true });
+    else window.scrollTo({ top, behavior: "smooth" });
   };
 
   return (
@@ -78,7 +83,6 @@ export default function BuildStory({ eyebrow, title, items }: { eyebrow?: string
                 return (
                   <li key={it.title} data-on={on ? "true" : "false"}>
                     <button type="button" className={styles.head} aria-expanded={on} onClick={() => goTo(i)}>
-                      <span className={styles.num}>{String(i + 1).padStart(2, "0")}</span>
                       <span className={styles.name}>{it.title}</span>
                     </button>
                     <div className={styles.detail}>
