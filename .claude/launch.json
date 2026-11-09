@@ -31,6 +31,13 @@
       "runtimeArgs": ["--dir", "D:/Códigos/Tzolkin/Projetos/carol/kalidash/.claude/worktrees/v3-preview/apps/site", "exec", "next", "start", "-p", "3300"],
       "autoPort": false,
       "port": 3300
+    },
+    {
+      "name": "kalidash-home-0211",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--dir", "D:/Códigos/Tzolkin/Projetos/carol/kalidash/.claude/worktrees/home-0211/apps/site", "exec", "next", "start", "-p", "3306"],
+      "autoPort": false,
+      "port": 3306
     }
   ]
 }
