@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { FormEvent } from "react";
+import { getAttribution, newEventId, trackLead } from "@/lib/tracking";
 import styles from "./home.module.css";
 import { config, diagnostico } from "./content";
 
@@ -16,6 +17,8 @@ const emailOk = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 export default function DiagnosticoForm() {
   const [status, setStatus] = useState<Status>("idle");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  /* Id deste envio: o mesmo nas novas tentativas (a API não duplica o lead), um novo depois do sucesso. */
+  const eventIdRef = useRef<string | null>(null);
   const f = diagnostico.fields;
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
@@ -56,27 +59,22 @@ export default function DiagnosticoForm() {
       return;
     }
     setStatus("sending");
+    const eventId = (eventIdRef.current ??= newEventId());
     try {
       const res = await fetch(config.leadEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, event_id: eventId, attribution: getAttribution() }),
       });
       if (!res.ok) throw new Error(String(res.status));
+      const out = await res.json().catch(() => ({}));
       setStatus("sent");
-      try {
-        if (typeof window !== "undefined") {
-          (window as unknown as { dataLayer?: unknown[] }).dataLayer =
-            (window as unknown as { dataLayer?: unknown[] }).dataLayer || [];
-          (window as unknown as { dataLayer: unknown[] }).dataLayer.push({
-            event: "lead_form_submitted",
-            form_name: "home_diagnostico",
-            lead_source: "site-home-diagnostico",
-            goals,
-            team_size: teamSize,
-          });
-        }
-      } catch {}
+      eventIdRef.current = null;
+      trackLead(eventId, "home_diagnostico", out, {
+        lead_source: "site-home-diagnostico",
+        goals,
+        team_size: teamSize,
+      });
       (e.target as HTMLFormElement).reset();
     } catch {
       setStatus("error");

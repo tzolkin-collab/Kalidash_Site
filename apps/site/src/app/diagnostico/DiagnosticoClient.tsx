@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { getAttribution, newEventId, trackLead } from "@/lib/tracking";
 import type { FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -31,40 +32,10 @@ interface FormDataState {
 
 const TOTAL_STEPS = 3;
 
-function getAttribution(): Record<string, string> {
-  if (typeof window === "undefined") return {};
-  const params = new URLSearchParams(window.location.search);
-  const attr: Record<string, string> = {
-    page_url: window.location.href.split("#")[0],
-    device: window.innerWidth < 768 ? "mobile" : "desktop",
-  };
-  if (document.referrer) attr.referrer = document.referrer;
-  const keys = [
-    "utm_source",
-    "utm_medium",
-    "utm_campaign",
-    "utm_content",
-    "utm_term",
-    "gclid",
-    "fbclid",
-    "gbraid",
-    "wbraid",
-  ];
-  keys.forEach((k) => {
-    const val = params.get(k);
-    if (val) attr[k] = val;
-  });
-  try {
-    const fbp = document.cookie.match(/(^|;)\s*_fbp=([^;]+)/);
-    if (fbp) attr._fbp = fbp[2];
-    const fbc = document.cookie.match(/(^|;)\s*_fbc=([^;]+)/);
-    if (fbc) attr._fbc = fbc[2];
-  } catch {}
-  return attr;
-}
-
 export default function DiagnosticoClient() {
   const router = useRouter();
+  /* Id deste envio: o mesmo nas novas tentativas (a API não duplica o lead), um novo depois do sucesso. */
+  const eventIdRef = useRef<string | null>(null);
   const [step, setStep] = useState<number>(1);
   const [status, setStatus] = useState<Status>("idle");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -182,7 +153,9 @@ export default function DiagnosticoClient() {
 
     const attribution = getAttribution();
     if (interest) attribution.interest = interest;
+    const eventId = (eventIdRef.current ??= newEventId());
     const payload = {
+      event_id: eventId,
       name: formData.name.trim(),
       email: formData.email.trim(),
       phone: formData.phone.trim(),
@@ -211,21 +184,14 @@ export default function DiagnosticoClient() {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error(String(res.status));
+      const out = await res.json().catch(() => ({}));
       setStatus("sent");
-
-      try {
-        if (typeof window !== "undefined") {
-          (window as unknown as { dataLayer?: unknown[] }).dataLayer =
-            (window as unknown as { dataLayer?: unknown[] }).dataLayer || [];
-          (window as unknown as { dataLayer: unknown[] }).dataLayer.push({
-            event: "lead_form_submitted",
-            form_name: "diagnostico",
-            lead_source: "site-pagina-diagnostico",
-            goals: formData.goals,
-            team_size: formData.teamSize,
-          });
-        }
-      } catch {}
+      eventIdRef.current = null;
+      trackLead(eventId, "diagnostico", out, {
+        lead_source: "site-pagina-diagnostico",
+        goals: formData.goals,
+        team_size: formData.teamSize,
+      });
     } catch {
       setStatus("error");
     }

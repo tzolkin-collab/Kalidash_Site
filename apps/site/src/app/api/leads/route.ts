@@ -37,6 +37,11 @@ export async function POST(request: Request) {
   if (forwardedFor) {
     headers["X-Forwarded-For"] = forwardedFor;
   }
+  // Navegador de quem enviou: a API de Conversões da Meta usa (client_user_agent) para casar o lead.
+  const userAgent = request.headers.get("user-agent") || "";
+  if (userAgent) {
+    headers["X-Client-User-Agent"] = userAgent.slice(0, 400);
+  }
 
   try {
     const upstream = await fetch(resolveUpstreamUrl(), {

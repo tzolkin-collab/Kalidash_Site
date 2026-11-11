@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, Google_Sans_Flex, Inter, Source_Sans_3 } from "next/font/google";
+import Analytics from "./components/Analytics";
 import GoogleTagManager from "./components/GoogleTagManager";
 import RouteTransition from "./components/RouteTransition";
 import SmoothScroll from "./components/SmoothScroll";
@@ -85,6 +86,10 @@ export default function RootLayout({
       </head>
       <body>
         <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID} />
+        <Analytics
+          gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}
+          pixelId={process.env.NEXT_PUBLIC_META_PIXEL_ID}
+        />
         {children}
         <RouteTransition />
         <SmoothScroll />

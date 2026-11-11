@@ -200,6 +200,10 @@ var attributionKeys = map[string]bool{
 	"referrer": true, "device": true, "page_url": true,
 	"gclid": true, "fbclid": true, "gbraid": true, "wbraid": true,
 	"_fbp": true, "_fbc": true,
+	// Site (lib/tracking.ts): primeiro toque, página de entrada, ids do GA4 e hora do clique do anúncio da Meta.
+	"first_utm_source": true, "first_utm_medium": true, "first_utm_campaign": true,
+	"landing_page": true, "first_seen_at": true,
+	"ga_client_id": true, "ga_session_id": true, "fbclid_at": true,
 }
 
 func handleConnectLead(w http.ResponseWriter, r *http.Request) {

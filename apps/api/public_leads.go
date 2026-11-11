@@ -38,6 +38,9 @@ type leadInput struct {
 	Source      string         `json:"source"`
 	Website     string         `json:"website"` // honeypot: humano nunca preenche
 	Attribution map[string]any `json:"attribution,omitempty"`
+	// EventID: id do envio, gerado no navegador e repetido nas novas tentativas. É a chave de idempotência
+	// (TrackingEvent) e o event_id que junta o Pixel e a API de Conversões da Meta (tracking.go).
+	EventID string `json:"event_id,omitempty"`
 }
 
 // clean tira caracteres de controle e espaços das pontas e corta no limite (em runes).
@@ -232,12 +235,42 @@ func handlePublicLead(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := leadSaver(in, clientIP(r)); err != nil {
+	// Idempotência por event_id (tracking.go): o mesmo envio nunca grava 2 leads nem dispara 2 conversões.
+	eventID := normalizeEventID(in.EventID)
+	resp := map[string]any{"ok": true, "eventId": eventID, "serverSide": loadTrackingConfig().serverSide()}
+	if !acquireEvent(eventID) {
+		resp["pending"] = true
+		writeJSON(w, http.StatusAccepted, resp)
+		return
+	}
+	defer releaseEvent(eventID)
+	claim, err := tracking.Claim(eventID, "Lead", in.Source)
+	if err != nil {
+		// Sem a tabela de eventos o lead ainda entra (perder o lead é pior); só a idempotência fica de fora.
+		log.Println("⚠️ TrackingEvent:", err)
+		claim = claimNew
+	}
+	if claim == claimDone {
+		resp["duplicate"] = true
+		writeJSON(w, http.StatusOK, resp)
+		return
+	}
+
+	ip := clientIP(r)
+	if err := leadSaver(in, ip); err != nil {
 		log.Println("❌ captura de lead:", err)
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "não foi possível registrar agora"})
 		return
 	}
-	writeJSON(w, http.StatusCreated, map[string]bool{"ok": true})
+	if err := tracking.MarkLeadSaved(eventID); err != nil {
+		log.Println("⚠️ TrackingEvent:", err)
+	}
+	ua := r.Header.Get("X-Client-User-Agent")
+	if ua == "" {
+		ua = r.Header.Get("User-Agent")
+	}
+	dispatchConversion(buildConversion(in, eventID, ip, ua))
+	writeJSON(w, http.StatusCreated, resp)
 }
 
 // leadSaver escolhe o destino da captura (trocável nos testes). Com CRM_API=1 grava um Lead v2 (decisão D6,
@@ -308,6 +341,20 @@ func saveLeadV2(in leadInput, ip string) error {
 	return err
 }
 
+// attributionNote: a origem do lead (UTMs, ids de clique, página de entrada) em linhas "chave: valor", em ordem
+// fixa, para o caminho antigo, que não tem campo próprio. Ids de cookie (_fbp, _fbc, ga_*) ficam de fora da nota.
+func attributionNote(a map[string]any) string {
+	order := []string{"utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "gclid", "fbclid", "gbraid", "wbraid",
+		"first_utm_source", "first_utm_medium", "first_utm_campaign", "landing_page", "first_seen_at", "referrer", "page_url", "device", "interest"}
+	var b strings.Builder
+	for _, k := range order {
+		if s := clean(strOf(a[k]), 500); s != "" {
+			b.WriteString(k + ": " + s + "\n")
+		}
+	}
+	return strings.TrimSpace(b.String())
+}
+
 // saveLead cria (ou reaproveita, por e-mail) o contato, a oportunidade na coluna INBOUND e a nota
 // com o que a pessoa escreveu. Tudo numa transação: ou entra completo, ou não entra.
 func saveLead(in leadInput) error {
@@ -342,6 +389,9 @@ func saveLead(in leadInput) error {
 	note := fmt.Sprintf("Lead recebido pelo formulário (%s).\nWhatsApp: %s", in.Source, in.Phone)
 	if in.Challenge != "" {
 		note += "\n\nDesafio informado:\n" + in.Challenge
+	}
+	if attr := attributionNote(in.Attribution); attr != "" {
+		note += "\n\nOrigem:\n" + attr
 	}
 	if _, err := tx.Exec(`INSERT INTO Note (id, content, type, opportunityId, createdAt) VALUES (?, ?, 'NOTE', ?, ?)`, id("n"), note, oppID, now); err != nil {
 		return err

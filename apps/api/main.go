@@ -96,6 +96,7 @@ func initDB() {
 		ensureConnectSchema()
 	}
 	ensureBlogSchema()
+	ensureTrackingSchema() // tabela nova TrackingEvent (idempotência da captura de lead); não altera nada existente
 	initStorage()
 }
 
