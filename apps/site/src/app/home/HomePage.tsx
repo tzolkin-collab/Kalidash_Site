@@ -60,7 +60,11 @@ function TextLink({ href, children, onClick }: { href: string; children: React.R
 const symptomIcons = [ChartIcon, DatabaseOffIcon, ShareIcon];
 const symptomQuotes = [problem.quote, ...problem.pairedQuotes];
 /* Retratos dos autores (nome → arquivo em /public/home). Ainda não temos os retratos: sem entrada aqui, a bolinha mostra as iniciais. */
-const quoteAvatars: Record<string, string> = {};
+const quoteAvatars: Record<string, string> = {
+  "Iasmin Ramiro": "/depoimentos/iasmin.jpg",
+  "Fernando Torquetti": "/depoimentos/fernando.jpg",
+  "Geraldo Nunes": "/depoimentos/geraldo.jpg",
+};
 
 const TYPEKIT_KIT = "https://use.typekit.net/krs4uwp.css";
 
