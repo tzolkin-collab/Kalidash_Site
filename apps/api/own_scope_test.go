@@ -59,7 +59,7 @@ func TestOwnScopeNaoVaiParaToken(t *testing.T) {
 
 // Sem login ligado ninguém é restringido.
 func TestOwnRestrictionSemAuthNaoRestringe(t *testing.T) {
-	t.Setenv("AUTH_API", "")
+	t.Setenv("AUTH_API", "0")
 	if me, restricted := ownRestriction(nil, "leads", false); restricted || me != "" {
 		t.Errorf("sem AUTH_API não há restrição: %q %v", me, restricted)
 	}

@@ -120,7 +120,7 @@ func TestIntegrationOportunidadeVinculos(t *testing.T) {
 	}
 
 	// sem o login ligado, o responsável é recusado (a tabela da equipe não existe); pessoa e empresa seguem
-	t.Setenv("AUTH_API", "")
+	t.Setenv("AUTH_API", "0")
 	if c, _ := putOpp(t, `{"id":"o1","title":"A","value":1,"ownerMemberId":"`+adm.ID+`"}`); c != 422 {
 		t.Errorf("responsável sem AUTH_API: %d", c)
 	}

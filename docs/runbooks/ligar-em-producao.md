@@ -69,7 +69,7 @@ Nunca no repositório. API: EasyPanel → serviço → Environment (reiniciar de
 | `WORKFLOW_API` | liga funis/tarefas | quando `=1` | `1` | Gustavo |
 | `CRM_API` | liga pessoas/empresas/leads/histórico | quando `=1` | `1` | Gustavo |
 | `DATA_KEY` | chave do CPF (AES-256-GCM) | `CRM_API=1` e uso de CPF | 64 hex | gerar (§4) |
-| `AUTH_API` | login Google, perfis, escopos e tokens | quando `=1` | `1` | Gustavo |
+| `AUTH_API` | login Google, perfis, escopos e tokens | **ligado por padrão desde 14/11/2026**; só `0`/`false`/`off` desliga | vazio (ou `1`) | Gustavo |
 | `SESSION_SECRET` | assina a sessão | `AUTH_API=1` (≥ 32 caracteres) | 64 hex | gerar (§4) |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | OAuth | `AUTH_API=1` (sem dev login) | `…apps.googleusercontent.com` | Google Cloud (§6) |
 | `GOOGLE_REDIRECT_URL` | callback, idêntico ao cadastrado no Google | idem | `https://API/auth/google/callback` | Gustavo |
@@ -83,7 +83,9 @@ Nunca no repositório. API: EasyPanel → serviço → Environment (reiniciar de
 | `R2_ENDPOINT` | storage alternativo (MinIO/testes) | não usar em produção | vazio | — |
 | `TEST_DSN` | só testes (`go test`) | nunca em produção | — | — |
 
-Regras vistas no código: com `AUTH_API=1` a API **não sobe** se faltar `SESSION_SECRET` ≥ 32 caracteres, `ALLOWED_ORIGINS`/`SITE_URL` ou (sem dev login) `GOOGLE_CLIENT_ID/SECRET/REDIRECT_URL` e `ADMIN_URL`. As rotas `connect.js` e `/api/connect/*` só existem com `CRM_API=1` **e** `AUTH_API=1`.
+⚠️ **Desde 14/11/2026 o login é o padrão.** Um deploy da API sem as variáveis de login **não sobe** (falha fechada). Configure o §7.1 antes do deploy, ou ponha `AUTH_API=0` de propósito para manter o comportamento antigo (API aberta) até lá.
+
+Regras vistas no código: com o login ligado a API **não sobe** se faltar `SESSION_SECRET` ≥ 32 caracteres, `ALLOWED_ORIGINS`/`SITE_URL` ou (sem dev login) `GOOGLE_CLIENT_ID/SECRET/REDIRECT_URL` e `ADMIN_URL`. As rotas `connect.js` e `/api/connect/*` só existem com `CRM_API=1` **e** `AUTH_API=1`.
 
 ### Admin (Vercel)
 
@@ -143,7 +145,7 @@ Para **cada** passo: (1) backup novo (§2); (2) ajustar a variável e reiniciar;
 
 - Variáveis: `AUTH_API=1`, `SESSION_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URL`, `ADMIN_URL`, `ALLOWED_ORIGINS` (admin **e** site), `AUTH_ROOT_ADMIN`.
 - **O que muda:** cria `TeamMember`, `AuthSession` e as tabelas de escopos/tokens; `/api/*` passa a exigir sessão (401), exceto `POST /api/public/leads`, `/api/connect/*` (têm autenticação própria), leitura pública de artigos publicados e `/api/revalidate`; o CORS deixa de ser `*`; `/api/emails/send` passa a exigir sessão. Quem chamava a API sem navegador passa a receber 401 (o site só usa as leituras públicas do blog).
-- Log esperado: `✅ Login e perfis prontos (AUTH_API=1)`.
+- Log esperado: `✅ Login e perfis prontos (login ligado)`.
 - Smoke (curl):
 
 ```bash
@@ -230,7 +232,7 @@ Regra geral: desligar a flag e reiniciar. Tabelas e colunas criadas **ficam** (s
 |---|---|---|
 | `CRM_API` | esvaziar a variável e reiniciar | `/api/crm/*` e `connect` somem (404); as telas voltam ao exemplo. **Mantenha a `DATA_KEY`** |
 | `WORKFLOW_API` | idem | funis/tarefas somem; o gate deixa de valer |
-| `AUTH_API` | idem | ⚠️ **a API volta a ficar aberta, CORS `*`**: só em emergência, e reative a Vercel Authentication no admin |
+| `AUTH_API` | `AUTH_API=0` e reiniciar (esvaziar não desliga mais: o login é o padrão desde 14/11/2026) | ⚠️ **a API volta a ficar aberta, CORS `*`**: só em emergência, e reative a Vercel Authentication no admin |
 | Deploy da API | EasyPanel → redeploy do commit/imagem anterior | — |
 | Deploy do admin ou site | Vercel → Deployments → versão anterior → *Promote to Production* | — |
 | Dados corrompidos | restaurar o dump do §2 | **perde o que entrou depois**; último recurso |

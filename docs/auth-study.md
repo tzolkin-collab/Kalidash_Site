@@ -354,7 +354,7 @@ Custo: $0 (OAuth é gratuito no Google Cloud, sem billing obrigatório)
 
 ## Implementação (WP1, 18/10/2026)
 
-Código: `apps/api/auth_store.go` (tabelas, equipe, sessões, bootstrap), `auth_google.go` (OAuth, `/auth/*`, `/api/team`), `auth_middleware.go` (cookie, CORS, **tabela única de acesso por rota**), `auth_rules.go` (regras que dependem do conteúdo); admin: `lib/auth.ts`, `pages/Login.tsx`, `lib/teamSync.ts`, `lib/roles.ts`. Tudo atrás de **`AUTH_API=1`** (desligada por padrão). Com a flag desligada nada muda: sem tabelas novas, sem middleware, CORS `*` e API aberta, como antes.
+Código: `apps/api/auth_store.go` (tabelas, equipe, sessões, bootstrap), `auth_google.go` (OAuth, `/auth/*`, `/api/team`), `auth_middleware.go` (cookie, CORS, **tabela única de acesso por rota**), `auth_rules.go` (regras que dependem do conteúdo); admin: `lib/auth.ts`, `pages/Login.tsx`, `lib/teamSync.ts`, `lib/roles.ts`. Desde 14/11/2026 o login é **ligado por padrão**: só `AUTH_API=0` (ou `false`/`off`) desliga, e a API não sobe se faltar a configuração (falha fechada). Com `AUTH_API=0` nada muda em relação ao antigo: sem tabelas novas, sem middleware, CORS `*` e API aberta. Use só em desenvolvimento ou emergência.
 
 ### O que diverge do desenho acima (e por quê)
 

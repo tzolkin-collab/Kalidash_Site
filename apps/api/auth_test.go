@@ -995,10 +995,25 @@ func TestRegrasFinasPorConteudo(t *testing.T) {
 	}
 }
 
+func TestLoginLigadoPorPadrao(t *testing.T) {
+	for _, v := range []string{"", "1", "true", "qualquer"} {
+		t.Setenv("AUTH_API", v)
+		if !authEnabled() {
+			t.Errorf("AUTH_API=%q: o login deve ficar ligado (falha fechada)", v)
+		}
+	}
+	for _, v := range []string{"0", "false", "OFF", " off "} {
+		t.Setenv("AUTH_API", v)
+		if authEnabled() {
+			t.Errorf("AUTH_API=%q deve desligar o login", v)
+		}
+	}
+}
+
 func TestComFlagDesligadaNadaMuda(t *testing.T) {
-	t.Setenv("AUTH_API", "")
+	t.Setenv("AUTH_API", "0")
 	if authEnabled() {
-		t.Fatal("AUTH_API deve ser desligado por padrão")
+		t.Fatal("AUTH_API=0 deve desligar o login")
 	}
 	h := enableCORS(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(200) })
 	rec := httptest.NewRecorder()

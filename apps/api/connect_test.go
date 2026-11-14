@@ -472,7 +472,7 @@ func TestProjetosSoAdminEGerente(t *testing.T) {
 
 func TestConexaoDesligadaSemAsFlags(t *testing.T) {
 	t.Setenv("CRM_API", "")
-	t.Setenv("AUTH_API", "")
+	t.Setenv("AUTH_API", "0")
 	if connectEnabled() {
 		t.Fatal("a conexão só liga com CRM_API=1 e AUTH_API=1")
 	}

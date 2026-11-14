@@ -10,13 +10,20 @@ import (
 	"time"
 )
 
-// Login, sessão e perfis da equipe (docs/auth-study.md). DESLIGADO por padrão: com AUTH_API=1 a API
+// Login, sessão e perfis da equipe (docs/auth-study.md). LIGADO por padrão (desde 14/11/2026): a API
 //   - cria TeamMember e AuthSession (CREATE TABLE IF NOT EXISTS; nada existente é alterado);
 //   - registra /auth/* e passa a exigir sessão em /api/* (auth_middleware.go);
 //   - restringe o CORS a ALLOWED_ORIGINS (com credenciais, sem "*").
-// Sem a variável a API não toca no banco e se comporta como antes (aberta). Faça backup antes de ligar.
+// Só AUTH_API=0 (ou false/off) desliga, e aí a API fica ABERTA como antes: use apenas em desenvolvimento.
+// Falha fechada: esquecer a variável não abre o admin; se faltar configuração a API não sobe.
 
-func authEnabled() bool { return os.Getenv("AUTH_API") == "1" }
+func authEnabled() bool {
+	switch strings.ToLower(strings.TrimSpace(os.Getenv("AUTH_API"))) {
+	case "0", "false", "off":
+		return false
+	}
+	return true
+}
 
 // Perfis, com os mesmos nomes de apps/admin/src/domain.ts (Role).
 const (
@@ -336,11 +343,11 @@ func clip(s string, n int) string {
 	return s
 }
 
-// ensureAuthSchema é idempotente. Falha alta: com AUTH_API=1 o operador pediu o recurso, e uma API
+// ensureAuthSchema é idempotente. Falha alta: o login é o padrão, e uma API
 // "protegida" que subiu mal configurada seria pior que uma que não sobe.
 func ensureAuthSchema() {
 	if err := validateAuthConfig(); err != nil {
-		log.Fatalf("❌ AUTH: %v", err)
+		log.Fatalf("❌ AUTH: %v (o login vem ligado por padrão; só em desenvolvimento, AUTH_API=0 desliga)", err)
 	}
 	for _, stmt := range splitStatements(authSchema) {
 		if _, err := db.Exec(stmt); err != nil {
@@ -370,10 +377,10 @@ func ensureAuthSchema() {
 	if err := bootstrapAdmin(authDB); err != nil {
 		log.Fatalf("❌ AUTH: %v", err)
 	}
-	log.Println("✅ Login e perfis prontos (AUTH_API=1)")
+	log.Println("✅ Login e perfis prontos (login ligado)")
 }
 
-// validateAuthConfig confere o que não pode faltar com AUTH_API=1.
+// validateAuthConfig confere o que não pode faltar com o login ligado (o padrão).
 func validateAuthConfig() error {
 	if len(os.Getenv("SESSION_SECRET")) < 32 {
 		return fmt.Errorf("SESSION_SECRET precisa ter 32 caracteres ou mais")
