@@ -52,7 +52,7 @@ function SampleProjects() {
   return (
     <Page>
       <PageHeader title="Projetos conectados" subtitle={SUBTITLE} />
-      <SampleBanner>Projetos, métricas e chaves são de exemplo: nenhuma chave emitida aqui vale de verdade no servidor. Com a API ligada (CRM_API=1 e login com AUTH_API=1) esta tela passa a gravar no servidor.</SampleBanner>
+      <SampleBanner offline>Projetos e chaves não estão ligados na API: o que for criado aqui não vale no servidor. Com a API ligada (CRM_API=1 e login com AUTH_API=1) esta tela passa a gravar no servidor.</SampleBanner>
       <Tabs
         tabs={[{ id: 'projects' as Tab, label: 'Projetos', count: projects.length }, { id: 'integrations' as Tab, label: 'Integrações' }, { id: 'keys' as Tab, label: 'Chaves de API', count: keys.filter((k) => k.status === 'ACTIVE').length }]}
         value={tab}

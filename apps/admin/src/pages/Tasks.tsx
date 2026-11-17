@@ -34,7 +34,7 @@ export default function Tasks() {
           </button>
         }
       />
-      {syncMode !== 'api' && <SampleBanner phase={4} />}
+      {syncMode !== 'api' && <SampleBanner offline />}
 
       <div className="toolbar">
         <SearchBox value={search} onChange={setSearch} placeholder="Buscar funil ou oferta…" />
@@ -45,13 +45,17 @@ export default function Tasks() {
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState title={pipelines.length === 0 ? 'Nenhum funil ainda. Crie o primeiro' : 'Nenhum funil encontrado'}>
+        <EmptyState
+          title={pipelines.length === 0 ? 'Nenhum funil ainda. Crie o primeiro' : 'Nenhum funil encontrado'}
+          action={
+            <div style={{ marginTop: '12px' }}>
+              <button type="button" className="btn btn-solid" onClick={() => navigate('/oportunidades/pipelines/nova')}>
+                <Plus size={14} /> {pipelines.length === 0 ? 'Criar o primeiro funil' : 'Criar novo funil'}
+              </button>
+            </div>
+          }
+        >
           {pipelines.length === 0 ? 'Um funil organiza as etapas e as tarefas de cada venda. Comece por um modelo.' : 'Ajuste a busca ou crie uma nova pipeline de vendas.'}
-          <div style={{ marginTop: '12px' }}>
-            <button type="button" className="btn btn-solid" onClick={() => navigate('/oportunidades/pipelines/nova')}>
-              <Plus size={14} /> {pipelines.length === 0 ? 'Criar o primeiro funil' : 'Criar novo funil'}
-            </button>
-          </div>
         </EmptyState>
       ) : (
         <div className="funnel-grid">

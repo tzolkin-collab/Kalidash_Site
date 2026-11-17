@@ -84,7 +84,7 @@ export default function PipelineBuilder({ onBack }: { onBack: () => void }) {
         title="Nova pipeline"
         subtitle="Cada pipeline é um funil ligado a uma oferta. Escolha um template de ciclo de vida: ele é copiado para a pipeline e você edita a cópia depois."
       />
-      {syncMode !== 'api' && <SampleBanner phase={1}>A pipeline nova só existe até recarregar a página.</SampleBanner>}
+      {syncMode !== 'api' && <SampleBanner offline>A pipeline nova só existe até recarregar a página.</SampleBanner>}
 
       <div className="form-stack" style={{ maxWidth: '860px' }}>
         <div>

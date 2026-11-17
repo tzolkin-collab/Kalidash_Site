@@ -80,7 +80,7 @@ export default function Leads() {
         subtitle="Quem ainda não virou oportunidade. Todo lead nasce de uma fonte (inbound) ou de alguém da equipe (outbound). Clique em um lead para abrir a ficha e editar campo a campo."
         actions={<button type="button" className="btn btn-solid" onClick={() => setAdding(true)}><Plus size={14} /> Adicionar lead</button>}
       />
-      {crmMode !== 'api' && <SampleBanner phase={3} />}
+      {crmMode !== 'api' && <SampleBanner offline />}
       {notice && (
         <div className="notice" role="status">
           <span>{notice}</span>

@@ -175,12 +175,15 @@ export function StatCard({ label, value, hint, tone }: { label: string; value: R
 }
 
 /** Aviso fixo nas telas que ainda usam dados de exemplo. */
-export function SampleBanner({ phase, children }: { phase?: number; children?: ReactNode }) {
+/** `offline`: tela do núcleo, que grava na API, aberta sem ela. Não há dado de exemplo (só com VITE_SEED_DEMO=1):
+ * o aviso diz que nada é gravado. Sem `offline`, a tela ainda é de exemplo de verdade (Automações, E-mails…). */
+export function SampleBanner({ phase, offline, children }: { phase?: number; offline?: boolean; children?: ReactNode }) {
   return (
     <div className="sample-banner" role="note">
       <FlaskConical size={14} />
       <span>
-        <strong>Dados de exemplo.</strong> {children ?? 'Esta tela ainda não tem API: nada aqui é gravado e recarregar a página restaura o exemplo.'}{' '}
+        <strong>{offline ? 'API desligada.' : 'Dados de exemplo.'}</strong>{' '}
+        {children ?? (offline ? 'Esta tela grava na API, que não está ligada aqui: o que for criado vale só até recarregar a página.' : 'Esta tela ainda não tem API: nada aqui é gravado e recarregar a página restaura o exemplo.')}{' '}
         {phase !== undefined && <span className="text-muted">Ligação prevista na fase {phase} do plano.</span>}
       </span>
     </div>

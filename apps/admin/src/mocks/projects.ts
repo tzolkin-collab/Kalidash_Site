@@ -1,9 +1,10 @@
 import { createStore } from '../lib/store';
+import { demoOnly } from '../lib/seedDemo';
 import type { ApiKey, ConnectedProject } from '../domain';
 
 // Dados de exemplo (fase 5 do plano). Ver docs/pagesAdmin/projects.md.
 
-export const projectsStore = createStore<ConnectedProject[]>([
+export const projectsStore = createStore<ConnectedProject[]>(demoOnly<ConnectedProject>([
   {
     id: 'lp-consultoria', name: 'LP Consultoria', url: 'https://consultoria.exemplo.com.br', description: 'Landing page da oferta de consultoria de vendas.', stack: 'Next.js (Vercel)',
     modules: [{ name: 'Formulário', status: 'ACTIVE' }, { name: 'Analytics', status: 'ACTIVE' }, { name: 'Ads', status: 'PENDING' }],
@@ -25,13 +26,13 @@ export const projectsStore = createStore<ConnectedProject[]>([
     forms: [{ id: 'lp-parcerias:parceiro', name: 'Quero ser parceiro', selector: '#parceiro', fields: 7, views: 300, submissions: 0 }],
     visits: 640, submissions: 0, topOrigin: 'Indicação',
   },
-]);
+]));
 
-export const apiKeysStore = createStore<ApiKey[]>([
+export const apiKeysStore = createStore<ApiKey[]>(demoOnly<ApiKey>([
   { id: 'k1', name: 'Connect da LP Consultoria', env: 'live', prefix: 'kld_live_3f9c2a71b', project: 'LP Consultoria', scopes: ['forms:write', 'analytics:write'], createdAt: '2026-08-14T13:00:00Z', lastUsedAt: '2026-09-27T07:58:00Z', status: 'ACTIVE' },
   { id: 'k2', name: 'Connect do site institucional', env: 'live', prefix: 'kld_live_a81e5d20c', project: 'Site institucional', scopes: ['forms:write'], createdAt: '2026-08-20T10:30:00Z', lastUsedAt: '2026-09-26T18:12:00Z', status: 'ACTIVE' },
   { id: 'k3', name: 'Testes locais', env: 'test', prefix: 'kld_test_9f2a1c04e', project: 'LP Parcerias', scopes: ['forms:write', 'analytics:write'], createdAt: '2026-09-02T09:00:00Z', lastUsedAt: '2026-09-10T15:40:00Z', status: 'REVOKED' },
-]);
+]));
 
 export const SCOPE_INFO: Record<string, { label: string; hint: string; publicSafe: boolean }> = {
   'forms:write': { label: 'forms:write', hint: 'Criar leads a partir do Connect (o mínimo do snippet).', publicSafe: true },

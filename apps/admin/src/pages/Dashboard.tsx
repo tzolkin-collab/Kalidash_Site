@@ -146,7 +146,7 @@ export default function Dashboard() {
 
       <h2 className="section-title" style={{ margin: '28px 0 12px' }}>Leads e origem</h2>
       {!realLeads ? (
-        <p className="text-xs text-muted">Os leads só aparecem aqui quando o CRM está ligado na API (CRM_API=1). Hoje a tela de Leads usa dados de exemplo, e exemplo não entra nas métricas.</p>
+        <p className="text-xs text-muted">Os leads só aparecem aqui quando o CRM está ligado na API (CRM_API=1). Sem ela a tela de Leads fica vazia.</p>
       ) : (
         <>
           <div className="stat-grid">
@@ -178,7 +178,7 @@ export default function Dashboard() {
 
       <h2 className="section-title" style={{ margin: '28px 0 12px' }}>Tarefas</h2>
       {!realTasks ? (
-        <p className="text-xs text-muted">As tarefas só aparecem aqui quando funis e tarefas estão ligados na API (WORKFLOW_API=1). Hoje a tela de Tarefas usa dados de exemplo.</p>
+        <p className="text-xs text-muted">As tarefas só aparecem aqui quando funis e tarefas estão ligados na API (WORKFLOW_API=1). Sem ela a tela de Tarefas fica vazia.</p>
       ) : (
         <>
           <div className="stat-grid">

@@ -73,7 +73,7 @@ export default function Clients() {
         subtitle="Pessoas e empresas cujo ciclo de vida é Cliente. Ele nasce quando uma oportunidade é ganha; quem já era cliente antes do sistema entra pelo botão ao lado."
         actions={<button type="button" className="btn btn-solid" onClick={() => setChoosing(true)}><Plus size={14} /> Adicionar cliente existente</button>}
       />
-      {crmMode !== 'api' && <SampleBanner phase={2} />}
+      {crmMode !== 'api' && <SampleBanner offline />}
       {notice && (
         <div className="notice" role="status">
           <span>{notice}</span>

@@ -1,4 +1,5 @@
 import { createStore } from '../lib/store';
+import { demoOnly } from '../lib/seedDemo';
 import type { Pipeline, Requirement, Stage, Step } from '../domain';
 import { stepsFromTemplate } from '../lib/pipelineTemplate';
 import { TEMPLATE_IDS, templatesStore } from './templates';
@@ -32,7 +33,7 @@ const q4 = 'q4';
 const b2b = 'b2b';
 const exp = 'exp26';
 
-export const pipelinesStore = createStore<Pipeline[]>([
+export const pipelinesStore = createStore<Pipeline[]>(demoOnly<Pipeline>([
   {
     id: q4,
     name: 'Q4 Sales Pipeline',
@@ -98,7 +99,7 @@ export const pipelinesStore = createStore<Pipeline[]>([
     templateId: TEMPLATE_IDS.inbound,
     steps: stepsFor(stages(exp), TEMPLATE_IDS.inbound),
   },
-]);
+]));
 
 export const pipelineById = (list: Pipeline[], id: string | undefined) => list.find((p) => p.id === id);
 

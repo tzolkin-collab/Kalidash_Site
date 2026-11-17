@@ -1,11 +1,12 @@
 import { createStore } from '../lib/store';
+import { demoOnly } from '../lib/seedDemo';
 import type { Lead } from '../domain';
 
 // Dados de exemplo (fase 3 do plano). Ver docs/dominio.md §4.
 // As quantidades por etapa batem com as de mocks/pipelines.ts.
 // `wasSeen` e os vínculos com pessoa e empresa seguem os dados de mocks/people.ts.
 
-export const leadsStore = createStore<Lead[]>([
+export const leadsStore = createStore<Lead[]>(demoOnly<Lead>([
   { id: 'l1', name: 'Renata Moura', email: 'renata.moura@exemplo.com.br', phone: '(11) 98888-1122', personId: 'p9', pipelineId: 'q4', stageId: 'q4:novos', origin: 'INBOUND', sourceName: 'Formulário da LP Consultoria', owner: 'Cesar Germano', estimatedValue: 12000, tags: ['Quente'], message: 'Quero estruturar o time comercial da minha agência.', status: 'ACTIVE', wasSeen: false, createdAt: '2026-09-27T07:58:00Z' },
   { id: 'l2', name: 'Estúdio Lumen', email: 'contato@estudiolumen.com.br', pipelineId: 'q4', stageId: 'q4:novos', origin: 'INBOUND', sourceName: 'Formulário da LP Consultoria', tags: ['Agência'], message: 'Vi o anúncio e queria entender os valores.', status: 'ACTIVE', wasSeen: false, createdAt: '2026-09-26T17:05:00Z' },
   { id: 'l3', name: 'Paulo Henrique Dias', email: 'paulo.dias@exemplo.com.br', phone: '(21) 97777-3344', personId: 'p8', pipelineId: 'q4', stageId: 'q4:novos', origin: 'OUTBOUND', sourceName: 'Cesar Germano', tags: ['Indicação'], status: 'ACTIVE', wasSeen: false, createdAt: '2026-09-26T10:30:00Z' },
@@ -15,7 +16,7 @@ export const leadsStore = createStore<Lead[]>([
   { id: 'l7', name: 'Casa do Código Aberto', email: 'oi@casadocodigo.dev', pipelineId: 'b2b', stageId: 'b2b:novos', origin: 'INBOUND', sourceName: 'Importação de planilha', tags: ['Tecnologia'], status: 'ACTIVE', wasSeen: false, createdAt: '2026-09-22T16:20:00Z' },
   { id: 'l8', name: 'Clínica Bem Viver', email: 'admin@clinicabemviver.com.br', personId: 'p10', companyId: 'c5', pipelineId: 'b2b', stageId: 'b2b:contato', origin: 'OUTBOUND', sourceName: 'Cesar Germano', tags: ['Saúde'], status: 'ACTIVE', wasSeen: false, createdAt: '2026-09-21T11:15:00Z' },
   { id: 'l9', name: 'Tatiane Freitas', email: 'tati.freitas@exemplo.com.br', personId: 'p11', returningClient: true, pipelineId: 'exp26', stageId: 'exp26:novos', origin: 'OUTBOUND', sourceName: 'Carol Nunes', tags: ['Cliente atual'], status: 'ACTIVE', wasSeen: false, createdAt: '2026-09-20T15:00:00Z' },
-]);
+]));
 
 /** Motivos de descarte de lead. Lista do time. */
 export const discardReasonsStore = createStore<string[]>(['Sem orçamento', 'Sem interesse', 'Fora do perfil', 'Contato inválido', 'Duplicado']);

@@ -64,7 +64,7 @@ export default function PeopleCompanies() {
           </>
         }
       />
-      {crmMode !== 'api' && <SampleBanner phase={2} />}
+      {crmMode !== 'api' && <SampleBanner offline />}
       {notice && (
         <div className="notice" role="status">
           <span>{notice}</span>
