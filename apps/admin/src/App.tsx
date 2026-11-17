@@ -112,6 +112,7 @@ export default function App() {
   if (auth.status === 'loading') return <div className="app-wrapper"><Loading /></div>;
   if (auth.status === 'anon') return <div className="app-wrapper"><Login /></div>;
   if (auth.status === 'unreachable') return <div className="app-wrapper"><Unreachable /></div>;
+  if (auth.status === 'nologin') return <div className="app-wrapper"><Unreachable nologin /></div>;
 
   const [root, second, third] = segments;
   let page: ReactNode;

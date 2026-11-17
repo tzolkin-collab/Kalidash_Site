@@ -23,6 +23,15 @@ test('rota inexistente é API sem login, mesmo com indicador antigo', () => {
   assert.equal(decideAuth('missing', true), 'off');
 });
 
+test('build de produção nunca abre sem login', () => {
+  assert.equal(decideAuth('failed', false, false), 'unreachable');
+  assert.equal(decideAuth('failed', true, false), 'unreachable');
+  assert.equal(decideAuth('missing', false, false), 'nologin');
+  assert.equal(decideAuth('missing', true, false), 'nologin');
+  assert.equal(decideAuth('ok', false, false), 'in');
+  assert.equal(decideAuth('unauthorized', false, false), 'anon');
+});
+
 test('respostas normais', () => {
   assert.equal(decideAuth('ok', false), 'in');
   assert.equal(decideAuth('unauthorized', false), 'anon');

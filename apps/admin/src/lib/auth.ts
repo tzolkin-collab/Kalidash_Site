@@ -1,12 +1,13 @@
 import type { Role } from '../domain';
 import { API_URL } from './api';
 import { clearUserCaches } from './cacheClean';
-import { classifyMe, decideAuth, readConfigured, writeConfigured } from './authDecision';
+import { ALLOW_NO_LOGIN, classifyMe, decideAuth, readConfigured, writeConfigured } from './authDecision';
 import { createStore, useStore } from './store';
 
 // Sessão do admin (docs/auth-study.md). O servidor decide tudo: aqui só se pergunta "quem sou eu?"
 // em GET /auth/me e se mostra a tela certa.
-//   off     a API está sem AUTH_API (ou fora do ar): nada muda, o admin abre direto como antes
+//   off     só em desenvolvimento: a API está sem AUTH_API (ou fora do ar) e o admin abre com a equipe local
+//   nologin build de produção com uma API sem login: tela de bloqueio, nada da área logada aparece
 //   anon    a API exige login e não há sessão: mostra a tela de entrada
 //   in      há sessão: `user` é a pessoa real, com o perfil que o servidor aplica
 //   unreachable  o login já foi visto ligado nesta instalação e agora o servidor não responde: tela
@@ -16,7 +17,7 @@ import { createStore, useStore } from './store';
 
 export type SessionUser = { id: string; name: string; email: string; role: Role; avatarUrl?: string; /** Escopos efetivos que o servidor aplica (ausente numa API antiga: vale o perfil). */ scopes?: string[] };
 export type AuthState = {
-  status: 'loading' | 'off' | 'anon' | 'in' | 'unreachable';
+  status: 'loading' | 'off' | 'anon' | 'in' | 'unreachable' | 'nologin';
   user?: SessionUser;
   /** A API tem o login com Google configurado. */
   google: boolean;
@@ -65,7 +66,7 @@ export async function initAuth(): Promise<void> {
   const outcome = classifyMe(res ? res.status : null);
   if (outcome === 'ok' || outcome === 'unauthorized') writeConfigured(true);
   else if (outcome === 'missing') writeConfigured(false);
-  const decision = decideAuth(outcome, readConfigured());
+  const decision = decideAuth(outcome, readConfigured(), ALLOW_NO_LOGIN);
   if (decision === 'in' && res) {
     installSessionFetch();
     authStore.set({ status: 'in', user: (await res.json()) as SessionUser, google: false, dev: false });
@@ -74,7 +75,7 @@ export async function initAuth(): Promise<void> {
     const body = (await res.json().catch(() => ({}))) as { google?: boolean; dev?: boolean };
     authStore.set({ status: 'anon', google: !!body.google, dev: !!body.dev });
   } else {
-    authStore.set({ status: decision === 'unreachable' ? 'unreachable' : 'off', google: false, dev: false });
+    authStore.set({ status: decision, google: false, dev: false });
   }
 }
 

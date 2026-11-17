@@ -4,7 +4,7 @@
 export const AUTH_CONFIGURED_KEY = 'kalidash.auth.configured.v1';
 
 export type MeOutcome = 'ok' | 'unauthorized' | 'missing' | 'failed';
-export type AuthDecision = 'in' | 'anon' | 'off' | 'unreachable';
+export type AuthDecision = 'in' | 'anon' | 'off' | 'unreachable' | 'nologin';
 
 /** `missing`: a rota não existe (API sem login). `failed`: falha de rede ou 5xx. */
 export function classifyMe(status: number | null): MeOutcome {
@@ -14,13 +14,22 @@ export function classifyMe(status: number | null): MeOutcome {
   return 'missing';
 }
 
-/** `configured`: esta aba/instalação já viu a API responder com o login ligado. */
-export function decideAuth(outcome: MeOutcome, configured: boolean): AuthDecision {
+/** `configured`: esta aba/instalação já viu a API responder com o login ligado.
+ * `allowOff`: o modo sem login (equipe e perfil locais) só existe em desenvolvimento. No build de produção
+ * o admin nunca abre sem uma sessão confirmada pelo servidor: API fora do ar vira "sem conexão" e API sem
+ * login vira "login não configurado" (`nologin`). */
+export function decideAuth(outcome: MeOutcome, configured: boolean, allowOff = true): AuthDecision {
   if (outcome === 'ok') return 'in';
   if (outcome === 'unauthorized') return 'anon';
-  if (outcome === 'failed') return configured ? 'unreachable' : 'off';
-  return 'off';
+  if (outcome === 'failed') return configured || !allowOff ? 'unreachable' : 'off';
+  return allowOff ? 'off' : 'nologin';
 }
+
+/** Modo sem login permitido: `vite dev`, ou um build feito de propósito com VITE_ALLOW_NO_LOGIN=1. */
+export const ALLOW_NO_LOGIN: boolean = (() => {
+  const env = (import.meta as { env?: Record<string, unknown> }).env;
+  return env?.DEV === true || env?.VITE_ALLOW_NO_LOGIN === '1';
+})();
 
 export const readConfigured = (): boolean => {
   try { return typeof localStorage !== 'undefined' && localStorage.getItem(AUTH_CONFIGURED_KEY) === '1'; } catch { return false; }
