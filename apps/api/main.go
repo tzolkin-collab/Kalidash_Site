@@ -97,6 +97,7 @@ func initDB() {
 	}
 	ensureBlogSchema()
 	ensureTrackingSchema() // tabela nova TrackingEvent (idempotência da captura de lead); não altera nada existente
+	alignCollations()      // tabelas da API na mesma collation das do Prisma (collation.go)
 	initStorage()
 }
 
