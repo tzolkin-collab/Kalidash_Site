@@ -22,6 +22,8 @@ const googleSansFlex = Google_Sans_Flex({ subsets: ["latin"], variable: "--font-
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://kalidash.com"),
+  // Propriedade https://www.kalidash.com/ no Search Console (exigida pela verificação de marca do OAuth do admin).
+  verification: { google: "yL1slF7R6YqDAfUBp5yye4cHaKPfIu7gpv3YNQ3Bwoo" },
   title: {
     default: "Kalidash — Eficiência operacional na era dos agentes",
     template: "%s | Kalidash",
