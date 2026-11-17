@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "npx --yes pnpm@9.15.9 install --frozen-lockfile",
   "rewrites": [
     { "source": "/api/:path*", "destination": "https://systembots-apika.rzkso2.easypanel.host/api/:path*" },
     { "source": "/auth/:path*", "destination": "https://systembots-apika.rzkso2.easypanel.host/auth/:path*" }
