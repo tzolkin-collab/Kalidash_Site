@@ -97,7 +97,7 @@ def create_pdf(filename):
     # 2. DNS Table (Vercel e VPS)
     story.append(Paragraph("2. Apontamentos de DNS no Cloudflare (Vercel e VPS)", h2_style))
     story.append(Paragraph(
-        "Para ativar os domínios oficiais <b>kalidash.com</b> (Site), <b>app.kalidash.com</b> (CRM) e <b>api.kalidash.com</b> (Backend), solicitamos a criação das entradas abaixo na zona DNS (Cloudflare da Kalidash):",
+        "Para ativar os domínios oficiais <b>kalidash.com</b> (Site), <b>admin.kalidash.com</b> (CRM) e <b>api.kalidash.com</b> (Backend), solicitamos a criação das entradas abaixo na zona DNS do domínio (hoje na HostGator):",
         body_style
     ))
     story.append(Spacer(1, 2))
@@ -106,7 +106,7 @@ def create_pdf(filename):
         [Paragraph("Tipo", table_header_style), Paragraph("Nome / Host", table_header_style), Paragraph("Destino / Valor", table_header_style), Paragraph("Finalidade / Serviço", table_header_style), Paragraph("Destino", table_header_style)],
         [Paragraph("A", table_cell_style), Paragraph("@ (ou kalidash.com)", table_cell_style), Paragraph("76.76.21.21", table_cell_style), Paragraph("Site Institucional (Next.js 15)", table_cell_style), Paragraph("Vercel", table_cell_style)],
         [Paragraph("CNAME", table_cell_style), Paragraph("www", table_cell_style), Paragraph("cname.vercel-dns.com", table_cell_style), Paragraph("Redirecionamento www para apex", table_cell_style), Paragraph("Vercel", table_cell_style)],
-        [Paragraph("CNAME", table_cell_style), Paragraph("app", table_cell_style), Paragraph("cname.vercel-dns.com", table_cell_style), Paragraph("Admin CRM PWA (app.kalidash.com)", table_cell_style), Paragraph("Vercel", table_cell_style)],
+        [Paragraph("CNAME", table_cell_style), Paragraph("admin", table_cell_style), Paragraph("cname.vercel-dns.com", table_cell_style), Paragraph("Admin CRM PWA (admin.kalidash.com)", table_cell_style), Paragraph("Vercel", table_cell_style)],
         [Paragraph("A", table_cell_style), Paragraph("api", table_cell_style), Paragraph("IP da VPS (fornecido pelo dev)", table_cell_style), Paragraph("API Go / Backend (api.kalidash.com) — DNS Only (cinza)", table_cell_style), Paragraph("VPS Dev", table_cell_style)]
     ]
     t_dns = Table(t_dns_data, colWidths=[38, 95, 125, 222, 60])
@@ -169,7 +169,7 @@ def create_pdf(filename):
         [Paragraph("Item Solicitado", table_header_style), Paragraph("Configuração / Exemplo", table_header_style), Paragraph("Instrução", table_header_style)],
         [Paragraph("Client ID e Client Secret", table_cell_style), Paragraph("xxxx.apps.googleusercontent.com / GOCSPX-...", table_cell_style), Paragraph("GCP Console > APIs e serviços > Credenciais OAuth", table_cell_style)],
         [Paragraph("URIs de Redirecionamento Autorizado", table_cell_style), Paragraph("https://api.kalidash.com/auth/google/callback", table_cell_style), Paragraph("Cadastrar esta URL nas credenciais OAuth no GCP", table_cell_style)],
-        [Paragraph("Origens JavaScript Autorizadas", table_cell_style), Paragraph("https://app.kalidash.com", table_cell_style), Paragraph("Cadastrar a URL do Admin (app) no cliente OAuth", table_cell_style)]
+        [Paragraph("Origens JavaScript Autorizadas", table_cell_style), Paragraph("https://admin.kalidash.com", table_cell_style), Paragraph("Cadastrar a URL do Admin no cliente OAuth", table_cell_style)]
     ]
     t3 = Table(t3_data, colWidths=[170, 170, 200])
     t3.setStyle(TableStyle([

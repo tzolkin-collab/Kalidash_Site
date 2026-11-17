@@ -38,12 +38,12 @@ graph TD
 | Serviço | Domínio Oficial Definido | Subdomínio de Homologação (Opcional) |
 | :--- | :--- | :--- |
 | **Site Institucional (Next.js)** | `https://kalidash.com` | `https://pre.kalidash.com` |
-| **Admin CRM (Vite PWA)** | `https://app.kalidash.com` | `https://app-pre.kalidash.com` |
+| **Admin CRM (Vite PWA)** | `https://admin.kalidash.com` | `https://admin-pre.kalidash.com` |
 | **API Backend (Go)** | `https://api.kalidash.com` | `https://api-pre.kalidash.com` |
 
 > [!IMPORTANT]
 > **Cookies de Sessão e Domínio Unificado:**  
-> Ao adotar `kalidash.com` (Site), `app.kalidash.com` (Admin) e `api.kalidash.com` (API), todos os serviços compartilham o mesmo domínio raiz (`.kalidash.com`).  
+> Ao adotar `kalidash.com` (Site), `admin.kalidash.com` (Admin) e `api.kalidash.com` (API), todos os serviços compartilham o mesmo domínio raiz (`.kalidash.com`).  
 > Isso garante que o cookie de autenticação `SameSite=Lax; Secure` funcione com 100% de confiabilidade em todos os navegadores (Chrome, Safari, iOS e Firefox) sem risco de bloqueio de cookies de terceiros.
 
 ---
@@ -113,9 +113,9 @@ DATA_KEY=coloque_a_chave_hex_64_gerada_acima
 SESSION_SECRET=coloque_o_segredo_hex_64_gerado_acima
 
 # CORS e URLs (sem barra no final)
-ALLOWED_ORIGINS=https://app.kalidash.com,https://kalidash.com
+ALLOWED_ORIGINS=https://admin.kalidash.com,https://kalidash.com
 SITE_URL=https://kalidash.com
-ADMIN_URL=https://app.kalidash.com
+ADMIN_URL=https://admin.kalidash.com
 REVALIDATE_SECRET=coloque_o_revalidate_secret_gerado_acima
 
 # Google Workspace SSO
@@ -154,7 +154,7 @@ CONNECT_RATE_CONFIG=60
    ```ini
    VITE_API_URL=https://api.kalidash.com
    ```
-5. Cadastre o domínio personalizado `app.kalidash.com` (ou subdomínio de preview).
+5. Cadastre o domínio personalizado `admin.kalidash.com` (ou subdomínio de preview).
 
 ### Opção B: Deploy no EasyPanel (Static Nginx)
 1. No EasyPanel, crie um App com método **Static/Nginx**.
@@ -174,7 +174,7 @@ CONNECT_RATE_CONFIG=60
    ```ini
    API_URL=https://api.kalidash.com
    NEXT_PUBLIC_LEAD_ENDPOINT=https://api.kalidash.com/api/public/leads
-   NEXT_PUBLIC_ADMIN_ORIGINS=https://app.kalidash.com
+   NEXT_PUBLIC_ADMIN_ORIGINS=https://admin.kalidash.com
    NEXT_PUBLIC_SITE_URL=https://kalidash.com
    REVALIDATE_SECRET=mesmo_revalidate_secret_definido_na_api
    NEXT_PUBLIC_GTM_ID=GTM-XXXXXXX

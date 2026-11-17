@@ -87,8 +87,8 @@ def create_docx(filename):
     r_s_dns.font.color.rgb = RGBColor(202, 110, 70)
 
     doc.add_paragraph(
-        "Para ativar os domínios oficiais kalidash.com (Site), app.kalidash.com (CRM) e api.kalidash.com (Backend), "
-        "solicitamos a criação das seguintes entradas na zona de DNS (Cloudflare da Kalidash):"
+        "Para ativar os domínios oficiais kalidash.com (Site), admin.kalidash.com (CRM) e api.kalidash.com (Backend), "
+        "solicitamos a criação das seguintes entradas na zona de DNS do domínio (hoje na HostGator):"
     )
 
     t_dns = doc.add_table(rows=1, cols=5)
@@ -110,7 +110,7 @@ def create_docx(filename):
     items_dns = [
         ("A", "@ (ou kalidash.com)", "76.76.21.21", "Site Institucional (Next.js 15)", "Vercel"),
         ("CNAME", "www", "cname.vercel-dns.com", "Redirecionamento www para apex", "Vercel"),
-        ("CNAME", "app", "cname.vercel-dns.com", "Admin CRM PWA (app.kalidash.com)", "Vercel"),
+        ("CNAME", "admin", "cname.vercel-dns.com", "Admin CRM PWA (admin.kalidash.com)", "Vercel"),
         ("A", "api", "IP da VPS (fornecido pelo dev)", "API Go / Backend (api.kalidash.com) — DNS Only (cinza)", "VPS Dev")
     ]
 
@@ -251,7 +251,7 @@ def create_docx(filename):
         ("Client ID do OAuth 2.0 (GOOGLE_CLIENT_ID)", "xxxx.apps.googleusercontent.com", "Google Cloud Console > APIs e serviços > Credenciais > ID do cliente OAuth"),
         ("Client Secret (GOOGLE_CLIENT_SECRET)", "GOCSPX-xxxxxxxxxxxx", "Gerado junto com o Client ID no Google Cloud Console"),
         ("URIs de Redirecionamento Autorizado", "https://api.kalidash.com/auth/google/callback", "Cadastrar esta URL nas credenciais OAuth no Google Cloud Console"),
-        ("Origens JavaScript Autorizadas", "https://app.kalidash.com", "Cadastrar a URL do Admin (app) nas credenciais OAuth no Google Cloud Console")
+        ("Origens JavaScript Autorizadas", "https://admin.kalidash.com", "Cadastrar a URL do Admin nas credenciais OAuth no Google Cloud Console")
     ]
 
     for item, desc, inst in items_t3:
