@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://systembots-apika.rzkso2.easypanel.host/api/:path*" },
+    { "source": "/auth/:path*", "destination": "https://systembots-apika.rzkso2.easypanel.host/auth/:path*" }
+  ]
+}
