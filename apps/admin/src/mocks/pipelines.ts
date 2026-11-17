@@ -18,7 +18,7 @@ const stages = (p: string): Stage[] => [
 
 /** Template padrão de requisitos: todo funil nasce com estes dois. */
 const baseRequirements = (p: string): Requirement[] => [
-  { id: `${p}:r-fonte`, stageId: `${p}:novos`, label: 'Definir fonte da pipeline', tag: 'Configuração', kind: 'ACTION', gate: 'NONE', assignee: 'Carol Sales', blocked: 0, overdue: 0 },
+  { id: `${p}:r-fonte`, stageId: `${p}:novos`, label: 'Definir fonte da pipeline', tag: 'Configuração', kind: 'ACTION', gate: 'NONE', assignee: 'Carol Nunes', blocked: 0, overdue: 0 },
   { id: `${p}:r-cnpj`, stageId: `${p}:assinatura`, label: 'Informar CNPJ', tag: 'Dados da empresa', kind: 'FIELD', gate: 'ENTER', assignee: 'Vendedor responsável', blocked: 0, overdue: 0 },
 ];
 
@@ -46,8 +46,8 @@ export const pipelinesStore = createStore<Pipeline[]>([
       ...baseRequirements(q4),
       { id: `${q4}:r-contato`, stageId: `${q4}:contato`, label: 'Registrar o primeiro contato', tag: 'Comercial', kind: 'ACTION', gate: 'EXIT', assignee: 'Vendedor responsável', dueDays: 2, blocked: 1, overdue: 1 },
       { id: `${q4}:r-dados`, stageId: `${q4}:qualificacao`, label: 'Completar dados do cliente', tag: 'Dados do cliente', kind: 'FIELD', gate: 'NONE', assignee: 'Vendedor responsável', dueDays: 3, blocked: 0, overdue: 0 },
-      { id: `${q4}:r-proposta`, stageId: `${q4}:proposta`, label: 'Enviar a proposta', tag: 'Comercial', kind: 'ACTION', gate: 'EXIT', assignee: 'Marina Alves', dueDays: 5, blocked: 2, overdue: 1 },
-      { id: `${q4}:r-empresa`, stageId: `${q4}:assinatura`, label: 'Coletar dados da empresa', tag: 'Dados da empresa', kind: 'FIELD', gate: 'NONE', assignee: 'Diego Costa', dueDays: 3, blocked: 0, overdue: 0 },
+      { id: `${q4}:r-proposta`, stageId: `${q4}:proposta`, label: 'Enviar a proposta', tag: 'Comercial', kind: 'ACTION', gate: 'EXIT', assignee: 'Iago Braz', dueDays: 5, blocked: 2, overdue: 1 },
+      { id: `${q4}:r-empresa`, stageId: `${q4}:assinatura`, label: 'Coletar dados da empresa', tag: 'Dados da empresa', kind: 'FIELD', gate: 'NONE', assignee: 'Cesar Germano', dueDays: 3, blocked: 0, overdue: 0 },
     ],
     counts: { [`${q4}:novos`]: 3, [`${q4}:contato`]: 2, [`${q4}:qualificacao`]: 5, [`${q4}:proposta`]: 3, [`${q4}:negociacao`]: 2, [`${q4}:assinatura`]: 1, [`${q4}:ganho`]: 6, [`${q4}:perdido`]: 2 },
     values: { [`${q4}:qualificacao`]: 38000, [`${q4}:proposta`]: 54000, [`${q4}:negociacao`]: 41000, [`${q4}:assinatura`]: 15000, [`${q4}:ganho`]: 96000 },
@@ -73,7 +73,7 @@ export const pipelinesStore = createStore<Pipeline[]>([
     ],
     requirements: [
       ...baseRequirements(b2b),
-      { id: `${b2b}:r-nda`, stageId: `${b2b}:negociacao`, label: 'Assinar o NDA', tag: 'Jurídico', kind: 'ACTION', gate: 'EXIT', assignee: 'Marina Alves', dueDays: 7, blocked: 1, overdue: 0 },
+      { id: `${b2b}:r-nda`, stageId: `${b2b}:negociacao`, label: 'Assinar o NDA', tag: 'Jurídico', kind: 'ACTION', gate: 'EXIT', assignee: 'Iago Braz', dueDays: 7, blocked: 1, overdue: 0 },
     ],
     counts: { [`${b2b}:novos`]: 2, [`${b2b}:contato`]: 1, [`${b2b}:qualificacao`]: 2, [`${b2b}:proposta`]: 1, [`${b2b}:negociacao`]: 1, [`${b2b}:assinatura`]: 0, [`${b2b}:ganho`]: 3, [`${b2b}:perdido`]: 1 },
     values: { [`${b2b}:qualificacao`]: 12000, [`${b2b}:proposta`]: 9000, [`${b2b}:negociacao`]: 30000, [`${b2b}:ganho`]: 47000 },

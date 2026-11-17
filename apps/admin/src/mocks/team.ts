@@ -8,13 +8,14 @@ const savedAvatar = (id: string, fallback?: string): string | undefined => {
 import { createStore } from '../lib/store';
 import type { AuditEntry, EmailLogEntry, TeamMember, Webhook } from '../domain';
 
-// Dados de exemplo (fase 5/6 do plano). Ver docs/system-core.md.
+// Webhooks, auditoria e e-mails abaixo seguem como dados de exemplo (fase 5/6 do plano). Ver docs/system-core.md.
 
+// Equipe sem login (AUTH_API=0, desenvolvimento): as três contas Admin da Kalidash. Com o login ligado a lista
+// vem da API (/api/team), criada no servidor por AUTH_ADMINS.
 export const teamStore = createStore<TeamMember[]>([
-  { id: 'u1', name: 'Carol Sales', email: 'carol@agenciatzolkin.com', role: 'ADMIN', status: 'ACTIVE', lastAccess: '2026-09-27T09:12:00Z', avatarUrl: savedAvatar('u1', 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80') },
-  { id: 'u2', name: 'Marina Alves', email: 'marina@agenciatzolkin.com', role: 'MANAGER', status: 'ACTIVE', lastAccess: '2026-09-26T17:40:00Z', avatarUrl: savedAvatar('u2', 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80') },
-  { id: 'u3', name: 'Diego Costa', email: 'diego@agenciatzolkin.com', role: 'SELLER', status: 'ACTIVE', lastAccess: '2026-09-27T08:05:00Z', avatarUrl: savedAvatar('u3', 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80') },
-  { id: 'u4', name: 'Bianca Rocha', email: 'bianca@agenciatzolkin.com', role: 'SELLER', status: 'INVITED', avatarUrl: savedAvatar('u4', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80') },
+  { id: 'u1', name: 'Carol Nunes', email: 'carol.nunes@kalidash.com', role: 'ADMIN', status: 'ACTIVE', avatarUrl: savedAvatar('u1') },
+  { id: 'u2', name: 'Iago Braz', email: 'iago.braz@kalidash.com', role: 'ADMIN', status: 'ACTIVE', avatarUrl: savedAvatar('u2') },
+  { id: 'u3', name: 'Cesar Germano', email: 'cesar.germano@kalidash.com', role: 'ADMIN', status: 'ACTIVE', avatarUrl: savedAvatar('u3') },
 ]);
 
 export const CURRENT_USER_ID = 'u1';
@@ -26,13 +27,13 @@ export const webhooksStore = createStore<Webhook[]>([
 ]);
 
 export const auditLog: AuditEntry[] = [
-  { id: 'a1', at: '2026-09-27T09:14:00Z', actor: 'Carol Sales', action: 'Alterou o valor', target: 'Oportunidade "Consultoria de Vendas Q4"' },
-  { id: 'a2', at: '2026-09-27T08:50:00Z', actor: 'Diego Costa', action: 'Qualificou o lead', target: 'Lead "Renata Moura"' },
-  { id: 'a3', at: '2026-09-26T16:20:00Z', actor: 'Marina Alves', action: 'Revogou a chave de API', target: 'kld_test_9f2a1c…' },
-  { id: 'a4', at: '2026-09-26T11:03:00Z', actor: 'Carol Sales', action: 'Convidou para a equipe', target: 'bianca@agenciatzolkin.com (Vendedor)' },
-  { id: 'a5', at: '2026-09-25T15:44:00Z', actor: 'Carol Sales', action: 'Criou o webhook', target: 'Avisar o HubSpot do cliente' },
-  { id: 'a6', at: '2026-09-25T10:12:00Z', actor: 'Marina Alves', action: 'Moveu de etapa', target: 'Oportunidade "Treinamento de Equipe" → Ganho' },
-  { id: 'a7', at: '2026-09-24T18:30:00Z', actor: 'Carol Sales', action: 'Editou a pipeline', target: 'Q4 Sales Pipeline (etapa "Assinatura do contrato")' },
+  { id: 'a1', at: '2026-09-27T09:14:00Z', actor: 'Carol Nunes', action: 'Alterou o valor', target: 'Oportunidade "Consultoria de Vendas Q4"' },
+  { id: 'a2', at: '2026-09-27T08:50:00Z', actor: 'Cesar Germano', action: 'Qualificou o lead', target: 'Lead "Renata Moura"' },
+  { id: 'a3', at: '2026-09-26T16:20:00Z', actor: 'Iago Braz', action: 'Revogou a chave de API', target: 'kld_test_9f2a1c…' },
+  { id: 'a4', at: '2026-09-26T11:03:00Z', actor: 'Carol Nunes', action: 'Convidou para a equipe', target: 'iago.braz@kalidash.com (Admin)' },
+  { id: 'a5', at: '2026-09-25T15:44:00Z', actor: 'Carol Nunes', action: 'Criou o webhook', target: 'Avisar o HubSpot do cliente' },
+  { id: 'a6', at: '2026-09-25T10:12:00Z', actor: 'Iago Braz', action: 'Moveu de etapa', target: 'Oportunidade "Treinamento de Equipe" → Ganho' },
+  { id: 'a7', at: '2026-09-24T18:30:00Z', actor: 'Carol Nunes', action: 'Editou a pipeline', target: 'Q4 Sales Pipeline (etapa "Assinatura do contrato")' },
 ];
 
 export const emailLog: EmailLogEntry[] = [

@@ -377,6 +377,9 @@ func ensureAuthSchema() {
 	if err := bootstrapAdmin(authDB); err != nil {
 		log.Fatalf("❌ AUTH: %v", err)
 	}
+	if err := seedAdmins(authDB); err != nil {
+		log.Fatalf("❌ AUTH: %v", err)
+	}
 	log.Println("✅ Login e perfis prontos (login ligado)")
 }
 
@@ -431,6 +434,44 @@ func bootstrapAdmin(st authStore) error {
 		log.Println("✅ AUTH: conta Admin raiz garantida (AUTH_ROOT_ADMIN)")
 	}
 	return err
+}
+
+// seedAdmins cria como Admin quem está em AUTH_ADMINS e ainda não existe na equipe ("Nome <email>" ou só o
+// e-mail, separados por vírgula). Diferente da raiz, não é forçado depois: quem já existe fica como está,
+// então rebaixar ou desativar pela tela vale. Serve para a equipe inicial entrar sem convite manual.
+func seedAdmins(st authStore) error {
+	created := 0
+	for _, item := range strings.Split(os.Getenv("AUTH_ADMINS"), ",") {
+		name, email := parseNamedEmail(item)
+		if email == "" {
+			continue
+		}
+		if !validEmail(email) {
+			return fmt.Errorf("AUTH_ADMINS tem um e-mail inválido: %q", strings.TrimSpace(item))
+		}
+		if _, err := st.MemberByEmail(email); err == nil {
+			continue
+		} else if !errors.Is(err, errMemberNotFound) {
+			return err
+		}
+		if _, err := st.AddMember(Member{Email: email, Name: name, Role: roleAdmin}, ""); err != nil {
+			return err
+		}
+		created++
+	}
+	if created > 0 {
+		log.Printf("✅ AUTH: %d Admin(s) criado(s) a partir de AUTH_ADMINS", created)
+	}
+	return nil
+}
+
+// parseNamedEmail aceita "Nome <email>" ou só "email".
+func parseNamedEmail(s string) (name, email string) {
+	s = strings.TrimSpace(s)
+	if i, j := strings.Index(s, "<"), strings.LastIndex(s, ">"); i >= 0 && j > i {
+		return strings.TrimSpace(s[:i]), normEmail(s[i+1 : j])
+	}
+	return "", normEmail(s)
 }
 
 func normEmail(s string) string { return strings.ToLower(strings.TrimSpace(s)) }

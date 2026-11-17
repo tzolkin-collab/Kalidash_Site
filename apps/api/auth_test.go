@@ -914,6 +914,44 @@ func TestAdminRaiz(t *testing.T) {
 	}
 }
 
+func TestSeedAdmins(t *testing.T) {
+	e := setupAuth(t)
+	t.Setenv("AUTH_ADMINS", "")
+	if err := seedAdmins(e.store); err != nil {
+		t.Fatal(err)
+	}
+	if n, _ := e.store.CountActiveAdmins(); n != 0 {
+		t.Fatal("sem variável não cria ninguém")
+	}
+	t.Setenv("AUTH_ADMINS", " Carol Nunes <Carol.Nunes@Kalidash.test>, iago@kalidash.test ,, ")
+	if err := seedAdmins(e.store); err != nil {
+		t.Fatal(err)
+	}
+	carol, err := e.store.MemberByEmail("carol.nunes@kalidash.test")
+	if err != nil || carol.Role != roleAdmin || !carol.Active || carol.Name != "Carol Nunes" {
+		t.Fatalf("carol: %+v %v", carol, err)
+	}
+	if iago, err := e.store.MemberByEmail("iago@kalidash.test"); err != nil || iago.Role != roleAdmin || iago.Name != "" {
+		t.Fatalf("iago: %+v %v", iago, err)
+	}
+	// quem já existe não é forçado de volta a Admin (diferente da raiz)
+	seller := roleSeller
+	e.store.UpdateMember(carol.ID, nil, &seller, nil)
+	if err := seedAdmins(e.store); err != nil {
+		t.Fatal(err)
+	}
+	if got, _ := e.store.MemberByID(carol.ID); got.Role != roleSeller {
+		t.Errorf("seedAdmins não deveria mexer em quem já existe: %+v", got)
+	}
+	if n, _ := e.store.CountActiveAdmins(); n != 1 {
+		t.Errorf("idempotente: %d admins", n)
+	}
+	t.Setenv("AUTH_ADMINS", "ok@kalidash.test,lixo")
+	if err := seedAdmins(newMemStore()); err == nil {
+		t.Error("e-mail inválido deveria falhar")
+	}
+}
+
 func TestSessaoRenovaComUso(t *testing.T) {
 	e := setupAuth(t)
 	ck := e.login(e.member("a@kalidash.test", roleAdmin))
