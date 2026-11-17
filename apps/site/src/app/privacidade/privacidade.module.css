@@ -1,0 +1,135 @@
+/* Página de texto jurídico: coluna de leitura confortável, índice fixo ao lado no desktop. */
+.page {
+  background: #fff;
+  color: var(--ink);
+}
+
+.main {
+  width: var(--container);
+  margin: 0 auto;
+  padding: clamp(112px, 12vw, 160px) 0 clamp(64px, 9vw, 112px);
+}
+
+.head {
+  max-width: 760px;
+  padding-bottom: clamp(32px, 4vw, 48px);
+  border-bottom: 1px solid var(--line);
+}
+
+.eyebrow {
+  font-family: var(--font-label), var(--font-sans);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.head h1 {
+  margin-top: 12px;
+  font-family: var(--font-title, var(--font-sans));
+  font-size: clamp(36px, 5vw, 60px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.meta {
+  margin-top: 12px;
+  font-size: 15px;
+  color: rgba(40, 24, 59, 0.66);
+}
+
+.meta a,
+.body a,
+.toc a {
+  color: inherit;
+}
+
+.meta a,
+.body a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 40px;
+  margin-top: clamp(32px, 4vw, 48px);
+}
+
+.toc {
+  display: none;
+}
+
+.body {
+  max-width: 720px;
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.body section + section {
+  margin-top: 40px;
+}
+
+.body section {
+  scroll-margin-top: 112px;
+}
+
+.body h2 {
+  font-size: clamp(20px, 2.2vw, 24px);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  margin-bottom: 12px;
+}
+
+.body p + p,
+.body p + ul,
+.body ul + p {
+  margin-top: 12px;
+}
+
+.body ul {
+  padding-left: 1.25em;
+  list-style: disc;
+}
+
+.body li + li {
+  margin-top: 6px;
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    grid-template-columns: 240px minmax(0, 720px);
+    gap: 64px;
+  }
+
+  .toc {
+    display: block;
+    position: sticky;
+    top: 112px;
+    align-self: start;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  .toc ol {
+    list-style: decimal;
+    padding-left: 1.25em;
+    color: rgba(40, 24, 59, 0.66);
+  }
+
+  .toc li + li {
+    margin-top: 8px;
+  }
+
+  .toc a {
+    text-decoration: none;
+  }
+
+  .toc a:hover {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}

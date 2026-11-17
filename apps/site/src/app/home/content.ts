@@ -343,7 +343,7 @@ export const footer = {
     {
       title: "Termos de uso",
       links: [
-        { label: "Privacidade", href: "/politica-privacidade.pdf", external: true },
+        { label: "Privacidade", href: "/privacidade" },
         { label: "Divulgação responsável", href: "/politica-vulnerabilidades.pdf", external: true },
       ],
     },
