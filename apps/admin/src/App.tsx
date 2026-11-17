@@ -29,7 +29,7 @@ import { initAuth, logout, useAuth } from './lib/auth';
 import { loadTeam } from './lib/teamSync';
 import { useCan } from './lib/permissions';
 import { initials } from './lib/people';
-import { CURRENT_USER_ID, teamStore } from './mocks/team';
+import { localUserStore } from './mocks/team';
 import { useStore } from './lib/store';
 
 // O editor de e-mail é pesado: só é baixado quando a página de E-mails é aberta.
@@ -63,8 +63,8 @@ export default function App() {
   const { segments, path, navigate } = useHashRoute();
   const [isReady, setIsReady] = useState(false);
   const auth = useAuth();
-  const [team] = useStore(teamStore);
-  const currentUser = auth.status === 'in' && auth.user ? auth.user : team.find((m) => m.id === CURRENT_USER_ID);
+  const [localUser] = useStore(localUserStore);
+  const currentUser = auth.status === 'in' && auth.user ? auth.user : localUser;
   const can = useCan();
   useEffect(() => { void initAuth(); }, []);
   // Os dados só são pedidos à API depois de saber quem está logado (ou que a API não exige login).

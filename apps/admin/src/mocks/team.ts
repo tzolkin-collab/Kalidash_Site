@@ -18,7 +18,10 @@ export const teamStore = createStore<TeamMember[]>([
   { id: 'u3', name: 'Cesar Germano', email: 'cesar.germano@kalidash.com', role: 'ADMIN', status: 'ACTIVE', avatarUrl: savedAvatar('u3') },
 ]);
 
-export const CURRENT_USER_ID = 'u1';
+// Quem usa o admin sem login (modo de desenvolvimento ou o build aberto de propósito com VITE_ALLOW_NO_LOGIN=1).
+// Não é ninguém da equipe: sem sessão não há como saber quem está do outro lado, então não se finge ser uma pessoa real.
+export const LOCAL_USER_ID = 'local';
+export const localUserStore = createStore<TeamMember>({ id: LOCAL_USER_ID, name: 'Sem login', email: '', role: 'ADMIN', status: 'ACTIVE', avatarUrl: savedAvatar(LOCAL_USER_ID) });
 
 export const webhooksStore = createStore<Webhook[]>([
   { id: 'w1', name: 'Avisar o HubSpot do cliente', event: 'oportunidade.ganha', url: 'https://hooks.exemplo.com.br/hubspot/ganho', active: true, lastStatus: 'OK', lastAt: '2026-09-25T14:02:00Z' },

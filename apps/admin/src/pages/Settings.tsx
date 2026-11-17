@@ -15,7 +15,7 @@ import { historyStore } from '../lib/history';
 import { auditRowOf } from '../lib/historyText';
 import { loadRecentHistory } from '../lib/historySync';
 import { EVENTS } from '../mocks/automations';
-import { CURRENT_USER_ID, auditLog, teamStore, webhooksStore } from '../mocks/team';
+import { LOCAL_USER_ID, auditLog, localUserStore, teamStore, webhooksStore } from '../mocks/team';
 import { Badge, EmptyState, Field, Page, PageHeader, PopupDialog, SampleBanner, SearchBox, SidePanel, Switch, Tabs } from '../components/ui';
 import { CustomSelect } from '../components/ui';
 import { PermissionsTab, TokensTab } from '../components/Access';
@@ -79,9 +79,10 @@ function GoogleIcon() {
 }
 
 function ProfileTab() {
-  const [team, setTeam] = useStore(teamStore);
+  const [, setTeam] = useStore(teamStore);
   const auth = useAuth();
-  const me = auth.status === 'in' ? auth.user : team.find((m) => m.id === CURRENT_USER_ID);
+  const [localUser] = useStore(localUserStore);
+  const me = auth.status === 'in' ? auth.user : localUser;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -95,6 +96,8 @@ function ProfileTab() {
       setTeam((prev) => prev.map((m) => (m.id === me.id ? { ...m, avatarUrl: url } : m)));
       if (auth.status === 'in') {
         authStore.set((s) => ({ ...s, user: s.user ? { ...s.user, avatarUrl: url } : undefined }));
+      } else {
+        localUserStore.set((u) => ({ ...u, avatarUrl: url }));
       }
       pushNotificacao('Foto de perfil atualizada', 'A foto do seu perfil foi salva com sucesso.');
     };
@@ -109,6 +112,8 @@ function ProfileTab() {
     setTeam((prev) => prev.map((m) => (m.id === me.id ? { ...m, avatarUrl: undefined } : m)));
     if (auth.status === 'in') {
       authStore.set((s) => ({ ...s, user: s.user ? { ...s.user, avatarUrl: undefined } : undefined }));
+    } else {
+      localUserStore.set((u) => ({ ...u, avatarUrl: undefined }));
     }
     pushNotificacao('Foto de perfil removida', 'A foto do seu perfil foi removida.');
   };
@@ -232,7 +237,7 @@ function TeamTab() {
   const [inviting, setInviting] = useState(false);
   const [offering, setOffering] = useState<{ member: TeamMember; tokens: ApiToken[] } | null>(null);
   const api = auth.status === 'in'; // equipe na API; senão, o exemplo em memória
-  const meId = api ? auth.user?.id : CURRENT_USER_ID;
+  const meId = api ? auth.user?.id : LOCAL_USER_ID;
   const admins = team.filter((m) => m.role === 'ADMIN' && m.status !== 'DISABLED').length;
   const readOnly = api && !can.manageTeam; // só Admin altera a equipe; o servidor também recusa
 
