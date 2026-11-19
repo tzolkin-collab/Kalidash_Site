@@ -17,6 +17,11 @@ func TestValidateLead(t *testing.T) {
 		"sobrenome": {Name: "Ana", Email: "a@b.co", Phone: "11999999999"},
 		"email":     {Name: "Ana Souza", Email: "ana@", Phone: "11999999999"},
 		"telefone":  {Name: "Ana Souza", Email: "a@b.co", Phone: "123"},
+		"sem tel":   {Name: "Ana Souza", Email: "a@b.co"},
+		"news ruim": {Name: "Ana Souza", Email: "a@b.co", Phone: "123", Source: "blog-newsletter"},
+	}
+	if _, msg := validateLead(leadInput{Name: "Ana Souza", Email: "a@b.co", Source: "blog-newsletter"}); msg != "" {
+		t.Errorf("newsletter sem WhatsApp deveria valer: %q", msg)
 	}
 	for name, in := range bad {
 		if _, msg := validateLead(in); msg == "" {

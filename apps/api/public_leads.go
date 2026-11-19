@@ -71,6 +71,13 @@ func digits(s string) string {
 	return b.String()
 }
 
+// newsletterSource: inscrição para receber os conteúdos do blog por e-mail (CTA do blog, jornada J3). Pede só
+// nome e e-mail, então o WhatsApp é opcional; entra no CRM como lead, mas não dispara a conversão Lead da mídia
+// paga (Meta e GA4), que fica para quem pede diagnóstico ou contato.
+const newsletterSource = "blog-newsletter"
+
+func isNewsletter(source string) bool { return strings.HasPrefix(source, newsletterSource) }
+
 // validateLead normaliza a entrada e devolve o 1º erro de validação (mensagem segura pro cliente).
 func validateLead(in leadInput) (leadInput, string) {
 	in.Name = clean(in.Name, leadMaxFieldLen)
@@ -83,6 +90,8 @@ func validateLead(in leadInput) (leadInput, string) {
 		return in, "Informe nome e sobrenome."
 	case !emailRe.MatchString(in.Email):
 		return in, "Informe um email válido."
+	case in.Phone == "" && isNewsletter(in.Source):
+		// newsletter: sem WhatsApp vale
 	case len(digits(in.Phone)) < 10 || len(digits(in.Phone)) > 15:
 		return in, "Informe o WhatsApp com DDD."
 	}
@@ -269,7 +278,11 @@ func handlePublicLead(w http.ResponseWriter, r *http.Request) {
 	if ua == "" {
 		ua = r.Header.Get("User-Agent")
 	}
-	dispatchConversion(buildConversion(in, eventID, ip, ua))
+	if isNewsletter(in.Source) {
+		resp["serverSide"] = map[string]bool{}
+	} else {
+		dispatchConversion(buildConversion(in, eventID, ip, ua))
+	}
 	writeJSON(w, http.StatusCreated, resp)
 }
 
@@ -317,6 +330,13 @@ func saveLeadV2(in leadInput, ip string) error {
 	if in.Challenge != "" {
 		message += "\n\nDesafio informado:\n" + in.Challenge
 	}
+	tags := []string{"Inbound", "Site"}
+	if isNewsletter(in.Source) {
+		message, tags = "Inscrição na newsletter do blog.", append(tags, "Newsletter")
+		if in.Phone != "" {
+			message += "\nWhatsApp: " + in.Phone
+		}
+	}
 	custom := map[string]any{"via": "formulário do site", "formSource": in.Source}
 	if len(in.Attribution) > 0 {
 		attr := map[string]string{}
@@ -334,7 +354,7 @@ func saveLeadV2(in leadInput, ip string) error {
 	_, err = connectDB.IngestLead(inboundLead{
 		Project: Project{PipelineID: nullableID(pipelineID), StageID: nullableID(stageID), SourceName: sourceName},
 		Name:    in.Name, Email: in.Email, Phone: in.Phone, Message: message,
-		Tags:   []string{"Inbound", "Site"},
+		Tags:   tags,
 		Custom: custom,
 		Actor:  "Site", ClientIP: ip,
 	})

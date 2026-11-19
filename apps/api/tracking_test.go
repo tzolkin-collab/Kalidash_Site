@@ -100,6 +100,38 @@ func TestPublicLeadIdempotent(t *testing.T) {
 	}
 }
 
+// Newsletter do blog: entra sem WhatsApp, grava o lead e não dispara a conversão Lead da mídia paga.
+func TestPublicLeadNewsletter(t *testing.T) {
+	t.Setenv("ALLOWED_ORIGINS", "")
+	t.Setenv("SITE_URL", "")
+	t.Setenv("META_PIXEL_ID", "123")
+	t.Setenv("META_CAPI_ACCESS_TOKEN", "tok")
+	var saved []leadInput
+	dispatched := 0
+	oldStore, oldSaver, oldDispatch := tracking, leadSaver, dispatchConversion
+	tracking = newMemTracking()
+	leadSaver = func(in leadInput, ip string) error { saved = append(saved, in); return nil }
+	dispatchConversion = func(ev conversionEvent) { dispatched++ }
+	t.Cleanup(func() { tracking, leadSaver, dispatchConversion = oldStore, oldSaver, oldDispatch })
+
+	body := `{"name":"Ana Souza","email":"ana@empresa.com","source":"blog-newsletter","event_id":"6c1e2f4e-3c1a-4c7e-9d1e-2f9b8a7c6d5e"}`
+	req := httptest.NewRequest("POST", "/api/public/leads", strings.NewReader(body))
+	req.Header.Set("X-Forwarded-For", "8.0.0.9")
+	rec := httptest.NewRecorder()
+	handlePublicLead(rec, req)
+	var out map[string]any
+	_ = json.Unmarshal(rec.Body.Bytes(), &out)
+	if rec.Code != 201 || len(saved) != 1 || saved[0].Source != "blog-newsletter" {
+		t.Fatalf("newsletter: %d %v %+v", rec.Code, out, saved)
+	}
+	if dispatched != 0 {
+		t.Errorf("newsletter disparou %d conversão(ões), queria 0", dispatched)
+	}
+	if ss, _ := out["serverSide"].(map[string]any); len(ss) != 0 {
+		t.Errorf("serverSide da newsletter deveria vir vazio: %v", ss)
+	}
+}
+
 // Lead que falhou ao gravar: a nova tentativa com o mesmo id grava (claimRetry) e só então dispara.
 func TestPublicLeadRetryAfterFailure(t *testing.T) {
 	t.Setenv("ALLOWED_ORIGINS", "")
