@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Spectra AI"><title>Spectra AI</title><defs><linearGradient id="spectra-grad-claro" x1="-60" y1="-60" x2="60" y2="60" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#d7b6ee"/><stop offset=".55" stop-color="#7d6af0"/><stop offset="1" stop-color="#4a2f9e"/></linearGradient></defs><g id="emblema" transform="translate(60.0 60.0)">
+<circle id="selo" r="58" fill="#f6f3ff" stroke="#e9e3fb" stroke-width="1.5"/>
+<g id="lacos" fill="none" stroke="url(#spectra-grad-claro)" stroke-width="2.6" stroke-linecap="round">
+<path id="laco-1" class="laco" pathLength="1" d="M-12.13 0.06A23.20 23.20 0 1 1 12.13 -39.50A23.20 23.20 0 1 1 -12.13 0.06"/>
+<path id="laco-2" class="laco" pathLength="1" d="M-3.80 -11.51A23.20 23.20 0 1 1 41.31 -0.67A23.20 23.20 0 1 1 -3.80 -11.51"/>
+<path id="laco-3" class="laco" pathLength="1" d="M9.78 -7.18A23.20 23.20 0 1 1 13.41 39.08A23.20 23.20 0 1 1 9.78 -7.18"/>
+<path id="laco-4" class="laco" pathLength="1" d="M9.84 7.08A23.20 23.20 0 1 1 -33.03 24.83A23.20 23.20 0 1 1 9.84 7.08"/>
+<path id="laco-5" class="laco" pathLength="1" d="M-3.69 11.55A23.20 23.20 0 1 1 -33.82 -23.74A23.20 23.20 0 1 1 -3.69 11.55"/>
+</g></g></svg>

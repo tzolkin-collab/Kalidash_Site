@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { spectra } from "../institucional/pages";
-import ProductPage from "../solucoes/ProductPage";
+import SpectraPage from "./SpectraPage";
 
 export const metadata: Metadata = {
   title: spectra.meta.title,
@@ -9,5 +9,5 @@ export const metadata: Metadata = {
 
 /* Fecho: primeira frase do lead do hero (pages.ts). */
 export default function Page() {
-  return <ProductPage page={spectra} kind="photo" closing="A operação fala e o Spectra AI traduz." />;
+  return <SpectraPage page={spectra} closing="A operação fala e o Spectra AI traduz." />;
 }

@@ -23,7 +23,8 @@ export type Block =
       closing?: string[];
       cta?: Cta;
     }
-  | { type: "steps"; eyebrow?: string; title: string[]; items: Array<{ title: string; text: string }>; closing?: string[]; cta?: Cta }
+  /* `image`: uma tela ou foto logo abaixo dos passos (ex.: a plataforma do Spectra AI), com legenda opcional. */
+  | { type: "steps"; eyebrow?: string; title: string[]; items: Array<{ title: string; text: string; image?: Media & { caption?: string } }>; image?: Media & { caption?: string }; closing?: string[]; cta?: Cta }
   | { type: "list"; eyebrow?: string; title: string[]; items: string[]; note?: string; noteLink?: Cta }
   | {
       type: "offers";
@@ -195,10 +196,10 @@ export const sobreNos: PageContent = {
             height: 554,
           },
           {
-            src: "/home/evento-palestra.jpg",
-            alt: "Palestra executiva para lideranças",
+            src: "/sobre-nos/iago-aula.jpg",
+            alt: "Iago Braz conduzindo uma aula da Kalidash, com a mão levantada diante da turma",
             width: 1200,
-            height: 800,
+            height: 1600,
           },
           {
             src: "/home/g17-fdc-tech-week-1.jpg",
@@ -846,14 +847,15 @@ export const spectra: PageContent = {
     {
       type: "heroMedia",
       eyebrow: "Spectra AI · Soluções próprias",
-      title: ["Visão computacional aplicada ao chão de operação."],
+      /* Abertura da apresentação do Spectra AI ("A Cúpula - César - SpectraAI", Google Slides que a Carol mandou). */
+      title: ["No digital, a gente enxerga tudo.", "No chão de fábrica, apenas ouvimos falar."],
       lead: [
         "A operação fala e o Spectra AI traduz. Câmeras transformam o que acontece na operação em dados de produtividade, identificando oportunidades em tempo real e apontando onde melhorar.",
       ],
       support: "Leitura visual em tempo real sem interromper o time e sem alterar o fluxo de trabalho.",
       cta: { label: "Conhecer Spectra AI", href: formHref("spectra") },
-      image: { src: "/sobre-nos/ato-01-operacao.jpg", alt: "Spectra AI visão computacional na operação", width: 893, height: 1600 },
-      aspect: "portrait",
+      /* Busto da capa da apresentação do Spectra AI (recortado e espelhado para olhar para o texto). */
+      image: { src: "/spectra/busto.jpg", alt: "Busto clássico de mármore com a nuca aberta em circuitos dourados, da apresentação do Spectra AI", width: 800, height: 518 },
     },
     {
       type: "cards",
@@ -875,6 +877,35 @@ export const spectra: PageContent = {
           text: "Identificação objetiva de gargalos e pontos de melhoria na operação.",
         },
       ],
+    },
+    {
+      /* "Como funciona" e a citação de fecho, com o texto da apresentação do Spectra AI. */
+      type: "steps",
+      eyebrow: "Como funciona",
+      title: ["Da câmera no posto ao conhecimento retido na plataforma."],
+      items: [
+        {
+          title: "Instalação das câmeras",
+          text: "Câmeras nos postos que importam. Nada muda na rotina do chão, e as imagens fluem sozinhas para a plataforma.",
+          image: { src: "/spectra/camera-oficina.jpg", alt: "Imagem de câmera de segurança de uma oficina de usinagem, com três pessoas junto a um torno e o posto P-02 marcado em verde", width: 640, height: 241, caption: "Imagem de uma das câmeras, do jeito que chega à plataforma." },
+        },
+        {
+          title: "Descoberta dos comportamentos",
+          text: "A IA observa e identifica o que acontece ali, sem lista pronta de atividades. O vocabulário nasce da própria operação.",
+          image: { src: "/spectra/camera-posto.jpg", alt: "Imagem de câmera de um torno com o operador destacado por um quadro verde", width: 510, height: 546, caption: "Em verde, o operador que a IA acompanha no posto." },
+        },
+        {
+          title: "Validação com quem entende",
+          text: "O especialista confirma, corrige e nomeia. O reforço humano é uma vez por comportamento, não a cada vídeo.",
+          image: { src: "/spectra/plataforma-validacao.jpg", alt: "Menu da plataforma Spectra AI com Visão do posto, Dia a dia, Produtivo × improdutivo e Validação com cinco itens", width: 940, height: 700, caption: "Na plataforma, a Validação reúne o que espera a confirmação do especialista." },
+        },
+        {
+          title: "Aprendizado contínuo",
+          text: "Cada novo vídeo refina o modelo. O conhecimento fica retido na plataforma e não vai embora com ninguém.",
+          image: { src: "/spectra/plataforma-processo.jpg", alt: "Configuração de um processo na plataforma Spectra AI: turnos de gravação e zonas da análise desenhadas sobre a imagem da câmera", width: 1224, height: 990, caption: "Turnos, zonas e padrões de cada processo ficam guardados na plataforma." },
+        },
+      ],
+      closing: ["“Onde não há padrão, não pode haver melhoria.”", "Taiichi Ohno, Sistema Toyota de Produção."],
     },
   ],
 };

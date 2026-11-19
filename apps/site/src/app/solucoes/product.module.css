@@ -87,6 +87,10 @@
 .sequence h3 { margin: 8px 0 0; font-family: var(--font-title); font-weight: 500; font-size: clamp(26px, 2.8vw, 40px); line-height: 1.05; letter-spacing: calc(-0.04em * var(--tk, 1)); }
 .sequence p { margin: 0; font-size: 17px; line-height: 1.55; color: rgba(255, 255, 255, 0.74); max-width: 34ch; }
 .stepsCta { margin-top: 40px; }
+/* Tela do produto abaixo dos passos (Spectra AI): a imagem inteira, cantos e sombra próprios, legenda pequena. */
+.stepsMedia { margin: clamp(48px, 7vw, 88px) 0 0; }
+.stepsMedia img { display: block; width: 100%; height: auto; border-radius: 12px; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35); }
+.stepsMedia figcaption { margin-top: 14px; font-size: 14px; line-height: 1.5; color: rgba(255, 255, 255, 0.6); }
 .stepsNote { margin-top: clamp(48px, 7vw, 88px); padding-top: 28px; border-top: 1px solid rgba(255, 255, 255, 0.16); display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 32px; }
 .stepsNote p { margin: 0; }
 .stepsNote p:first-child { font-family: var(--font-title); font-weight: 500; font-size: var(--t-claim); line-height: 1.1; letter-spacing: calc(-0.04em * var(--tk, 1)); color: var(--accent-soft); }

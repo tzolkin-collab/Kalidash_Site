@@ -215,6 +215,19 @@ export function BlockView({ block, cardsIndex, poster, soft }: { block: Block; c
                 </li>
               ))}
             </ol>
+            {block.image && (
+              <figure className={styles.stepsMedia}>
+                <Image
+                  src={block.image.src}
+                  alt={block.image.alt}
+                  width={block.image.width}
+                  height={block.image.height}
+                  sizes="(max-width: 900px) 92vw, 1200px"
+                  loading="lazy"
+                />
+                {block.image.caption && <figcaption>{block.image.caption}</figcaption>}
+              </figure>
+            )}
             {block.closing && (
               <div className={styles.stepsNote}>
                 <p><Rich text={block.closing[0]} /></p>
