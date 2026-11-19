@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<title>Spectra AI · animação da logo</title>
+<style>
+  /* Rascunho da entrada da logo. Camadas do SVG (ids fixos, gerados por gerar.py):
+   *   #selo           círculo de fundo do emblema
+   *   .laco (#laco-1…5) pétalas, cada uma com pathLength=1 → anima stroke-dashoffset de 1 a 0
+   *   .letra (#l-1…7)  S p e c t r a
+   *   #ai (#ai-1, #ai-2) A I
+   * ?t=0.5 congela a animação nesse ponto (0 a 1), para conferir quadros. */
+  body { margin: 0; min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; font: 14px system-ui; }
+  section { display: grid; place-items: center; align-content: center; gap: 24px; padding: 48px 24px; }
+  .claro { background: #fff; color: #4a4152; }
+  .escuro { background: #28183b; color: #c4a673; }
+  .logo { width: min(560px, 90%); }
+  .logo svg { width: 100%; height: auto; overflow: visible; }
+  button { font: inherit; padding: 8px 16px; border-radius: 999px; border: 1px solid currentColor; background: none; color: inherit; cursor: pointer; }
+
+  .play #selo { animation: selo 0.7s cubic-bezier(0.33, 1, 0.68, 1) both; transform-box: fill-box; transform-origin: center; }
+  .play .laco { stroke-dasharray: 1; animation: traco 1.1s cubic-bezier(0.65, 0, 0.35, 1) both; }
+  .play #laco-1 { animation-delay: 0.15s; } .play #laco-2 { animation-delay: 0.27s; } .play #laco-3 { animation-delay: 0.39s; }
+  .play #laco-4 { animation-delay: 0.51s; } .play #laco-5 { animation-delay: 0.63s; }
+  .play #lacos { animation: gira 1.9s cubic-bezier(0.33, 1, 0.68, 1) both; transform-box: fill-box; transform-origin: center; }
+  .play .letra { animation: letra 0.6s cubic-bezier(0.33, 1, 0.68, 1) both; }
+  .play #spectra .letra:nth-child(1) { animation-delay: 0.85s; } .play #spectra .letra:nth-child(2) { animation-delay: 0.9s; }
+  .play #spectra .letra:nth-child(3) { animation-delay: 0.95s; } .play #spectra .letra:nth-child(4) { animation-delay: 1s; }
+  .play #spectra .letra:nth-child(5) { animation-delay: 1.05s; } .play #spectra .letra:nth-child(6) { animation-delay: 1.1s; }
+  .play #spectra .letra:nth-child(7) { animation-delay: 1.15s; }
+  .play #ai .letra { animation-name: ai; animation-duration: 0.7s; }
+  .play #ai .letra:nth-child(1) { animation-delay: 1.35s; } .play #ai .letra:nth-child(2) { animation-delay: 1.42s; }
+
+  @keyframes selo { from { opacity: 0; transform: scale(0.6); } }
+  @keyframes traco { from { stroke-dashoffset: 1; } }
+  @keyframes gira { from { transform: rotate(-72deg); } }
+  @keyframes letra { from { opacity: 0; transform: translateY(18px); } }
+  @keyframes ai { from { opacity: 0; transform: translateY(18px); fill: #fff0; } 60% { opacity: 1; } }
+
+  @media (prefers-reduced-motion: reduce) { .play * { animation: none !important; } }
+</style>
+<section class="claro"><div class="logo" data-src="spectra-logo.svg"></div><button>Tocar de novo</button></section>
+<section class="escuro"><div class="logo" data-src="spectra-logo-escuro.svg"></div><button>Tocar de novo</button></section>
+<script>
+  const t = new URLSearchParams(location.search).get("t");
+  const play = (box) => { box.classList.remove("play"); void box.offsetWidth; box.classList.add("play"); };
+  document.querySelectorAll(".logo").forEach(async (box) => {
+    box.innerHTML = await (await fetch(box.dataset.src)).text();
+    play(box);
+    if (t !== null) {
+      // congela em t (0 a 1) da animação inteira (2.2 s)
+      box.getAnimations({ subtree: true }).forEach((a) => { a.pause(); a.currentTime = Number(t) * 2200; });
+    }
+    box.parentElement.querySelector("button").onclick = () => play(box);
+  });
+</script>
+</html>

@@ -26,6 +26,13 @@
       "port": 3000
     },
     {
+      "name": "kalidash-site-api-prod",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@kalidash/site", "dev", "--port", "3010"],
+      "env": { "API_URL": "https://systembots-apika.rzkso2.easypanel.host" },
+      "port": 3010
+    },
+    {
       "name": "kalidash-archive-site",
       "runtimeExecutable": "node",
       "runtimeArgs": [".archive/v1.0_site/node_modules/next/dist/bin/next", "dev", ".archive/v1.0_site", "--port", "3001"],

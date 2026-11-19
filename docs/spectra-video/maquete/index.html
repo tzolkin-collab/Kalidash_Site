@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spectra · gráfico e fichas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Fraunces:opsz,wght@9..144,400;9..144,500&display=swap" rel="stylesheet">
+<!--
+  Maquete do take 2/3 do filme da /spectra.
+  ?f=desktop|mobile   formato (desktop 16:9, mobile 9:16)
+  ?k=2|3              chave: 2 = gráfico pronto, 3 = com os retratos nas pontas
+  ?p=ana|marcos|lucas pessoa em foco (mostra a ficha); sem p = sem ficha (é o quadro-chave limpo para o Dreamina)
+  O gráfico conta um turno real da plataforma (06:00 → 15:48, almoço 11:30–12:30, como na tela "Turnos de gravação"):
+  a linha tracejada é o PADRÃO do posto; cada linha dourada é uma pessoa; o anel vazado é o momento em que um padrão foi validado.
+  Dados e pessoas são fictícios (exemplo ilustrativo).
+-->
+<style>
+  :root {
+    --imperial: #28183b; --gold: #a88a58; --gold-light: #c4a673; --gold-text: #8f7248;
+    --rule: rgba(168, 138, 88, 0.35); --grid: #efebf2; --text-2: #4a4152;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #fff; }
+  body { font-family: "Archivo", system-ui, sans-serif; color: var(--imperial); overflow: hidden; }
+  .stage { position: relative; width: 100vw; height: 100vh; }
+  svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  /* Ficha: uma por vez, a da pessoa em foco. */
+  .card {
+    position: absolute; width: 440px; padding: 20px 22px 16px;
+    background: #fff; border: 1px solid var(--rule); border-radius: 12px;
+    box-shadow: 0 18px 40px rgba(40, 24, 59, 0.08), 0 2px 6px rgba(40, 24, 59, 0.04);
+  }
+  .who { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .name { margin: 0; font-family: "Fraunces", Georgia, serif; font-weight: 400; font-size: 26px; letter-spacing: -0.01em; line-height: 1.1; }
+  .role { margin: 6px 0 0; font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-text); }
+  .metrics { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr); margin: 18px 0 0; padding: 14px 0 0; border-top: 1px solid var(--rule); }
+  .metrics div { padding-right: 10px; }
+  .metrics div + div { padding-left: 12px; border-left: 1px solid var(--rule); }
+  .metrics dt { white-space: nowrap; font-size: 10.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #7a7182; }
+  .metrics dd { margin: 6px 0 0; }
+  .metrics strong { display: block; font-family: "Fraunces", Georgia, serif; font-weight: 400; font-size: 28px; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--imperial); white-space: nowrap; }
+  .metrics small { display: block; margin-top: 6px; font-size: 12px; line-height: 1.3; color: var(--text-2); }
+  .metrics small.up { color: var(--gold-text); font-weight: 600; }
+  .note { display: flex; gap: 10px; align-items: center; margin: 14px 0 0; padding: 10px 12px; border-radius: 8px; background: #f7f4ee; font-size: 13px; line-height: 1.35; color: var(--text-2); }
+  .note i { flex: none; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--gold); background: #fff; }
+  .note b { font-weight: 600; color: var(--imperial); }
+  .foot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 11px; color: #8d8594; }
+  .steps { display: flex; gap: 6px; }
+  .steps span { width: 18px; height: 2px; border-radius: 2px; background: var(--rule); }
+  .steps span[data-on] { background: var(--gold); }
+
+  /* Celular: a ficha fica no terço de baixo, na largura toda. */
+  .mobile .card { left: 16px; right: 16px; width: auto; padding: 16px 16px 12px; }
+  .mobile .name { font-size: 22px; }
+  .mobile .metrics strong { font-size: 21px; }
+  .mobile .metrics div + div { padding-left: 8px; }
+  .mobile .metrics small:not(.up) { display: none; }
+  .mobile .note { margin-top: 10px; padding: 8px 10px; }
+  .mobile .metrics small { font-size: 11px; }
+  .mobile .metrics dt { font-size: 9px; letter-spacing: 0.08em; }
+  .mobile .note { font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="stage" id="stage"></div>
+<script>
+const q = new URLSearchParams(location.search);
+const F = q.get("f") === "mobile" ? "mobile" : "desktop";
+const K = q.get("k") === "2" ? 2 : 3;
+const P = q.get("p");
+
+/* Turno da plataforma: minutos desde 06:00. Almoço 330–390 (11:30–12:30). Fim 588 (15:48). */
+const T = [0, 45, 90, 135, 180, 225, 270, 330, 390, 440, 490, 540, 588];
+const PEOPLE = {
+  ana: {
+    nome: "Ana Ribeiro", posto: "Torneamento · Turno 1", foto: "rosto-ana.png",
+    v: [70, 71, 69, 72, 73, 74, 81, 85, 88, 90, 91, 93, 94], evento: 6, curva: "linha",
+    prod: "94%", prodSub: "+14 pts vs. padrão", ret: "R$ 3,8 mil", retSub: "recuperados no mês", casa: "6 anos", casaSub: "desde 2020",
+    nota: "<b>Padrão validado às 10h15:</b> troca de ferramenta em 4 min, antes 11 min.",
+  },
+  marcos: {
+    nome: "Marcos Teixeira", posto: "Montagem · Turno 1", foto: "rosto-marcos.png",
+    v: [80, 83, 79, 84, 80, 83, 81, 84, 79, 83, 81, 84, 82], evento: 9, curva: "linha",
+    prod: "82%", prodSub: "+2 pts vs. padrão", ret: "R$ 1,2 mil", retSub: "recuperados no mês", casa: "22 anos", casaSub: "desde 2003",
+    nota: "<b>Referência do posto:</b> o padrão da montagem foi aprendido com o jeito dele.",
+  },
+  lucas: {
+    nome: "Lucas Prado", posto: "Inspeção · Turno 1", foto: "rosto-lucas.png",
+    v: [55, 55, 57, 57, 60, 60, 62, 63, 63, 66, 66, 69, 71], evento: 9, curva: "escada",
+    prod: "71%", prodSub: "+16 pts no mês", ret: "R$ 2,1 mil", retSub: "recuperados no mês", casa: "8 meses", casaSub: "desde março",
+    nota: "<b>Em formação:</b> segue o padrão do Marcos; 3 comportamentos validados neste mês.",
+  },
+};
+const ORDER = ["ana", "marcos", "lucas"];
+const PADRAO = 80;
+
+/* Geometria por formato (unidades do viewBox = pixels do quadro-chave). */
+const G = F === "desktop"
+  ? { W: 1280, H: 720, x0: 70, x1: 760, yTop: 80, yBot: 680, r: 50, ring: 2.5, node: 3.5, line: 2, cardX: 868 }
+  : { W: 1080, H: 1920, x0: 40, x1: 820, yTop: 160, yBot: 1040, r: 80, ring: 3.5, node: 6, line: 3.5, cardY: 1160 };
+const X = (m) => G.x0 + (m / 588) * (G.x1 - G.x0);
+const Y = (p) => G.yBot - ((p - 50) / 50) * (G.yBot - G.yTop);
+
+const ns = "http://www.w3.org/2000/svg";
+const svg = document.createElementNS(ns, "svg");
+svg.setAttribute("viewBox", `0 0 ${G.W} ${G.H}`);
+svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+const el = (tag, attrs, parent = svg) => { const n = document.createElementNS(ns, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); parent.appendChild(n); return n; };
+
+/* Grade: faixas de 10 pontos e as horas do turno, bem claras. */
+for (let p = 50; p <= 100; p += 10) el("line", { x1: 0, x2: G.W, y1: Y(p), y2: Y(p), stroke: "#efebf2", "stroke-width": 1 });
+for (const m of [0, 120, 240, 360, 480, 588]) el("line", { x1: X(m), x2: X(m), y1: G.yTop - 20, y2: G.yBot + 10, stroke: "#f3f0f5", "stroke-width": 1 });
+/* Almoço: faixa Limestone onde a câmera não grava. */
+el("rect", { x: X(330), y: G.yTop - 20, width: X(390) - X(330), height: G.yBot - G.yTop + 30, fill: "#faf8f3" });
+/* Padrão do posto: tracejado, de borda a borda. */
+el("line", { x1: 0, x2: G.x1 + 30, y1: Y(PADRAO), y2: Y(PADRAO), stroke: "#c4a673", "stroke-width": G.line * 0.8, "stroke-dasharray": `${G.line * 4} ${G.line * 4}` });
+
+for (const id of ORDER) {
+  const d = PEOPLE[id];
+  const pts = d.v.map((v, i) => [X(T[i]), Y(v)]);
+  let path = `M0 ${pts[0][1]} L${pts[0][0]} ${pts[0][1]}`;
+  pts.slice(1).forEach(([x, y], i) => {
+    if (d.curva === "escada") path += ` H${x} V${y}`;
+    else path += ` L${x} ${y}`;
+  });
+  const dim = P && P !== id && K === 3;
+  el("path", { d: path, fill: "none", stroke: "#a88a58", "stroke-width": G.line, "stroke-linejoin": "round", "stroke-linecap": "round", opacity: dim ? 0.35 : 1 });
+  pts.forEach(([x, y], i) => {
+    if (i === pts.length - 1) return;
+    if (i === d.evento) el("circle", { cx: x, cy: y, r: G.node * 2, fill: "#fff", stroke: "#a88a58", "stroke-width": G.line, opacity: dim ? 0.35 : 1 });
+    else el("circle", { cx: x, cy: y, r: G.node, fill: "#a88a58", opacity: dim ? 0.35 : 1 });
+  });
+  const [tx, ty] = pts[pts.length - 1];
+  if (K === 2) {
+    el("circle", { cx: tx, cy: ty, r: G.node * 2.2, fill: "#a88a58" });
+    el("circle", { cx: tx, cy: ty, r: G.node * 4, fill: "none", stroke: "#c4a673", "stroke-width": 1 });
+  } else {
+    const clip = el("clipPath", { id: `c-${id}` }, el("defs", {}));
+    el("circle", { cx: tx, cy: ty, r: G.r }, clip);
+    el("circle", { cx: tx, cy: ty, r: G.r + 7, fill: "#fff", stroke: P === id ? "#a88a58" : "#c4a673", "stroke-width": P === id ? G.ring * 1.8 : G.ring });
+    const img = el("image", { href: d.foto, x: tx - G.r, y: ty - G.r, width: G.r * 2, height: G.r * 2, "clip-path": `url(#c-${id})`, preserveAspectRatio: "xMidYMid slice" });
+    if (dim) img.setAttribute("opacity", 0.45);
+    d.tip = [tx, ty];
+  }
+}
+const stage = document.getElementById("stage");
+stage.className = `stage ${F}`;
+stage.appendChild(svg);
+
+/* Ficha da pessoa em foco + conector dourado até ela. */
+if (K === 3 && P && PEOPLE[P]) {
+  const d = PEOPLE[P];
+  const card = document.createElement("article");
+  card.className = "card";
+  card.innerHTML = `
+    <div class="who"><div><h3 class="name">${d.nome}</h3><p class="role">${d.posto}</p></div></div>
+    <dl class="metrics">
+      <div><dt>Produtividade</dt><dd><strong>${d.prod}</strong><small class="up">${d.prodSub}</small></dd></div>
+      <div><dt>Retorno</dt><dd><strong>${d.ret}</strong><small>${d.retSub}</small></dd></div>
+      <div><dt>Tempo de casa</dt><dd><strong>${d.casa}</strong><small>${d.casaSub}</small></dd></div>
+    </dl>
+    <p class="note"><i></i><span>${d.nota}</span></p>
+    <div class="foot"><span>Exemplo ilustrativo</span><span class="steps">${ORDER.map((o) => `<span${o === P ? " data-on" : ""}></span>`).join("")}</span></div>`;
+  stage.appendChild(card);
+  const s = () => stage.clientWidth / G.W; // viewBox → px (largura manda nos dois formatos)
+  const place = () => {
+    const k = s();
+    const [tx, ty] = d.tip;
+    if (F === "desktop") {
+      const left = G.cardX * k;
+      card.style.left = `${left}px`;
+      const h = card.offsetHeight;
+      const top = Math.min(Math.max(ty * k - h / 2, 16), stage.clientHeight - h - 16);
+      card.style.top = `${top}px`;
+      conn.setAttribute("x1", tx + G.r + 7); conn.setAttribute("y1", ty);
+      conn.setAttribute("x2", G.cardX); conn.setAttribute("y2", ty);
+    } else {
+      card.style.top = `${G.cardY * k}px`; /* celular: sem conector; o aro do retrato em foco engrossa */
+    }
+  };
+  const conn = el("line", { stroke: "#c4a673", "stroke-width": G.line * 0.6 });
+  place();
+  addEventListener("resize", place);
+}
+</script>
+</body>
+</html>
