@@ -10,7 +10,7 @@
   --on-dark-2: rgba(244, 241, 234, 0.72);
   --on-dark-3: rgba(244, 241, 234, 0.5);
   --gold-rule: rgba(196, 166, 115, 0.3);
-  position: relative; height: 400svh; background: var(--deep); color: var(--on-dark);
+  position: relative; height: 400svh; padding-top: 34px; background: var(--deep); color: var(--on-dark); /* padding: a base grega do topo não encosta no rótulo quando a seção entra */
 }
 /* a base grega no topo: o mesmo pedestal da abertura, separando do "Como funciona" */
 .turno::before {

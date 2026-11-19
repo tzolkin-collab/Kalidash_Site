@@ -280,6 +280,7 @@ func handlePublicLead(w http.ResponseWriter, r *http.Request) {
 	}
 	if isNewsletter(in.Source) {
 		resp["serverSide"] = map[string]bool{}
+		dispatchNewsletter(in) // contato no Resend, segmento da newsletter (newsletter_resend.go)
 	} else {
 		dispatchConversion(buildConversion(in, eventID, ip, ua))
 	}

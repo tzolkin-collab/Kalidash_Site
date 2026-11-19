@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { Inbox, Kanban, LayoutDashboard, ListChecks, Mail, Newspaper, Plug, UserCheck, Users, Zap } from 'lucide-react';
+import { Inbox, Kanban, LayoutDashboard, ListChecks, Mail, MailOpen, Newspaper, Plug, UserCheck, Users, Zap } from 'lucide-react';
 
 export type NavItem = { path: string; label: string; Icon: LucideIcon };
 export type NavGroup = { title?: string; items: NavItem[] };
@@ -22,6 +22,7 @@ export const NAV_GROUPS: NavGroup[] = [
     title: 'Conteúdo e conexões',
     items: [
       { path: '/blog', label: 'Blog', Icon: Newspaper },
+      { path: '/newsletter', label: 'Newsletter', Icon: MailOpen },
       { path: '/automacoes', label: 'Automações', Icon: Zap },
       { path: '/projetos', label: 'Projetos conectados', Icon: Plug },
     ],

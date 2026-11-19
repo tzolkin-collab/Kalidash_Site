@@ -12,6 +12,7 @@ import ReadingProgressBar from "./ReadingProgressBar";
 import ShareButtons from "./ShareButtons";
 import NewsletterSignup from "./NewsletterSignup";
 import ArticleToc from "./ArticleToc";
+import ArticleEnhancer from "./ArticleEnhancer";
 import { SITE_URL } from "@/lib/siteUrl";
 
 /* Views do blog — UMA implementação só, usada pelas páginas reais (/blog, /blog/[slug]) e
@@ -71,6 +72,8 @@ export type ArticleViewData = {
   /** HTML do corpo, exportado pelo editor do admin */
   body: string;
   publishedAt?: string | null;
+  /** usado como sufixo da origem do lead do material gratuito (ArticleEnhancer) */
+  slug?: string;
 };
 
 export function estimateReadingTime(textOrHtml: string): number {
@@ -465,6 +468,9 @@ export function ArticleView({
 
             <ShareButtons title={article.title} url={url} className={articleStyles.shareTop} />
           </div>
+
+          {/* CTA curto de e-mail logo abaixo do autor (pedido da Carol, referência: o quadro ao lado do título no blog da HubSpot) */}
+          <NewsletterSignup placement="topo" variant="compact" />
           </header>
 
           {article.coverImageUrl && (
@@ -492,6 +498,7 @@ export function ArticleView({
             dangerouslySetInnerHTML={{ __html: article.body }}
           />
           <ArticleToc watch={article.body} />
+          <ArticleEnhancer slug={article.slug ?? ""} watch={article.body} />
 
           {/* Rodapé do artigo com compartilhamento */}
           <div className={articleStyles.articleFooterShare}>

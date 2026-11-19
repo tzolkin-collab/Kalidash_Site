@@ -1,5 +1,11 @@
 /* Faixa da newsletter do blog: fundo Limestone de ponta a ponta, filete dourado no topo, título na serifa da marca
  * e o formulário numa linha (empilha no celular). Sem caixa nem sombra, no mesmo registro do resto do blog. */
+.band, .compact, .material {
+  --nl-gold: var(--gold, #a88a58);
+  --nl-gold-text: var(--gold-text, #8f7248);
+  --nl-ink: var(--imperial, #28183b);
+  --nl-bg: #f4f1ea;
+}
 .band {
   --nl-gold: var(--gold, #a88a58);
   --nl-gold-text: var(--gold-text, #8f7248);
@@ -170,4 +176,56 @@
   .submit {
     width: 100%;
   }
+}
+
+/* ---------- Quadro compacto no topo do artigo (sobre o Imperial) ---------- */
+.compact {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(0, 2fr);
+  gap: 16px 32px;
+  align-items: center;
+  margin: 28px 0 0;
+  padding: 20px 24px;
+  border: 1px solid rgba(196, 166, 115, 0.35);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #f8f9fa;
+}
+.compactTitle {
+  margin: 0;
+  font-family: var(--font-title, var(--font-fraunces)), Georgia, serif;
+  font-size: 1.25rem;
+  line-height: 1.25;
+  color: #f8f9fa;
+}
+.compactTitle small {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-body, system-ui), sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgba(248, 249, 250, 0.62);
+}
+.compact .form { gap: 8px 10px; align-items: end; }
+.compact .field { gap: 0; }
+.compact .field > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.compact .field input { height: 44px; border-color: rgba(196, 166, 115, 0.45); background: rgba(255, 255, 255, 0.96); }
+.compact .field input::placeholder { color: rgba(40, 24, 59, 0.5); }
+.compact .submit { height: 44px; }
+.compact .note { margin: 0; font-size: 12px; color: rgba(248, 249, 250, 0.55); }
+.compact .note a { color: inherit; }
+.compact .field small { color: #f0a48f; }
+.compact .done { border-top: 0; padding: 0; color: #f8f9fa; font-size: 1.1rem; }
+
+/* ---------- Dentro do bloco "Material gratuito" dos artigos longos ---------- */
+.material .form { grid-template-columns: minmax(0, 1fr); }
+.material .field > span { color: inherit; opacity: 0.8; }
+.material .note { color: inherit; opacity: 0.7; }
+.material .done { color: inherit; border-top-color: currentColor; }
+
+@media (max-width: 900px) {
+  .compact { grid-template-columns: minmax(0, 1fr); padding: 18px; }
+}
+@media (max-width: 640px) {
+  .compact .form { grid-template-columns: minmax(0, 1fr); }
 }

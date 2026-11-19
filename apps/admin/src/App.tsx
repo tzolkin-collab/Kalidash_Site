@@ -7,6 +7,7 @@ import DashboardDemo from './pages/DashboardDemo';
 import Automations from './pages/Automations';
 import Clients from './pages/Clients';
 import Leads from './pages/Leads';
+import Newsletter from './pages/Newsletter';
 import Opportunities from './pages/Opportunities';
 import PeopleCompanies from './pages/PeopleCompanies';
 import PipelineSettings from './pages/PipelineSettings';
@@ -143,6 +144,9 @@ export default function App() {
       break;
     case 'blog':
       page = can.manageBlog ? <Blog postId={second} /> : <NotFound path={`${path} (sem permissão)`} />;
+      break;
+    case 'newsletter':
+      page = <Newsletter />;
       break;
     case 'projetos':
       page = <Projects />;

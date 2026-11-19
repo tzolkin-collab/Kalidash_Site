@@ -24,8 +24,12 @@ const OPTIONS: sanitize.IOptions = {
     "table", "colgroup", "col", "thead", "tbody", "tfoot", "tr", "th", "td",
     "figure", "figcaption", "img", "picture", "source", "video", "audio",
     "details", "summary", "iframe",
-    // Checklist do editor (somente <input type="checkbox">, ver exclusiveFilter).
+    // Artigos longos escritos em HTML (guias): listas de definição, seções, sumário e rótulos do checklist.
+    "dl", "dt", "dd", "section", "nav", "label",
+    // Checklist do editor e campos numéricos da calculadora dos guias (só checkbox e number, ver exclusiveFilter).
     "input",
+    // Só para o exclusiveFilter poder removê-lo com o conteúdo: tag fora da lista some, mas os filhos ficariam.
+    "form", "button",
   ],
   allowedAttributes: {
     "*": ["class", "id", "data-*", "style", "title", "lang", "dir", "role", "aria-*"],
@@ -39,7 +43,8 @@ const OPTIONS: sanitize.IOptions = {
     col: ["span", "width"],
     ol: ["start", "type"],
     li: ["value"],
-    input: ["type", "checked", "disabled"],
+    input: ["type", "checked", "disabled", "value", "min", "max", "step", "inputmode"],
+    label: ["for"],
     details: ["open"],
     iframe: ["src", "width", "height", "title", "allow", "allowfullscreen", "frameborder", "loading"],
   },
@@ -62,9 +67,13 @@ const OPTIONS: sanitize.IOptions = {
         ? { tagName, attribs: { ...attribs, rel: "noopener noreferrer" } }
         : { tagName, attribs },
   },
-  // Qualquer <input> que não seja checkbox é descartado.
+  // Descartados com o conteúdo: <input> que não seja checkbox ou number; o <form> dos guias (o site põe o próprio
+  // formulário no lugar, ArticleEnhancer) e a tela de sucesso dele; <button> (os do guia dependiam de script).
   exclusiveFilter: (frame) =>
-    frame.tag === "input" && String(frame.attribs.type ?? "").toLowerCase() !== "checkbox",
+    (frame.tag === "input" && !["checkbox", "number"].includes(String(frame.attribs.type ?? "").toLowerCase())) ||
+    frame.tag === "form" ||
+    frame.tag === "button" ||
+    (frame.tag === "div" && /(^|\s)success(\s|$)/.test(String(frame.attribs.class ?? ""))),
 };
 
 export function sanitizeArticleHtml(html: string | null | undefined): string {
