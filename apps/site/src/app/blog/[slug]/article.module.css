@@ -214,12 +214,11 @@
 }
 
 /* Capa do Artigo */
+/* Sem moldura: fundo transparente, sem borda nem cantos próprios. Quem tem canto e sombra é a imagem (.cover),
+ * então nada claro aparece em volta dela, nem na metade que fica sobre a abertura roxa. */
 .coverContainer {
   margin: 0 0 52px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  overflow: hidden;
-  background: #f5f3f7;
+  background: transparent;
 }
 
 .cover {

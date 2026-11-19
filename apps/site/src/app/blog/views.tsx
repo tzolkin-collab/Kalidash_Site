@@ -10,6 +10,8 @@ import SiteFooter from "../home/SiteFooter";
 import ScrollMotion from "../solucoes/ScrollMotion";
 import ReadingProgressBar from "./ReadingProgressBar";
 import ShareButtons from "./ShareButtons";
+import NewsletterSignup from "./NewsletterSignup";
+import ArticleToc from "./ArticleToc";
 import { SITE_URL } from "@/lib/siteUrl";
 
 /* Views do blog — UMA implementação só, usada pelas páginas reais (/blog, /blog/[slug]) e
@@ -129,7 +131,12 @@ export function BlogGalleryView({
       .map(([slug, label]) => ({ slug, label }))
       .sort((a, b) => rank(a.slug) - rank(b.slug) || a.label.localeCompare(b.label, "pt-BR"));
 
-    return [...ordered, ...sortedExtras];
+    // Categoria sem nenhum artigo não vira botão (ex.: "Cases" antes do primeiro case); o link direto
+    // (?categoria= ou /blog/categoria/[slug]) segue abrindo o aviso de categoria vazia.
+    // No preview do admin os cartões podem vir sem categorias: aí o catálogo aparece inteiro.
+    const used = new Set(items.flatMap((item) => (item.categories ?? []).map(categorySlug)));
+    const all = [...ordered, ...sortedExtras];
+    return used.size ? all.filter((c) => used.has(c.slug)) : all;
   }, [items, categoriesCatalog]);
 
   // Link direto para uma categoria: /blog?categoria=cases ou /blog/categoria/[slug]
@@ -359,6 +366,8 @@ export function BlogGalleryView({
             </section>
           )}
         </div>
+
+        <NewsletterSignup placement="blog" />
       </main>
 
       <ScrollMotion />
@@ -482,6 +491,7 @@ export function ArticleView({
             data-motion="surge-within"
             dangerouslySetInnerHTML={{ __html: article.body }}
           />
+          <ArticleToc watch={article.body} />
 
           {/* Rodapé do artigo com compartilhamento */}
           <div className={articleStyles.articleFooterShare}>
@@ -546,6 +556,8 @@ export function ArticleView({
               </div>
             </section>
           )}
+
+          <NewsletterSignup placement="artigo" />
         </article>
       </main>
 

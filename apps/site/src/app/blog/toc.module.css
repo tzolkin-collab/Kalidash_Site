@@ -1,0 +1,182 @@
+/* Índice lateral do artigo (ArticleToc.tsx), referência: o índice flutuante do Notion.
+ * Traços roxos que vão ficando dourados conforme a seção é lida (--read, de 0 a 1, vem do componente). */
+.rail {
+  --toc-purple: var(--imperial, #28183b);
+  --toc-gold: var(--gold, #a88a58);
+  --toc-gold-text: var(--gold-text, #8f7248);
+  /* celular e tablet: canto inferior esquerdo, na mesma altura do botão do WhatsApp (home.module.css .whatsapp) */
+  --toc-edge: 16px;
+  --toc-box: 48px;
+  position: fixed;
+  left: var(--toc-edge);
+  bottom: var(--toc-edge);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  min-height: var(--toc-box);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.rail[data-visible="true"] {
+  opacity: 1;
+}
+@media (min-width: 1101px) {
+  .rail {
+    --toc-edge: 40px;
+    --toc-box: 54px;
+  }
+}
+
+/* Traços: um por título; os de h3 mais curtos; o da seção atual mais longo. */
+.lines {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  transition: opacity 0.15s ease;
+}
+.lines li {
+  position: relative;
+  width: 16px;
+  height: 2px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--toc-purple);
+  transition: width 0.2s ease;
+}
+.lines li::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--toc-gold);
+  transform: scaleX(var(--read, 0));
+  transform-origin: left center;
+}
+.lines li[data-level="3"] {
+  width: 10px;
+}
+.lines li[data-active="true"] {
+  width: 22px;
+}
+.lines li[data-level="3"][data-active="true"] {
+  width: 14px;
+}
+
+/* Celular e tablet: só os traços, sem a lista. */
+.panel {
+  display: none;
+}
+
+/* Desktop: borda direita, no meio da tela, com a lista ao passar o mouse ou focar. */
+@media (min-width: 1200px) {
+  .rail {
+    top: 50%;
+    right: clamp(16px, 2.2vw, 36px);
+    bottom: auto;
+    left: auto;
+    display: block;
+    min-height: 0;
+    transform: translateY(-50%);
+  }
+  .rail[data-visible="true"] {
+    pointer-events: auto;
+  }
+  .lines {
+    align-items: flex-end;
+    gap: 12px;
+    padding: 12px 4px 12px 24px;
+  }
+  .lines li {
+    width: 18px;
+  }
+  .lines li::after {
+    transform-origin: right center;
+  }
+  .lines li[data-level="3"] {
+    width: 11px;
+  }
+
+  .panel {
+    display: block;
+    position: absolute;
+    top: 50%;
+    right: 0;
+    width: 272px;
+    max-height: min(70vh, 560px);
+    overflow-y: auto;
+    padding: 14px 8px 10px;
+    border: 1px solid rgba(40, 24, 59, 0.08);
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 12px 32px rgba(20, 12, 30, 0.12), 0 2px 6px rgba(20, 12, 30, 0.06);
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(8px, -50%);
+    transition: opacity 0.16s ease, transform 0.16s ease, visibility 0s linear 0.16s;
+  }
+  .rail:hover .panel,
+  .rail:focus-within .panel {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(0, -50%);
+    transition: opacity 0.16s ease, transform 0.16s ease;
+  }
+  .rail:hover .lines,
+  .rail:focus-within .lines {
+    opacity: 0;
+  }
+}
+
+.panelTitle {
+  margin: 0 10px 8px;
+  color: var(--toc-gold-text);
+  font-family: var(--font-archivo), "Archivo", system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.panel ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.panel a {
+  display: block;
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: rgba(40, 24, 59, 0.62);
+  font-size: 13.5px;
+  line-height: 1.35;
+  text-decoration: none;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+.panel li[data-level="3"] a {
+  padding-left: 22px;
+  font-size: 13px;
+}
+.panel a:hover {
+  background: rgba(40, 24, 59, 0.05);
+  color: var(--toc-purple);
+}
+.panel a[aria-current="location"] {
+  color: var(--toc-gold-text);
+  font-weight: 600;
+}
+.panel a:focus-visible {
+  outline: 2px solid var(--toc-gold);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail,
+  .panel,
+  .lines,
+  .lines li {
+    transition: none;
+  }
+}

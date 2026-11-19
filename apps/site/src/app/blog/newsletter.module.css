@@ -1,0 +1,173 @@
+/* Faixa da newsletter do blog: fundo Limestone de ponta a ponta, filete dourado no topo, título na serifa da marca
+ * e o formulário numa linha (empilha no celular). Sem caixa nem sombra, no mesmo registro do resto do blog. */
+.band {
+  --nl-gold: var(--gold, #a88a58);
+  --nl-gold-text: var(--gold-text, #8f7248);
+  --nl-ink: var(--imperial, #28183b);
+  --nl-bg: #f4f1ea;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: clamp(28px, 5vw, 72px);
+  align-items: end;
+  /* no /blog fica na largura do conteúdo (1280px, como a abertura); no artigo, na coluna do texto */
+  box-sizing: border-box;
+  width: calc(100% - 48px);
+  max-width: 1232px;
+  margin: clamp(56px, 8vw, 112px) auto 0;
+  padding: clamp(48px, 7vw, 96px) 0;
+  background: var(--nl-bg);
+  box-shadow: 0 0 0 100vmax var(--nl-bg);
+  clip-path: inset(0 -100vmax);
+  border-top: 1px solid var(--nl-gold);
+  color: var(--nl-ink);
+}
+
+.band[data-placement="artigo"] {
+  width: 100%;
+  max-width: none;
+  margin-bottom: 0;
+}
+
+.eyebrow {
+  margin: 0 0 16px;
+  color: var(--nl-gold-text);
+  font-family: var(--font-archivo), "Archivo", system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0 0 14px;
+  font-family: var(--font-title, var(--font-fraunces)), Georgia, serif;
+  font-size: clamp(1.7rem, 2.8vw, 2.4rem);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.lead {
+  margin: 0;
+  max-width: 42ch;
+  color: rgba(40, 24, 59, 0.72);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 12px 16px;
+  align-items: start;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+.field > span {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(40, 24, 59, 0.78);
+}
+.field input {
+  height: 48px;
+  padding: 0 14px;
+  border: 1px solid rgba(40, 24, 59, 0.22);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--nl-ink);
+  font: inherit;
+  font-size: 1rem;
+}
+.field input:focus-visible {
+  outline: 2px solid var(--nl-gold);
+  outline-offset: 1px;
+  border-color: var(--nl-gold);
+}
+.field input[aria-invalid="true"] {
+  border-color: #b3432f;
+}
+.field small {
+  color: #b3432f;
+  font-size: 12.5px;
+}
+
+.submit {
+  align-self: end;
+  height: 48px;
+  padding: 0 24px;
+  border: 1px solid var(--nl-gold);
+  border-radius: 4px;
+  background: var(--nl-gold);
+  color: #fff;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease;
+}
+.submit:hover {
+  background: #8a6f45;
+  border-color: #8a6f45;
+}
+.submit:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+.submit:focus-visible {
+  outline: 2px solid var(--nl-ink);
+  outline-offset: 3px;
+}
+
+.note {
+  grid-column: 1 / -1;
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: rgba(40, 24, 59, 0.62);
+}
+.note a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--nl-gold);
+  text-underline-offset: 3px;
+}
+.note [role="alert"] {
+  color: #b3432f;
+}
+
+.done {
+  margin: 0;
+  padding-top: 16px;
+  border-top: 1px solid rgba(40, 24, 59, 0.15);
+  font-family: var(--font-title, var(--font-fraunces)), Georgia, serif;
+  font-size: 1.3rem;
+  line-height: 1.35;
+}
+
+.trap {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+@media (max-width: 900px) {
+  .band {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+}
+@media (max-width: 640px) {
+  .form {
+    grid-template-columns: 1fr;
+  }
+  .submit {
+    width: 100%;
+  }
+}
