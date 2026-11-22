@@ -12,6 +12,7 @@ import { useStore } from '../lib/store';
 import { useLeadActions } from '../lib/useLeadActions';
 import { useViewSettings } from '../lib/viewSettings';
 import { leadsStore } from '../mocks/leads';
+import { lostReasonLabel } from '../lib/lostReasons';
 import { companiesStore, peopleStore } from '../mocks/people';
 import { pipelinesStore } from '../mocks/pipelines';
 import { teamStore } from '../mocks/team';
@@ -125,7 +126,7 @@ export default function LeadSheet({ leadId, onClose, onOpenParty, onNotice }: Pr
       >
         {tab === 'overview' && (
           <>
-            {lead.status === 'DISCARDED' && lead.discardReason && <div className="task-callout" role="note" style={{ marginBottom: '16px' }}><span>Descartado. Motivo: {lead.discardReason}.</span></div>}
+            {lead.status === 'DISCARDED' && lead.discardReason && <div className="task-callout" role="note" style={{ marginBottom: '16px' }}><span>Descartado. Motivo: {lostReasonLabel(lead.discardReason, lead.discardNote)}.</span></div>}
             {lead.status === 'QUALIFIED' && <div className="task-callout" role="note" style={{ marginBottom: '16px' }}><span>Este lead já virou oportunidade. Veja em Oportunidades.</span></div>}
 
             <div className="sheet-section">

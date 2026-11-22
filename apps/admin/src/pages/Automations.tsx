@@ -119,7 +119,7 @@ export default function Automations() {
           <div className="table-card">
             <div className="table-scroll">
               <table className="data-table data-table-cards">
-                <thead><tr><th>Automação</th><th>Quando → Então</th><th>Última execução (nesta aba)</th><th>Execuções (nesta aba)</th><th style={{ width: '70px' }}>Ativa</th></tr></thead>
+                <thead><tr><th>Automação</th><th>Quando → Então</th><th>Última execução (nesta aba)</th><th>Execuções (nesta aba)</th><th style={{ width: '110px' }} title="A automação roda só neste navegador, enquanto o admin está aberto. O servidor ainda não executa automações.">Ativa nesta aba</th></tr></thead>
                 <tbody>
                   {filtered.map((a) => (
                     <tr key={a.id} className="clickable" onClick={() => setEditing(a)} style={{ opacity: a.active ? 1 : 0.6 }}>
@@ -140,7 +140,7 @@ export default function Automations() {
                       </td>
                       <td className="text-muted" data-label="Última execução">{when(a.lastRun)}</td>
                       <td data-label="Execuções (nesta aba)">{a.runs > 0 ? a.runs : '—'}</td>
-                      <td data-label="Ativa" onClick={(e) => e.stopPropagation()}><Switch checked={a.active} onChange={(v) => toggle(a, v)} label={`Ativar ${a.name}`} /></td>
+                      <td data-label="Ativa nesta aba" title="Roda só neste navegador, com o admin aberto" onClick={(e) => e.stopPropagation()}><Switch checked={a.active} onChange={(v) => toggle(a, v)} label={`Ativar ${a.name} neste navegador`} /></td>
                     </tr>
                   ))}
                   {filtered.length === 0 && <tr><td colSpan={5}><EmptyState title="Nenhuma automação aqui">Ajuste os filtros ou crie uma nova.</EmptyState></td></tr>}

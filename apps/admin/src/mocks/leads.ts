@@ -17,6 +17,3 @@ export const leadsStore = createStore<Lead[]>(demoOnly<Lead>([
   { id: 'l8', name: 'Clínica Bem Viver', email: 'admin@clinicabemviver.com.br', personId: 'p10', companyId: 'c5', pipelineId: 'b2b', stageId: 'b2b:contato', origin: 'OUTBOUND', sourceName: 'Cesar Germano', tags: ['Saúde'], status: 'ACTIVE', wasSeen: false, createdAt: '2026-09-21T11:15:00Z' },
   { id: 'l9', name: 'Tatiane Freitas', email: 'tati.freitas@exemplo.com.br', personId: 'p11', returningClient: true, pipelineId: 'exp26', stageId: 'exp26:novos', origin: 'OUTBOUND', sourceName: 'Carol Nunes', tags: ['Cliente atual'], status: 'ACTIVE', wasSeen: false, createdAt: '2026-09-20T15:00:00Z' },
 ]));
-
-/** Motivos de descarte de lead. Lista do time. */
-export const discardReasonsStore = createStore<string[]>(['Sem orçamento', 'Sem interesse', 'Fora do perfil', 'Contato inválido', 'Duplicado']);

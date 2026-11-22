@@ -11,6 +11,7 @@ import type { EventContext } from './events';
 import { gateBlockers } from './gate';
 import type { Blocker } from './gate';
 import { logChange } from './history';
+import { lostReasonLabel } from './lostReasons';
 import { newId } from './store';
 
 // Ciclo de vida do lead: cadastrar (achando ou criando pessoa e empresa), mover, qualificar e descartar.
@@ -134,14 +135,15 @@ export function moveLeadStage(lead: Lead, stageId: string): MoveResult {
   return { ok: true };
 }
 
-export function discardLead(lead: Lead, reason: string) {
-  leadsStore.set((prev) => prev.map((l) => (l.id === lead.id ? { ...l, status: 'DISCARDED', discardReason: reason } : l)));
-  logChange({ entity: 'lead', entityId: lead.id, entityName: lead.name, kind: 'discard', note: `Motivo: ${reason}` });
+/** Descarta com o motivo da lista do funil e a observação (D28). Com a API, o crmSync grava pelo PUT. */
+export function discardLead(lead: Lead, reason: string, note = '') {
+  leadsStore.set((prev) => prev.map((l) => (l.id === lead.id ? { ...l, status: 'DISCARDED', discardReason: reason, discardNote: note || undefined } : l)));
+  logChange({ entity: 'lead', entityId: lead.id, entityName: lead.name, kind: 'discard', note: `Motivo: ${lostReasonLabel(reason, note)}` });
   emit('lead.descartado', leadCtx(lead));
 }
 
 export function restoreLead(lead: Lead) {
-  leadsStore.set((prev) => prev.map((l) => (l.id === lead.id ? { ...l, status: 'ACTIVE', discardReason: undefined } : l)));
+  leadsStore.set((prev) => prev.map((l) => (l.id === lead.id ? { ...l, status: 'ACTIVE', discardReason: undefined, discardNote: undefined } : l)));
   logChange({ entity: 'lead', entityId: lead.id, entityName: lead.name, kind: 'restore', note: 'Lead restaurado' });
 }
 
@@ -153,8 +155,11 @@ export function missingForQualify(lead: Lead): ('value' | 'owner')[] {
   return (pipe?.qualifyRequires ?? []).filter((r) => (r === 'value' ? !lead.estimatedValue : !lead.owner && !lead.ownerId));
 }
 
-/** Qualificar cria a oportunidade na primeira etapa aberta e leva tarefas e histórico. */
-export function qualifyLead(lead: Lead, extra: { value?: number; owner?: string } = {}): Opportunity {
+/**
+ * Qualificar SEM a API (modo de exemplo): cria a oportunidade de exemplo na primeira etapa aberta e leva tarefas e
+ * histórico. Com o CRM na API quem qualifica é o servidor (qualifyLeadOnServer, em crmSync.ts), numa transação só.
+ */
+export function qualifyLead(lead: Lead, extra: { value?: number; owner?: string; ownerId?: string } = {}): Opportunity {
   const pipe = pipelinesStore.get().find((p) => p.id === lead.pipelineId);
   const person = peopleStore.get().find((p) => p.id === lead.personId);
   const company = companiesStore.get().find((c) => c.id === lead.companyId);
@@ -171,7 +176,7 @@ export function qualifyLead(lead: Lead, extra: { value?: number; owner?: string 
   const defaultContact = company?.defaultContactId ?? person?.id;
   if (defaultContact) oppContactsStore.set((prev) => ({ ...prev, [opp.id]: { defaultPersonId: defaultContact, emailIds: [defaultContact], meetingIds: [defaultContact] } }));
 
-  leadsStore.set((prev) => prev.map((l) => (l.id === lead.id ? { ...l, status: 'QUALIFIED', convertedOpportunityId: opp.id, estimatedValue: value || l.estimatedValue, owner } : l)));
+  leadsStore.set((prev) => prev.map((l) => (l.id === lead.id ? { ...l, status: 'QUALIFIED', convertedOpportunityId: opp.id, estimatedValue: value || l.estimatedValue, owner, ownerId: extra.ownerId ?? l.ownerId } : l)));
 
   const moved = tasksStore.get().filter((t) => t.entity === 'lead' && t.entityId === lead.id).length;
   tasksStore.set((prev) => prev.map((t) => (t.entity === 'lead' && t.entityId === lead.id ? { ...t, entity: 'opportunity', entityId: opp.id, entityName: opp.title } : t)));

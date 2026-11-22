@@ -76,6 +76,8 @@ export type Pipeline = {
   taskTags: string[];
   /** O que o Qualificar precisa perguntar na hora (D5). */
   qualifyRequires: ('value' | 'owner')[];
+  /** Motivos de perda do funil (D28). Vazio: vale a lista padrão (lib/lostReasons.ts, igual à da API). */
+  lostReasons?: string[];
   /** Template de venda de que esta pipeline foi copiada, e o de pós-venda encadeado ao ganho. */
   templateId?: string;
   postSaleTemplateId?: string;
@@ -238,7 +240,10 @@ export type Lead = {
   tags: string[];
   message?: string;
   status: 'ACTIVE' | 'QUALIFIED' | 'DISCARDED';
+  /** Motivo da lista do funil (D28). */
   discardReason?: string;
+  /** Observação do descarte; obrigatória quando o motivo é "Outro". */
+  discardNote?: string;
   /** Alguém já abriu este lead. */
   wasSeen: boolean;
   firstContactAt?: string;

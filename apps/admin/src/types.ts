@@ -18,6 +18,9 @@ export type Opportunity = {
   created_at?: string;
   /** Quando foi para Ganho (a API grava ao mover; nula em oportunidades abertas). */
   wonAt?: string | null;
+  /** Motivo de perda (D28): a API grava ao entrar numa etapa Perdida e limpa ao sair. */
+  lostReason?: string | null;
+  lostReasonNote?: string | null;
   /** Só no front: linha de lead exibida junto das oportunidades ("Ver leads"). */
   isLead?: boolean;
   /** Criada no protótipo (qualificar um lead ou o formulário de nova oportunidade): não existe na API. */

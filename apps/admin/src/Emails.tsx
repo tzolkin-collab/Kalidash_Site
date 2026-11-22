@@ -237,19 +237,20 @@ export default function Emails() {
       />
 
       {activeTab === 'inbox' ? (
+        // Ainda não existe: sem botão de conectar, para ninguém achar que é só uma configuração pendente.
         <div style={{ padding: '60px 24px', textAlign: 'center', background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border-subtle)', marginTop: 24, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <div style={{ width: 64, height: 64, background: 'var(--bg-body)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
             <Mail size={32} className="text-muted" opacity={0.5} />
           </div>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>Caixa de entrada desconectada</h2>
-          <p style={{ color: 'var(--text-secondary)', maxWidth: 420, marginBottom: 24, lineHeight: 1.5 }}>
-            Conecte sua conta de e-mail (Google Workspace ou Microsoft 365) via OAuth para centralizar as mensagens dos seus leads aqui.
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>Caixa de entrada ainda não disponível</h2>
+          <p style={{ color: 'var(--text-secondary)', maxWidth: 460, lineHeight: 1.5 }}>
+            Ler aqui as respostas dos leads, ligando uma conta Google Workspace ou Microsoft 365, ainda não existe no Kalidash.
+            Por enquanto, responda pelo seu e-mail de sempre e registre o contato como anotação no lead ou na oportunidade.
           </p>
-          <button className="btn btn-solid" onClick={() => alert('Em breve: Redirecionamento para a página de Integrações (Google/Microsoft OAuth).')}>
-            Conectar conta de e-mail
-          </button>
         </div>
       ) : activeTab === 'templates' ? (
+        <>
+        <SampleBanner>Os modelos ainda não são salvos no servidor: o que for criado ou editado aqui se perde ao sair desta tela. O envio de teste do editor é real e vai só para o seu e-mail.</SampleBanner>
         <div className="template-grid">
           {templates.map((tpl) => (
             <button type="button" key={tpl.id} className="template-card" onClick={() => openEditor(tpl.id)}>
@@ -262,9 +263,10 @@ export default function Emails() {
             </button>
           ))}
         </div>
+        </>
       ) : (
         <>
-          <SampleBanner phase={6}>Modelos e histórico ainda não têm API: os envios abaixo são de exemplo. O envio de teste do editor é real e vai só para o seu e-mail.</SampleBanner>
+          <SampleBanner>Modelos e histórico ainda não são salvos no servidor: os envios abaixo são de exemplo. O envio de teste do editor é real e vai só para o seu e-mail.</SampleBanner>
           <div className="table-card">
             <div className="table-scroll">
               <table className="data-table data-table-cards">

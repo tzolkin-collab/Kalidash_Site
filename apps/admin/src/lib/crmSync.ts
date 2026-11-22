@@ -145,6 +145,57 @@ export async function revealPersonDocument(id: string): Promise<string | null> {
   return document;
 }
 
+/** Grava agora o que está pendente (sem esperar o intervalo) e espera terminar. */
+function flushNow(): Promise<void> {
+  clearTimeout(flushTimer);
+  flushTimer = undefined;
+  const run = flushing.then(async () => { for (const s of specs) await flushSpec(s); });
+  flushing = run.catch(() => undefined);
+  return run;
+}
+
+export type QualifyOnServer =
+  | { ok: true; lead: Lead; opportunityId: string; movedTasks: number }
+  | { ok: false; title: string; detail: string };
+
+/**
+ * Qualifica no servidor (POST /api/crm/leads/{id}/qualify, WP4-2): a oportunidade nasce na primeira etapa aberta,
+ * as tarefas abertas vão junto e o lead vira QUALIFIED, tudo numa transação. Antes, o admin só escrevia na memória
+ * do navegador e o lead apontava para uma oportunidade que não existia (B-01).
+ */
+export async function qualifyLeadOnServer(lead: Lead, extra: { value?: number; ownerId?: string }): Promise<QualifyOnServer> {
+  try {
+    await flushNow(); // o servidor confere valor e dono no lead que ele tem: as edições pendentes vão antes
+  } catch {
+    return { ok: false, title: 'Sem conexão com a API', detail: 'O lead não foi qualificado. Tente de novo.' };
+  }
+  const body: Record<string, unknown> = {};
+  if (extra.value !== undefined) body.value = extra.value;
+  if (extra.ownerId !== undefined) body.ownerId = extra.ownerId;
+  let res: Response;
+  try {
+    res = await api(`${leads.path}/${encodeURIComponent(lead.id)}/qualify`, { method: 'POST', body: JSON.stringify(body) });
+  } catch {
+    return { ok: false, title: 'Sem conexão com a API', detail: 'O lead não foi qualificado. Tente de novo.' };
+  }
+  const data = (await res.json().catch(() => ({}))) as { error?: string; blockers?: { label: string }[]; lead?: Lead; opportunity?: { id: string | number }; movedTasks?: number };
+
+  if (res.ok && data.lead && data.opportunity) {
+    const saved = leads.fromServer(data.lead);
+    snap.leads.set(saved.id, projection(saved));
+    withSilence(() => leadsStore.set((prev) => prev.map((l) => (l.id === saved.id ? saved : l))));
+    void reloadTasks(); // as tarefas do lead agora são da oportunidade
+    return { ok: true, lead: saved, opportunityId: String(data.opportunity.id), movedTasks: data.movedTasks ?? 0 };
+  }
+  if (res.status === 409 && data.blockers?.length) {
+    void reloadTasks(); // o gate pode ter aberto a tarefa do requisito
+    const labels = data.blockers.map((b) => b.label);
+    return { ok: false, title: `${lead.name} não pode ser qualificado ainda`, detail: labels.length === 1 ? `Pendente: ${labels[0]}.` : `${labels.length} tarefas pendentes: ${labels.join(', ')}.` };
+  }
+  if (res.status === 409) await hydrate(leads as unknown as Spec<{ id: string }>); // já qualificado ou descartado em outra aba: mostra o que o servidor tem
+  return { ok: false, title: `Não consegui qualificar ${lead.name}`, detail: data.error ?? `A API respondeu ${res.status}.` };
+}
+
 /** Semeia o servidor vazio com os exemplos que a tela já mostra. Devolve se algum CPF ficou de fora. */
 async function seed(): Promise<{ failed: boolean; withoutKey: boolean }> {
   let withoutKey = false;

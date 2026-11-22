@@ -23,6 +23,8 @@ import type { Stage, StageKind } from '../domain';
 import { avisoForLabels, pushAviso, pushErro } from '../lib/notify';
 import { reloadPipelines, reloadTasks } from '../lib/workflowSync';
 import ColumnPicker from '../components/ColumnPicker';
+import { LostReasonPanel } from '../components/LeadPanels';
+import { lostReasonsFor } from '../lib/lostReasons';
 import OpportunityDetail from '../components/OpportunityDetail';
 import Peek from '../components/Peek';
 import ViewSettingsPopover from '../components/ViewSettingsPopover';
@@ -80,14 +82,25 @@ export default function Opportunities() {
   const { settings, update: updateSettings, reset: resetSettings } = useViewSettings();
   const [editColumns, setEditColumns] = useState(false);
 
-  const moveOpportunity = (oppId: string, stageId: string) => {
-    // Ir para Ganho grava a data do fechamento (valor ganho por período); sair de Ganho limpa.
-    const won = stageInfo(stageId, pipelines)?.kind === 'WON';
-    const wonAt = won ? new Date().toISOString() : null;
+  // Ir para uma etapa Perdida pede o motivo antes (D28); o servidor recusa sem ele.
+  const [lostAsk, setLostAsk] = useState<{ oppId: string; stageId: string } | null>(null);
+
+  const moveOpportunity = (oppId: string, stageId: string, lost?: { reason: string; note: string }) => {
+    const kind = stageInfo(stageId, pipelines)?.kind;
     const original = opportunities.find((o) => o.id === oppId);
+    if (kind === 'LOST' && !lost && original && !original.isLead && original.stage !== stageId) {
+      setLostAsk({ oppId, stageId });
+      return;
+    }
+    // Ir para Ganho grava a data do fechamento (valor ganho por período); sair de Ganho limpa.
+    const won = kind === 'WON';
+    const wonAt = won ? new Date().toISOString() : null;
     // Só oportunidades da API podem falhar de verdade: exemplos do protótipo e leads não existem lá.
     const remote = !!original && !original.isSample && !original.isLead;
-    const apply = (o: Opportunity): Opportunity => ({ ...o, stage: stageId, wonAt: won ? (o.wonAt ?? wonAt) : null });
+    const apply = (o: Opportunity): Opportunity => ({
+      ...o, stage: stageId, wonAt: won ? (o.wonAt ?? wonAt) : null,
+      ...(kind === 'LOST' ? (lost ? { lostReason: lost.reason, lostReasonNote: lost.note || null } : {}) : { lostReason: null, lostReasonNote: null }),
+    });
     const revert = () => {
       if (!original) return;
       setOpportunities((prev) => prev.map((o) => (o.id === oppId ? original : o)));
@@ -98,12 +111,18 @@ export default function Opportunities() {
     fetch(`${API_URL}/api/leads/move`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lead_id: oppId, column_id: stageId, won }),
+      body: JSON.stringify({ lead_id: oppId, column_id: stageId, won, ...(lost ? { lostReason: lost.reason, lostReasonNote: lost.note } : {}) }),
     })
       .then(async (res) => {
         if (res.ok || !remote) return;
         revert();
-        if (res.status === 409) {
+        if (res.status === 422) {
+          // Regra do servidor (motivo fora da lista, etapa que não existe…): mostra o que ele disse.
+          const text = await res.text().catch(() => '');
+          let detail = text.trim();
+          try { detail = (JSON.parse(text) as { error?: string }).error ?? detail; } catch { /* texto puro */ }
+          pushErro('Não consegui mover a oportunidade', `${detail || 'O servidor recusou a mudança.'} O card voltou para a etapa anterior.`);
+        } else if (res.status === 409) {
           // Gate no servidor: há tarefas de requisito abertas nesta fronteira de etapa.
           const body = (await res.json().catch(() => ({}))) as { blockers?: { label: string }[] };
           const a = avisoForLabels(original?.title ?? 'A oportunidade', (body.blockers ?? []).map((b) => b.label));
@@ -531,6 +550,22 @@ export default function Opportunities() {
           />
         </Peek>
       )}
+
+      {lostAsk && (() => {
+        const opp = opportunities.find((o) => o.id === lostAsk.oppId);
+        const pipe = pipelines.find((p) => p.stages.some((s) => s.id === lostAsk.stageId));
+        const stageName = pipe?.stages.find((s) => s.id === lostAsk.stageId)?.name ?? 'Perdida';
+        return (
+          <LostReasonPanel
+            title={`Marcar ${opp?.title ?? 'a oportunidade'} como perdida`}
+            subtitle={`Vai para a etapa ${stageName}. O motivo fica registrado na oportunidade e sai se ela voltar a uma etapa aberta.`}
+            reasons={lostReasonsFor(pipe)}
+            confirmLabel="Marcar como perdida"
+            onClose={() => setLostAsk(null)}
+            onConfirm={(reason, note) => { moveOpportunity(lostAsk.oppId, lostAsk.stageId, { reason, note }); setLostAsk(null); }}
+          />
+        );
+      })()}
     </div>
   );
 }

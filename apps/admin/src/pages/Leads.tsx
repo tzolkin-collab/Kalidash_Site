@@ -18,6 +18,7 @@ import PartySheets from '../components/PartySheets';
 import type { PartyRef } from '../components/PartySheets';
 import { Badge, EmptyState, Field, Page, PageHeader, Pagination, SampleBanner, SearchBox, SidePanel, Tabs } from '../components/ui';
 import { CustomSelect } from '../components/ui';
+import { lostReasonLabel } from '../lib/lostReasons';
 
 type Status = Lead['status'];
 
@@ -144,7 +145,7 @@ export default function Leads() {
                           <button type="button" className="icon-btn" onClick={() => actions.discard(l)} title="Descartar" aria-label={`Descartar ${l.name}`}><XCircle size={15} /></button>
                         </>
                       )}
-                      {l.status === 'DISCARDED' && <span className="text-xs text-muted" title={l.discardReason}>{l.discardReason}</span>}
+                      {l.status === 'DISCARDED' && <span className="text-xs text-muted" title={lostReasonLabel(l.discardReason, l.discardNote)}>{l.discardReason}</span>}
                     </div>
                   </td>
                 </tr>
