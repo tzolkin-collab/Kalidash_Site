@@ -204,7 +204,7 @@ export default function App() {
               <div style={{ marginTop: 'auto', paddingBottom: '2px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 <NotificationBell onNavigate={() => setIsMobileMenuOpen(false)} />
                 <a href="#" className="nav-link" onClick={toggleTheme}>
-                  {isDarkMode ? <><Sun size={18} className="nav-icon" strokeWidth={2} /> Light Mode</> : <><Moon size={18} className="nav-icon" strokeWidth={2} /> Dark Mode</>}
+                  {isDarkMode ? <><Sun size={18} className="nav-icon" strokeWidth={2} /> Usar tema claro</> : <><Moon size={18} className="nav-icon" strokeWidth={2} /> Usar tema escuro</>}
                 </a>
               </div>
             </nav>

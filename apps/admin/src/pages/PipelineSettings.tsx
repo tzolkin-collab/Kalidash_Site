@@ -58,7 +58,7 @@ export default function PipelineSettings({ pipelineId }: { pipelineId?: string }
         subtitle="Ver, editar, arquivar e criar pipelines. Cada pipeline é um funil, ligado a uma oferta."
         actions={<button type="button" className="btn btn-solid" onClick={() => navigate('/oportunidades/pipelines/nova')}><Plus size={14} /> Nova pipeline</button>}
       />
-      {syncMode !== 'api' && <SampleBanner offline>Os funis não estão ligados na API (WORKFLOW_API): o que for criado aqui vale só até recarregar a página.</SampleBanner>}
+      {syncMode !== 'api' && <SampleBanner offline>Os funis não estão sendo salvos no servidor: o que for criado aqui vale só até recarregar a página.</SampleBanner>}
 
       <div className="settings-layout">
         <nav className="pipe-list" aria-label="Pipelines">

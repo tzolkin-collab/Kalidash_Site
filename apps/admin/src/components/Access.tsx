@@ -20,7 +20,8 @@ import '../access.css';
 // auth_tokens.go); aqui só se mostra, se edita e se envia. Os perfis são presets de escopos.
 
 const ROLE_LABEL: Record<Role, string> = { ADMIN: 'Admin', MANAGER: 'Gerente', SELLER: 'Vendedor' };
-const ROLE_TONE: Record<Role, 'danger' | 'info' | 'neutral'> = { ADMIN: 'danger', MANAGER: 'info', SELLER: 'neutral' };
+// Vermelho é erro no resto do admin: o papel mais alto usa a cor de destaque.
+const ROLE_TONE: Record<Role, 'accent' | 'info' | 'neutral'> = { ADMIN: 'accent', MANAGER: 'info', SELLER: 'neutral' };
 const ROLE_BLURB: Record<Role, string> = {
   ADMIN: 'Acesso total, inclusive equipe, permissões e tokens.',
   MANAGER: 'Opera CRM, funis, blog e automações. Não gerencia a equipe.',
@@ -32,7 +33,7 @@ const when = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('pt-BR', 
 function Offline({ what }: { what: string }) {
   return (
     <EmptyState title="Disponível com o login ligado">
-      {what} depende do login com Google na API (AUTH_API=1). Hoje o admin abre sem autenticação e a equipe é de exemplo, então não há o que configurar aqui.
+      {what} depende do login com Google, que não está ligado neste servidor. Hoje o admin abre sem autenticação e a equipe é de exemplo, então não há o que configurar aqui.
     </EmptyState>
   );
 }

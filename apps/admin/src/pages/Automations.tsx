@@ -128,10 +128,10 @@ export default function Automations() {
                           <span className="cell-primary">{a.name}</span>
                           <span className="tag-row" style={{ marginTop: '4px' }}>
                             <Badge tone={a.origin === 'MANAGED' ? 'accent' : 'neutral'} title={a.managedBy}>{a.origin === 'MANAGED' ? <><Link2 size={10} /> {a.stepOf ? 'Passo do ciclo de vida' : 'Gerenciada'}</> : 'Manual'}</Badge>
-                            <Badge>{a.category}</Badge>
-                            <Badge title="Funil a que a automação pertence">{a.pipeline === 'Todas' ? 'Todos os funis' : a.pipeline}</Badge>
                             <Badge tone="warning" title="Roda só neste navegador, com o admin aberto. O servidor não executa automações."><FlaskConical size={10} /> {NOT_ON_SERVER}</Badge>
                           </span>
+                          {/* Assunto já é filtro (chips acima): aqui só o funil, como texto, para a linha não virar uma pilha de selos. */}
+                          <span className="text-xs text-muted" title="Funil a que a automação pertence">{a.pipeline === 'Todas' ? 'Todos os funis' : a.pipeline}</span>
                         </div>
                       </td>
                       <td className="cell-block" data-label="Quando → Então">

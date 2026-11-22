@@ -14,7 +14,7 @@ import { PERIODS, salesMetrics, stageInfo, toCents } from '../lib/salesMetrics';
 import { activePipelines, kanbanStages, resolveStage } from '../lib/stages';
 import type { Period } from '../lib/salesMetrics';
 import { StageBadge } from '../components/cells';
-import { EmptyState, Page, PageHeader, StatCard } from '../components/ui';
+import { EmptyState, ErrorBanner, Page, PageHeader, StatCard } from '../components/ui';
 
 // Métricas calculadas na hora a partir de /api/leads (as oportunidades reais); valor ganho e ticket
 // médio seguem o período escolhido (data de ganho). Contas em lib/salesMetrics.ts, em centavos.
@@ -72,7 +72,7 @@ export default function Dashboard() {
         actions={<button type="button" className="btn" onClick={reload} disabled={loading}><RefreshCw size={14} /> Atualizar</button>}
       />
 
-      {error && <div className="opp-error" style={{ margin: '0 0 20px' }} role="alert">{error}</div>}
+      {error && <ErrorBanner title={error} onRetry={reload}>Os números abaixo ficam zerados até carregar.</ErrorBanner>}
 
       <div className="chip-row" role="group" aria-label="Período do valor ganho">
         {PERIODS.map((p) => (
@@ -82,7 +82,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="stat-grid">
+      <div className="stat-grid stat-grid-3">
         <StatCard label="Oportunidades abertas" value={stats.openCount} hint={`${stats.total} no total`} />
         <StatCard label="Valor em aberto" value={formatCurrency(stats.openCents / 100)} hint="Tudo que está em andamento" />
         <StatCard
@@ -146,7 +146,7 @@ export default function Dashboard() {
 
       <h2 className="section-title" style={{ margin: '28px 0 12px' }}>Leads e origem</h2>
       {!realLeads ? (
-        <p className="text-xs text-muted">Os leads só aparecem aqui quando o CRM está ligado na API (CRM_API=1). Sem ela a tela de Leads fica vazia.</p>
+        <p className="text-xs text-muted">Os leads aparecem aqui quando o servidor estiver conectado. Sem ele, a tela de Leads também fica vazia.</p>
       ) : (
         <>
           <div className="stat-grid">
@@ -178,7 +178,7 @@ export default function Dashboard() {
 
       <h2 className="section-title" style={{ margin: '28px 0 12px' }}>Tarefas</h2>
       {!realTasks ? (
-        <p className="text-xs text-muted">As tarefas só aparecem aqui quando funis e tarefas estão ligados na API (WORKFLOW_API=1). Sem ela a tela de Tarefas fica vazia.</p>
+        <p className="text-xs text-muted">As tarefas aparecem aqui quando o servidor estiver conectado. Sem ele, a tela de Tarefas também fica vazia.</p>
       ) : (
         <>
           <div className="stat-grid">

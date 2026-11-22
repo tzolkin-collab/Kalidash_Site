@@ -45,7 +45,7 @@ export default function Settings() {
           {auth.status === 'in' && crmMode === 'api'
             ? 'Os webhooks de saída ainda não têm API: o que for criado aqui não é gravado e não dispara nada.'
             : <>
-                {auth.status === 'in' ? 'A equipe, o perfil, as permissões e os tokens de API são reais (login ligado na API), mas os webhooks ainda não têm API.' : 'O login está desligado nesta API (AUTH_API): a equipe e o perfil são de exemplo e o admin abre sem autenticação. Os webhooks ainda não têm API.'}{' '}
+                {auth.status === 'in' ? 'A equipe, o perfil, as permissões e os tokens de API são reais (login ligado), mas os webhooks ainda não têm API.' : 'O login está desligado neste servidor: a equipe e o perfil são de exemplo e o admin abre sem autenticação. Os webhooks ainda não têm API.'}{' '}
                 {crmMode === 'api' ? 'A Auditoria já mostra o histórico real de mudanças.' : 'A Auditoria só vira real quando o CRM está na API.'} O que é de exemplo não é gravado.
               </>}
         </SampleBanner>
@@ -165,7 +165,7 @@ function ProfileTab() {
           <span className="cell-primary" style={{ fontSize: '18px', fontWeight: 600 }}>{me.name}</span>
           <span className="text-muted">{me.email}</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
-            <Badge tone="danger">{ROLE_LABEL[me.role]}</Badge>
+            <Badge tone={me.role === 'ADMIN' ? 'accent' : me.role === 'MANAGER' ? 'info' : 'neutral'}>{ROLE_LABEL[me.role]}</Badge>
             <label htmlFor="profile-photo-input" className="btn btn-sm" style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
               <Upload size={12} /> Carregar foto
             </label>
@@ -220,7 +220,7 @@ function ProfileTab() {
           </div>
         ) : (
           <p className="text-sm text-muted" style={{ margin: 0 }}>
-            O login com Google está desligado nesta API (AUTH_API): o admin abre sem autenticação e o perfil acima é o de exemplo.
+            O login com Google está desligado neste servidor: o admin abre sem autenticação e o perfil acima é o de exemplo.
           </p>
         )}
       </section>
@@ -303,7 +303,7 @@ function TeamTab() {
         <div className="role-grid">
           {ROLE_MATRIX.map((r) => (
             <div key={r.role} className="role-item">
-              <Badge tone={r.role === 'ADMIN' ? 'danger' : r.role === 'MANAGER' ? 'info' : 'neutral'}>{ROLE_LABEL[r.role]}</Badge>
+              <Badge tone={r.role === 'ADMIN' ? 'accent' : r.role === 'MANAGER' ? 'info' : 'neutral'}>{ROLE_LABEL[r.role]}</Badge>
               <div><strong>Vê:</strong> {r.sees}</div>
               <div><strong>Faz:</strong> {r.does}</div>
             </div>

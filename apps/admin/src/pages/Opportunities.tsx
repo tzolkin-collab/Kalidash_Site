@@ -28,7 +28,7 @@ import { lostReasonsFor } from '../lib/lostReasons';
 import OpportunityDetail from '../components/OpportunityDetail';
 import Peek from '../components/Peek';
 import ViewSettingsPopover from '../components/ViewSettingsPopover';
-import { Badge, EmptyState, Pagination, SearchBox } from '../components/ui';
+import { Badge, EmptyState, ErrorBanner, Pagination, SearchBox } from '../components/ui';
 
 const ALL = 'Visão Geral';
 
@@ -56,7 +56,7 @@ const leadAsRow = (l: Lead, stageName: string, sample: boolean): Opportunity => 
 export default function Opportunities() {
   const { openMenu, navigate } = useShell();
   const crmMode = useCrmMode();
-  const { opportunities, setOpportunities, loading, error } = useOpportunities();
+  const { opportunities, setOpportunities, loading, error, reload } = useOpportunities();
   const [pipelines] = useStore(pipelinesStore);
   const [leads] = useStore(leadsStore);
   const defaultPipeline = activePipelines(pipelines)[0]?.name ?? '';
@@ -442,7 +442,7 @@ export default function Opportunities() {
         </div>
       </header>
 
-      {error && <div className="opp-error" role="alert">{error}</div>}
+      {error && <div className="opp-error-wrap"><ErrorBanner title={error} onRetry={reload} /></div>}
 
       {viewMode === 'kanban' ? (
         <div className="animate-board opp-board-wrap">

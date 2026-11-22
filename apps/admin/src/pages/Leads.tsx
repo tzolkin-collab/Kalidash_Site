@@ -111,32 +111,36 @@ export default function Leads() {
 
       <div className="table-card">
         <div className="table-scroll">
-          <table className="data-table">
+          <table className="data-table data-table-cards">
             <thead>
-              <tr><th>Lead</th><th>Pipeline</th><th>Etapa</th><th>Origem</th><th>Dono</th><th>Valor est.</th><th>Tags</th><th>Entrou em</th><th style={{ width: '150px' }}></th></tr>
+              <tr><th>Lead</th><th>Etapa</th><th>Origem</th><th>Dono</th><th>Valor est.</th><th>Tags</th><th>Entrou em</th><th style={{ width: '150px' }}></th></tr>
             </thead>
             <tbody>
               {paged.rows.map((l) => (
                 <tr key={l.id} className={`clickable ${l.archivedAt ? 'is-archived' : ''}`} onClick={() => setOpenLead(l.id)}>
-                  <td>
+                  <td className="cell-block" data-label="Lead">
                     <div className="cell-stack">
                       <span className="cell-primary">{!l.wasSeen && <span className="unseen-dot" title="Ainda não foi aberto" />}{l.name}</span>
                       <span className="text-xs text-muted">{l.email}</span>
                       {(l.returningClient || l.archivedAt) && <span className="tag-row" style={{ marginTop: '2px' }}>{l.returningClient && <Badge tone="info">Cliente retornando</Badge>}{l.archivedAt && <Badge tone="danger">Arquivado</Badge>}</span>}
                     </div>
                   </td>
-                  <td>{pipelineName(l.pipelineId)}</td>
-                  <td><Badge>{stageName(l)}</Badge></td>
-                  <td>
+                  <td data-label="Etapa">
+                    <div className="cell-stack">
+                      <Badge>{stageName(l)}</Badge>
+                      <span className="text-xs text-muted" style={{ marginTop: '2px' }}>{pipelineName(l.pipelineId)}</span>
+                    </div>
+                  </td>
+                  <td data-label="Origem">
                     <div className="cell-stack">
                       <Badge tone={l.origin === 'INBOUND' ? 'info' : 'warning'}>{l.origin === 'INBOUND' ? 'Inbound' : 'Outbound'}</Badge>
                       <span className="text-xs text-muted" style={{ marginTop: '2px' }}>{l.origin === 'INBOUND' ? l.sourceName : `Trouxe: ${l.sourceName}`}</span>
                     </div>
                   </td>
-                  <td>{ownerLabel(l) ?? <span className="text-muted">Sem dono</span>}</td>
-                  <td>{l.estimatedValue ? formatCurrency(l.estimatedValue) : <span className="text-muted">—</span>}</td>
-                  <td><div className="tag-row">{l.tags.map((t) => <span key={t} className="tag">{t}</span>)}</div></td>
-                  <td className="text-muted">{formatDate(l.createdAt)}</td>
+                  <td data-label="Dono">{ownerLabel(l) ?? <span className="text-muted">Sem dono</span>}</td>
+                  <td data-label="Valor est." className="cell-num">{l.estimatedValue ? formatCurrency(l.estimatedValue) : <span className="text-muted">—</span>}</td>
+                  <td data-label="Tags">{l.tags.length > 0 ? <div className="tag-row">{l.tags.map((t) => <span key={t} className="tag">{t}</span>)}</div> : <span className="text-muted">—</span>}</td>
+                  <td data-label="Entrou em" className="text-muted cell-num">{formatDate(l.createdAt)}</td>
                   <td onClick={(e) => e.stopPropagation()}>
                     <div className="row-actions">
                       {l.status === 'ACTIVE' && (
@@ -151,7 +155,7 @@ export default function Leads() {
                 </tr>
               ))}
               {filtered.length === 0 && (
-                <tr><td colSpan={9}><EmptyState title="Nenhum lead aqui">Ajuste os filtros ou clique em "Adicionar lead".</EmptyState></td></tr>
+                <tr><td colSpan={8}><EmptyState title="Nenhum lead aqui">Ajuste os filtros ou clique em "Adicionar lead".</EmptyState></td></tr>
               )}
             </tbody>
           </table>

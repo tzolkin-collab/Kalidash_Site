@@ -7,14 +7,14 @@ import { ArticleCardsContext, blogSchema, CARD_TYPE, SPLIT_MEDIA_TYPE, TWO_COLUM
 import { pt as blockNoteLocalePt } from '@blocknote/core/locales';
 import '@blocknote/mantine/style.css';
 import '@blocknote/core/fonts/inter.css';
-import { AlertTriangle, Plus, RefreshCw, Star, Trash2, ImagePlus, Divide, Globe, Tag, Link2, Clock, Columns, Crop, Layout, ArrowUp, ArrowDown, Eye, EyeOff, Edit2 } from 'lucide-react';
+import { AlertTriangle, Plus, Star, Trash2, ImagePlus, Divide, Globe, Tag, Link2, Clock, Columns, Crop, Layout, ArrowUp, ArrowDown, Eye, EyeOff, Edit2 } from 'lucide-react';
 import { PhotoCropModal } from '../components/PhotoCropModal';
 import type { Article, BlogCategory } from '../domain';
 import { formatDate } from '../lib/format';
 import { createArticle, deleteArticle, listArticles, updateArticle, uploadImage, uploadImageNotifying, getBlogSettings, updateBlogSettings, checkSlugAvailable, listBlogCategories, createBlogCategory, updateBlogCategory, deleteBlogCategory, reorderBlogCategories } from '../lib/blog';
 import type { ArticleInput, BlogSettings, BlogCategoryInput } from '../lib/blog';
 import { teamStore } from '../mocks/team';
-import { Badge, EmptyState, Field, Page, PageHeader, Pagination, PopupDialog, SearchBox, Tabs } from '../components/ui';
+import { Badge, EmptyState, ErrorBanner, Field, Page, PageHeader, Pagination, PopupDialog, SearchBox, Tabs } from '../components/ui';
 import { useStore } from '../lib/store';
 import { usePaged } from '../lib/usePaged';
 import { useShell } from '../lib/shell';
@@ -142,16 +142,7 @@ export default function Blog({ postId }: { postId?: string }) {
         actions={<button type="button" className="btn btn-solid" onClick={() => shell.navigate('/blog/novo')}><Plus size={14} /> Novo artigo</button>}
       />
 
-      {loadError && (
-        <div className="task-callout" role="alert" style={{ marginBottom: '16px', borderColor: '#ef4444' }}>
-          <AlertTriangle size={16} />
-          <div style={{ flex: 1 }}>
-            <strong>Não foi possível falar com a API.</strong>
-            <div className="text-xs text-muted">{loadError} Confira se ela está no ar (<code className="mono">pnpm --filter @kalidash/api dev</code>).</div>
-          </div>
-          <button type="button" className="btn btn-sm" onClick={reload}><RefreshCw size={12} /> Tentar de novo</button>
-        </div>
-      )}
+      {loadError && <ErrorBanner title="Os artigos não carregaram do servidor." onRetry={reload}>Confira a conexão e tente de novo.</ErrorBanner>}
 
       {articles === null && !loadError ? (
         <EmptyState title="Carregando artigos…" />

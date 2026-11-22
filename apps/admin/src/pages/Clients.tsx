@@ -90,23 +90,23 @@ export default function Clients() {
 
       <div className="table-card">
         <div className="table-scroll">
-          <table className="data-table">
+          <table className="data-table data-table-cards">
             <thead><tr><th>Cliente</th><th>Tipo</th><th>Documento</th><th>Contato padrão</th><th>Cliente desde</th><th>Valor ganho</th><th>Oportunidades</th></tr></thead>
             <tbody>
               {paged.rows.map((r) => (
                 <tr key={`${r.kind}-${r.id}`} className="clickable" onClick={() => setOpen({ kind: r.kind, id: r.id })}>
-                  <td>
+                  <td className="cell-block" data-label="Cliente">
                     <div className="cell-avatar">
                       <span className={`avatar ${r.kind === 'company' ? 'avatar-square' : ''}`}>{r.kind === 'company' ? <Building2 size={14} /> : initials(r.name) || <User size={12} />}</span>
-                      <div className="cell-stack"><span className="cell-primary">{r.name}{r.legacy && <Badge tone="info" variant="line" title="Cliente de antes do sistema">Legado</Badge>}</span><span className="text-xs text-muted">{r.sub}</span></div>
+                      <div className="cell-stack"><span className="cell-primary">{r.name}{r.legacy && <Badge tone="info" title="Cliente de antes do sistema">Legado</Badge>}</span><span className="text-xs text-muted">{r.sub}</span></div>
                     </div>
                   </td>
-                  <td><Badge tone={r.kind === 'company' ? 'info' : 'neutral'}>{r.kind === 'company' ? 'Empresa' : 'Pessoa'}</Badge></td>
-                  <td>{r.inReview ? <Badge tone="warning">Em análise</Badge> : <span className="mono">{r.document ? (r.kind === 'person' ? maskCpf(r.document) : r.document) : '—'}</span>}</td>
-                  <td>{r.contact ?? <span className="text-muted">—</span>}</td>
-                  <td className="text-muted">{formatDate(r.since)}</td>
-                  <td>{r.won > 0 ? formatCurrency(r.won) : <span className="text-muted">—</span>}</td>
-                  <td className="text-muted">{r.opps}</td>
+                  <td data-label="Tipo"><Badge tone={r.kind === 'company' ? 'info' : 'neutral'}>{r.kind === 'company' ? 'Empresa' : 'Pessoa'}</Badge></td>
+                  <td data-label="Documento">{r.inReview ? <Badge tone="warning">Em análise</Badge> : <span className="mono">{r.document ? (r.kind === 'person' ? maskCpf(r.document) : r.document) : '—'}</span>}</td>
+                  <td data-label="Contato padrão">{r.contact ?? <span className="text-muted">—</span>}</td>
+                  <td className="text-muted" data-label="Cliente desde">{formatDate(r.since)}</td>
+                  <td data-label="Valor ganho">{r.won > 0 ? formatCurrency(r.won) : <span className="text-muted">—</span>}</td>
+                  <td className="text-muted" data-label="Oportunidades">{r.opps}</td>
                 </tr>
               ))}
               {filtered.length === 0 && <tr><td colSpan={7}><EmptyState title="Nenhum cliente por aqui">Quando uma oportunidade for ganha, a pessoa ou a empresa aparece nesta lista.</EmptyState></td></tr>}

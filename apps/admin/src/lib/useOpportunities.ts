@@ -18,7 +18,7 @@ export function useOpportunities() {
         .then((data: Opportunity[] | null) => setOpportunities(data || []))
         .catch((err) => {
           console.error('Erro ao carregar oportunidades:', err);
-          setError('Não foi possível falar com a API. Confira se ela está no ar.');
+          setError('As oportunidades não carregaram do servidor.');
         })
         .finally(() => setLoading(false)),
     [],

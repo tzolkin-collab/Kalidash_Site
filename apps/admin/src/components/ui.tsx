@@ -190,6 +190,20 @@ export function SampleBanner({ phase, offline, children }: { phase?: number; off
   );
 }
 
+/**
+ * Erro ao falar com o servidor. Mesma forma do SampleBanner (amarelo = exemplo ou API desligada; vermelho = erro),
+ * com "Tentar de novo" quando a tela sabe recarregar. Texto para quem usa: sem comando, sem mensagem do navegador.
+ */
+export function ErrorBanner({ title, children, onRetry }: { title: string; children?: ReactNode; onRetry?: () => void }) {
+  return (
+    <div className="sample-banner is-error" role="alert">
+      <CircleAlert size={14} />
+      <span style={{ flex: 1 }}><strong>{title}</strong>{children ? <> {children}</> : null}</span>
+      {onRetry && <button type="button" className="btn btn-sm" onClick={onRetry}>Tentar de novo</button>}
+    </div>
+  );
+}
+
 export function EmptyState({ title, children, action }: { title: string; children?: ReactNode; action?: ReactNode }) {
   return (
     <div className="empty-state">

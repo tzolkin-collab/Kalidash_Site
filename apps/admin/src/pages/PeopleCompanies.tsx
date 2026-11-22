@@ -94,25 +94,25 @@ export default function PeopleCompanies() {
       {view === 'people' ? (
         <div className="table-card">
           <div className="table-scroll">
-            <table className="data-table">
+            <table className="data-table data-table-cards">
               <thead><tr><th>Pessoa</th><th>Empresas</th><th>CPF</th><th>Telefone</th><th>Tags</th><th>Ciclo de vida</th><th>Cadastro</th></tr></thead>
               <tbody>
                 {pagedPeople.rows.map((p) => {
                   const mine = companiesOf(companies, p.id);
                   return (
                     <tr key={p.id} className={`clickable ${p.archivedAt ? 'is-archived' : ''}`} onClick={() => setOpen({ kind: 'person', id: p.id })}>
-                      <td>
+                      <td className="cell-block" data-label="Pessoa">
                         <div className="cell-avatar">
                           <span className="avatar">{initials(p.name) || <User size={12} />}</span>
                           <div className="cell-stack"><span className="cell-primary">{p.name}{p.archivedAt && <Badge tone="danger">Arquivada</Badge>}</span><span className="text-xs text-muted">{p.email}</span></div>
                         </div>
                       </td>
-                      <td>{mine.length ? mine.map((c) => c.name).join(', ') : <span className="text-muted">Pessoa física</span>}{p.role && <div className="text-xs text-muted">{p.role}</div>}</td>
-                      <td className="mono">{p.document ? maskCpf(p.document) : <span className="text-muted">—</span>}</td>
-                      <td className="text-muted">{p.phone}</td>
-                      <td><div className="tag-row">{p.tags.map((t) => <span key={t} className="tag">{t}</span>)}</div></td>
-                      <td><LifecycleBadge value={p.lifecycle} /></td>
-                      <td className="text-muted">{formatDate(p.createdAt)}</td>
+                      <td data-label="Empresas"><div>{mine.length ? mine.map((c) => c.name).join(', ') : <span className="text-muted">Pessoa física</span>}{p.role && <div className="text-xs text-muted">{p.role}</div>}</div></td>
+                      <td className="mono" data-label="CPF">{p.document ? maskCpf(p.document) : <span className="text-muted">—</span>}</td>
+                      <td className="text-muted" data-label="Telefone">{p.phone}</td>
+                      <td data-label="Tags"><div className="tag-row">{p.tags.map((t) => <span key={t} className="tag">{t}</span>)}</div></td>
+                      <td data-label="Ciclo de vida"><LifecycleBadge value={p.lifecycle} /></td>
+                      <td className="text-muted" data-label="Cadastro">{formatDate(p.createdAt)}</td>
                     </tr>
                   );
                 })}
@@ -125,22 +125,22 @@ export default function PeopleCompanies() {
       ) : (
         <div className="table-card">
           <div className="table-scroll">
-            <table className="data-table">
+            <table className="data-table data-table-cards">
               <thead><tr><th>Empresa</th><th>CNPJ</th><th>Contato padrão</th><th>Stakeholders</th><th>Ciclo de vida</th><th>Cadastro</th></tr></thead>
               <tbody>
                 {pagedCompanies.rows.map((c) => (
                   <tr key={c.id} className={`clickable ${c.archivedAt ? 'is-archived' : ''}`} onClick={() => setOpen({ kind: 'company', id: c.id })}>
-                    <td>
+                    <td className="cell-block" data-label="Empresa">
                       <div className="cell-avatar">
                         <span className="avatar avatar-square"><Building2 size={14} /></span>
                         <div className="cell-stack"><span className="cell-primary">{c.name}{c.archivedAt && <Badge tone="danger">Arquivada</Badge>}</span><span className="text-xs text-muted">{c.segment}</span></div>
                       </div>
                     </td>
-                    <td>{c.document ? <span className="mono">{c.document}</span> : <Badge tone="warning" title='Tarefa "Informar CNPJ" aberta'>Em análise</Badge>}</td>
-                    <td>{personName(c.defaultContactId) ?? <span className="text-muted">—</span>}</td>
-                    <td className="text-muted">{c.stakeholders.length}</td>
-                    <td><LifecycleBadge value={c.lifecycle} /></td>
-                    <td className="text-muted">{formatDate(c.createdAt)}</td>
+                    <td data-label="CNPJ">{c.document ? <span className="mono">{c.document}</span> : <Badge tone="warning" title='Tarefa "Informar CNPJ" aberta'>Em análise</Badge>}</td>
+                    <td data-label="Contato padrão">{personName(c.defaultContactId) ?? <span className="text-muted">—</span>}</td>
+                    <td className="text-muted" data-label="Stakeholders">{c.stakeholders.length}</td>
+                    <td data-label="Ciclo de vida"><LifecycleBadge value={c.lifecycle} /></td>
+                    <td className="text-muted" data-label="Cadastro">{formatDate(c.createdAt)}</td>
                   </tr>
                 ))}
                 {filteredCompanies.length === 0 && <tr><td colSpan={6}><EmptyState title="Nenhuma empresa encontrada">Ajuste a busca ou cadastre uma nova empresa.</EmptyState></td></tr>}

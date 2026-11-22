@@ -641,6 +641,8 @@ body {
     text-align: left;
     margin-bottom: 4px;
   }
+  /* A primeira célula (nome do registro) é o título do cartão: não precisa de rótulo em cima. */
+  .data-table-cards td.cell-block:first-child::before { display: none; }
 }
 
 .view-toggle {
