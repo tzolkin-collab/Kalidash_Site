@@ -1,3 +1,5 @@
+import SourceName from '../components/SourceName';
+import { shortSource } from '../lib/sourceName';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   Check, CheckCircle2, ChevronDown, CircleDashed, CircleDot, Filter, FolderGit2, Globe, Kanban, LayoutList,
@@ -50,7 +52,7 @@ const LEAD_COLUMNS = [
 /** Lead exibido como uma linha da lista, ao lado das oportunidades. */
 const leadAsRow = (l: Lead, stageName: string, sample: boolean): Opportunity => ({
   id: l.id, title: l.name, value: 0, stage: stageName, priority: '', tags: l.tags, isLead: true, isSample: sample,
-  contactName: l.origin === 'INBOUND' ? l.sourceName : `Trouxe: ${l.sourceName}`,
+  contactName: l.origin === 'INBOUND' ? shortSource(l.sourceName) : `Trouxe: ${l.sourceName}`,
 });
 
 export default function Opportunities() {
@@ -62,7 +64,7 @@ export default function Opportunities() {
   const defaultPipeline = activePipelines(pipelines)[0]?.name ?? '';
   const stageOf = (o: Opportunity) => resolveStage(o, pipelines);
 
-  const [viewMode, setViewMode] = useState<'kanban' | 'table'>('table');
+  const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
   const [selectedContext, setSelectedContext] = useState(ALL);
   const [isContextOpen, setIsContextOpen] = useState(false);
   const [selectedOpp, setSelectedOpp] = useState<Opportunity | null>(null);
@@ -282,7 +284,7 @@ export default function Opportunities() {
         <Badge tone="accent">Lead</Badge>
       </div>
       <div className="text-xs text-muted" style={{ marginBottom: '8px' }}>
-        {l.origin === 'INBOUND' ? l.sourceName : `Trouxe: ${l.sourceName}`}
+        <SourceName name={l.sourceName} prefix={l.origin === 'INBOUND' ? undefined : 'Trouxe: '} />
       </div>
       <div className="tag-row">{l.tags.map((t) => <span key={t} className="tag">{t}</span>)}</div>
     </div>

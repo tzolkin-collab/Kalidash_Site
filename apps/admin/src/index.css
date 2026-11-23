@@ -251,9 +251,10 @@ body {
   flex: 1;
   display: flex;
   gap: 20px;
-  padding: 24px;
+  padding: 24px 40px;
   overflow: auto;
   scroll-snap-type: x mandatory; /* Para mobile */
+  scroll-padding-inline: 40px; /* o snap respeita a margem lateral em vez de colar a coluna na borda */
 }
 
 .column {
@@ -293,6 +294,12 @@ body {
 }
 
 .tag {
+  display: inline-block;
+  max-width: 24ch; /* tags antigas e longas não deformam a linha */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
   font-size: 12px;
   font-weight: 500;
   padding: 2px 8px;

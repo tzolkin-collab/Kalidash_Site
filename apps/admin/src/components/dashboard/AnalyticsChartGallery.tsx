@@ -38,7 +38,7 @@ import {
 } from 'recharts';
 import './analytics-chart-gallery.css';
 
-type ChartMode = 'line' | 'smooth' | 'step' | 'dots' | 'scatter' | 'area' | 'range-area' | 'stacked-area' | 'share-area' | 'bars' | 'horizontal' | 'stacked' | 'composed';
+export type ChartMode = 'line' | 'smooth' | 'step' | 'dots' | 'scatter' | 'area' | 'range-area' | 'stacked-area' | 'share-area' | 'bars' | 'horizontal' | 'stacked' | 'composed';
 type DayPoint = { date: string; fullDate: string; current: number; previous: number };
 type BucketPoint = { date: string; current: number; previous: number };
 
@@ -64,7 +64,7 @@ const MODES: { id: ChartMode; label: string; Icon: typeof LineIcon }[] = [
 const sum = (values: number[]) => values.reduce((total, value) => total + value, 0);
 const pct = (value: number) => `${value > 0 ? '+' : ''}${value.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`;
 
-function makeDays(): DayPoint[] {
+export function makeDays(): DayPoint[] {
   const today = new Date();
   return CURRENT.map((current, index) => {
     const date = new Date(today);
@@ -79,7 +79,7 @@ function makeDays(): DayPoint[] {
   });
 }
 
-function makeBuckets(days: DayPoint[]): BucketPoint[] {
+export function makeBuckets(days: DayPoint[]): BucketPoint[] {
   return Array.from({ length: 6 }, (_, bucket) => {
     const points = days.slice(bucket * 5, bucket * 5 + 5);
     return {
@@ -90,7 +90,7 @@ function makeBuckets(days: DayPoint[]): BucketPoint[] {
   });
 }
 
-function ChartSurface({ mode, days, buckets, compact = false }: { mode: ChartMode; days: DayPoint[]; buckets: BucketPoint[]; compact?: boolean }) {
+export function ChartSurface({ mode, days, buckets, compact = false }: { mode: ChartMode; days: DayPoint[]; buckets: BucketPoint[]; compact?: boolean }) {
   const isBucketMode = mode === 'bars' || mode === 'horizontal' || mode === 'stacked';
   const data = isBucketMode ? buckets : days;
   const chartHeight = compact ? 168 : 326;
@@ -228,7 +228,7 @@ function Legend() {
   );
 }
 
-const OTHER_CHARTS = [
+export const OTHER_CHARTS = [
   { id: 'donut', title: 'Rosca · composição', note: 'Participação de cada origem no total', Icon: PieIcon },
   { id: 'funnel', title: 'Funil · conversão', note: 'Volume que avança ou se perde por etapa', Icon: Activity },
   { id: 'correlation', title: 'Dispersão · relação', note: 'Valor da oportunidade × dias até fechar', Icon: ScatterIcon },
@@ -391,7 +391,7 @@ function renderTreemapNode(node: TreemapNode) {
   );
 }
 
-function OtherChart({ id }: { id: typeof OTHER_CHARTS[number]['id'] }) {
+export function OtherChart({ id }: { id: typeof OTHER_CHARTS[number]['id'] }) {
   if (id === 'donut') return (
     <div className="idea-other-chart idea-donut-wrap">
       <ResponsiveContainer width="58%" height="100%"><PieChart>

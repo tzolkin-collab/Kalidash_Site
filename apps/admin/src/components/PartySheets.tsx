@@ -1,3 +1,4 @@
+import { MAX_TAG_LENGTH } from '../lib/tags';
 import { useMemo, useState } from 'react';
 import { Archive, ArchiveRestore, Plus, Trash2, UserPlus } from 'lucide-react';
 import type { Company, Lifecycle, Person, Stakeholder } from '../domain';
@@ -391,7 +392,7 @@ function StakeholdersField({ company, onOpenPerson }: { company: Company; onOpen
             </>
           )}
           <input className="input" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Descrição (o que faz aqui)" />
-          <input className="input" list="stake-tags" value={tag} onChange={(e) => setTag(e.target.value)} placeholder="Tag da função (escolha ou crie)" aria-label="Tag da função" />
+          <input className="input" list="stake-tags" maxLength={MAX_TAG_LENGTH} title={`Até ${MAX_TAG_LENGTH} caracteres`} value={tag} onChange={(e) => setTag(e.target.value)} placeholder="Tag da função (escolha ou crie)" aria-label="Tag da função" />
           <datalist id="stake-tags">{tags.map((t) => <option key={t} value={t} />)}</datalist>
           <div className="row-actions" style={{ justifyContent: 'flex-start' }}>
             <button type="button" className="btn btn-sm btn-solid" disabled={!canAdd || tag.trim() === ''} onClick={add}>Adicionar</button>

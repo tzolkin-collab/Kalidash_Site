@@ -24,6 +24,7 @@
       "name": "kalidash-api",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@kalidash/api", "dev"],
+      "env": { "AUTH_DEV_LOGIN": "1" },
       "port": 8080
     },
     {

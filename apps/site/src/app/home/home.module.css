@@ -872,56 +872,8 @@
 .secondaryButton:hover { background: #f4f1f6; transform: translateY(-2px); }
 .primaryButton svg, .secondaryButton svg { width: 19px; height: 19px; }
 
-/* Animação coordenada: move o CTA primário para a esquerda junto com o selo */
-.heroActions[data-badge-hovered="true"] .primaryButton {
-  transform: translateX(-8px);
-}
-.heroActions[data-badge-hovered="true"] .primaryButton:hover {
-  transform: translate(-8px, -2px);
-}
-
-/* Slot de ícone no botão CTA: Claude sai para a direita e a seta assume */
-.buttonIconWrap {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 19px;
-  height: 19px;
-  flex-shrink: 0;
-}
-
-.buttonClaudeIcon {
-  position: absolute;
-  inset: 0;
-  width: 19px;
-  height: 19px;
-  color: #ffffff;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease;
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.buttonArrowIcon {
-  position: absolute;
-  inset: 0;
-  width: 19px;
-  height: 19px;
-  color: #ffffff;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease;
-  opacity: 0;
-  transform: translateX(-14px);
-}
-
-.heroActions[data-badge-hovered="true"] .buttonClaudeIcon {
-  opacity: 0;
-  transform: translateX(28px);
-}
-
-.heroActions[data-badge-hovered="true"] .buttonArrowIcon {
-  opacity: 1;
-  transform: translateX(0);
-}
+.buttonIconWrap { display: inline-flex; align-items: center; justify-content: center; width: 19px; height: 19px; flex-shrink: 0; }
+.buttonArrowIcon { width: 19px; height: 19px; color: #ffffff; }
 .heroProof { margin-top: 0; border-top: none; }
 .logoMarquee {
   --logo-fade: clamp(40px, 9vw, 150px); /* os logos entram e saem suavemente nas bordas */
@@ -1270,15 +1222,6 @@
 
 @media (max-width: 820px) {
   .heroActions { display: flex; flex-direction: column; align-items: center; }
-  .heroActions[data-badge-hovered="true"] .primaryButton { transform: none !important; }
-  .buttonClaudeIcon {
-    display: none !important;
-  }
-  .buttonArrowIcon {
-    display: inline-flex !important;
-    opacity: 1 !important;
-    transform: none !important;
-  }
 }
 
 @media (max-width: 640px) {
@@ -1306,15 +1249,6 @@
   .hero h1 { font-size: 45px; line-height: .99; }
   .heroActions { display: grid; }
   .primaryButton, .secondaryButton { width: 100%; }
-  .heroActions[data-badge-hovered="true"] .primaryButton { transform: none !important; }
-  .buttonClaudeIcon {
-    display: none !important;
-  }
-  .buttonArrowIcon {
-    display: inline-flex !important;
-    opacity: 1 !important;
-    transform: none !important;
-  }
   .stats { grid-template-columns: 1fr; }
   .stats > div, .stats > div:nth-child(2), .stats > div:last-child { padding: 24px 0; border-right: 0; border-bottom: 1px solid var(--line); }
   .stats > div:last-child { border-bottom: 0; }

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Download, Mail } from 'lucide-react';
+import { Download, LayoutTemplate, Send, Upload, UserPlus } from 'lucide-react';
 import type { Lead } from '../domain';
 import { formatDate } from '../lib/format';
 import { useStore } from '../lib/store';
@@ -10,7 +10,7 @@ import { leadsStore } from '../mocks/leads';
 import LeadSheet from '../components/LeadSheet';
 import PartySheets from '../components/PartySheets';
 import type { PartyRef } from '../components/PartySheets';
-import { Badge, CustomSelect, EmptyState, Page, PageHeader, Pagination, SampleBanner, SearchBox, StatCard, Tabs } from '../components/ui';
+import { Badge, CustomSelect, InfoPop, EmptyState, Page, PageHeader, Pagination, SampleBanner, SearchBox, StatCard, Tabs } from '../components/ui';
 
 /* Newsletter do blog. Não há cadastro à parte: cada inscrição feita no site (POST /api/public/leads com a origem
  * "blog-newsletter-…") vira um Lead no CRM, com a tag "Newsletter" e a origem do formulário em customData.formSource.
@@ -195,12 +195,20 @@ export default function Newsletter() {
         <StatCard label="Pediram material" value={stats.material} hint="A equipe envia o material por e-mail" tone={stats.material ? 'warning' : undefined} />
       </div>
 
-      <div className="notice" role="note" style={{ marginTop: '16px' }}>
-        <span>
-          <Mail size={14} style={{ verticalAlign: '-2px', marginRight: '6px' }} />
-          As edições são montadas e enviadas no Resend (Broadcasts), no segmento "Newsletter do blog": cada inscrição feita no site entra lá sozinha, e o descadastro é do próprio Resend. Quem se inscreveu antes da ligação entra pelo CSV (Resend &gt; Contacts &gt; Import). Os modelos visuais de teste ficam em{' '}
+      <div className="info-row">
+        <InfoPop icon={Send} label="Enviar edições" title="Edições no Resend">
+          As edições são montadas e enviadas no Resend (Broadcasts), no segmento "Newsletter do blog".
+        </InfoPop>
+        <InfoPop icon={UserPlus} label="Novas inscrições" title="Inscrição e descadastro">
+          Cada inscrição feita no site entra no Resend sozinha, e o descadastro é do próprio Resend.
+        </InfoPop>
+        <InfoPop icon={Upload} label="Inscritos antigos" title="Quem se inscreveu antes da ligação">
+          Entra pelo CSV: Resend &gt; Contacts &gt; Import.
+        </InfoPop>
+        <InfoPop icon={LayoutTemplate} label="Modelos de teste" title="Modelos visuais">
+          Ficam em{' '}
           <a href="#/emails" onClick={(e) => { e.preventDefault(); navigate('/emails'); }}>E-mails</a>.
-        </span>
+        </InfoPop>
       </div>
 
       <Tabs

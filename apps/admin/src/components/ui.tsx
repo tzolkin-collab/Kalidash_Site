@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ReactNode } from 'react';
+import type { LucideIcon } from 'lucide-react';
 import { ArrowLeft, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleAlert, CircleHelp, FlaskConical, Menu, Search, X } from 'lucide-react';
 import type { Lifecycle } from '../domain';
 import { LIFECYCLE_LABEL, LIFECYCLE_TONE } from '../lib/people';
@@ -100,6 +101,39 @@ type HeaderProps = {
   back?: { label: string; to: string };
 };
 
+/* Ícone informativo: abre um popup ao passar o mouse ou ao clicar/tocar. Esc e clique fora fecham. */
+export function InfoPop({ icon: Icon, label, title, children, align = 'start' }: { icon: LucideIcon; label: string; title: string; children: ReactNode; align?: 'start' | 'end' }) {
+  const [pinned, setPinned] = useState(false);
+  const [hover, setHover] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+  const id = useId();
+  const open = pinned || hover;
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) { setPinned(false); setHover(false); } };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { setPinned(false); setHover(false); } };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
+  }, [open]);
+
+  return (
+    <span className="info-pop" ref={ref} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
+      <button type="button" className="info-pop-btn" aria-label={label} aria-expanded={open} aria-controls={id} data-open={open} onClick={() => setPinned((v) => !v)}>
+        <Icon size={15} aria-hidden="true" />
+        <span className="info-pop-label">{label}</span>
+      </button>
+      {open && (
+        <div className="info-pop-card" id={id} role="dialog" aria-label={title} data-align={align}>
+          <strong>{title}</strong>
+          <div>{children}</div>
+        </div>
+      )}
+    </span>
+  );
+}
+
 export function PageHeader({ title, subtitle, actions, back }: HeaderProps) {
   const { openMenu, navigate } = useShell();
   return (
@@ -130,8 +164,37 @@ export function Page({ children }: { children: ReactNode }) {
 type Tab<T extends string> = { id: T; label: string; count?: number };
 
 export function Tabs<T extends string>({ tabs, value, onChange }: { tabs: Tab<T>[]; value: T; onChange: (id: T) => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const drag = useRef({ down: false, moved: false, startX: 0, startLeft: 0 });
+  const [grabbing, setGrabbing] = useState(false);
+
+  // Arrastar com o mouse rola as abas para o lado (no toque, o scroll nativo já faz isso). Sem barra de rolagem.
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== 'mouse' || e.button !== 0 || !ref.current) return;
+    drag.current = { down: true, moved: false, startX: e.clientX, startLeft: ref.current.scrollLeft };
+  };
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = drag.current;
+    if (!d.down || !ref.current) return;
+    const dx = e.clientX - d.startX;
+    if (!d.moved && Math.abs(dx) > 4) { d.moved = true; setGrabbing(true); }
+    if (d.moved) ref.current.scrollLeft = d.startLeft - dx;
+  };
+  const end = () => { drag.current.down = false; setGrabbing(false); };
+
   return (
-    <div className="tabs" role="tablist">
+    <div
+      ref={ref}
+      className="tabs"
+      role="tablist"
+      data-grabbing={grabbing}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={end}
+      onPointerLeave={end}
+      onPointerCancel={end}
+      onClickCapture={(e) => { if (drag.current.moved) { e.preventDefault(); e.stopPropagation(); drag.current.moved = false; } }}
+    >
       {tabs.map((t) => (
         <button key={t.id} type="button" role="tab" aria-selected={value === t.id} className={`tab ${value === t.id ? 'active' : ''}`} onClick={() => onChange(t.id)}>
           {t.label}

@@ -1,3 +1,4 @@
+import { MAX_TAG_LENGTH } from '../lib/tags';
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { CalendarDays, ChevronLeft, ChevronRight, Clock3, Eye, Plus, Trash2, X } from 'lucide-react';
@@ -265,6 +266,8 @@ export function TagsField({ label, value, options, allowCreate, onCommit, onCrea
               autoFocus
               className="inline-input tag-input"
               list={`tags-${label}`}
+              maxLength={MAX_TAG_LENGTH}
+              title={`Até ${MAX_TAG_LENGTH} caracteres`}
               value={draft}
               placeholder={allowCreate ? 'Escolha ou crie' : 'Escolha uma tag'}
               onChange={(e) => setDraft(e.target.value)}

@@ -1,3 +1,4 @@
+import SourceName from '../components/SourceName';
 import { useMemo, useState } from 'react';
 import { ArrowRightCircle, Plus, XCircle } from 'lucide-react';
 import type { Lead, LeadOrigin } from '../domain';
@@ -134,7 +135,7 @@ export default function Leads() {
                   <td data-label="Origem">
                     <div className="cell-stack">
                       <Badge tone={l.origin === 'INBOUND' ? 'info' : 'warning'}>{l.origin === 'INBOUND' ? 'Inbound' : 'Outbound'}</Badge>
-                      <span className="text-xs text-muted" style={{ marginTop: '2px' }}>{l.origin === 'INBOUND' ? l.sourceName : `Trouxe: ${l.sourceName}`}</span>
+                      <span className="text-xs text-muted" style={{ marginTop: '2px' }}><SourceName name={l.sourceName} prefix={l.origin === 'INBOUND' ? undefined : 'Trouxe: '} /></span>
                     </div>
                   </td>
                   <td data-label="Dono">{ownerLabel(l) ?? <span className="text-muted">Sem dono</span>}</td>
