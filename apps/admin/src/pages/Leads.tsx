@@ -4,6 +4,7 @@ import SourceName from '../components/SourceName';
 import { useMemo, useState } from 'react';
 import { ArrowRightCircle, Plus, User, XCircle } from 'lucide-react';
 import { StageBadge } from '../components/cells';
+import { StatusBadge } from '../components/FieldBadge';
 import type { Lead, LeadOrigin } from '../domain';
 import { formatCnpj, formatCpf, isValidCnpj, isValidCpf, stripDoc } from '../lib/documents';
 import { formatCurrency, formatDate, parseMoney } from '../lib/format';
@@ -20,7 +21,7 @@ import { teamStore } from '../mocks/team';
 import LeadSheet from '../components/LeadSheet';
 import PartySheets from '../components/PartySheets';
 import type { PartyRef } from '../components/PartySheets';
-import { Badge, EmptyState, Field, Page, PageHeader, Pagination, SampleBanner, SearchBox, SidePanel, Tabs } from '../components/ui';
+import { EmptyState, Field, Page, PageHeader, Pagination, SampleBanner, SearchBox, SidePanel, Tabs } from '../components/ui';
 import { CustomSelect } from '../components/ui';
 import { lostReasonLabel } from '../lib/lostReasons';
 
@@ -126,7 +127,7 @@ export default function Leads() {
                     <div className="cell-stack">
                       <span className="cell-primary">{!l.wasSeen && <span className="unseen-dot" title="Ainda não foi aberto" />}{l.name}</span>
                       <span className="text-xs text-muted">{l.email}</span>
-                      {(l.returningClient || l.archivedAt) && <span className="tag-row" style={{ marginTop: '2px' }}>{l.returningClient && <Badge tone="info">Cliente retornando</Badge>}{l.archivedAt && <Badge tone="danger">Arquivado</Badge>}</span>}
+                      {(l.returningClient || l.archivedAt) && <span className="tag-row" style={{ marginTop: '2px' }}>{l.returningClient && <StatusBadge tone="info">Cliente retornando</StatusBadge>}{l.archivedAt && <StatusBadge tone="danger">Arquivado</StatusBadge>}</span>}
                     </div>
                   </td>
                   <td data-label="Etapa">

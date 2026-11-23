@@ -4,14 +4,20 @@ import type { TaskStatus } from '../domain';
 import { TASK_STATUSES, TASK_STATUS_META, statusOf } from '../lib/taskStatus';
 
 // Selos dos CAMPOS (não são tags): cada um com forma própria, para distinguir de relance.
-//   Status da tarefa → pílula tingida com um ponto, cor pelo andamento (cinza, âmbar, vermelho, verde)
+//   Status da tarefa → pílula tingida com um ponto, cor pelo andamento (cinza, âmbar, vermelho, verde).
+//                      A mesma pílula (StatusBadge) vale para ciclo de vida e marcas de estado do registro.
 //   Prioridade       → rótulo reto com barra lateral e bandeira (cor pelo nível)
 //   Origem           → pílula tracejada azul com bússola
 // As tags (Perfil do cliente, Evento, Geral) têm o próprio visual em TagChip.tsx; a etapa, em StageBadge (cells.tsx).
 
+/** Pílula de estado (ponto + texto): status da tarefa, ciclo de vida, "Em análise", "Arquivada"… */
+export function StatusBadge({ tone = 'neutral', title, children }: { tone?: 'neutral' | 'info' | 'success' | 'warning' | 'danger'; title?: string; children: ReactNode }) {
+  return <span className="tagc" data-cat="STATUS" data-tone={tone} title={title}>{children}</span>;
+}
+
 export function TaskStatusBadge({ status }: { status: TaskStatus }) {
   const m = TASK_STATUS_META[status];
-  return <span className="tagc" data-cat="STATUS" data-tone={m.tone}>{m.label}</span>;
+  return <StatusBadge tone={m.tone}>{m.label}</StatusBadge>;
 }
 
 /** O selo de status que também é o seletor: um <select> nativo (acessível e com teclado) por cima do selo. */

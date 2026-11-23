@@ -224,7 +224,8 @@ export function Badge({ tone = 'neutral', variant = 'default', children, title }
 }
 
 export function LifecycleBadge({ value }: { value: Lifecycle }) {
-  return <Badge tone={LIFECYCLE_TONE[value]}>{LIFECYCLE_LABEL[value]}</Badge>;
+  // Ciclo de vida é estado do registro: mesma pílula com ponto do status (StatusBadge, components/FieldBadge.tsx).
+  return <span className="tagc" data-cat="STATUS" data-tone={LIFECYCLE_TONE[value]}>{LIFECYCLE_LABEL[value]}</span>;
 }
 
 export function StatCard({ label, value, hint, tone }: { label: string; value: ReactNode; hint?: ReactNode; tone?: Tone }) {

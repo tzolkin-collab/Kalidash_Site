@@ -1,4 +1,5 @@
 import TagChip from '../components/TagChip';
+import { StatusBadge } from '../components/FieldBadge';
 import { TagManagerButton } from '../components/TagsAdmin';
 import { useMemo, useState } from 'react';
 import { Building2, Plus, User } from 'lucide-react';
@@ -13,7 +14,7 @@ import { companiesOf, companiesStore, peopleStore } from '../mocks/people';
 import NewPartyPanels from '../components/NewPartyHost';
 import PartySheets from '../components/PartySheets';
 import type { PartyRef } from '../components/PartySheets';
-import { Badge, EmptyState, LifecycleBadge, Page, PageHeader, Pagination, SampleBanner, SearchBox, Tabs } from '../components/ui';
+import { EmptyState, LifecycleBadge, Page, PageHeader, Pagination, SampleBanner, SearchBox, Tabs } from '../components/ui';
 import { CustomSelect } from '../components/ui';
 
 type View = 'people' | 'companies';
@@ -90,7 +91,7 @@ export default function PeopleCompanies() {
           <option value="INACTIVE">Inativo</option>
         </CustomSelect>
         <label className="check-inline"><input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} /> Mostrar arquivados{archivedCount > 0 && <span className="tab-count">{archivedCount}</span>}</label>
-        {view === 'companies' && reviewCount > 0 && <Badge tone="warning" title="Empresas sem CNPJ">{reviewCount} em análise</Badge>}
+        {view === 'companies' && reviewCount > 0 && <StatusBadge tone="warning" title="Empresas sem CNPJ">{reviewCount} em análise</StatusBadge>}
         {view === 'people' && <span className="toolbar-end"><TagManagerButton /></span>}
       </div>
 
@@ -107,12 +108,12 @@ export default function PeopleCompanies() {
                       <td className="cell-block" data-label="Pessoa">
                         <div className="cell-avatar">
                           <span className="avatar">{initials(p.name) || <User size={12} />}</span>
-                          <div className="cell-stack"><span className="cell-primary">{p.name}{p.archivedAt && <Badge tone="danger">Arquivada</Badge>}</span><span className="text-xs text-muted">{p.email}</span></div>
+                          <div className="cell-stack"><span className="cell-primary">{p.name}{p.archivedAt && <StatusBadge tone="danger">Arquivada</StatusBadge>}</span><span className="text-xs text-muted">{p.email}</span></div>
                         </div>
                       </td>
                       <td data-label="Empresas"><div>{mine.length ? mine.map((c) => c.name).join(', ') : <span className="text-muted">Pessoa física</span>}{p.role && <div className="text-xs text-muted">{p.role}</div>}</div></td>
-                      <td className="mono" data-label="CPF">{p.document ? maskCpf(p.document) : <span className="text-muted">—</span>}</td>
-                      <td className="text-muted" data-label="Telefone">{p.phone}</td>
+                      <td className="mono cell-num" data-label="CPF">{p.document ? maskCpf(p.document) : <span className="text-muted">—</span>}</td>
+                      <td className="text-muted cell-num" data-label="Telefone">{p.phone}</td>
                       <td data-label="Tags"><div className="tag-row">{p.tags.map((t) => <TagChip key={t} name={t} />)}</div></td>
                       <td data-label="Ciclo de vida"><LifecycleBadge value={p.lifecycle} /></td>
                       <td className="text-muted" data-label="Cadastro">{formatDate(p.createdAt)}</td>
@@ -136,10 +137,10 @@ export default function PeopleCompanies() {
                     <td className="cell-block" data-label="Empresa">
                       <div className="cell-avatar">
                         <span className="avatar avatar-square"><Building2 size={14} /></span>
-                        <div className="cell-stack"><span className="cell-primary">{c.name}{c.archivedAt && <Badge tone="danger">Arquivada</Badge>}</span><span className="text-xs text-muted">{c.segment}</span></div>
+                        <div className="cell-stack"><span className="cell-primary">{c.name}{c.archivedAt && <StatusBadge tone="danger">Arquivada</StatusBadge>}</span><span className="text-xs text-muted">{c.segment}</span></div>
                       </div>
                     </td>
-                    <td data-label="CNPJ">{c.document ? <span className="mono">{c.document}</span> : <Badge tone="warning" title='Tarefa "Informar CNPJ" aberta'>Em análise</Badge>}</td>
+                    <td data-label="CNPJ" className="cell-num">{c.document ? <span className="mono">{c.document}</span> : <StatusBadge tone="warning" title='Tarefa "Informar CNPJ" aberta'>Em análise</StatusBadge>}</td>
                     <td data-label="Contato padrão">{personName(c.defaultContactId) ?? <span className="text-muted">—</span>}</td>
                     <td className="text-muted" data-label="Stakeholders">{c.stakeholders.length}</td>
                     <td data-label="Ciclo de vida"><LifecycleBadge value={c.lifecycle} /></td>

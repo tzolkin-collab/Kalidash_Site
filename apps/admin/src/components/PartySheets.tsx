@@ -22,8 +22,19 @@ import CustomFieldsSection from './CustomFieldsSection';
 import { ContactListField, DocumentField, ReadOnlyField, SelectField, TagsField, TextField } from './fields';
 import { HistoryTab, TasksTab } from './RecordTabs';
 import RecordSheet from './RecordSheet';
-import { Badge, LifecycleBadge } from './ui';
+import { LifecycleBadge } from './ui';
+import { StageBadge } from './cells';
+import { StatusBadge } from './FieldBadge';
+import type { Lead } from '../domain';
 import { CustomSelect } from '../components/ui';
+
+// Situação do lead nas listas de relacionados da ficha: mesma pílula de estado do resto.
+const LEAD_STATUS: Record<Lead['status'], { label: string; tone: 'info' | 'success' | 'neutral' }> = {
+  ACTIVE: { label: 'Ativo', tone: 'info' },
+  QUALIFIED: { label: 'Qualificado', tone: 'success' },
+  DISCARDED: { label: 'Descartado', tone: 'neutral' },
+};
+const LeadStatusBadge = ({ status }: { status: Lead['status'] }) => <StatusBadge tone={LEAD_STATUS[status].tone}>{LEAD_STATUS[status].label}</StatusBadge>;
 
 export type PartyRef = { kind: 'person' | 'company'; id: string } | null;
 
@@ -81,7 +92,7 @@ function LifecycleRow({ lifecycle, legacy, reason, kind, id }: { lifecycle: Life
   return (
     <>
       <ReadOnlyField label="Ciclo de vida" hint="Resulta dos eventos do funil e do template da pipeline. Não se escolhe à mão.">
-        <span className="tag-row"><LifecycleBadge value={lifecycle} />{legacy && <Badge tone="info">Cliente legado</Badge>}{lifecycle === 'INACTIVE' && reason && <span className="text-xs text-muted">{reason}</span>}</span>
+        <span className="tag-row"><LifecycleBadge value={lifecycle} />{legacy && <StatusBadge tone="info">Cliente legado</StatusBadge>}{lifecycle === 'INACTIVE' && reason && <span className="text-xs text-muted">{reason}</span>}</span>
       </ReadOnlyField>
       <div className="sheet-actions-row"><LifecycleActions kind={kind} id={id} lifecycle={lifecycle} /></div>
     </>
@@ -135,7 +146,7 @@ function PersonSheet({ personId, onOpen }: { personId: string; onOpen: (ref: Par
       onSwitchMode={() => update({ openMode: settings.openMode === 'side' ? 'center' : 'side' })}
       title={person.name}
       onTitle={(v) => save({ name: v }, 'Nome', person.name, v)}
-      badges={<><LifecycleBadge value={person.lifecycle} />{person.archivedAt && <Badge tone="danger">Arquivada</Badge>}</>}
+      badges={<><LifecycleBadge value={person.lifecycle} />{person.archivedAt && <StatusBadge tone="danger">Arquivada</StatusBadge>}</>}
       subtitle={person.role}
       tabs={[{ id: 'overview', label: 'Visão geral' }, { id: 'links', label: 'Vínculos', count: myLeads.length + myOpps.length }, { id: 'tasks', label: 'Tarefas' }, { id: 'history', label: 'Histórico' }]}
       tab={tab}
@@ -190,7 +201,7 @@ function PersonSheet({ personId, onOpen }: { personId: string; onOpen: (ref: Par
                   <button type="button" className="link-inline" onClick={() => onOpen({ kind: 'company', id: c.id })}>{c.name}</button>
                   <span className="text-xs text-muted">{s?.description}</span>
                   {s && <TagChip name={s.tag} category="ROLE" />}
-                  {c.defaultContactId === person.id && <Badge tone="success">Contato padrão</Badge>}
+                  {c.defaultContactId === person.id && <TagChip name="Contato padrão" category="ROLE" />}
                 </div>
               );
             })}
@@ -203,10 +214,10 @@ function PersonSheet({ personId, onOpen }: { personId: string; onOpen: (ref: Par
         <div className="sheet-section">
           <h3 className="sheet-section-title">Leads</h3>
           {myLeads.length === 0 && <p className="text-sm text-muted">Nenhum lead.</p>}
-          {myLeads.map((l) => <div key={l.id} className="relation-row"><span className="cell-primary">{l.name}</span><Badge>{l.status === 'ACTIVE' ? 'Ativo' : l.status === 'QUALIFIED' ? 'Qualificado' : 'Descartado'}</Badge>{l.returningClient && <Badge tone="info">Cliente retornando</Badge>}</div>)}
+          {myLeads.map((l) => <div key={l.id} className="relation-row"><span className="cell-primary">{l.name}</span><LeadStatusBadge status={l.status} />{l.returningClient && <StatusBadge tone="info">Cliente retornando</StatusBadge>}</div>)}
           <h3 className="sheet-section-title" style={{ marginTop: '20px' }}>Oportunidades</h3>
           {myOpps.length === 0 && <p className="text-sm text-muted">Nenhuma oportunidade.</p>}
-          {myOpps.map((o) => <div key={o.id} className="relation-row"><span className="cell-primary">{o.title}</span><Badge>{o.stage}</Badge>{o.isSample && <Badge tone="warning">Exemplo</Badge>}</div>)}
+          {myOpps.map((o) => <div key={o.id} className="relation-row"><span className="cell-primary">{o.title}</span><StageBadge stage={o.stage} opp={o} />{o.isSample && <StatusBadge tone="warning">Exemplo</StatusBadge>}</div>)}
         </div>
       )}
       {tab === 'tasks' && <TasksTab entity="person" id={person.id} name={person.name} ctx={ctx} />}
@@ -254,7 +265,7 @@ function CompanySheet({ companyId, onOpen }: { companyId: string; onOpen: (ref: 
       onSwitchMode={() => update({ openMode: settings.openMode === 'side' ? 'center' : 'side' })}
       title={company.name}
       onTitle={(v) => save({ name: v }, 'Nome', company.name, v)}
-      badges={<><LifecycleBadge value={company.lifecycle} />{inReview ? <Badge tone="warning">Em análise</Badge> : <Badge tone="success">Cadastro completo</Badge>}{company.archivedAt && <Badge tone="danger">Arquivada</Badge>}</>}
+      badges={<><LifecycleBadge value={company.lifecycle} />{inReview ? <StatusBadge tone="warning">Em análise</StatusBadge> : <StatusBadge tone="success">Cadastro completo</StatusBadge>}{company.archivedAt && <StatusBadge tone="danger">Arquivada</StatusBadge>}</>}
       subtitle={company.segment}
       tabs={[{ id: 'overview', label: 'Visão geral' }, { id: 'links', label: 'Oportunidades e leads', count: myLeads.length + myOpps.length }, { id: 'tasks', label: 'Tarefas' }, { id: 'history', label: 'Histórico' }]}
       tab={tab}
@@ -292,10 +303,10 @@ function CompanySheet({ companyId, onOpen }: { companyId: string; onOpen: (ref: 
         <div className="sheet-section">
           <h3 className="sheet-section-title">Leads</h3>
           {myLeads.length === 0 && <p className="text-sm text-muted">Nenhum lead.</p>}
-          {myLeads.map((l) => <div key={l.id} className="relation-row"><span className="cell-primary">{l.name}</span><Badge>{l.status === 'ACTIVE' ? 'Ativo' : l.status === 'QUALIFIED' ? 'Qualificado' : 'Descartado'}</Badge></div>)}
+          {myLeads.map((l) => <div key={l.id} className="relation-row"><span className="cell-primary">{l.name}</span><LeadStatusBadge status={l.status} /></div>)}
           <h3 className="sheet-section-title" style={{ marginTop: '20px' }}>Oportunidades</h3>
           {myOpps.length === 0 && <p className="text-sm text-muted">Nenhuma oportunidade.</p>}
-          {myOpps.map((o) => <div key={o.id} className="relation-row"><span className="cell-primary">{o.title}</span><Badge>{o.stage}</Badge>{o.isSample && <Badge tone="warning">Exemplo</Badge>}</div>)}
+          {myOpps.map((o) => <div key={o.id} className="relation-row"><span className="cell-primary">{o.title}</span><StageBadge stage={o.stage} opp={o} />{o.isSample && <StatusBadge tone="warning">Exemplo</StatusBadge>}</div>)}
         </div>
       )}
       {tab === 'tasks' && <TasksTab entity="company" id={company.id} name={company.name} ctx={ctx} />}
