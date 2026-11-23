@@ -19,9 +19,8 @@ import { LOCAL_USER_ID, auditLog, localUserStore, teamStore, webhooksStore } fro
 import { Badge, EmptyState, Field, Page, PageHeader, PopupDialog, SampleBanner, SearchBox, SidePanel, Switch, Tabs } from '../components/ui';
 import { CustomSelect } from '../components/ui';
 import { PermissionsTab, TokensTab } from '../components/Access';
-import TagsAdmin from '../components/TagsAdmin';
 
-type Tab = 'profile' | 'team' | 'permissions' | 'tokens' | 'tags' | 'notifications' | 'webhooks' | 'audit';
+type Tab = 'profile' | 'team' | 'permissions' | 'tokens' | 'notifications' | 'webhooks' | 'audit';
 
 const ROLE_LABEL: Record<Role, string> = { ADMIN: 'Admin', MANAGER: 'Gerente', SELLER: 'Vendedor' };
 const when = (iso?: string) => (iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : 'Nunca');
@@ -52,7 +51,7 @@ export default function Settings() {
         </SampleBanner>
       )}
       <Tabs
-        tabs={[{ id: 'profile' as Tab, label: 'Meu perfil' }, { id: 'team' as Tab, label: 'Equipe e acessos' }, { id: 'permissions' as Tab, label: 'Permissões' }, { id: 'tokens' as Tab, label: 'Tokens de API' }, { id: 'tags' as Tab, label: 'Tags' }, { id: 'notifications' as Tab, label: 'Notificações' }, { id: 'webhooks' as Tab, label: 'Webhooks' }, { id: 'audit' as Tab, label: 'Auditoria' }]}
+        tabs={[{ id: 'profile' as Tab, label: 'Meu perfil' }, { id: 'team' as Tab, label: 'Equipe e acessos' }, { id: 'permissions' as Tab, label: 'Permissões' }, { id: 'tokens' as Tab, label: 'Tokens de API' }, { id: 'notifications' as Tab, label: 'Notificações' }, { id: 'webhooks' as Tab, label: 'Webhooks' }, { id: 'audit' as Tab, label: 'Auditoria' }]}
         value={tab}
         onChange={setTab}
       />
@@ -60,7 +59,6 @@ export default function Settings() {
       {tab === 'team' && <TeamTab />}
       {tab === 'permissions' && <PermissionsTab />}
       {tab === 'tokens' && <TokensTab />}
-      {tab === 'tags' && <TagsAdmin />}
       {tab === 'notifications' && <NotificationsTab />}
       {tab === 'webhooks' && <WebhooksTab />}
       {tab === 'audit' && <AuditTab />}

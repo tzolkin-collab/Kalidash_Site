@@ -241,6 +241,9 @@ export function ReadOnlyField({ label, children, hint }: { label: string; childr
   return <PropRow label={label} hint={hint}>{children}</PropRow>;
 }
 
+// Tags de lead, pessoa e oportunidade. Tarefa e Função do contato têm lugar próprio (funil e stakeholder).
+const RECORD_CATEGORIES: TagCategory[] = ['PROFILE', 'EVENT', 'GENERAL'];
+
 export function TagsField({ label, value, options, allowCreate, onCommit, onCreate, hint }: { label: string; value: string[]; options: string[]; allowCreate?: boolean; onCommit: (tags: string[]) => void; onCreate?: (tag: string, category: TagCategory) => void; hint?: string }) {
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -267,7 +270,7 @@ export function TagsField({ label, value, options, allowCreate, onCommit, onCrea
           <TagChip key={t} name={t} onRemove={() => onCommit(value.filter((x) => x !== t))} />
         ))}
         <button ref={trigger} type="button" className="chip-add" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((v) => !v)}><Plus size={12} /> Tag</button>
-        {open && <TagPicker anchor={trigger.current} value={value} options={all} catalog={catalog} allowCreate={allowCreate} onPick={pick} onCreate={create} onClose={close} />}
+        {open && <TagPicker anchor={trigger.current} value={value} options={all} catalog={catalog} allowCreate={allowCreate} categories={RECORD_CATEGORIES} onPick={pick} onCreate={create} onClose={close} />}
       </div>
     </PropRow>
   );

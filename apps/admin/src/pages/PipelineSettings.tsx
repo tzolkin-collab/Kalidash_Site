@@ -1,6 +1,14 @@
+import { useRef } from 'react';
 import { MAX_TAG_LENGTH } from '../lib/tags';
+import { useCrmMode } from '../lib/crmMode';
+import { pushErro } from '../lib/notify';
+import { categoryOf, tagKey } from '../lib/tagCatalog';
+import type { TagCategory } from '../lib/tagCatalog';
+import { saveTagCategory, useKnownTags, useTagCatalog } from '../lib/tagSync';
+import TagPicker from '../components/TagPicker';
+import TagChip from '../components/TagChip';
 import { useEffect, useMemo, useState } from 'react';
-import { Archive, ArchiveRestore, ArrowDown, ArrowUp, Bell, ExternalLink, Link2, Pencil, Plus, Sparkles, Trash2, X } from 'lucide-react';
+import { Archive, ArchiveRestore, ArrowDown, ArrowUp, Bell, ExternalLink, Link2, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
 import type { CustomField, CustomFieldType, Pipeline, Requirement, Source, Stage, StageKind, Step } from '../domain';
 import { setArchived } from '../lib/edit';
 import { newId, useStore } from '../lib/store';
@@ -317,7 +325,7 @@ function TasksTab({ pipeline, patch, presetField, onConsumePreset }: { pipeline:
                   <tr key={r.id}>
                     <td className="cell-block" data-label="Tarefa"><span className="cell-primary">{r.label}</span><div className="text-xs text-muted">{r.kind === 'FIELD' ? 'Campo do cadastro' : 'Ação'}</div></td>
                     <td data-label="Etapa">{stageName(r.stageId)}</td>
-                    <td data-label="Tag"><Badge tone="accent">{r.tag}</Badge></td>
+                    <td data-label="Tag"><TagChip name={r.tag} category="TASK" /></td>
                     <td data-label="Efeito"><Badge tone={r.gate === 'NONE' ? 'neutral' : 'warning'}>{GATE_LABEL[r.gate]}</Badge></td>
                     <td data-label="Responsável">{r.assignee ?? <span className="text-muted">—</span>}</td>
                     <td data-label="Prazo">{r.dueDays !== undefined ? `${r.dueDays} d` : <span className="text-muted">—</span>}</td>
@@ -485,6 +493,7 @@ function TagsTab({ pipeline, patch }: { pipeline: Pipeline; patch: Patch }) {
         title="Tags de tarefa"
         hint="Classificam as tarefas deste funil (ex.: adicionar detalhes do cliente, coletar dados da empresa)."
         tags={pipeline.taskTags}
+        category="TASK"
         locked={usedTags}
         lockedHint="Em uso por uma tarefa"
         onChange={(tags) => patch((p) => ({ ...p, taskTags: tags }))}
@@ -499,12 +508,24 @@ function TagsTab({ pipeline, patch }: { pipeline: Pipeline; patch: Patch }) {
   );
 }
 
-function TagList({ title, hint, tags, locked, lockedHint, onChange }: { title: string; hint: string; tags: string[]; locked?: Set<string>; lockedHint?: string; onChange: (tags: string[]) => void }) {
-  const [draft, setDraft] = useState('');
-  const add = () => {
-    const t = draft.trim();
-    if (t && !tags.some((x) => x.toLowerCase() === t.toLowerCase())) onChange([...tags, t]);
-    setDraft('');
+function TagList({ title, hint, tags, category, locked, lockedHint, onChange }: { title: string; hint: string; tags: string[]; category?: TagCategory; locked?: Set<string>; lockedHint?: string; onChange: (tags: string[]) => void }) {
+  const [open, setOpen] = useState(false);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const catalog = useTagCatalog();
+  const crmMode = useCrmMode();
+  const known = useKnownTags(tags);
+  // Com categoria definida (Tarefa), só oferece as tags dela; sem categoria (contato), as que não são campo.
+  const options = known.filter((n) => (category ? categoryOf(n, catalog) === category : true));
+  const close = () => { setOpen(false); trigger.current?.focus(); };
+  const add = (name: string) => {
+    if (!tags.some((x) => tagKey(x) === tagKey(name))) onChange([...tags, name]);
+    close();
+  };
+  const create = (raw: string, cat: TagCategory) => {
+    const name = raw.trim().slice(0, MAX_TAG_LENGTH);
+    if (!name) return;
+    void saveTagCategory(name, category ?? cat, crmMode === 'api').then((err) => { if (err) pushErro('Não foi possível guardar a categoria da tag', `${err} A tag foi adicionada, mas a categoria vale só por palpite.`); });
+    add(name);
   };
   return (
     <div className="panel-card">
@@ -512,15 +533,10 @@ function TagList({ title, hint, tags, locked, lockedHint, onChange }: { title: s
       <p className="section-sub">{hint}</p>
       <div className="tag-row" style={{ marginBottom: '12px' }}>
         {tags.map((t) => (
-          <span key={t} className="tag tag-removable">
-            {t}
-            <button type="button" disabled={locked?.has(t)} title={locked?.has(t) ? lockedHint : `Remover ${t}`} onClick={() => onChange(tags.filter((x) => x !== t))} aria-label={`Remover ${t}`}><X size={11} /></button>
-          </span>
+          <TagChip key={t} name={t} category={category} removeDisabled={locked?.has(t)} removeTitle={locked?.has(t) ? lockedHint : `Remover ${t}`} onRemove={() => onChange(tags.filter((x) => x !== t))} />
         ))}
-      </div>
-      <div className="row-actions" style={{ justifyContent: 'flex-start' }}>
-        <input className="input" style={{ maxWidth: '260px' }} value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } }} placeholder="Nova tag" maxLength={MAX_TAG_LENGTH} title={`Até ${MAX_TAG_LENGTH} caracteres`} />
-        <button type="button" className="btn" onClick={add} disabled={!draft.trim()}><Plus size={14} /> Adicionar</button>
+        <button ref={trigger} type="button" className="chip-add" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((v) => !v)}><Plus size={12} /> Tag</button>
+        {open && <TagPicker anchor={trigger.current} value={tags} options={options} catalog={catalog} allowCreate fixedCategory={category} onPick={add} onCreate={create} onClose={close} />}
       </div>
     </div>
   );

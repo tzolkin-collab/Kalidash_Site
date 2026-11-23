@@ -1,21 +1,24 @@
-// Catálogo de tags: classifica o TEXTO das tags em categorias de tag (Perfil do cliente, Evento, Geral). A tag em si
+// Catálogo de tags: classifica o TEXTO das tags em categorias (Perfil do cliente, Evento, Tarefa, Função, Geral). A tag em si
 // segue sendo texto nos registros; o catálogo (tabela Tag na API) só diz a que categoria cada texto pertence.
 // Status (da tarefa), prioridade e origem NÃO são tags: são campos próprios (components/FieldBadge.tsx).
 // Sem entrada no catálogo, vale um palpite por palavras conhecidas (suggestCategory) ou "Geral".
 // Puro, sem React: testado em tests/tagCatalog.test.ts.
 
-export type TagCategory = 'PROFILE' | 'EVENT' | 'GENERAL';
+export type TagCategory = 'PROFILE' | 'EVENT' | 'TASK' | 'ROLE' | 'GENERAL';
 
 /** Ordem em que as categorias aparecem nas listas. */
-export const CATEGORY_ORDER: TagCategory[] = ['PROFILE', 'EVENT', 'GENERAL'];
+export const CATEGORY_ORDER: TagCategory[] = ['PROFILE', 'EVENT', 'TASK', 'ROLE', 'GENERAL'];
 
 export const CATEGORY_META: Record<TagCategory, { label: string; hint: string }> = {
   PROFILE: { label: 'Perfil do cliente', hint: 'Que tipo de cliente é (B2B, B2C, Enterprise…)' },
   EVENT: { label: 'Evento', hint: 'Feira, webinar, congresso… onde o contato apareceu' },
+  TASK: { label: 'Tarefa', hint: 'Tipo da tarefa (Comercial, Dados da empresa…)' },
+  ROLE: { label: 'Função do contato', hint: 'O que a pessoa faz na empresa (Decisor, Financeiro…)' },
   GENERAL: { label: 'Geral', hint: 'Qualquer outra marcação' },
 };
 
-export type CatalogTag = { id: string; name: string; category: TagCategory };
+/** `auto`: não está na tabela Tag; vem de onde a tag já é usada (tags de tarefa dos funis, função dos stakeholders). */
+export type CatalogTag = { id: string; name: string; category: TagCategory; auto?: boolean };
 
 /** Chave de comparação: sem acento, sem maiúsculas, sem espaços nas pontas. "Indicação" = "indicacao". */
 export const tagKey = (s: string): string => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/\s+/g, ' ');
@@ -26,13 +29,36 @@ export const asCategory = (v: unknown): TagCategory => (isCategory(v) ? v : 'GEN
 // Palpite quando a tag não está no catálogo. Perfil: a palavra inteira. Evento: a palavra aparece em qualquer lugar
 // do nome ("Feira Agrishow", "Webinar de IA").
 const PROFILE_WORDS = ['enterprise', 'b2b', 'b2c', 'b2b2c', 'pme', 'startup', 'smb', 'varejo', 'pessoa fisica', 'corporativo', 'mid-market', 'governo'];
+const ROLE_WORDS = ['decisor', 'financeiro', 'tecnico', 'compras', 'stakeholder', 'contato padrao', 'juridico', 'diretor', 'gerente', 'influenciador', 'usuario', 'patrocinador'];
 const EVENT_WORDS = ['evento', 'feira', 'webinar', 'congresso', 'workshop', 'meetup', 'palestra', 'summit', 'convencao', 'expo'];
 
 export function suggestCategory(name: string): TagCategory {
   const k = tagKey(name);
   if (PROFILE_WORDS.includes(k)) return 'PROFILE';
+  if (ROLE_WORDS.includes(k)) return 'ROLE';
   if (EVENT_WORDS.some((w) => k === w || k.split(/[\s\-_/]+/).includes(w))) return 'EVENT';
   return 'GENERAL';
+}
+
+/**
+ * O catálogo completo: a tabela Tag (manda) mais o que a tag já diz por onde é usada. Tag de tarefa dos funis é TASK e a
+ * função de um stakeholder é ROLE, sem ninguém ter que classificar. A tabela Tag vence quando as duas dizem algo.
+ */
+export function withAuto(server: CatalogTag[], taskTags: string[], roleTags: string[]): CatalogTag[] {
+  const have = new Set(server.map((c) => tagKey(c.name)));
+  const out = [...server];
+  const add = (names: string[], category: TagCategory) => {
+    for (const raw of names) {
+      const name = raw.trim();
+      const k = tagKey(name);
+      if (!name || have.has(k)) continue;
+      have.add(k);
+      out.push({ id: `auto:${category}:${k}`, name, category, auto: true });
+    }
+  };
+  add(taskTags, 'TASK');
+  add(roleTags, 'ROLE');
+  return out;
 }
 
 /** A categoria da tag: a do catálogo se existir; senão o palpite. */
