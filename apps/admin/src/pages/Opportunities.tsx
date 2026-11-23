@@ -286,7 +286,7 @@ export default function Opportunities() {
         <Badge tone="accent">Lead</Badge>
       </div>
       <div className="text-xs text-muted" style={{ marginBottom: '8px' }}>
-        <SourceName name={l.sourceName} prefix={l.origin === 'INBOUND' ? undefined : 'Trouxe: '} />
+        <SourceName name={l.sourceName} origin={l.origin} />
       </div>
       <div className="tag-row">{l.tags.map((t) => <TagChip key={t} name={t} />)}</div>
     </div>

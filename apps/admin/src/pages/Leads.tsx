@@ -2,7 +2,8 @@ import { TagManagerButton } from '../components/TagsAdmin';
 import TagChip from '../components/TagChip';
 import SourceName from '../components/SourceName';
 import { useMemo, useState } from 'react';
-import { ArrowRightCircle, Plus, XCircle } from 'lucide-react';
+import { ArrowRightCircle, Plus, User, XCircle } from 'lucide-react';
+import { StageBadge } from '../components/cells';
 import type { Lead, LeadOrigin } from '../domain';
 import { formatCnpj, formatCpf, isValidCnpj, isValidCpf, stripDoc } from '../lib/documents';
 import { formatCurrency, formatDate, parseMoney } from '../lib/format';
@@ -52,7 +53,6 @@ export default function Leads() {
   // O responsável é pessoa da equipe (ownerId); o texto `owner` é o de antes (e o de quem trouxe, no outbound).
   const ownerLabel = (l: Lead) => team.find((m) => m.id === l.ownerId)?.name ?? l.owner;
   const pipelineName = (id: string) => pipelines.find((p) => p.id === id)?.name ?? id;
-  const stageName = (l: Lead) => pipelines.find((p) => p.id === l.pipelineId)?.stages.find((s) => s.id === l.stageId)?.name ?? '—';
   const visible = useMemo(() => leads.filter((l) => showArchived || !l.archivedAt), [leads, showArchived]);
   const allTags = useMemo(() => [...new Set(leads.flatMap((l) => l.tags))].sort(), [leads]);
 
@@ -131,17 +131,16 @@ export default function Leads() {
                   </td>
                   <td data-label="Etapa">
                     <div className="cell-stack">
-                      <Badge>{stageName(l)}</Badge>
+                      <span><StageBadge stage={l.stageId} opp={{ stage: l.stageId, pipeline: pipelineName(l.pipelineId) }} /></span>
                       <span className="text-xs text-muted" style={{ marginTop: '2px' }}>{pipelineName(l.pipelineId)}</span>
                     </div>
                   </td>
-                  <td data-label="Origem">
-                    <div className="cell-stack">
-                      <Badge tone={l.origin === 'INBOUND' ? 'info' : 'warning'}>{l.origin === 'INBOUND' ? 'Inbound' : 'Outbound'}</Badge>
-                      <span className="text-xs text-muted" style={{ marginTop: '2px' }}><SourceName name={l.sourceName} prefix={l.origin === 'INBOUND' ? undefined : 'Trouxe: '} /></span>
-                    </div>
+                  <td data-label="Origem"><SourceName name={l.sourceName} origin={l.origin} /></td>
+                  <td data-label="Dono">
+                    {ownerLabel(l)
+                      ? <span className="owner-inline"><User size={14} aria-hidden="true" />{ownerLabel(l)}</span>
+                      : <span className="tagc" data-cat="EMPTY">Sem dono</span>}
                   </td>
-                  <td data-label="Dono">{ownerLabel(l) ?? <span className="text-muted">Sem dono</span>}</td>
                   <td data-label="Valor est." className="cell-num">{l.estimatedValue ? formatCurrency(l.estimatedValue) : <span className="text-muted">—</span>}</td>
                   <td data-label="Tags">{l.tags.length > 0 ? <div className="tag-row">{l.tags.map((t) => <TagChip key={t} name={t} />)}</div> : <span className="text-muted">—</span>}</td>
                   <td data-label="Entrou em" className="text-muted cell-num">{formatDate(l.createdAt)}</td>

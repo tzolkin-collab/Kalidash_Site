@@ -1823,6 +1823,13 @@ textarea.inline-input { resize: vertical; }
 .tagc[data-cat="SOURCE"] { --tc: var(--tc-source); border: 1px dashed color-mix(in srgb, var(--tc) 55%, transparent); background: transparent; }
 /* Perfil do cliente: bloco arredondado cheio, roxo */
 .tagc[data-cat="PROFILE"] { --tc: var(--tc-profile); border-color: transparent; border-radius: 6px; background: color-mix(in srgb, var(--tc) 14%, transparent); font-weight: 600; }
+/* Na coluna Origem o selo junta origem e fonte ("Inbound · Formulário da LP"): pode ir mais longe que os outros */
+.data-table td[data-label="Origem"] .tagc { max-width: min(36ch, 100%); }
+/* Campo vazio (ex.: "Sem dono"): selo discreto, sem cor, para ler como ausência e não como valor */
+.tagc[data-cat="EMPTY"] { --tc: var(--text-muted); background: transparent; }
+/* Dono na lista: ícone + nome, como o responsável nas oportunidades */
+.owner-inline { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+.owner-inline svg { flex-shrink: 0; color: var(--text-muted); }
 
 /* Seletor de tags (TagPicker) */
 .tp { position: fixed; z-index: 100000; /* acima das fichas (peek-center-overlay: 99999) */  display: flex; flex-direction: column; max-height: 340px; border: 1px solid var(--border-subtle); border-radius: 10px; background: var(--bg-surface); box-shadow: var(--shadow-lg); }
