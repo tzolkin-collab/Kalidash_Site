@@ -7,8 +7,8 @@ import { TEMPLATE_IDS, templatesStore } from './templates';
 // Dados de exemplo (fase 1 e 4 do plano). Ver docs/dominio.md §3, §8 e §11.
 
 const stages = (p: string): Stage[] => [
-  { id: `${p}:novos`, name: 'Novos', kind: 'LEAD', color: '#94a3b8' },
-  { id: `${p}:contato`, name: 'Em contato', kind: 'LEAD', color: '#64748b' },
+  { id: `${p}:novos`, name: 'Novos', kind: 'LEAD', color: '#0d9488' },
+  { id: `${p}:contato`, name: 'Em contato', kind: 'LEAD', color: '#db2777' },
   { id: `${p}:qualificacao`, name: 'Qualificação', kind: 'OPEN', color: '#f59e0b', probability: 20, alertDays: 7 },
   { id: `${p}:proposta`, name: 'Proposta', kind: 'OPEN', color: '#8b5cf6', probability: 40, alertDays: 7 },
   { id: `${p}:negociacao`, name: 'Negociação', kind: 'OPEN', color: '#3b82f6', probability: 60, alertDays: 10 },

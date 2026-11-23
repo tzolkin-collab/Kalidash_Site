@@ -25,8 +25,8 @@ const S = {
 };
 
 const DEFAULT_STAGES: LifecycleTemplate['stages'] = [
-  { name: 'Novos', kind: 'LEAD', color: '#94a3b8' },
-  { name: 'Em contato', kind: 'LEAD', color: '#64748b' },
+  { name: 'Novos', kind: 'LEAD', color: '#0d9488' },
+  { name: 'Em contato', kind: 'LEAD', color: '#db2777' },
   { name: 'Qualificação', kind: 'OPEN', color: '#f59e0b' },
   { name: 'Proposta', kind: 'OPEN', color: '#8b5cf6' },
   { name: 'Negociação', kind: 'OPEN', color: '#3b82f6' },

@@ -1828,8 +1828,9 @@ textarea.inline-input { resize: vertical; }
 /* Campo vazio (ex.: "Sem dono"): selo discreto, sem cor, para ler como ausência e não como valor */
 .tagc[data-cat="EMPTY"] { --tc: var(--text-muted); background: transparent; }
 /* Dono na lista: ícone + nome, como o responsável nas oportunidades */
-.owner-inline { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+.owner-inline { display: inline-flex; align-items: center; gap: 6px; max-width: 18ch; font-size: 13px; white-space: nowrap; }
 .owner-inline svg { flex-shrink: 0; color: var(--text-muted); }
+.owner-inline span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
 /* Seletor de tags (TagPicker) */
 .tp { position: fixed; z-index: 100000; /* acima das fichas (peek-center-overlay: 99999) */  display: flex; flex-direction: column; max-height: 340px; border: 1px solid var(--border-subtle); border-radius: 10px; background: var(--bg-surface); box-shadow: var(--shadow-lg); }

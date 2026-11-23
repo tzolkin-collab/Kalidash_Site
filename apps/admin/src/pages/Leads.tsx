@@ -138,7 +138,7 @@ export default function Leads() {
                   <td data-label="Origem"><SourceName name={l.sourceName} origin={l.origin} /></td>
                   <td data-label="Dono">
                     {ownerLabel(l)
-                      ? <span className="owner-inline"><User size={14} aria-hidden="true" />{ownerLabel(l)}</span>
+                      ? <span className="owner-inline" title={ownerLabel(l)}><User size={14} aria-hidden="true" /><span>{ownerLabel(l)}</span></span>
                       : <span className="tagc" data-cat="EMPTY">Sem dono</span>}
                   </td>
                   <td data-label="Valor est." className="cell-num">{l.estimatedValue ? formatCurrency(l.estimatedValue) : <span className="text-muted">—</span>}</td>
