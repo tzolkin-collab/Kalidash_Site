@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { BarChart3, Check, ChevronLeft, ChevronRight, FlaskConical, GripVertical, Pencil, Plus, RefreshCw, RotateCcw, SlidersHorizontal, X } from 'lucide-react';
+import { BarChart3, Check, ChevronLeft, ChevronRight, FlaskConical, GripVertical, Pencil, Plus, RefreshCw, RotateCcw, Save, SlidersHorizontal, X } from 'lucide-react';
 import { useOpportunities } from '../lib/useOpportunities';
 import { useShell } from '../lib/shell';
 import { useStore } from '../lib/store';
@@ -17,7 +17,9 @@ import { PERIODS, salesMetrics, stageInfo, toCents } from '../lib/salesMetrics';
 import { activePipelines, kanbanStages, resolveStage } from '../lib/stages';
 import type { Period } from '../lib/salesMetrics';
 import { CUSTOM_SPANS, SPANS, SPAN_LABEL, addCustom, addItem, clearLayout, defaultLayout, isCustomId, layoutKey, loadLayout, moveItem, normalizeLayout, removeItem, saveLayout, setSpan, updateCustom } from '../lib/dashboardLayout';
-import { chartTitle } from '../lib/chartSpec';
+import { chartTitle, normalizeChart } from '../lib/chartSpec';
+import { runChart } from '../lib/chartData';
+import { MAX_NAME, MAX_VIEWS, addView, loadViews, removeView, saveViews, viewsKey } from '../lib/dashboardViews';
 import type { ChartCtx } from '../lib/chartData';
 import { PRESETS } from '../lib/dashboardPresets';
 import type { Layout, Span } from '../lib/dashboardLayout';
@@ -51,16 +53,31 @@ export default function Dashboard() {
   const [editing, setEditing] = useState(false);
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
+  const vkey = viewsKey(auth.user?.id);
+  const [views, setViews] = useState(() => loadViews(vkey, WIDGETS));
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [viewName, setViewName] = useState('');
+  const [viewError, setViewError] = useState<string | null>(null);
   const [builder, setBuilder] = useState<{ id?: string } | null>(null);
   const [applied, setApplied] = useState<{ name: string; before: Layout } | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
 
   useEffect(() => { setLayout(loadLayout(key, WIDGETS)); }, [key]);
+  useEffect(() => { setViews(loadViews(vkey, WIDGETS)); }, [vkey]);
   // Os widgets de atividade leem o histórico recente (as 500 últimas ações); só existe com o CRM na API.
   useEffect(() => { if (crmMode === 'api') void loadRecentHistory(); }, [crmMode]);
 
   const update = (next: Layout) => { setLayout(next); saveLayout(key, next); };
+  const commitViews = (next: typeof views) => { setViews(next); saveViews(vkey, next); };
+  const submitView = () => {
+    const r = addView(views, viewName, layout);
+    if (r.error) { setViewError(r.error); return; }
+    commitViews(r.views);
+    setSaveOpen(false);
+    setViewName('');
+    setViewError(null);
+  };
   // Aplica um modelo pronto e guarda o layout anterior para o "Desfazer".
   const applyPreset = (name: string, items: Layout) => { setApplied({ name, before: layout }); update(normalizeLayout(items, WIDGETS)); };
 
@@ -95,14 +112,21 @@ export default function Dashboard() {
     realHistory: crmMode === 'api',
     hero: useMemo(() => {
       const w = periodWindows(period);
+      // Mini gráficos: ritmo semanal das últimas 12 semanas (independe do período escolhido).
+      const weekly = (measure: 'won-value' | 'leads-created') => {
+        const cfg = normalizeChart({ visual: 'line', measure, granularity: 'week' });
+        const res = cfg ? runChart(cfg, { opps: opportunities, pipelines, leads, tasks, history, period }) : null;
+        return res?.kind === 'series' ? res.points.map((p) => p.value) : [];
+      };
+      const sparks = { wonSpark: weekly('won-value'), leadsSpark: weekly('leads-created') };
       if (!w) {
-        return { wonCents: stats.wonCents, wonCount: stats.wonCount, wonDelta: null, newLeads: leads.filter((l) => !l.archivedAt).length, leadsDelta: null, hasPrevious: false };
+        return { wonCents: stats.wonCents, wonCount: stats.wonCount, wonDelta: null, newLeads: leads.filter((l) => !l.archivedAt).length, leadsDelta: null, hasPrevious: false, ...sparks };
       }
       const cur = wonBetween(opportunities, pipelines, w.from, w.to);
       const prev = wonBetween(opportunities, pipelines, w.prevFrom, w.prevTo);
       const nl = leadsBetween(leads, w.from, w.to);
-      return { wonCents: cur.cents, wonCount: cur.count, wonDelta: deltaPct(cur.cents, prev.cents), newLeads: nl, leadsDelta: deltaPct(nl, leadsBetween(leads, w.prevFrom, w.prevTo)), hasPrevious: true };
-    }, [opportunities, pipelines, period, leads, stats.wonCents, stats.wonCount]),
+      return { wonCents: cur.cents, wonCount: cur.count, wonDelta: deltaPct(cur.cents, prev.cents), newLeads: nl, leadsDelta: deltaPct(nl, leadsBetween(leads, w.prevFrom, w.prevTo)), hasPrevious: true, ...sparks };
+    }, [opportunities, pipelines, period, leads, tasks, history, stats.wonCents, stats.wonCount]),
     c: useMemo(() => ({
       owners: wonByOwner(opportunities, pipelines, period),
       lost: lostReasons(opportunities, pipelines),
@@ -177,11 +201,18 @@ export default function Dashboard() {
             <button key={p.id} type="button" className="chip" title={p.description} onClick={() => applyPreset(p.name, p.items)}>{p.name}</button>
           ))}
           <button type="button" className="chip" title="O layout de fábrica da Dashboard" onClick={() => applyPreset('Padrão', defaultLayout(WIDGETS))}>Padrão</button>
+          {views.map((v) => (
+            <span key={v.id} className="dash-view">
+              <button type="button" className="chip" title="Visão salva por você" onClick={() => applyPreset(v.name, v.items)}>{v.name}</button>
+              <button type="button" className="dash-view-x" aria-label={`Apagar a visão ${v.name}`} title="Apagar visão" onClick={() => commitViews(removeView(views, v.id))}><X size={12} /></button>
+            </span>
+          ))}
+          <button type="button" className="chip chip-dashed" disabled={views.length >= MAX_VIEWS} title={views.length >= MAX_VIEWS ? `O limite é de ${MAX_VIEWS} visões` : 'Guardar a Dashboard como está, com um nome'} onClick={() => { setViewError(null); setSaveOpen(true); }}><Save size={12} /> Salvar visão atual</button>
         </div>
       )}
       {editing && applied && (
         <div className="notice" role="status">
-          <span>Modelo <strong>{applied.name}</strong> aplicado. Ajuste o que quiser abaixo.</span>
+          <span><strong>{applied.name}</strong> aplicado. Ajuste o que quiser abaixo.</span>
           <button type="button" className="btn btn-sm" onClick={() => { update(applied.before); setApplied(null); }}>Desfazer</button>
         </div>
       )}
@@ -289,6 +320,26 @@ export default function Dashboard() {
             </section>
           ))}
         </SidePanel>
+      )}
+
+      {saveOpen && (
+        <PopupDialog
+          title="Salvar esta visão"
+          description="Guarda a Dashboard como está agora (widgets, ordem, larguras e gráficos) com um nome, para voltar a ela com um clique."
+          onClose={() => setSaveOpen(false)}
+          footer={(
+            <>
+              <button type="button" className="btn" onClick={() => setSaveOpen(false)}>Cancelar</button>
+              <button type="button" className="btn btn-solid" onClick={submitView}>Salvar visão</button>
+            </>
+          )}
+        >
+          <label className="field">
+            <span className="field-label">Nome da visão</span>
+            <input className="input" autoFocus value={viewName} maxLength={MAX_NAME} placeholder="Ex.: Reunião de segunda" onChange={(e) => { setViewName(e.target.value); setViewError(null); }} onKeyDown={(e) => { if (e.key === 'Enter') submitView(); }} />
+            {viewError && <span className="field-error">{viewError}</span>}
+          </label>
+        </PopupDialog>
       )}
 
       {resetOpen && (

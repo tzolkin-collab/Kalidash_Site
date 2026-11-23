@@ -13,7 +13,7 @@ test('todo visual tem categoria existente, id único e ao menos uma medida compa
 
 test('toda medida serve a pelo menos um formato', () => {
   for (const m of MEASURES) {
-    const ok = (['series', 'stacked', 'parts', 'ranking', 'stages'] as const).some((s) => measureSupports(m, s));
+    const ok = (['series', 'stacked', 'parts', 'ranking', 'stages', 'hierarchy', 'matrix', 'points', 'distribution', 'goal'] as const).some((s) => measureSupports(m, s));
     assert.ok(ok, `${m.id} não serve a nenhum visual`);
   }
 });
@@ -58,4 +58,25 @@ test('título automático descreve medida e corte', () => {
   assert.equal(chartTitle(normalizeChart({ visual: 'line', measure: 'leads-created', granularity: 'day' })!), 'Leads novos por dia');
   assert.equal(chartTitle(normalizeChart({ visual: 'funnel', measure: 'stage-value' })!), 'Funil · Valor por etapa');
   assert.equal(chartTitle(normalizeChart({ visual: 'bars', measure: 'won-value', title: 'Meu gráfico' })!), 'Meu gráfico');
+});
+
+test('novos formatos: dispersão e box plot só leem as próprias medidas; treemap pede 2 cortes; heatmap e radial pedem data', () => {
+  const ids = (v: Parameters<typeof compatibleMeasures>[0]) => compatibleMeasures(v).map((m) => m.id);
+  assert.deepEqual(ids('scatter'), ['deal-scatter']);
+  assert.deepEqual(ids('boxplot'), ['close-days']);
+  assert.ok(!ids('donut').includes('close-days') && !ids('line').includes('deal-scatter'));
+  assert.ok(ids('treemap').includes('leads-created') && ids('treemap').includes('won-value')); // 2 ou mais cortes
+  assert.ok(!ids('treemap').includes('stage-count') && !ids('treemap').includes('close-days'));
+  assert.ok(ids('heatmap').every((m) => compatibleMeasures('line').some((x) => x.id === m))); // as duas pedem data
+});
+
+test('treemap: segundo nível diferente do primeiro; radial ganha meta padrão por unidade', () => {
+  const t = normalizeChart({ visual: 'treemap', measure: 'leads-created', dimension: 'source', dimension2: 'source' })!;
+  assert.equal(t.dimension, 'source');
+  assert.notEqual(t.dimension2, 'source');
+  assert.ok(t.dimension2);
+  assert.equal(normalizeChart({ visual: 'radial', measure: 'won-value' })!.goal, 10000);
+  assert.equal(normalizeChart({ visual: 'radial', measure: 'leads-created', goal: 40 })!.goal, 40);
+  assert.equal(normalizeChart({ visual: 'radial', measure: 'leads-created', goal: -5 })!.goal, 10);
+  assert.equal(normalizeChart({ visual: 'bars', measure: 'won-value' })!.goal, undefined);
 });

@@ -41,7 +41,7 @@ export type DashData = {
   /** Histórico de mudanças carregado (só com o CRM na API). */
   realHistory: boolean;
   /** Números do "Hoje": o período escolhido e a variação contra o anterior (null = sem base). */
-  hero: { wonCents: number; wonCount: number; wonDelta: number | null; newLeads: number; leadsDelta: number | null; hasPrevious: boolean };
+  hero: { wonCents: number; wonCount: number; wonDelta: number | null; newLeads: number; leadsDelta: number | null; hasPrevious: boolean; /** Últimas 12 semanas, para o mini gráfico. */ wonSpark: number[]; leadsSpark: number[] };
   c: {
     owners: Row[]; lost: Row[]; lostCents: number; cycle: Cycle; winRate: WinRate; trend: WeekPoint[]; byPipeline: Row[];
     firstContact: FirstContact; discard: Row[]; campaigns: Row[];
@@ -184,13 +184,31 @@ function Delta({ value, hasPrevious }: { value: number | null; hasPrevious: bool
   );
 }
 
+/** Mini gráfico de linha (sem eixos) para o resumo: mostra o ritmo das últimas semanas. */
+function Spark({ values, label }: { values: number[]; label: string }) {
+  if (values.length < 2 || values.every((v) => !v)) return <div className="dash-spark dash-spark-empty" aria-hidden="true" />;
+  const W = 120;
+  const H = 28;
+  const max = Math.max(...values);
+  const pts = values.map((v, i) => [(i / (values.length - 1)) * W, H - 3 - (max ? (v / max) * (H - 8) : 0)] as const);
+  const line = pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
+  const [lx, ly] = pts[pts.length - 1];
+  return (
+    <svg className="dash-spark" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={label}>
+      <polygon points={`0,${H} ${line} ${W},${H}`} className="dash-spark-area" />
+      <polyline points={line} className="dash-spark-line" vectorEffect="non-scaling-stroke" />
+      <circle cx={lx} cy={ly} r="2.5" className="dash-spark-dot" />
+    </svg>
+  );
+}
+
 /** "Hoje": os quatro números que contam o período, sem moldura de cartão. */
 function HeroToday({ d }: { d: DashData }) {
-  const items: { label: string; value: ReactNode; foot: ReactNode }[] = [
-    { label: 'Valor ganho', value: formatCurrency(d.hero.wonCents / 100), foot: <Delta value={d.hero.wonDelta} hasPrevious={d.hero.hasPrevious} /> },
+  const items: { label: string; value: ReactNode; foot: ReactNode; spark?: ReactNode }[] = [
+    { label: 'Valor ganho', value: formatCurrency(d.hero.wonCents / 100), foot: <Delta value={d.hero.wonDelta} hasPrevious={d.hero.hasPrevious} />, spark: <Spark values={d.hero.wonSpark} label="Valor ganho nas últimas 12 semanas" /> },
     { label: 'Em aberto', value: formatCurrency(d.stats.openCents / 100), foot: <span className="dash-foot">{d.stats.openCount} {d.stats.openCount === 1 ? 'oportunidade' : 'oportunidades'}</span> },
     { label: 'Previsão ponderada', value: formatCurrency(d.stats.forecastCents / 100), foot: <span className="dash-foot">Valor × probabilidade da etapa</span> },
-    { label: 'Leads novos', value: live(d.realLeads, d.hero.newLeads), foot: d.realLeads ? <Delta value={d.hero.leadsDelta} hasPrevious={d.hero.hasPrevious} /> : <span className="dash-foot">Aparece com o servidor conectado</span> },
+    { label: 'Leads novos', value: live(d.realLeads, d.hero.newLeads), foot: d.realLeads ? <Delta value={d.hero.leadsDelta} hasPrevious={d.hero.hasPrevious} /> : <span className="dash-foot">Aparece com o servidor conectado</span>, spark: d.realLeads ? <Spark values={d.hero.leadsSpark} label="Leads novos nas últimas 12 semanas" /> : undefined },
   ];
   return (
     <section className="dash-hero" aria-label={`Resumo · ${periodLabel(d.period)}`}>
@@ -199,6 +217,7 @@ function HeroToday({ d }: { d: DashData }) {
           <div className="dash-hero-label">{it.label}</div>
           <div className="dash-hero-value">{it.value}</div>
           <div className="dash-hero-foot">{it.foot}</div>
+          {it.spark ?? <div className="dash-spark dash-spark-empty" aria-hidden="true" />}
         </div>
       ))}
     </section>

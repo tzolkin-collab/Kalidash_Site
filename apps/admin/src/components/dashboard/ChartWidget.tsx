@@ -19,6 +19,7 @@ export function chartScope(cfg: ChartConfig, ctx: Pick<ChartCtx, 'period'>): str
     return cfg.compare ? `${span} · comparado ao período anterior` : span;
   }
   if (shape === 'stages') return 'Primeiro funil ativo · situação atual';
+  if (shape === 'points' || shape === 'distribution') return 'Vendas ganhas com data de criação e de ganho';
   if (m.hasDate) return PERIODS.find((p) => p.id === ctx.period)?.label ?? '';
   return m.id.startsWith('lost') ? 'Em todo o histórico' : 'Situação atual';
 }

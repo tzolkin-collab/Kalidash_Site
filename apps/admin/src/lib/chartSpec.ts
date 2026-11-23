@@ -4,20 +4,22 @@
 // Puro, sem React: testado em tests/chartSpec.test.ts. Os números saem de lib/chartData.ts.
 
 /** Formato do dado que o visual consome. */
-export type Shape = 'series' | 'stacked' | 'parts' | 'ranking' | 'stages';
+export type Shape = 'series' | 'stacked' | 'parts' | 'ranking' | 'stages' | 'hierarchy' | 'matrix' | 'points' | 'distribution' | 'goal';
 
-export type CategoryId = 'tempo' | 'composicao' | 'comparacao' | 'funil';
+export type CategoryId = 'tempo' | 'composicao' | 'comparacao' | 'funil' | 'padroes' | 'meta';
 export const CATEGORIES: { id: CategoryId; label: string; hint: string }[] = [
   { id: 'tempo', label: 'Evolução no tempo', hint: 'Como algo muda dia a dia ou semana a semana' },
   { id: 'composicao', label: 'Composição', hint: 'Quanto cada parte pesa no total' },
   { id: 'comparacao', label: 'Comparação', hint: 'Quem ou o que vem na frente' },
   { id: 'funil', label: 'Funil', hint: 'O que avança por cada etapa' },
+  { id: 'padroes', label: 'Padrões e relações', hint: 'Quando as coisas acontecem e como se relacionam' },
+  { id: 'meta', label: 'Meta', hint: 'Quanto falta para chegar lá' },
 ];
 
-export type VisualId = 'line' | 'area' | 'columns' | 'stacked' | 'donut' | 'bars' | 'pareto' | 'funnel';
+export type VisualId = 'line' | 'area' | 'columns' | 'stacked' | 'donut' | 'bars' | 'pareto' | 'funnel' | 'treemap' | 'sunburst' | 'heatmap' | 'scatter' | 'boxplot' | 'radial';
 
 /** Campos que o visual pede ao montar. A medida é sempre pedida. */
-export type SlotId = 'granularity' | 'compare' | 'dimension' | 'stackBy' | 'topN';
+export type SlotId = 'granularity' | 'compare' | 'dimension' | 'dimension2' | 'stackBy' | 'topN' | 'goal';
 
 export type VisualDef = { id: VisualId; label: string; category: CategoryId; shape: Shape; description: string; slots: SlotId[] };
 
@@ -29,6 +31,12 @@ export const VISUALS: VisualDef[] = [
   { id: 'donut', label: 'Rosca', category: 'composicao', shape: 'parts', description: 'As partes de um todo, em fatias.', slots: ['dimension', 'topN'] },
   { id: 'bars', label: 'Barras', category: 'comparacao', shape: 'ranking', description: 'Ranking do maior para o menor.', slots: ['dimension', 'topN'] },
   { id: 'pareto', label: 'Pareto', category: 'comparacao', shape: 'ranking', description: 'Ranking com a participação acumulada.', slots: ['dimension', 'topN'] },
+  { id: 'treemap', label: 'Treemap', category: 'composicao', shape: 'hierarchy', description: 'Áreas proporcionais em dois níveis (ex.: origem → campanha).', slots: ['dimension', 'dimension2', 'topN'] },
+  { id: 'sunburst', label: 'Sunburst', category: 'composicao', shape: 'hierarchy', description: 'Os mesmos dois níveis, em anéis concêntricos.', slots: ['dimension', 'dimension2', 'topN'] },
+  { id: 'heatmap', label: 'Mapa de calor', category: 'padroes', shape: 'matrix', description: 'Dia da semana × hora: quando as coisas acontecem.', slots: [] },
+  { id: 'scatter', label: 'Dispersão', category: 'padroes', shape: 'points', description: 'Cada venda ganha é um ponto: dias até fechar × valor.', slots: [] },
+  { id: 'boxplot', label: 'Box plot', category: 'padroes', shape: 'distribution', description: 'Mediana, quartis e extremos de cada grupo.', slots: ['dimension'] },
+  { id: 'radial', label: 'Radial', category: 'meta', shape: 'goal', description: 'Quanto da meta já foi atingido no período.', slots: ['goal'] },
   { id: 'funnel', label: 'Funil', category: 'funil', shape: 'stages', description: 'Quantas oportunidades (ou quanto valor) há em cada etapa, na ordem do funil.', slots: [] },
 ];
 
@@ -39,9 +47,9 @@ export type Dim = { id: DimId; label: string };
 
 export type MeasureId =
   | 'won-value' | 'won-count' | 'opp-created' | 'open-value' | 'lost-value' | 'lost-count'
-  | 'leads-created' | 'tasks-open' | 'tasks-done' | 'actions' | 'stage-count' | 'stage-value';
+  | 'leads-created' | 'tasks-open' | 'tasks-done' | 'actions' | 'stage-count' | 'stage-value' | 'deal-scatter' | 'close-days';
 
-export type Unit = 'money' | 'count';
+export type Unit = 'money' | 'count' | 'days';
 export type Group = 'Vendas' | 'Leads' | 'Tarefas' | 'Atividade';
 
 export type MeasureMeta = {
@@ -55,6 +63,10 @@ export type MeasureMeta = {
   dims: Dim[];
   /** Só lê "por etapa do funil" (visual Funil). */
   stages?: boolean;
+  /** Cada registro é um ponto (dispersão). */
+  points?: boolean;
+  /** Cada registro é uma duração a resumir em quartis (box plot); não se soma. */
+  distribution?: boolean;
 };
 
 const OPP_DIMS: Dim[] = [{ id: 'owner', label: 'Responsável' }, { id: 'pipeline', label: 'Funil' }, { id: 'stage', label: 'Etapa' }];
@@ -68,6 +80,8 @@ export const MEASURES: MeasureMeta[] = [
   { id: 'lost-count', label: 'Oportunidades perdidas', group: 'Vendas', unit: 'count', hasDate: false, dims: [{ id: 'reason', label: 'Motivo da perda' }, { id: 'owner', label: 'Responsável' }, { id: 'pipeline', label: 'Funil' }] },
   { id: 'stage-count', label: 'Oportunidades por etapa', group: 'Vendas', unit: 'count', hasDate: false, dims: [], stages: true },
   { id: 'stage-value', label: 'Valor por etapa', group: 'Vendas', unit: 'money', hasDate: false, dims: [], stages: true },
+  { id: 'deal-scatter', label: 'Valor × dias até fechar', group: 'Vendas', unit: 'money', hasDate: false, dims: [], points: true },
+  { id: 'close-days', label: 'Dias para fechar', group: 'Vendas', unit: 'days', hasDate: false, dims: [{ id: 'owner', label: 'Responsável' }, { id: 'pipeline', label: 'Funil' }], distribution: true },
   { id: 'leads-created', label: 'Leads novos', group: 'Leads', unit: 'count', hasDate: true, dims: [{ id: 'source', label: 'Origem' }, { id: 'campaign', label: 'Campanha' }, { id: 'status', label: 'Situação' }, { id: 'reason', label: 'Motivo do descarte' }] },
   { id: 'tasks-open', label: 'Tarefas abertas', group: 'Tarefas', unit: 'count', hasDate: false, dims: [{ id: 'assignee', label: 'Responsável' }, { id: 'tag', label: 'Tag' }, { id: 'source', label: 'Origem da tarefa' }] },
   { id: 'tasks-done', label: 'Tarefas concluídas', group: 'Tarefas', unit: 'count', hasDate: true, dims: [{ id: 'assignee', label: 'Responsável' }, { id: 'tag', label: 'Tag' }, { id: 'source', label: 'Origem da tarefa' }] },
@@ -78,12 +92,18 @@ export const MEASURE_BY_ID = new Map(MEASURES.map((m) => [m.id, m]));
 
 /** A medida sabe entregar este formato? */
 export function measureSupports(m: MeasureMeta, shape: Shape): boolean {
+  const plain = !m.stages && !m.points && !m.distribution; // medidas somáveis, com contagem ou valor por registro
   switch (shape) {
-    case 'series': return m.hasDate && !m.stages;
-    case 'stacked': return m.hasDate && !m.stages && m.dims.length > 0;
+    case 'series':
+    case 'matrix':
+    case 'goal': return plain && m.hasDate;
+    case 'stacked': return plain && m.hasDate && m.dims.length > 0;
     case 'parts':
-    case 'ranking': return m.dims.length > 0 && !m.stages;
+    case 'ranking': return plain && m.dims.length > 0;
+    case 'hierarchy': return plain && m.dims.length >= 2;
     case 'stages': return Boolean(m.stages);
+    case 'points': return Boolean(m.points);
+    case 'distribution': return Boolean(m.distribution);
   }
 }
 
@@ -99,8 +119,12 @@ export type ChartConfig = {
   measure: MeasureId;
   /** Dividir por (rosca, barras, pareto). */
   dimension?: DimId;
+  /** Segundo nível (treemap e sunburst): "depois por". */
+  dimension2?: DimId;
   /** Empilhar por (colunas empilhadas). */
   stackBy?: DimId;
+  /** Meta do gráfico radial, na unidade da medida (reais ou unidades). */
+  goal?: number;
   granularity: Granularity;
   /** Mostrar o período anterior (só nos visuais de série simples). */
   compare: boolean;
@@ -126,13 +150,16 @@ export function normalizeChart(raw: unknown): ChartConfig | null {
   const measure = options.find((m) => m.id === r.measure) ?? options[0];
   const dimIds = measure.dims.map((d) => d.id);
   const pick = (v: unknown) => (dimIds.includes(v as DimId) ? (v as DimId) : dimIds[0]);
+  const goal = typeof r.goal === 'number' && Number.isFinite(r.goal) && r.goal > 0 ? r.goal : measure.unit === 'money' ? 10000 : 10;
   const topN = typeof r.topN === 'number' && Number.isInteger(r.topN) && r.topN >= 3 && r.topN <= 12 ? r.topN : 6;
   const title = typeof r.title === 'string' && r.title.trim() ? r.title.trim().slice(0, 60) : undefined;
   return {
     visual: visual.id,
     measure: measure.id,
-    dimension: visual.shape === 'parts' || visual.shape === 'ranking' ? pick(r.dimension) : undefined,
+    dimension: ['parts', 'ranking', 'distribution', 'hierarchy'].includes(visual.shape) ? pick(r.dimension) : undefined,
+    dimension2: visual.shape === 'hierarchy' ? dimIds.find((d) => d === r.dimension2 && d !== pick(r.dimension)) ?? dimIds.find((d) => d !== pick(r.dimension)) : undefined,
     stackBy: visual.shape === 'stacked' ? pick(r.stackBy) : undefined,
+    goal: visual.shape === 'goal' ? goal : undefined,
     granularity: r.granularity === 'day' ? 'day' : 'week',
     compare: visual.shape === 'series' && r.compare === true,
     topN,
@@ -156,5 +183,10 @@ export function chartTitle(cfg: ChartConfig): string {
     case 'parts':
     case 'ranking': return `${m.label} por ${dimLabel(cfg.dimension) ?? 'grupo'}`;
     case 'stages': return `Funil · ${m.label}`;
+    case 'hierarchy': return `${m.label} por ${dimLabel(cfg.dimension) ?? 'grupo'} e ${dimLabel(cfg.dimension2) ?? 'subgrupo'}`;
+    case 'matrix': return `${m.label} por dia da semana e hora`;
+    case 'points': return m.label;
+    case 'distribution': return `${m.label} por ${dimLabel(cfg.dimension) ?? 'grupo'}`;
+    case 'goal': return `Meta · ${m.label}`;
   }
 }

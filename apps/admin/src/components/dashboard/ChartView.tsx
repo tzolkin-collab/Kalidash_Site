@@ -1,6 +1,7 @@
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ComposedChart, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ComposedChart, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Scatter, ScatterChart, SunburstChart, Tooltip, Treemap, XAxis, YAxis } from 'recharts';
+import type { TreemapNode } from 'recharts';
 import { formatCurrency } from '../../lib/format';
-import type { ChartResult, RowsResult, SeriesResult, StackedResult, StagesResult } from '../../lib/chartData';
+import type { BoxResult, ChartResult, GoalResult, MatrixResult, PointsResult, RowsResult, SeriesResult, StackedResult, StagesResult, TreeResult } from '../../lib/chartData';
 import { OTHERS } from '../../lib/chartData';
 import type { ChartConfig, Unit } from '../../lib/chartSpec';
 
@@ -15,8 +16,9 @@ const PALETTE = ['#6755DE', '#9184F1', '#B9B0F7', '#3B82F6', '#0EA5A4', '#10B981
 const colorOf = (label: string, i: number) => (label === OTHERS ? NEUTRAL : PALETTE[i % PALETTE.length]);
 
 const int = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
+const dec = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 });
 /** Valor inteiro para tooltip e rótulos: R$ 1.234,00 ou 1.234. */
-export const fmt = (n: number, unit: Unit) => (unit === 'money' ? formatCurrency(n) : int.format(n));
+export const fmt = (n: number, unit: Unit) => (unit === 'money' ? formatCurrency(n) : unit === 'days' ? `${dec.format(n)} ${Math.abs(n - 1) < 0.05 ? 'dia' : 'dias'}` : int.format(n));
 /** Valor curto para o eixo: R$ 1,2 mil. */
 const axis = (n: number, unit: Unit) => {
   const abs = Math.abs(n);
@@ -155,11 +157,153 @@ function Stages({ r }: { r: StagesResult }) {
   );
 }
 
+
+// ---- Hierarquia: treemap e sunburst ---------------------------------------------------------------------------------
+
+const lighten = (hex: string) => `${hex}CC`;
+
+function Tree({ cfg, r, height }: { cfg: ChartConfig; r: TreeResult; height: number }) {
+  if (cfg.visual === 'sunburst') {
+    const data = {
+      name: 'Total',
+      value: r.total, // o recharts calcula os ângulos a partir do valor da raiz
+      children: r.nodes.map((n, i) => ({ name: n.name, value: n.value, fill: colorOf(n.name, i), children: n.children.map((k) => ({ name: k.name, value: k.value, fill: lighten(colorOf(n.name, i)) })) })),
+    };
+    return (
+      <div className="cv-donut" style={{ height: Math.min(height, 260) }}>
+        <div className="cv-donut-chart" style={{ flexBasis: '52%' }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <SunburstChart data={data} dataKey="value" nameKey="name" innerRadius={26} ringPadding={2} padding={2} startAngle={-90} endAngle={360} textOptions={{ opacity: 0, fontSize: '0px' }}>
+              <Tooltip contentStyle={TOOLTIP} formatter={(v, name) => [fmt(Number(v), r.unit), name]} />
+            </SunburstChart>
+          </ResponsiveContainer>
+        </div>
+        <ul className="cv-legend">
+          {r.nodes.map((n, i) => (
+            <li key={n.name}><i style={{ background: colorOf(n.name, i) }} /><span className="cv-legend-label" title={n.name}>{n.name}</span><b>{fmt(n.value, r.unit)}</b><span className="cv-legend-pct">{pct(r.total ? n.value / r.total : 0)}</span></li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+  const data = r.nodes.map((n, i) => ({ name: n.name, fill: colorOf(n.name, i), children: n.children.map((k) => ({ name: k.name, size: k.value, fill: lighten(colorOf(n.name, i)) })) }));
+  const content = (node: TreemapNode) => {
+    const leaf = !node.children?.length;
+    const fill = String(node.fill ?? PALETTE[0]);
+    return (
+      <g>
+        <rect x={node.x} y={node.y} width={node.width} height={node.height} rx={4} fill={leaf ? fill : 'var(--bg-surface-hover)'} stroke="var(--bg-surface)" strokeWidth={leaf ? 2 : 3} />
+        {!leaf && node.depth > 0 && node.width > 70 && node.height > 26 && <text x={node.x + 9} y={node.y + 17} fill="var(--text-secondary)" stroke="none" fontSize={11} fontWeight={700}>{node.name}</text>}
+        {leaf && node.width > 54 && node.height > 26 && <text x={node.x + 8} y={node.y + 18} fill="#fff" stroke="none" fontSize={11} fontWeight={600}>{node.name}</text>}
+      </g>
+    );
+  };
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <Treemap data={data} dataKey="size" nameKey="name" aspectRatio={1.8} nodeInset={22} content={content} isAnimationActive={false}>
+        <Tooltip contentStyle={TOOLTIP} formatter={(v, name) => [fmt(Number(v), r.unit), name]} />
+      </Treemap>
+    </ResponsiveContainer>
+  );
+}
+
+// ---- Mapa de calor ----------------------------------------------------------------------------------------------------
+
+const WEEKDAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+
+function Heatmap({ r }: { r: MatrixResult }) {
+  return (
+    <div className="cv-heat" role="table" aria-label="Mapa de calor por dia da semana e hora">
+      <div className="cv-heat-hours" aria-hidden="true">
+        <span />
+        {Array.from({ length: 24 }, (_, h) => <span key={h}>{h % 3 === 0 ? `${h}h` : ''}</span>)}
+      </div>
+      {r.cells.map((row, d) => (
+        <div key={WEEKDAYS[d]} className="cv-heat-row" role="row">
+          <span className="cv-heat-day">{WEEKDAYS[d]}</span>
+          {row.map((v, h) => (
+            <span key={h} role="cell" className="cv-heat-cell" title={`${WEEKDAYS[d]}, ${h}h: ${fmt(v, r.unit)}`} style={{ background: v ? CURRENT : 'var(--bg-surface-hover)', opacity: v ? 0.18 + 0.82 * (v / r.max) : 1 }} />
+          ))}
+        </div>
+      ))}
+      <div className="cv-heat-scale text-xs text-muted"><span>Menos</span><i /><span>Mais ({fmt(r.max, r.unit)} no pico)</span></div>
+    </div>
+  );
+}
+
+// ---- Dispersão ----------------------------------------------------------------------------------------------------------
+
+function Points({ r, height }: { r: PointsResult; height: number }) {
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <ScatterChart margin={{ top: 8, right: 12, bottom: 18, left: 0 }}>
+        <CartesianGrid stroke="var(--border-subtle)" />
+        <XAxis type="number" dataKey="x" name="Dias até fechar" axisLine={false} tickLine={false} tick={TICK} unit=" d" label={{ value: 'Dias até fechar', position: 'insideBottom', offset: -10, fontSize: 11, fill: 'var(--text-muted)' }} />
+        <YAxis type="number" dataKey="y" name="Valor" axisLine={false} tickLine={false} tick={TICK} width={64} tickFormatter={(v: number) => axis(v, r.unit)} />
+        <Tooltip contentStyle={TOOLTIP} cursor={{ strokeDasharray: '3 3' }} formatter={(v, name) => [name === 'Valor' ? fmt(Number(v), r.unit) : fmt(Number(v), 'days'), name]} />
+        <Scatter data={r.points} fill={CURRENT} fillOpacity={0.75} isAnimationActive={false} />
+      </ScatterChart>
+    </ResponsiveContainer>
+  );
+}
+
+// ---- Box plot -------------------------------------------------------------------------------------------------------------
+
+function Box({ r }: { r: BoxResult }) {
+  const max = Math.max(1, ...r.rows.map((x) => x.max));
+  const at = (n: number) => `${(n / max) * 100}%`;
+  return (
+    <div className="cv-box">
+      {r.rows.map((row) => (
+        <div key={row.label} className="cv-box-row">
+          <span className="cv-box-label" title={`${row.label} · ${row.n} ${row.n === 1 ? 'venda' : 'vendas'}`}>{row.label}</span>
+          <div className="cv-box-track" title={`Mín ${fmt(row.min, 'days')} · Q1 ${fmt(row.q1, 'days')} · Mediana ${fmt(row.median, 'days')} · Q3 ${fmt(row.q3, 'days')} · Máx ${fmt(row.max, 'days')}`}>
+            <i className="cv-box-whisker" style={{ left: at(row.min), width: `calc(${at(row.max)} - ${at(row.min)})` }} />
+            <i className="cv-box-body" style={{ left: at(row.q1), width: `max(4px, calc(${at(row.q3)} - ${at(row.q1)}))` }} />
+            <i className="cv-box-median" style={{ left: at(row.median) }} />
+          </div>
+          <span className="cv-box-value">{fmt(row.median, 'days')}</span>
+        </div>
+      ))}
+      <div className="cv-box-axis text-xs text-muted"><span>0</span><span>{fmt(max / 2, 'days')}</span><span>{fmt(max, 'days')}</span></div>
+      <p className="text-xs text-muted" style={{ margin: '6px 0 0' }}>Caixa: do 1º ao 3º quartil · traço: mediana · linha: do menor ao maior.</p>
+    </div>
+  );
+}
+
+// ---- Meta (radial) ----------------------------------------------------------------------------------------------------------
+
+function Goal({ r }: { r: GoalResult }) {
+  const rate = Math.min(1, Math.max(0, r.rate));
+  const R = 52;
+  const C = 2 * Math.PI * R;
+  const done = r.rate >= 1;
+  return (
+    <div className="cv-goal">
+      <svg viewBox="0 0 140 140" className="cv-goal-ring" role="img" aria-label={`${pct(r.rate)} da meta`}>
+        <circle cx="70" cy="70" r={R} fill="none" stroke="var(--bg-surface-hover)" strokeWidth="14" />
+        {rate > 0 && <circle cx="70" cy="70" r={R} fill="none" stroke={done ? 'var(--dash-up, #008a52)' : CURRENT} strokeWidth="14" strokeLinecap="round" strokeDasharray={`${C * rate} ${C}`} transform="rotate(-90 70 70)" />}
+        <text x="70" y="76" textAnchor="middle" fontSize="26" fontWeight="600" fill="var(--text-primary)">{pct(r.rate)}</text>
+      </svg>
+      <div className="cv-goal-text">
+        <strong>{fmt(r.value, r.unit)}</strong>
+        <span>de {fmt(r.goal, r.unit)}</span>
+        <span className="text-xs text-muted">{done ? 'Meta batida' : `Faltam ${fmt(Math.max(0, r.goal - r.value), r.unit)}`}</span>
+      </div>
+    </div>
+  );
+}
+
 export default function ChartView({ cfg, result, height = 240 }: { cfg: ChartConfig; result: ChartResult; height?: number }) {
   switch (result.kind) {
     case 'series': return <Series cfg={cfg} r={result} height={height} />;
     case 'stacked': return <Stacked r={result} height={height} />;
     case 'stages': return <Stages r={result} />;
+    case 'tree': return <Tree cfg={cfg} r={result} height={height} />;
+    case 'matrix': return <Heatmap r={result} />;
+    case 'points': return <Points r={result} height={height} />;
+    case 'box': return <Box r={result} />;
+    case 'goal': return <Goal r={result} />;
     case 'rows':
       return cfg.visual === 'donut' ? <Donut r={result} height={Math.min(height, 220)} /> : cfg.visual === 'pareto' ? <Pareto r={result} height={height} /> : <Bars r={result} />;
   }

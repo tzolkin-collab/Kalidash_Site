@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AreaChart, BarChart3, BarChartHorizontal, Filter, Layers, LineChart, PieChart, TrendingUp } from 'lucide-react';
+import { AlignHorizontalSpaceAround, AreaChart, BarChart3, BarChartHorizontal, Filter, Grid3x3, Layers, LayoutGrid, LineChart, PieChart, ScatterChart, Sun, Target, TrendingUp } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { CATEGORIES, MEASURE_BY_ID, TOP_N_OPTIONS, VISUALS, VISUAL_BY_ID, chartTitle, compatibleMeasures, normalizeChart, withVisual } from '../../lib/chartSpec';
 import type { ChartConfig, DimId, Granularity, MeasureId, VisualId } from '../../lib/chartSpec';
@@ -10,11 +10,14 @@ import { ChartBody, chartScope } from './ChartWidget';
 // Interface padrão para criar e editar gráficos da Dashboard. O visual vem primeiro; os campos que aparecem são
 // os que aquele visual pede (lib/chartSpec.ts), e a lista de medidas só traz o que ele sabe mostrar. Prévia ao vivo.
 
-const ICON: Record<VisualId, LucideIcon> = { line: LineChart, area: AreaChart, columns: BarChart3, stacked: Layers, donut: PieChart, bars: BarChartHorizontal, pareto: TrendingUp, funnel: Filter };
+const ICON: Record<VisualId, LucideIcon> = {
+  line: LineChart, area: AreaChart, columns: BarChart3, stacked: Layers, donut: PieChart, bars: BarChartHorizontal, pareto: TrendingUp, funnel: Filter,
+  treemap: LayoutGrid, sunburst: Sun, heatmap: Grid3x3, scatter: ScatterChart, boxplot: AlignHorizontalSpaceAround, radial: Target,
+};
 
 const DEFAULT: ChartConfig = normalizeChart({ visual: 'bars', measure: 'won-value', dimension: 'owner' })!;
 
-const TOP_LABEL: Record<string, string> = { donut: 'Quantas fatias', bars: 'Quantas barras', pareto: 'Quantas barras', stacked: 'Quantos grupos' };
+const TOP_LABEL: Record<string, string> = { donut: 'Quantas fatias', bars: 'Quantas barras', pareto: 'Quantas barras', stacked: 'Quantos grupos', treemap: 'Quantos grupos', sunburst: 'Quantos grupos' };
 const TOP_HINT = 'O que passar disso é somado em "Outros".';
 
 export default function ChartBuilder({ initial, ctx, onSave, onClose }: { initial?: ChartConfig; ctx: ChartCtx; onSave: (cfg: ChartConfig) => void; onClose: () => void }) {
@@ -72,6 +75,20 @@ export default function ChartBuilder({ initial, ctx, onSave, onClose }: { initia
             <CustomSelect className="select" value={cfg.dimension ?? ''} onChange={(e) => patch({ dimension: e.target.value as DimId })} aria-label="Dividir por">
               {measure.dims.map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
             </CustomSelect>
+          </Field>
+        )}
+
+        {has('dimension2') && (
+          <Field label="Depois por" hint="O segundo nível, dentro de cada grupo.">
+            <CustomSelect className="select" value={cfg.dimension2 ?? ''} onChange={(e) => patch({ dimension2: e.target.value as DimId })} aria-label="Depois por">
+              {measure.dims.filter((d) => d.id !== cfg.dimension).map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
+            </CustomSelect>
+          </Field>
+        )}
+
+        {has('goal') && (
+          <Field label={`Meta (${measure.unit === 'money' ? 'R$' : 'unidades'})`} hint="O gráfico mostra quanto da meta já foi atingido no período escolhido no topo da Dashboard.">
+            <input className="input" type="number" min={1} step={measure.unit === 'money' ? 100 : 1} value={cfg.goal ?? ''} onChange={(e) => patch({ goal: Number(e.target.value) })} aria-label="Meta" />
           </Field>
         )}
 

@@ -21,7 +21,16 @@ export type Row = { label: string; value: number };
 export type RowsResult = { kind: 'rows'; unit: Unit; rows: Row[]; total: number };
 export type StageRow = { label: string; value: number; color: string };
 export type StagesResult = { kind: 'stages'; unit: Unit; rows: StageRow[] };
-export type ChartResult = SeriesResult | StackedResult | RowsResult | StagesResult;
+export type TreeNode = { name: string; value: number; children: { name: string; value: number }[] };
+export type TreeResult = { kind: 'tree'; unit: Unit; nodes: TreeNode[]; total: number };
+/** Dia da semana (segunda = 0) por hora (0 a 23). */
+export type MatrixResult = { kind: 'matrix'; unit: Unit; cells: number[][]; max: number; total: number };
+export type ScatterPoint = { x: number; y: number; label: string };
+export type PointsResult = { kind: 'points'; unit: Unit; points: ScatterPoint[] };
+export type BoxRow = { label: string; n: number; min: number; q1: number; median: number; q3: number; max: number };
+export type BoxResult = { kind: 'box'; unit: Unit; rows: BoxRow[] };
+export type GoalResult = { kind: 'goal'; unit: Unit; value: number; goal: number; rate: number };
+export type ChartResult = SeriesResult | StackedResult | RowsResult | StagesResult | TreeResult | MatrixResult | PointsResult | BoxResult | GoalResult;
 
 const DAY = 86_400_000;
 export const OTHERS = 'Outros';
@@ -93,7 +102,9 @@ function records(id: MeasureId, c: ChartCtx): Rec[] {
     case 'actions':
       return c.history.map((h) => ({ at: ts(h.at), v: 1, d: { actor: h.actor || 'Sistema', action: KIND_LABEL[h.kind] ?? h.kind } }));
     case 'stage-count':
-    case 'stage-value': return []; // as etapas têm caminho próprio (stagesResult)
+    case 'stage-value':
+    case 'deal-scatter':
+    case 'close-days': return []; // têm caminho próprio (stagesResult, dealRecs)
   }
 }
 
@@ -143,6 +154,8 @@ export function runChart(cfg: ChartConfig, c: ChartCtx): ChartResult {
   const unit = meta.unit;
 
   if (shape === 'stages') return stagesResult(cfg.measure, c, unit);
+  if (shape === 'points') return pointsResult(c);
+  if (shape === 'distribution') return boxResult(cfg.dimension!, c);
 
   const recs = records(cfg.measure, c);
 
@@ -187,6 +200,50 @@ export function runChart(cfg: ChartConfig, c: ChartCtx): ChartResult {
     return { kind: 'stacked', unit, groups, points };
   }
 
+  if (shape === 'matrix' || shape === 'goal') {
+    const from = periodStart(c.period, now);
+    const grid = Array.from({ length: 7 }, () => new Array<number>(24).fill(0));
+    let total = 0;
+    for (const r of recs) {
+      if (r.at === null || r.at > nowMs || (from !== null && r.at < from)) continue;
+      const d = new Date(r.at);
+      grid[(d.getDay() + 6) % 7][d.getHours()] += r.v;
+      total += r.v;
+    }
+    if (shape === 'goal') {
+      const value = toUnit(total, unit);
+      const goal = cfg.goal ?? 1;
+      return { kind: 'goal', unit, value, goal, rate: goal > 0 ? value / goal : 0 };
+    }
+    const cells = grid.map((row) => row.map((v) => toUnit(v, unit)));
+    return { kind: 'matrix', unit, cells, max: Math.max(0, ...cells.flat()), total: toUnit(total, unit) };
+  }
+
+  if (shape === 'hierarchy') {
+    const d1 = cfg.dimension!;
+    const d2 = cfg.dimension2!;
+    const from = meta.hasDate ? periodStart(c.period, now) : null;
+    const tree = new Map<string, Map<string, number>>();
+    for (const r of recs) {
+      const a = r.d[d1];
+      const b = r.d[d2];
+      if (a == null || b == null) continue;
+      if (from !== null && (r.at === null || r.at < from || r.at > nowMs)) continue;
+      const inner = tree.get(a) ?? new Map<string, number>();
+      inner.set(b, (inner.get(b) ?? 0) + r.v);
+      tree.set(a, inner);
+    }
+    const parents = topWithOthers([...tree.entries()].map(([label, inner]) => ({ label, value: [...inner.values()].reduce((x, y) => x + y, 0) })), cfg.topN);
+    const nodes: TreeNode[] = parents.map((p) => {
+      const inner = p.label === OTHERS
+        ? new Map<string, number>([[OTHERS, p.value]])
+        : tree.get(p.label) ?? new Map<string, number>();
+      const kids = topWithOthers([...inner.entries()].map(([label, v]) => ({ label, value: v })), 5);
+      return { name: p.label, value: toUnit(p.value, unit), children: kids.map((k) => ({ name: k.label, value: toUnit(k.value, unit) })) };
+    });
+    return { kind: 'tree', unit, nodes, total: nodes.reduce((n, x) => n + x.value, 0) };
+  }
+
   // parts / ranking: um corte, no período da Dashboard quando a medida tem data
   const dim = cfg.dimension!;
   const from = meta.hasDate ? periodStart(c.period, now) : null;
@@ -222,5 +279,54 @@ export function isEmptyResult(r: ChartResult): boolean {
     case 'stacked': return r.groups.length === 0;
     case 'rows': return r.rows.length === 0 || r.total === 0;
     case 'stages': return r.rows.every((x) => !x.value);
+    case 'tree': return r.nodes.length === 0 || r.total === 0;
+    case 'matrix': return r.total === 0;
+    case 'points': return r.points.length === 0;
+    case 'box': return r.rows.length === 0;
+    case 'goal': return false; // a meta sempre mostra o quanto falta, mesmo em 0%
   }
+}
+
+// ---- Vendas ganhas com as duas datas (dispersão e box plot) -----------------------------------------------------
+
+type Deal = { days: number; cents: number; title: string; owner: string; pipeline: string };
+
+/** Ganhas com data de criação e de ganho válidas: dias até fechar, valor e cortes. */
+function deals(c: ChartCtx): Deal[] {
+  const out: Deal[] = [];
+  for (const o of c.opps) {
+    if (o.isLead || stageInfo(o.stage, c.pipelines)?.kind !== 'WON') continue;
+    const won = ts(o.wonAt);
+    const born = ts(o.created_at);
+    if (won === null || born === null || won < born) continue;
+    const r = resolveStage(o, c.pipelines);
+    out.push({ days: (won - born) / DAY, cents: toCents(o.value), title: o.title, owner: o.ownerName?.trim() || 'Sem responsável', pipeline: r.pipeline?.name ?? o.pipeline ?? 'Sem funil' });
+  }
+  return out;
+}
+
+function pointsResult(c: ChartCtx): PointsResult {
+  return { kind: 'points', unit: 'money', points: deals(c).map((d) => ({ x: Math.round(d.days * 10) / 10, y: d.cents / 100, label: d.title })) };
+}
+
+/** Quantil por interpolação linear (p entre 0 e 1) de uma lista já ordenada. */
+export function quantile(sorted: number[], p: number): number {
+  if (sorted.length === 0) return 0;
+  const pos = (sorted.length - 1) * p;
+  const lo = Math.floor(pos);
+  const hi = Math.ceil(pos);
+  return sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo);
+}
+
+function boxResult(dim: DimId, c: ChartCtx): BoxResult {
+  const groups = new Map<string, number[]>();
+  for (const d of deals(c)) {
+    const key = dim === 'pipeline' ? d.pipeline : d.owner;
+    groups.set(key, [...(groups.get(key) ?? []), d.days]);
+  }
+  const rows: BoxRow[] = [...groups.entries()].map(([label, xs]) => {
+    const s = [...xs].sort((a, b) => a - b);
+    return { label, n: s.length, min: s[0], q1: quantile(s, 0.25), median: quantile(s, 0.5), q3: quantile(s, 0.75), max: s[s.length - 1] };
+  });
+  return { kind: 'box', unit: 'days', rows: rows.sort((a, b) => b.n - a.n || a.label.localeCompare(b.label)).slice(0, 8) };
 }
