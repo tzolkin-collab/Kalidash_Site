@@ -1,40 +1,8 @@
 import TagChip from './TagChip';
-import { Building2, CheckCircle2, CircleDashed, CircleDot, XCircle, User } from 'lucide-react';
-import type { StageKind } from '../domain';
+import { Building2, User } from 'lucide-react';
 import type { Opportunity } from '../types';
-import { resolveStage } from '../lib/stages';
-import { useStore } from '../lib/store';
-import { pipelinesStore } from '../mocks/pipelines';
 
-const STAGES: Record<string, { label: string; color: string; Icon: typeof CircleDot }> = {
-  INBOUND: { label: 'Entrada', color: 'var(--pipe-triage)', Icon: CircleDashed },
-  QUALIFICATION: { label: 'Qualificação', color: 'var(--pipe-progress)', Icon: CircleDot },
-  WON: { label: 'Ganho', color: 'var(--pipe-won)', Icon: CheckCircle2 },
-};
-
-const KIND_ICON: Record<StageKind, typeof CircleDot> = { LEAD: CircleDashed, OPEN: CircleDot, WON: CheckCircle2, LOST: XCircle };
-
-/** Passe `opp` para resolver pelo funil da oportunidade (id de etapa ou valor antigo). */
-export function StageBadge({ stage, opp }: { stage: string; opp?: Pick<Opportunity, 'stage' | 'pipeline'> }) {
-  const [pipelines] = useStore(pipelinesStore);
-  const real = resolveStage(opp ?? { stage }, pipelines).stage;
-  if (real) {
-    const Icon = KIND_ICON[real.kind];
-    return (
-      <span className="tag" style={{ color: real.color, borderColor: real.color, background: 'transparent', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-        <Icon size={12} /> {real.name}
-      </span>
-    );
-  }
-  const known = STAGES[stage];
-  if (!known) return <span className="tag">{stage || '—'}</span>; // etapa que a tela ainda não conhece
-  const { label, color, Icon } = known;
-  return (
-    <span className="tag" style={{ color, borderColor: color, background: 'transparent', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-      <Icon size={12} /> {label}
-    </span>
-  );
-}
+// A etapa (StageBadge) mora com os outros selos, em components/badges.tsx.
 
 /** Empresa (B2B) mostra o prédio e o contato embaixo; Pessoa (B2C) mostra a pessoa. */
 export function ClientCell({ opp }: { opp: Opportunity }) {

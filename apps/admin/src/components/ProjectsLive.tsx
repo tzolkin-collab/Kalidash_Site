@@ -9,8 +9,9 @@ import { LEAD_FIELDS, createForm, createProject, deleteForm, disconnectProject, 
 import type { ApiProject, FormInput, LeadField, ProjectInput, TrackedForm } from '../lib/connectSync';
 import { loadTokens, useTokens } from '../lib/accessSync';
 import { ago } from '../lib/scopes';
-import { Badge, CustomSelect, EmptyState, Field, PopupDialog, SidePanel, Tabs } from './ui';
+import { CustomSelect, EmptyState, Field, PopupDialog, SidePanel, Tabs } from './ui';
 import { TokensTab } from './Access';
+import { StatusBadge, LabelBadge } from './badges';
 
 // Projetos conectados com a API ligada (CRM_API=1 e AUTH_API=1): o que aparece aqui está gravado no servidor.
 // Projeto = uma LP/site da Kalidash; formulários rastreados = quais formulários o connect.js observa; as chaves
@@ -109,8 +110,8 @@ function ProjectsPane({ goKeys }: { goKeys: () => void }) {
                     <span className="text-xs text-muted">{p.url}</span>
                   </div>
                   <div className="tag-row">
-                    <Badge tone={k.length ? 'success' : 'warning'}>{k.length ? `${k.length} chave${k.length > 1 ? 's' : ''} ativa${k.length > 1 ? 's' : ''}` : 'Sem chave'}</Badge>
-                    <Badge tone={p.forms.length ? 'neutral' : 'warning'}>{p.forms.length} formulário{p.forms.length === 1 ? '' : 's'}</Badge>
+                    <StatusBadge tone={k.length ? 'success' : 'warning'}>{k.length ? `${k.length} chave${k.length > 1 ? 's' : ''} ativa${k.length > 1 ? 's' : ''}` : 'Sem chave'}</StatusBadge>
+                    <StatusBadge tone={p.forms.length ? 'neutral' : 'warning'}>{p.forms.length} formulário{p.forms.length === 1 ? '' : 's'}</StatusBadge>
                   </div>
                 </button>
                 {expanded && (
@@ -327,7 +328,7 @@ function IntegrationsPane() {
       <section className="panel-card">
         <h2 className="section-title">Outras conexões</h2>
         <ul className="row-list" style={{ margin: 0 }}>
-          <li className="row-item"><div className="cell-stack"><span className="cell-primary">Formulário do site público</span><span className="text-xs text-muted">O formulário do diagnóstico da Home ainda usa POST /api/public/leads (cria oportunidade INBOUND) até a migração do WP3.</span></div><Badge>Fora deste pacote</Badge></li>
+          <li className="row-item"><div className="cell-stack"><span className="cell-primary">Formulário do site público</span><span className="text-xs text-muted">O formulário do diagnóstico da Home ainda usa POST /api/public/leads (cria oportunidade INBOUND) até a migração do WP3.</span></div><LabelBadge>Fora deste pacote</LabelBadge></li>
           <li className="row-item"><div className="cell-stack"><span className="cell-primary">Webhooks de entrada e de saída</span><span className="text-xs text-muted">Configurados em Configurações.</span></div><a className="btn btn-sm" href="#/configuracoes">Abrir</a></li>
         </ul>
       </section>

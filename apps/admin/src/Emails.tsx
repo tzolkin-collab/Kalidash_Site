@@ -15,7 +15,8 @@ import { startEditorDomTranslation } from './easy-email-dom-translate';
 import { API_URL } from './lib/api';
 import { useAuth } from './lib/auth';
 import { emailLog } from './mocks/team';
-import { Badge, Page, PageHeader, PopupDialog, SampleBanner, Tabs } from './components/ui';
+import { Page, PageHeader, PopupDialog, SampleBanner, Tabs } from './components/ui';
+import { StatusBadge, LabelBadge } from './components/badges';
 
 // A lib tipa "categories" como obrigatória, mas já traz um padrão em tempo de execução.
 // Passar [] esvaziaria o painel de blocos, então só ajustamos o tipo.
@@ -258,7 +259,7 @@ export default function Emails() {
               <div className="template-info">
                 <h3 className="template-name">{tpl.name}</h3>
                 <p className="text-sm text-muted truncate">Assunto: {tpl.subject}</p>
-                <Badge tone="info">{tpl.tag}</Badge>
+                <LabelBadge tone="info">{tpl.tag}</LabelBadge>
               </div>
             </button>
           ))}
@@ -279,7 +280,7 @@ export default function Emails() {
                       <td data-label="Assunto">{m.subject}</td>
                       <td data-label="Modelo">{m.template}</td>
                       <td className="text-muted" data-label="Contexto">{m.context}</td>
-                      <td data-label="Status"><Badge tone={m.status === 'SENT' ? 'success' : m.status === 'FAILED' ? 'danger' : 'warning'}>{m.status === 'SENT' ? 'Enviado' : m.status === 'FAILED' ? 'Falhou' : 'Na fila'}</Badge></td>
+                      <td data-label="Status"><StatusBadge tone={m.status === 'SENT' ? 'success' : m.status === 'FAILED' ? 'danger' : 'warning'}>{m.status === 'SENT' ? 'Enviado' : m.status === 'FAILED' ? 'Falhou' : 'Na fila'}</StatusBadge></td>
                     </tr>
                   ))}
                 </tbody>

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, Copy, FlaskConical, Link2, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Copy, Link2, Plus, Trash2 } from 'lucide-react';
 import type { AutomationCategory, LifecycleTemplate, Pipeline, Step } from '../domain';
 import { useShell } from '../lib/shell';
 import { actionText } from '../lib/steps';
@@ -9,8 +9,9 @@ import type { AutomationRow } from '../mocks/automations';
 import { pipelinesStore } from '../mocks/pipelines';
 import { templatesStore } from '../mocks/templates';
 import StepsEditor from '../components/StepsEditor';
-import { Badge, EmptyState, Field, Page, PageHeader, PopupDialog, SampleBanner, SearchBox, SidePanel, Switch, Tabs } from '../components/ui';
+import { EmptyState, Field, Page, PageHeader, PopupDialog, SampleBanner, SearchBox, SidePanel, Switch, Tabs } from '../components/ui';
 import { CustomSelect } from '../components/ui';
+import { StatusBadge, LabelBadge, SampleBadge } from '../components/badges';
 
 type Tab = 'automations' | 'templates' | 'catalog' | 'runs';
 
@@ -127,8 +128,8 @@ export default function Automations() {
                         <div className="cell-stack">
                           <span className="cell-primary">{a.name}</span>
                           <span className="tag-row" style={{ marginTop: '4px' }}>
-                            <Badge tone={a.origin === 'MANAGED' ? 'accent' : 'neutral'} title={a.managedBy}>{a.origin === 'MANAGED' ? <><Link2 size={10} /> {a.stepOf ? 'Passo do ciclo de vida' : 'Gerenciada'}</> : 'Manual'}</Badge>
-                            <Badge tone="warning" title="Roda só neste navegador, com o admin aberto. O servidor não executa automações."><FlaskConical size={10} /> {NOT_ON_SERVER}</Badge>
+                            <LabelBadge tone={a.origin === 'MANAGED' ? 'accent' : 'neutral'} title={a.managedBy}>{a.origin === 'MANAGED' ? <><Link2 size={10} /> {a.stepOf ? 'Passo do ciclo de vida' : 'Gerenciada'}</> : 'Manual'}</LabelBadge>
+                            <SampleBadge title="Roda só neste navegador, com o admin aberto. O servidor não executa automações.">{NOT_ON_SERVER}</SampleBadge>
                           </span>
                           {/* Assunto já é filtro (chips acima): aqui só o funil, como texto, para a linha não virar uma pilha de selos. */}
                           <span className="text-xs text-muted" title="Funil a que a automação pertence">{a.pipeline === 'Todas' ? 'Todos os funis' : a.pipeline}</span>
@@ -195,7 +196,7 @@ export default function Automations() {
                     <td className="text-muted" data-label="Quando">{when(r.at)}</td>
                     <td data-label="Automação">{r.automation}</td>
                     <td data-label="Evento"><code className="mono">{r.event}</code></td>
-                    <td data-label="Resultado"><Badge tone={r.result === 'OK' ? 'success' : r.result === 'SCHEDULED' ? 'info' : 'danger'}>{r.result === 'OK' ? 'Executada' : r.result === 'SCHEDULED' ? 'Agendada' : 'Falhou'}</Badge></td>
+                    <td data-label="Resultado"><StatusBadge tone={r.result === 'OK' ? 'success' : r.result === 'SCHEDULED' ? 'info' : 'danger'}>{r.result === 'OK' ? 'Executada' : r.result === 'SCHEDULED' ? 'Agendada' : 'Falhou'}</StatusBadge></td>
                     <td className="text-muted" data-label="Detalhe">{r.note}</td>
                   </tr>
                 ))}
@@ -243,7 +244,7 @@ function TemplatesTab({ onEdit }: { onEdit: (id: string) => void }) {
         {templates.map((t) => (
           <article key={t.id} className="template-card static">
             <div className="template-info">
-              <div className="tag-row"><Badge tone={t.kind === 'SALE' ? 'info' : 'accent'}>{t.kind === 'SALE' ? 'Venda' : 'Pós-venda'}</Badge>{t.builtIn && <Badge>Pronto</Badge>}<Badge>v{t.version}</Badge></div>
+              <div className="tag-row"><LabelBadge tone={t.kind === 'SALE' ? 'info' : 'accent'}>{t.kind === 'SALE' ? 'Venda' : 'Pós-venda'}</LabelBadge>{t.builtIn && <LabelBadge>Pronto</LabelBadge>}<LabelBadge>v{t.version}</LabelBadge></div>
               <h3 className="template-name">{t.name}</h3>
               <p className="text-sm text-muted" style={{ margin: 0 }}>{t.description}</p>
               <p className="text-xs text-muted" style={{ margin: 0 }}>{t.steps.length} passos{t.stages.length > 0 && ` · ${t.stages.length} etapas · ${t.requirements.length} requisitos`} · usado por {usedBy(t.id)} {usedBy(t.id) === 1 ? 'pipeline' : 'pipelines'}</p>
@@ -321,7 +322,7 @@ function TemplateEditor({ template, onBack }: { template: LifecycleTemplate; onB
           <div>
             <button type="button" className="page-back" onClick={leave}><ArrowLeft size={14} /> Templates</button>
             <input className="input title-input" value={name} onChange={(e) => { setName(e.target.value); setDirty(true); }} aria-label="Nome do template" />
-            <div className="tag-row" style={{ marginTop: '8px' }}><Badge tone={template.kind === 'SALE' ? 'info' : 'accent'}>{template.kind === 'SALE' ? 'Venda' : 'Pós-venda'}</Badge><Badge>versão {template.version}</Badge>{dirty && <Badge tone="warning">Alterações não salvas</Badge>}</div>
+            <div className="tag-row" style={{ marginTop: '8px' }}><LabelBadge tone={template.kind === 'SALE' ? 'info' : 'accent'}>{template.kind === 'SALE' ? 'Venda' : 'Pós-venda'}</LabelBadge><LabelBadge>versão {template.version}</LabelBadge>{dirty && <StatusBadge tone="warning">Alterações não salvas</StatusBadge>}</div>
           </div>
         </div>
         <div className="page-actions"><button type="button" className="btn btn-solid" disabled={!dirty} onClick={save}>Salvar nova versão</button></div>

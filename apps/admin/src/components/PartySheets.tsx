@@ -22,19 +22,8 @@ import CustomFieldsSection from './CustomFieldsSection';
 import { ContactListField, DocumentField, ReadOnlyField, SelectField, TagsField, TextField } from './fields';
 import { HistoryTab, TasksTab } from './RecordTabs';
 import RecordSheet from './RecordSheet';
-import { LifecycleBadge } from './ui';
-import { StageBadge } from './cells';
-import { StatusBadge } from './FieldBadge';
-import type { Lead } from '../domain';
 import { CustomSelect } from '../components/ui';
-
-// Situação do lead nas listas de relacionados da ficha: mesma pílula de estado do resto.
-const LEAD_STATUS: Record<Lead['status'], { label: string; tone: 'info' | 'success' | 'neutral' }> = {
-  ACTIVE: { label: 'Ativo', tone: 'info' },
-  QUALIFIED: { label: 'Qualificado', tone: 'success' },
-  DISCARDED: { label: 'Descartado', tone: 'neutral' },
-};
-const LeadStatusBadge = ({ status }: { status: Lead['status'] }) => <StatusBadge tone={LEAD_STATUS[status].tone}>{LEAD_STATUS[status].label}</StatusBadge>;
+import { LeadStatusBadge, LifecycleBadge, StageBadge, StatusBadge } from './badges';
 
 export type PartyRef = { kind: 'person' | 'company'; id: string } | null;
 

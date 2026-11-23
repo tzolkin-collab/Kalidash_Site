@@ -13,8 +13,8 @@ import type { ChangeEntry } from '../../domain';
 import type { TaskItem } from '../../domain';
 import type { Opportunity } from '../../types';
 import type { WidgetSpec, Span } from '../../lib/dashboardLayout';
-import { StageBadge } from '../cells';
-import { Badge, EmptyState, StatCard } from '../ui';
+import { EmptyState, StatCard } from '../ui';
+import { SampleBadge, StageBadge } from '../badges';
 
 // Catálogo de widgets da Dashboard. Cada widget sabe se desenhar a partir dos mesmos números de sempre
 // (DashData, calculado em pages/Dashboard.tsx); o layout (ordem, largura, quem aparece) é de cada pessoa
@@ -133,7 +133,7 @@ function Panel({ title, children, badge }: { title: string; children: ReactNode;
   );
 }
 
-const ExampleBadge = <span className="dash-example-tag"><Badge tone="info">Exemplo</Badge></span>;
+const ExampleBadge = <span className="dash-example-tag"><SampleBadge /></span>;
 
 function example(id: string, title: string, Icon: LucideIcon, note: string, defaultSpan: Span, body: ReactNode): WidgetDef {
   return {

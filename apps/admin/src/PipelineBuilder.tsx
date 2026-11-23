@@ -8,8 +8,9 @@ import { useSyncMode } from './lib/workflowSync';
 import { useShell } from './lib/shell';
 import { pipelinesStore } from './mocks/pipelines';
 import { templatesStore } from './mocks/templates';
-import { Badge, Field, Page, PageHeader, SampleBanner } from './components/ui';
+import { Field, Page, PageHeader, SampleBanner } from './components/ui';
 import { CustomSelect } from './components/ui';
+import { LabelBadge } from './components/badges';
 
 const KIND_LABEL: Record<StageKind, string> = { LEAD: 'Lead', OPEN: 'Aberta', WON: 'Ganha', LOST: 'Perdida' };
 
@@ -94,7 +95,7 @@ export default function PipelineBuilder({ onBack }: { onBack: () => void }) {
               <button key={t.id} type="button" className={`pick-card ${t.id === templateId ? 'active' : ''}`} onClick={() => pick(t)} aria-pressed={t.id === templateId}>
                 <strong>{t.name}</strong>
                 <span className="text-xs text-muted">{t.description}</span>
-                <span className="tag-row"><Badge>{t.steps.length} passos</Badge><Badge>{t.stages.length} etapas</Badge><Badge>{t.requirements.length} requisitos</Badge></span>
+                <span className="tag-row"><LabelBadge>{t.steps.length} passos</LabelBadge><LabelBadge>{t.stages.length} etapas</LabelBadge><LabelBadge>{t.requirements.length} requisitos</LabelBadge></span>
               </button>
             ))}
           </div>

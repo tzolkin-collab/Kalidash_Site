@@ -3,8 +3,6 @@ import { createPortal } from 'react-dom';
 import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { ArrowLeft, Check, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, CircleAlert, CircleHelp, FlaskConical, Menu, Search, X } from 'lucide-react';
-import type { Lifecycle } from '../domain';
-import { LIFECYCLE_LABEL, LIFECYCLE_TONE } from '../lib/people';
 import { useShell } from '../lib/shell';
 import { useViewSettings } from '../lib/viewSettings';
 import Peek from './Peek';
@@ -207,26 +205,7 @@ export function Tabs<T extends string>({ tabs, value, onChange }: { tabs: Tab<T>
 
 export type Tone = 'neutral' | 'success' | 'warning' | 'danger' | 'info' | 'accent';
 
-export function Badge({ tone = 'neutral', variant = 'default', children, title }: { tone?: Tone; variant?: 'default' | 'line'; children: ReactNode; title?: string }) {
-  if (variant === 'line') {
-    return (
-      <span className={`badge-line badge-${tone}`} title={title}>
-        <span className="badge-text">{children}</span>
-      </span>
-    );
-  }
-
-  return (
-    <span className={`badge badge-${tone} badge-${variant}`} title={title}>
-      {children}
-    </span>
-  );
-}
-
-export function LifecycleBadge({ value }: { value: Lifecycle }) {
-  // Ciclo de vida é estado do registro: mesma pílula com ponto do status (StatusBadge, components/FieldBadge.tsx).
-  return <span className="tagc" data-cat="STATUS" data-tone={LIFECYCLE_TONE[value]}>{LIFECYCLE_LABEL[value]}</span>;
-}
+// Selos: components/badges.tsx (conjunto fechado). Não há mais um <Badge> genérico.
 
 export function StatCard({ label, value, hint, tone }: { label: string; value: ReactNode; hint?: ReactNode; tone?: Tone }) {
   return (

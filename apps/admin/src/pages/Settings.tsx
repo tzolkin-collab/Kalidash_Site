@@ -16,9 +16,10 @@ import { auditRowOf } from '../lib/historyText';
 import { loadRecentHistory } from '../lib/historySync';
 import { EVENTS } from '../mocks/automations';
 import { LOCAL_USER_ID, auditLog, localUserStore, teamStore, webhooksStore } from '../mocks/team';
-import { Badge, EmptyState, Field, Page, PageHeader, PopupDialog, SampleBanner, SearchBox, SidePanel, Switch, Tabs } from '../components/ui';
+import { EmptyState, Field, Page, PageHeader, PopupDialog, SampleBanner, SearchBox, SidePanel, Switch, Tabs } from '../components/ui';
 import { CustomSelect } from '../components/ui';
 import { PermissionsTab, TokensTab } from '../components/Access';
+import { StatusBadge, LabelBadge } from '../components/badges';
 
 type Tab = 'profile' | 'team' | 'permissions' | 'tokens' | 'notifications' | 'webhooks' | 'audit';
 
@@ -165,7 +166,7 @@ function ProfileTab() {
           <span className="cell-primary" style={{ fontSize: '18px', fontWeight: 600 }}>{me.name}</span>
           <span className="text-muted">{me.email}</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
-            <Badge tone={me.role === 'ADMIN' ? 'accent' : me.role === 'MANAGER' ? 'info' : 'neutral'}>{ROLE_LABEL[me.role]}</Badge>
+            <LabelBadge tone={me.role === 'ADMIN' ? 'accent' : me.role === 'MANAGER' ? 'info' : 'neutral'}>{ROLE_LABEL[me.role]}</LabelBadge>
             <label htmlFor="profile-photo-input" className="btn btn-sm" style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
               <Upload size={12} /> Carregar foto
             </label>
@@ -197,16 +198,16 @@ function ProfileTab() {
             <div className="cell-stack" style={{ flex: 1, minWidth: '180px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span className="cell-primary" style={{ fontWeight: 600 }}>Google Workspace</span>
-                <Badge tone={isGoogleConnected ? 'success' : 'neutral'}>
+                <StatusBadge tone={isGoogleConnected ? 'success' : 'neutral'}>
                   {isGoogleConnected ? 'Conectada' : 'Não conectada'}
-                </Badge>
+                </StatusBadge>
               </div>
               <span className="text-xs text-muted" style={{ marginTop: '2px', fontFamily: 'monospace' }}>
                 {me.email}
               </span>
             </div>
 
-            <Badge tone="neutral">Login SSO</Badge>
+            <LabelBadge tone="neutral">Login SSO</LabelBadge>
           </li>
         </ul>
       </section>
@@ -285,7 +286,7 @@ function TeamTab() {
                       {(Object.keys(ROLE_LABEL) as Role[]).map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
                     </CustomSelect>
                   </td>
-                  <td><Badge tone={m.status === 'ACTIVE' ? 'success' : m.status === 'DISABLED' ? 'neutral' : 'warning'}>{m.status === 'ACTIVE' ? 'Ativo' : m.status === 'DISABLED' ? 'Desativado' : 'Convite enviado'}</Badge></td>
+                  <td><StatusBadge tone={m.status === 'ACTIVE' ? 'success' : m.status === 'DISABLED' ? 'neutral' : 'warning'}>{m.status === 'ACTIVE' ? 'Ativo' : m.status === 'DISABLED' ? 'Desativado' : 'Convite enviado'}</StatusBadge></td>
                   <td className="text-muted">{when(m.lastAccess)}</td>
                   <td>
                     {readOnly ? null : m.status === 'DISABLED' ? (
@@ -306,7 +307,7 @@ function TeamTab() {
         <div className="role-grid">
           {ROLE_MATRIX.map((r) => (
             <div key={r.role} className="role-item">
-              <Badge tone={r.role === 'ADMIN' ? 'accent' : r.role === 'MANAGER' ? 'info' : 'neutral'}>{ROLE_LABEL[r.role]}</Badge>
+              <LabelBadge tone={r.role === 'ADMIN' ? 'accent' : r.role === 'MANAGER' ? 'info' : 'neutral'}>{ROLE_LABEL[r.role]}</LabelBadge>
               <div><strong>Vê:</strong> {r.sees}</div>
               <div><strong>Faz:</strong> {r.does}</div>
             </div>
@@ -416,7 +417,7 @@ function WebhooksTab() {
                 <span className="cell-primary">{h.name}</span>
                 <span className="text-xs text-muted"><code className="mono">{h.event}</code> → <span className="mono">{h.url}</span></span>
               </div>
-              {h.lastStatus && <Badge tone={h.lastStatus === 'OK' ? 'success' : 'danger'} title={when(h.lastAt)}>{h.lastStatus === 'OK' ? 'Último envio OK' : 'Último envio falhou'}</Badge>}
+              {h.lastStatus && <StatusBadge tone={h.lastStatus === 'OK' ? 'success' : 'danger'} title={when(h.lastAt)}>{h.lastStatus === 'OK' ? 'Último envio OK' : 'Último envio falhou'}</StatusBadge>}
               <Switch checked={h.active} onChange={(v) => setHooks((prev) => prev.map((x) => (x.id === h.id ? { ...x, active: v } : x)))} label={`Webhook ${h.name} ativo`} />
               <button type="button" className="icon-btn bare" onClick={() => setHooks((prev) => prev.filter((x) => x.id !== h.id))} aria-label={`Excluir ${h.name}`}><Trash2 size={14} /></button>
             </li>

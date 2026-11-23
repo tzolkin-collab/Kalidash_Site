@@ -10,7 +10,8 @@ import { leadsStore } from '../mocks/leads';
 import LeadSheet from '../components/LeadSheet';
 import PartySheets from '../components/PartySheets';
 import type { PartyRef } from '../components/PartySheets';
-import { Badge, CustomSelect, InfoPop, EmptyState, Page, PageHeader, Pagination, SampleBanner, SearchBox, StatCard, Tabs } from '../components/ui';
+import { CustomSelect, InfoPop, EmptyState, Page, PageHeader, Pagination, SampleBanner, SearchBox, StatCard, Tabs } from '../components/ui';
+import { LabelBadge, LeadStatusBadge } from '../components/badges';
 
 /* Newsletter do blog. Não há cadastro à parte: cada inscrição feita no site (POST /api/public/leads com a origem
  * "blog-newsletter-…") vira um Lead no CRM, com a tag "Newsletter" e a origem do formulário em customData.formSource.
@@ -248,16 +249,14 @@ export default function Newsletter() {
                     </td>
                     <td>
                       <div className="tag-row">
-                        {lugares.map((k) => <Badge key={k} tone={k === 'material' ? 'warning' : 'info'}>{LUGAR[k]}</Badge>)}
+                        {lugares.map((k) => <LabelBadge key={k} tone={k === 'material' ? 'warning' : 'info'}>{LUGAR[k]}</LabelBadge>)}
                         {r.inscricoes.length > 1 && <span className="text-xs text-muted">{r.inscricoes.length}×</span>}
                       </div>
                     </td>
                     <td className="text-muted text-xs">{paginas.length ? paginas.join(', ') : '—'}</td>
                     <td>{r.materiais.length ? r.materiais.map(tituloDoSlug).join(', ') : <span className="text-muted">—</span>}</td>
                     <td>
-                      <Badge tone={r.lead.status === 'QUALIFIED' ? 'success' : r.lead.status === 'DISCARDED' ? 'danger' : 'neutral'}>
-                        {r.lead.status === 'QUALIFIED' ? 'Qualificado' : r.lead.status === 'DISCARDED' ? 'Descartado' : 'Lead ativo'}
-                      </Badge>
+                      <LeadStatusBadge status={r.lead.status} />
                     </td>
                     <td className="text-muted">{formatDate(r.primeira)}</td>
                   </tr>

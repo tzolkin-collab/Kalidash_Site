@@ -1,5 +1,4 @@
 import TagChip from '../components/TagChip';
-import { StatusBadge } from '../components/FieldBadge';
 import { TagManagerButton } from '../components/TagsAdmin';
 import { useMemo, useState } from 'react';
 import { Building2, Plus, User } from 'lucide-react';
@@ -14,8 +13,9 @@ import { companiesOf, companiesStore, peopleStore } from '../mocks/people';
 import NewPartyPanels from '../components/NewPartyHost';
 import PartySheets from '../components/PartySheets';
 import type { PartyRef } from '../components/PartySheets';
-import { EmptyState, LifecycleBadge, Page, PageHeader, Pagination, SampleBanner, SearchBox, Tabs } from '../components/ui';
+import { EmptyState, Page, PageHeader, Pagination, SampleBanner, SearchBox, Tabs } from '../components/ui';
 import { CustomSelect } from '../components/ui';
+import { StatusBadge, LifecycleBadge } from '../components/badges';
 
 type View = 'people' | 'companies';
 

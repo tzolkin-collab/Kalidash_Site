@@ -96,7 +96,7 @@
 .crm-scope .text-xs { font-size: calc(13px * var(--crm-fs)); line-height: calc(18px * var(--crm-fs)); }
 .crm-scope .text-sm { font-size: calc(14px * var(--crm-fs)); line-height: calc(20px * var(--crm-fs)); }
 .crm-scope .text-base { font-size: calc(16px * var(--crm-fs)); line-height: calc(24px * var(--crm-fs)); }
-.crm-scope .tag { font-size: calc(12px * var(--crm-fs)); }
+.crm-scope .tagc { font-size: calc(12px * var(--crm-fs)); }
 .crm-scope .data-table th { font-size: calc(12px * var(--crm-fs)); }
 .crm-scope .data-table td { font-size: calc(14px * var(--crm-fs)); }
 

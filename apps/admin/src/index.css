@@ -293,22 +293,6 @@ body {
   transform: translateY(-1px);
 }
 
-.tag {
-  display: inline-block;
-  max-width: 24ch; /* tags antigas e longas não deformam a linha */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  vertical-align: middle;
-  font-size: 12px;
-  font-weight: 500;
-  padding: 2px 8px;
-  border-radius: 12px;
-  background-color: var(--bg-app);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-subtle);
-}
-
 .avatar-stack {
   display: flex;
   align-items: center;

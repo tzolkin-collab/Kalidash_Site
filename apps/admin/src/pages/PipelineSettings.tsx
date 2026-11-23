@@ -23,8 +23,9 @@ import { pipelinesStore } from '../mocks/pipelines';
 import { templatesStore } from '../mocks/templates';
 import StepsEditor from '../components/StepsEditor';
 import { ConnectSourcePanel, DisconnectSourceButton, GATE_LABEL, RequirementPanel, SOURCE_TYPE_LABEL } from '../components/PipelineEditors';
-import { Badge, EmptyState, Field, Page, PageHeader, SampleBanner, Switch, Tabs } from '../components/ui';
+import { EmptyState, Field, Page, PageHeader, SampleBanner, Switch, Tabs } from '../components/ui';
 import { CustomSelect } from '../components/ui';
+import { StatusBadge, LabelBadge, SampleBadge } from '../components/badges';
 
 type Tab = 'general' | 'stages' | 'sources' | 'tasks' | 'lifecycle' | 'fields' | 'tags';
 type Patch = (fn: (p: Pipeline) => Pipeline) => void;
@@ -75,7 +76,7 @@ export default function PipelineSettings({ pipelineId }: { pipelineId?: string }
             const total = Object.values(p.counts).reduce((a, b) => a + b, 0);
             return (
               <button key={p.id} type="button" className={`pipe-item ${p.id === pipeline?.id ? 'active' : ''} ${p.archivedAt ? 'is-archived' : ''}`} onClick={() => { navigate(`/oportunidades/pipelines/${p.id}`); setTab('general'); }}>
-                <span className="cell-primary">{p.name}{p.archivedAt && <Badge tone="danger">Arquivada</Badge>}</span>
+                <span className="cell-primary">{p.name}{p.archivedAt && <StatusBadge tone="danger">Arquivada</StatusBadge>}</span>
                 <span className="text-xs text-muted">{p.offer} · {total} registros</span>
               </button>
             );
@@ -264,7 +265,7 @@ function SourcesTab({ pipeline, patch }: { pipeline: Pipeline; patch: Patch }) {
                 </>
               ) : (
                 <>
-                  {s.type !== 'MANUAL' && !live && <Badge tone="warning" title="Exemplo: a automação só existe neste navegador"><Link2 size={10} /> Exemplo</Badge>}
+                  {s.type !== 'MANUAL' && !live && <SampleBadge title="Exemplo: a automação só existe neste navegador" />}
                   <Switch checked={s.active} onChange={(v) => setActive(s, v)} label={`Fonte ${s.name} ativa`} />
                   <button type="button" className="icon-btn bare" onClick={() => remove(s)} aria-label={`Remover ${s.name}`}><Trash2 size={14} /></button>
                 </>
@@ -326,13 +327,13 @@ function TasksTab({ pipeline, patch, presetField, onConsumePreset }: { pipeline:
                     <td className="cell-block" data-label="Tarefa"><span className="cell-primary">{r.label}</span><div className="text-xs text-muted">{r.kind === 'FIELD' ? 'Campo do cadastro' : 'Ação'}</div></td>
                     <td data-label="Etapa">{stageName(r.stageId)}</td>
                     <td data-label="Tag"><TagChip name={r.tag} category="TASK" /></td>
-                    <td data-label="Efeito"><Badge tone={r.gate === 'NONE' ? 'neutral' : 'warning'}>{GATE_LABEL[r.gate]}</Badge></td>
+                    <td data-label="Efeito"><LabelBadge tone={r.gate === 'NONE' ? 'neutral' : 'warning'}>{GATE_LABEL[r.gate]}</LabelBadge></td>
                     <td data-label="Responsável">{r.assignee ?? <span className="text-muted">—</span>}</td>
                     <td data-label="Prazo">{r.dueDays !== undefined ? `${r.dueDays} d` : <span className="text-muted">—</span>}</td>
                     <td data-label="Avisos">
                       <div className="tag-row">
-                        {r.notifyAssignee && <Badge tone="info" title="Notifica o responsável por push quando a tarefa nasce"><Bell size={10} /> Push</Badge>}
-                        {linked && <Badge tone="accent" title={linked.trigger}><Link2 size={10} /> Automação</Badge>}
+                        {r.notifyAssignee && <LabelBadge tone="info" title="Notifica o responsável por push quando a tarefa nasce"><Bell size={10} /> Push</LabelBadge>}
+                        {linked && <LabelBadge tone="accent" title={linked.trigger}><Link2 size={10} /> Automação</LabelBadge>}
                         {!r.notifyAssignee && !linked && <span className="text-muted">—</span>}
                       </div>
                     </td>
@@ -385,8 +386,8 @@ function LifecycleTab({ pipeline, patch }: { pipeline: Pipeline; patch: Patch })
 
       {(saleTpl || postTpl) && (
         <div className="tag-row" style={{ marginBottom: '16px' }}>
-          {saleTpl && <Badge tone="info">Venda: {saleTpl.name} (v{saleTpl.version})</Badge>}
-          {postTpl && <Badge tone="accent">Pós-venda: {postTpl.name} (v{postTpl.version})</Badge>}
+          {saleTpl && <LabelBadge tone="info">Venda: {saleTpl.name} (v{saleTpl.version})</LabelBadge>}
+          {postTpl && <LabelBadge tone="accent">Pós-venda: {postTpl.name} (v{postTpl.version})</LabelBadge>}
         </div>
       )}
 
@@ -454,11 +455,11 @@ function FieldsTab({ pipeline, patch, onMarkRequired }: { pipeline: Pipeline; pa
                   <span className="cell-primary">{f.label}</span>
                   <span className="text-xs text-muted"><code className="mono">{f.key}</code>{f.options ? ` · ${f.options.join(', ')}` : ''}</span>
                 </div>
-                <Badge>{FIELD_TYPE_LABEL[f.type]}</Badge>
+                <LabelBadge>{FIELD_TYPE_LABEL[f.type]}</LabelBadge>
                 {req ? (
-                  <Badge tone={req.gate === 'NONE' ? 'neutral' : 'warning'} title={`Requisito da etapa ${stageName(req.stageId)}${req.assignee ? ` · ${req.assignee}` : ''}`}>
+                  <LabelBadge tone={req.gate === 'NONE' ? 'neutral' : 'warning'} title={`Requisito da etapa ${stageName(req.stageId)}${req.assignee ? ` · ${req.assignee}` : ''}`}>
                     {req.gate === 'NONE' ? 'Vira tarefa' : `Trava em ${stageName(req.stageId)}`}
-                  </Badge>
+                  </LabelBadge>
                 ) : (
                   <button type="button" className="btn btn-sm" onClick={() => onMarkRequired(f.label)}>Tornar obrigatório</button>
                 )}

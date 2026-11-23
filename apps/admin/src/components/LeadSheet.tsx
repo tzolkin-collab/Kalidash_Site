@@ -21,7 +21,7 @@ import { ReadOnlyField, SelectField, TagsField, TextField } from './fields';
 import type { PartyRef } from './PartySheets';
 import { HistoryTab, TasksTab } from './RecordTabs';
 import RecordSheet from './RecordSheet';
-import { Badge } from './ui';
+import { StatusBadge, LeadStatusBadge } from './badges';
 
 type Props = {
   leadId: string;
@@ -99,10 +99,10 @@ export default function LeadSheet({ leadId, onClose, onOpenParty, onNotice }: Pr
         onTitle={(v) => save({ name: v }, 'Nome', lead.name, v)}
         badges={
           <>
-            <Badge tone={active ? 'accent' : lead.status === 'QUALIFIED' ? 'success' : 'danger'}>{active ? 'Lead' : lead.status === 'QUALIFIED' ? 'Qualificado' : 'Descartado'}</Badge>
-            {lead.returningClient && <Badge tone="info" title="Já é cliente e preencheu de novo">Cliente retornando</Badge>}
-            {!lead.wasSeen && <Badge tone="warning">Novo</Badge>}
-            {lead.archivedAt && <Badge tone="danger">Arquivado</Badge>}
+            <LeadStatusBadge status={lead.status} label={active ? 'Lead' : undefined} />
+            {lead.returningClient && <StatusBadge tone="info" title="Já é cliente e preencheu de novo">Cliente retornando</StatusBadge>}
+            {!lead.wasSeen && <StatusBadge tone="warning">Novo</StatusBadge>}
+            {lead.archivedAt && <StatusBadge tone="danger">Arquivado</StatusBadge>}
           </>
         }
         subtitle={pipe?.name}

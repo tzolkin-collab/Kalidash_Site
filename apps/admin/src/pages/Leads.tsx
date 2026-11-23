@@ -3,8 +3,6 @@ import TagChip from '../components/TagChip';
 import SourceName from '../components/SourceName';
 import { useMemo, useState } from 'react';
 import { ArrowRightCircle, Plus, User, XCircle } from 'lucide-react';
-import { StageBadge } from '../components/cells';
-import { StatusBadge } from '../components/FieldBadge';
 import type { Lead, LeadOrigin } from '../domain';
 import { formatCnpj, formatCpf, isValidCnpj, isValidCpf, stripDoc } from '../lib/documents';
 import { formatCurrency, formatDate, parseMoney } from '../lib/format';
@@ -24,6 +22,7 @@ import type { PartyRef } from '../components/PartySheets';
 import { EmptyState, Field, Page, PageHeader, Pagination, SampleBanner, SearchBox, SidePanel, Tabs } from '../components/ui';
 import { CustomSelect } from '../components/ui';
 import { lostReasonLabel } from '../lib/lostReasons';
+import { EmptyBadge, StageBadge, StatusBadge } from '../components/badges';
 
 type Status = Lead['status'];
 
@@ -140,7 +139,7 @@ export default function Leads() {
                   <td data-label="Dono">
                     {ownerLabel(l)
                       ? <span className="owner-inline" title={ownerLabel(l)}><User size={14} aria-hidden="true" /><span>{ownerLabel(l)}</span></span>
-                      : <span className="tagc" data-cat="EMPTY">Sem dono</span>}
+                      : <EmptyBadge>Sem dono</EmptyBadge>}
                   </td>
                   <td data-label="Valor est." className="cell-num">{l.estimatedValue ? formatCurrency(l.estimatedValue) : <span className="text-muted">—</span>}</td>
                   <td data-label="Tags">{l.tags.length > 0 ? <div className="tag-row">{l.tags.map((t) => <TagChip key={t} name={t} />)}</div> : <span className="text-muted">—</span>}</td>

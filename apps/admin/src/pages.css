@@ -256,61 +256,8 @@
 .tab.active { color: var(--text-primary); border-bottom-color: var(--text-primary); font-weight: 600; }
 .tab-count { padding: 0 6px; border-radius: 10px; background: var(--bg-surface-hover); border: 1px solid var(--border-subtle); font-size: 11px; color: var(--text-muted); }
 
-/* ---------- Selos ---------- */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 18px 4px 14px;
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-  color: #ffffff;
-  background-color: var(--badge-color, #94a3b8);
-  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 50%, 100% 100%, 8px 100%, 0 50%);
-}
-
-.badge-line {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  height: 14px;
-  width: 3px;
-  background-color: currentColor;
-  border-radius: 2px;
-  vertical-align: middle;
-  cursor: default;
-}
-.badge-line .badge-text {
-  position: absolute;
-  left: 100%;
-  top: 50%;
-  transform: translateY(-50%) translateX(-4px) scale(0.95);
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-  color: var(--text-primary);
-  background: var(--bg-surface);
-  padding: 2px 6px;
-  border-radius: 4px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  border: 1px solid var(--border-subtle);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  z-index: 20;
-}
-.badge-line:hover .badge-text,
-td:hover .badge-line .badge-text {
-  opacity: 1;
-  transform: translateY(-50%) translateX(6px) scale(1);
-}
-
-.badge-success { --badge-color: #10b981; }
-.badge-warning { --badge-color: #d97706; }
-.badge-danger { --badge-color: #ef4444; }
-.badge-info { margin-inline: 5px; --badge-color: #3b82f6; }
-.badge-accent { --badge-color: var(--accent); }
+/* ---------- Selos ----------
+   O visual de todos os selos fica junto, em .tagc (mais abaixo). Componentes: components/badges.tsx; regras: docs/selos.md. */
 
 /* ---------- Cartões de métrica ---------- */
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
@@ -484,7 +431,7 @@ td:hover .badge-line .badge-text {
 .page-loading { padding: 48px 40px; color: var(--text-muted); font-size: 14px; }
 
 
-.cell-stack > .badge { align-self: flex-start; }
+.cell-stack > .tagc { align-self: flex-start; }
 .table-card .data-table th { text-transform: none; }
 
 /* ---------- Oportunidades ---------- */
@@ -774,10 +721,6 @@ td:hover .badge-line .badge-text {
 .add-box { margin-top: 20px; }
 .link-inline { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--accent); text-decoration: var(--accent); }
 .link-inline:hover { text-decoration: underline; }
-.tag-removable { display: inline-flex; align-items: center; gap: 4px; }
-.tag-removable button { display: inline-flex; padding: 0; border: none; background: transparent; color: var(--text-muted); cursor: pointer; }
-.tag-removable button:hover:not(:disabled) { color: #ef4444; }
-.tag-removable button:disabled { opacity: 0.35; cursor: not-allowed; }
 @media (max-width: 900px) { .settings-layout { grid-template-columns: 1fr; } .pipe-list { flex-direction: row; overflow-x: auto; } .pipe-item { min-width: 200px; } }
 
 /* ---------- Projetos conectados ---------- */
@@ -785,6 +728,10 @@ td:hover .badge-line .badge-text {
 .project-card { border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-surface); overflow: hidden; }
 .project-head { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 18px; border: none; background: transparent; color: var(--text-primary); font: inherit; cursor: pointer; }
 .project-head:hover { background: var(--bg-surface-hover); }
+/* Nome e selos dos módulos: em tela estreita os selos descem para a linha de baixo em vez de cobrir o nome */
+.project-head { flex-wrap: wrap; }
+.project-head > .cell-stack { min-width: 12rem; }
+.project-head > .tag-row { flex-wrap: wrap; }
 .project-body { padding: 4px 18px 18px; border-top: 1px solid var(--border-subtle); padding-top: 16px; }
 .code-box { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 12px 0 8px; padding: 10px 12px; border: 1px solid var(--border-subtle); border-radius: 8px; background: var(--bg-surface-hover); overflow-x: auto; }
 .code-box code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: nowrap; }
@@ -1810,6 +1757,7 @@ textarea.inline-input { resize: vertical; }
 .tagc[data-tone="success"] { --tc: var(--tc-success); }
 .tagc[data-tone="warning"] { --tc: var(--tc-warning); }
 .tagc[data-tone="danger"] { --tc: var(--tc-danger); }
+.tagc[data-tone="accent"] { --tc: var(--accent); }
 .tagc-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .tagc-icon { flex-shrink: 0; }
 .tagc-x { display: inline-flex; padding: 0; margin-left: 1px; border: 0; background: transparent; color: inherit; opacity: 0.6; cursor: pointer; }
@@ -1817,6 +1765,14 @@ textarea.inline-input { resize: vertical; }
 /* Status: pílula tingida com um ponto */
 .tagc[data-cat="STATUS"] { gap: 6px; border-color: transparent; border-radius: 999px; background: color-mix(in srgb, var(--tc) 13%, transparent); }
 .tagc[data-cat="STATUS"]::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--tc); flex-shrink: 0; }
+.tagc[data-cat="STATUS"][data-icon]::before, .tagc[data-cat="STATUS"]:has(> svg)::before { display: none; }
+/* Rótulo (tipo, papel, contagem): contorno reto, sem ponto */
+.tagc[data-cat="LABEL"] { border-radius: 6px; border-color: color-mix(in srgb, var(--tc) 35%, var(--border-subtle)); background: transparent; }
+.tagc[data-cat="LABEL"][data-tone="neutral"] { border-color: var(--border-subtle); }
+/* Exemplo: contorno âmbar tracejado com frasco (não é dado real) */
+.tagc[data-cat="SAMPLE"] { --tc: var(--tc-warning); border: 1px dashed color-mix(in srgb, var(--tc) 60%, transparent); border-radius: 6px; background: color-mix(in srgb, var(--tc) 6%, transparent); }
+/* Etapa do funil: contorno na cor da etapa (--tc vem do componente) */
+.tagc[data-cat="STAGE"] { border-color: var(--tc); background: transparent; }
 /* Prioridade: rótulo reto com barra lateral e bandeira */
 .tagc[data-cat="PRIORITY"] { border-color: transparent; border-left: 3px solid var(--tc); border-radius: 3px; background: color-mix(in srgb, var(--tc) 9%, transparent); font-weight: 600; }
 /* Origem: pílula tracejada, azul */

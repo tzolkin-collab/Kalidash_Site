@@ -1,8 +1,8 @@
-import { PriorityBadge } from '../components/FieldBadge';
 import type { ReactNode } from 'react';
 import type { Opportunity } from '../types';
 import { formatCurrency, formatDate } from './format';
-import { ClientCell, Owner, StageBadge, Tags } from '../components/cells';
+import { ClientCell, Owner, Tags } from '../components/cells';
+import { LabelBadge, PriorityBadge, SampleBadge, StageBadge } from '../components/badges';
 
 // Uma "coluna" é qualquer informação guardada sobre a oportunidade que pode aparecer na Lista
 // e na ficha. As do sistema vêm de colunas do banco; as personalizadas vêm de um jsonb
@@ -20,7 +20,7 @@ export type ColumnDef = {
 const dash = <span className="text-muted">—</span>;
 
 export const SYSTEM_COLUMNS: ColumnDef[] = [
-  { id: 'title', label: 'Oportunidade', group: 'system', removable: false, render: (o) => <div className="font-semibold">{o.title}{o.isLead && <span className="badge badge-accent lead-badge">Lead</span>}{o.isLead && o.isSample && <span className="badge badge-warning lead-badge">Exemplo</span>}</div> },
+  { id: 'title', label: 'Oportunidade', group: 'system', removable: false, render: (o) => <div className="font-semibold">{o.title}{o.isLead && <span className="lead-badge"><LabelBadge tone="accent">Lead</LabelBadge></span>}{o.isLead && o.isSample && <span className="lead-badge"><SampleBadge /></span>}</div> },
   { id: 'client', label: 'Cliente', group: 'system', removable: true, render: (o) => <ClientCell opp={o} /> },
   { id: 'stage', label: 'Estágio', group: 'system', removable: true, render: (o) => <StageBadge stage={o.stage} opp={o} /> },
   { id: 'tags', label: 'Tags', group: 'system', removable: true, render: (o) => <Tags tags={o.tags} /> },

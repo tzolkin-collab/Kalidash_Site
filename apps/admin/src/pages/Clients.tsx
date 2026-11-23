@@ -13,7 +13,8 @@ import { resolveStage } from '../lib/stages';
 import NewPartyHost from '../components/NewPartyHost';
 import PartySheets from '../components/PartySheets';
 import type { PartyRef } from '../components/PartySheets';
-import { Badge, EmptyState, Field, Page, PageHeader, Pagination, SampleBanner, SearchBox, SidePanel, Tabs } from '../components/ui';
+import { EmptyState, Field, Page, PageHeader, Pagination, SampleBanner, SearchBox, SidePanel, Tabs } from '../components/ui';
+import { StatusBadge, LabelBadge } from '../components/badges';
 
 type View = 'all' | 'companies' | 'people';
 
@@ -98,11 +99,11 @@ export default function Clients() {
                   <td className="cell-block" data-label="Cliente">
                     <div className="cell-avatar">
                       <span className={`avatar ${r.kind === 'company' ? 'avatar-square' : ''}`}>{r.kind === 'company' ? <Building2 size={14} /> : initials(r.name) || <User size={12} />}</span>
-                      <div className="cell-stack"><span className="cell-primary">{r.name}{r.legacy && <Badge tone="info" title="Cliente de antes do sistema">Legado</Badge>}</span><span className="text-xs text-muted">{r.sub}</span></div>
+                      <div className="cell-stack"><span className="cell-primary">{r.name}{r.legacy && <StatusBadge tone="info" title="Cliente de antes do sistema">Legado</StatusBadge>}</span><span className="text-xs text-muted">{r.sub}</span></div>
                     </div>
                   </td>
-                  <td data-label="Tipo"><Badge tone={r.kind === 'company' ? 'info' : 'neutral'}>{r.kind === 'company' ? 'Empresa' : 'Pessoa'}</Badge></td>
-                  <td data-label="Documento">{r.inReview ? <Badge tone="warning">Em análise</Badge> : <span className="mono">{r.document ? (r.kind === 'person' ? maskCpf(r.document) : r.document) : '—'}</span>}</td>
+                  <td data-label="Tipo"><LabelBadge tone={r.kind === 'company' ? 'info' : 'neutral'}>{r.kind === 'company' ? 'Empresa' : 'Pessoa'}</LabelBadge></td>
+                  <td data-label="Documento">{r.inReview ? <StatusBadge tone="warning">Em análise</StatusBadge> : <span className="mono">{r.document ? (r.kind === 'person' ? maskCpf(r.document) : r.document) : '—'}</span>}</td>
                   <td data-label="Contato padrão">{r.contact ?? <span className="text-muted">—</span>}</td>
                   <td className="text-muted" data-label="Cliente desde">{formatDate(r.since)}</td>
                   <td data-label="Valor ganho">{r.won > 0 ? formatCurrency(r.won) : <span className="text-muted">—</span>}</td>

@@ -2,7 +2,8 @@ import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, CircleDot, FileInput, Lock, Pencil, Plug, Plus, Trash2, Upload, X } from 'lucide-react';
 import type { Pipeline, Requirement, Source, SourceType, Stage, StageKind } from '../domain';
-import { Badge, Switch } from './ui';
+import { Switch } from './ui';
+import { LabelBadge } from './badges';
 
 // Estrutura do funil, na lateral do workflow: lista os três tipos de nó (fontes, etapas e tarefas), deixa ver o
 // que cada um tem, criar e remover direto daqui, e levar a tela até o nó. É o painel que fica aberto enquanto se
@@ -143,7 +144,7 @@ export default function WorkflowInspector(p: InspectorProps) {
                       </span>
                     </span>
                   </button>
-                  {r.gate !== 'NONE' && <Badge tone="warning" title={GATE_SHORT[r.gate]}><Lock size={10} /> {r.gate === 'ENTER' ? 'Entrar' : 'Sair'}</Badge>}
+                  {r.gate !== 'NONE' && <LabelBadge tone="warning" title={GATE_SHORT[r.gate]}><Lock size={10} /> {r.gate === 'ENTER' ? 'Entrar' : 'Sair'}</LabelBadge>}
                   <TrashButton label={r.label} warning={r.linkedAutomationId ? 'A automação ligada a esta tarefa também é removida.' : undefined} onConfirm={() => p.onRemoveRequirement(r)} />
                 </div>
               ))}

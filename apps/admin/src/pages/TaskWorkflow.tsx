@@ -33,12 +33,13 @@ import { tasksStore } from '../mocks/tasks';
 import { resolveStage } from '../lib/stages';
 import { formatCurrency } from '../lib/format';
 import { pushAviso, pushNotificacao } from '../lib/notify';
-import { Badge, CustomSelect, DockContext, EmptyState, Field, Page, PageHeader, SidePanel } from '../components/ui';
+import { CustomSelect, DockContext, EmptyState, Field, Page, PageHeader, SidePanel } from '../components/ui';
 import WorkflowInspector from '../components/WorkflowInspector';
 import type { InspectorSelection } from '../components/WorkflowInspector';
 import { ConnectSourcePanel, RequirementPanel, SourceDetailPanel } from '../components/PipelineEditors';
 import { automationsStore } from '../mocks/automations';
 import { toggleRequirementTask } from '../lib/taskActions';
+import { StatusBadge, LabelBadge } from '../components/badges';
 
 // Workflow do funil, da esquerda para a direita (docs/dominio.md §11): fontes entram pela esquerda,
 // cada etapa é um nó com seus requisitos, e Ganho e Perdido ficam no fim. Feito com React Flow.
@@ -102,8 +103,8 @@ function StageNode({ data }: NodeProps<StageNodeType>) {
           {stage.alertDays ? ` · alerta em ${stage.alertDays}d` : ''}
         </span>
         <div className="wf-counts">
-          <Badge>{records} {records === 1 ? 'registro' : 'registros'}</Badge>
-          {blocked > 0 && <Badge tone="danger"><Lock size={10} /> {blocked} parado{blocked > 1 ? 's' : ''}</Badge>}
+          <LabelBadge>{records} {records === 1 ? 'registro' : 'registros'}</LabelBadge>
+          {blocked > 0 && <StatusBadge tone="danger"><Lock size={10} /> {blocked} parado{blocked > 1 ? 's' : ''}</StatusBadge>}
         </div>
       </div>
       <div className="wf-body">
@@ -614,9 +615,9 @@ export default function TaskWorkflow({ pipelineId }: { pipelineId: string }) {
                       <strong>{r.name}</strong>
                       <span className="text-xs text-muted">{r.subtext}</span>
                     </div>
-                    <Badge tone={r.kind === 'opportunity' ? 'accent' : 'warning'}>
+                    <LabelBadge tone={r.kind === 'opportunity' ? 'neutral' : 'accent'}>
                       {r.kind === 'opportunity' ? 'Oportunidade' : 'Lead'}
-                    </Badge>
+                    </LabelBadge>
                   </button>
                 ))}
               {availableRecords.length === 0 && (
@@ -682,9 +683,7 @@ export default function TaskWorkflow({ pipelineId }: { pipelineId: string }) {
               </span>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
                 {pipeline.taskTags.map((tg) => (
-                  <Badge key={tg} tone="accent">
-                    {tg}
-                  </Badge>
+                  <TagChip key={tg} name={tg} category="TASK" />
                 ))}
               </div>
             </div>

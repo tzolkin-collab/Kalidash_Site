@@ -7,9 +7,10 @@ import { SCOPE_INFO, apiKeysStore, projectsStore } from '../mocks/projects';
 import { useAuth } from '../lib/auth';
 import { useCrmMode } from '../lib/crmMode';
 import ProjectsLive from '../components/ProjectsLive';
-import { Badge, EmptyState, Field, Page, PageHeader, SampleBanner, SidePanel, Tabs } from '../components/ui';
+import { EmptyState, Field, Page, PageHeader, SampleBanner, SidePanel, Tabs } from '../components/ui';
 import type { Tone } from '../components/ui';
 import { CustomSelect } from '../components/ui';
+import { StatusBadge, LabelBadge } from '../components/badges';
 
 type Tab = 'projects' | 'integrations' | 'keys';
 
@@ -89,7 +90,7 @@ function ProjectsTab() {
                   <span className="cell-primary">{p.name}</span>
                   <span className="text-xs text-muted">{p.url}</span>
                 </div>
-                <div className="tag-row">{p.modules.map((m) => <Badge key={m.name} tone={STATUS_TONE[m.status]}>{m.name}: {STATUS_LABEL[m.status]}</Badge>)}</div>
+                <div className="tag-row">{p.modules.map((m) => <StatusBadge key={m.name} tone={STATUS_TONE[m.status]}>{m.name}: {STATUS_LABEL[m.status]}</StatusBadge>)}</div>
               </button>
               {expanded && (
                 <div className="project-body">
@@ -227,11 +228,11 @@ function IntegrationsTab() {
         <ul className="row-list" style={{ margin: 0 }}>
           <li className="row-item">
             <div className="cell-stack"><span className="cell-primary">Formulários ativos</span><span className="text-xs text-muted">{activeIntegrations.length ? activeIntegrations.map((p) => p.name).join(', ') : 'Nenhum projeto com o módulo Formulário ativo.'}</span></div>
-            <Badge tone={activeIntegrations.length ? 'success' : 'warning'}>{activeIntegrations.length} ativa{activeIntegrations.length === 1 ? '' : 's'}</Badge>
+            <StatusBadge tone={activeIntegrations.length ? 'success' : 'warning'}>{activeIntegrations.length} ativa{activeIntegrations.length === 1 ? '' : 's'}</StatusBadge>
           </li>
           <li className="row-item">
             <div className="cell-stack"><span className="cell-primary">Google (Meet, Gmail, Drive)</span><span className="text-xs text-muted">Depende do login com Google, que entra na fase de segurança.</span></div>
-            <Badge>Não conectado</Badge>
+            <StatusBadge>Não conectado</StatusBadge>
           </li>
           <li className="row-item">
             <div className="cell-stack"><span className="cell-primary">Webhooks de saída e de entrada</span><span className="text-xs text-muted">Configurados em Configurações.</span></div>
@@ -269,12 +270,12 @@ function KeysTab() {
               {keys.map((k) => (
                 <tr key={k.id} style={{ opacity: k.status === 'REVOKED' ? 0.6 : 1 }}>
                   <td><div className="cell-stack"><span className="cell-primary">{k.name}</span><code className="mono text-muted">{k.prefix}…</code></div></td>
-                  <td><Badge tone={k.env === 'live' ? 'info' : 'neutral'}>{k.env === 'live' ? 'Produção' : 'Teste'}</Badge></td>
+                  <td><LabelBadge tone={k.env === 'live' ? 'info' : 'neutral'}>{k.env === 'live' ? 'Produção' : 'Teste'}</LabelBadge></td>
                   <td>{k.project}</td>
-                  <td><div className="tag-row">{k.scopes.map((s) => <Badge key={s} tone={SCOPE_INFO[s].publicSafe ? 'neutral' : 'warning'} title={SCOPE_INFO[s].hint}>{s}</Badge>)}</div></td>
+                  <td><div className="tag-row">{k.scopes.map((s) => <LabelBadge key={s} tone={SCOPE_INFO[s].publicSafe ? 'neutral' : 'warning'} title={SCOPE_INFO[s].hint}>{s}</LabelBadge>)}</div></td>
                   <td className="text-muted">{formatDate(k.createdAt)}</td>
                   <td className="text-muted">{k.lastUsedAt ? formatDate(k.lastUsedAt) : 'Nunca'}</td>
-                  <td><Badge tone={k.status === 'ACTIVE' ? 'success' : 'danger'}>{k.status === 'ACTIVE' ? 'Ativa' : 'Revogada'}</Badge></td>
+                  <td><StatusBadge tone={k.status === 'ACTIVE' ? 'success' : 'danger'}>{k.status === 'ACTIVE' ? 'Ativa' : 'Revogada'}</StatusBadge></td>
                   <td>
                     {k.status === 'ACTIVE' && (revoking === k.id
                       ? <div className="row-actions"><button type="button" className="btn btn-sm btn-danger" onClick={() => revoke(k.id)}>Revogar</button><button type="button" className="btn btn-sm" onClick={() => setRevoking(null)}>Não</button></div>

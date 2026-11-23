@@ -1,7 +1,7 @@
 import { Compass, UserPlus } from 'lucide-react';
 import type { LeadOrigin } from '../domain';
 import { isSiteSource, shortSource } from '../lib/sourceName';
-import { SourceBadge } from './FieldBadge';
+import { SourceBadge } from './badges';
 
 /**
  * Origem do lead num selo só: "Inbound · Formulário da LP" ou "Outbound · Iago Braz" (quem trouxe).

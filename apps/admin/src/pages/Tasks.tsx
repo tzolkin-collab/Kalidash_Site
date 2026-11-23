@@ -6,8 +6,9 @@ import { useShell } from '../lib/shell';
 import { useStore } from '../lib/store';
 import { useSyncMode } from '../lib/workflowSync';
 import { pipelinesStore } from '../mocks/pipelines';
-import { Badge, EmptyState, Page, PageHeader, SampleBanner, SearchBox } from '../components/ui';
+import { EmptyState, Page, PageHeader, SampleBanner, SearchBox } from '../components/ui';
 import { CustomSelect } from '../components/ui';
+import { StatusBadge } from '../components/badges';
 
 export default function Tasks() {
   const { navigate } = useShell();
@@ -70,7 +71,7 @@ export default function Tasks() {
                         <span className="funnel-card-title">{p.name}</span>
                         <span className="text-sm text-muted">{p.offer}</span>
                       </div>
-                      {p.sources.length === 0 && known && <Badge tone="warning" title="Nenhuma fonte alimenta este funil"><AlertTriangle size={11} /> Sem fonte</Badge>}
+                      {p.sources.length === 0 && known && <StatusBadge tone="warning" title="Nenhuma fonte alimenta este funil"><AlertTriangle size={11} /> Sem fonte</StatusBadge>}
                     </div>
                     <div className="funnel-card-stats">
                       <div><strong>{st.records}</strong><span>registros</span></div>

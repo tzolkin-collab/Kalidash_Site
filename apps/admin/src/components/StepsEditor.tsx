@@ -5,8 +5,9 @@ import { LIFECYCLE_LABEL, actionText } from '../lib/steps';
 import { newId, useStore } from '../lib/store';
 import { ACTIONS, CATEGORIES, EVENTS } from '../mocks/automations';
 import { teamStore } from '../mocks/team';
-import { Badge, EmptyState, Field, SidePanel, Switch } from './ui';
+import { EmptyState, Field, SidePanel, Switch } from './ui';
 import { CustomSelect } from '../components/ui';
+import { LabelBadge } from './badges';
 
 // Editor de passos do ciclo de vida. Serve à pipeline (a cópia que roda) e ao template (a receita).
 // Um passo liga um evento a uma lista de ações, com condição simples. Sem ramificação.
@@ -90,7 +91,7 @@ export default function StepsEditor({ steps, onChange, stageOptions, phases, exi
                   </div>
                   <div className="step-when">
                     <span className="step-label">Quando</span>
-                    <Badge tone="info">{eventLabel(s.triggerId)}</Badge>
+                    <LabelBadge tone="info">{eventLabel(s.triggerId)}</LabelBadge>
                     {s.stageId && <span className="text-xs text-muted">na etapa <strong>{stageName(s.stageId)}</strong></span>}
                     {s.fieldKey && <span className="text-xs text-muted">campo <strong>{FIELD_OPTIONS.find((f) => f.value === s.fieldKey)?.label ?? s.fieldKey}</strong>{s.onlyIfEmpty ? ' vazio' : ''}</span>}
                   </div>

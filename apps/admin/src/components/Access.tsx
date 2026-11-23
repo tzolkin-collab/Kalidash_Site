@@ -13,8 +13,9 @@ import { ago, effective, expiryFor, groupScopes, maskedToken, overridesFor, summ
 import type { Catalog, ScopeDef, Validity } from '../lib/scopes';
 import { teamStore } from '../mocks/team';
 import { useStore } from '../lib/store';
-import { Badge, CustomSelect, EmptyState, Field, PopupDialog, SidePanel, Switch } from './ui';
+import { CustomSelect, EmptyState, Field, PopupDialog, SidePanel, Switch } from './ui';
 import '../access.css';
+import { LabelBadge } from './badges';
 
 // Permissões por escopo e tokens de API (Configurações). O servidor decide (apps/api/auth_scopes.go,
 // auth_tokens.go); aqui só se mostra, se edita e se envia. Os perfis são presets de escopos.
@@ -229,7 +230,7 @@ function PersonAccess({ member, catalog, saved, onSaved }: { member: TeamMember;
           <span className="text-muted">{member.email}</span>
         </div>
         <div className="acc-detail-badges">
-          <Badge tone={ROLE_TONE[role]}>{ROLE_LABEL[role]}</Badge>
+          <LabelBadge tone={ROLE_TONE[role]}>{ROLE_LABEL[role]}</LabelBadge>
           {custom && <span className="acc-pill">Personalizado</span>}
           <span className="acc-pill acc-pill-count"><ShieldCheck size={12} /> {selected.size} de {total} permissões</span>
         </div>

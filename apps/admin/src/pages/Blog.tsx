@@ -14,7 +14,7 @@ import { formatDate } from '../lib/format';
 import { createArticle, deleteArticle, listArticles, updateArticle, uploadImage, uploadImageNotifying, getBlogSettings, updateBlogSettings, checkSlugAvailable, listBlogCategories, createBlogCategory, updateBlogCategory, deleteBlogCategory, reorderBlogCategories } from '../lib/blog';
 import type { ArticleInput, BlogSettings, BlogCategoryInput } from '../lib/blog';
 import { teamStore } from '../mocks/team';
-import { Badge, EmptyState, ErrorBanner, Field, Page, PageHeader, Pagination, PopupDialog, SearchBox, Tabs } from '../components/ui';
+import { EmptyState, ErrorBanner, Field, Page, PageHeader, Pagination, PopupDialog, SearchBox, Tabs } from '../components/ui';
 import { useStore } from '../lib/store';
 import { usePaged } from '../lib/usePaged';
 import { useShell } from '../lib/shell';
@@ -22,6 +22,7 @@ import { resolveAssetUrl } from '../lib/site';
 import { PreviewFrame } from '../components/PreviewFrame';
 import type { PreviewFocus } from '../components/PreviewFrame';
 import GalleryEditor from './GalleryEditor';
+import { StatusBadge, LabelBadge } from '../components/badges';
 
 type Filter = 'SETTINGS' | 'CATEGORIES' | 'ALL' | 'PUBLISHED' | 'DRAFT';
 
@@ -220,9 +221,9 @@ export default function Blog({ postId }: { postId?: string }) {
                             <span className="text-xs text-muted mono">/blog/{a.slug || '…'}</span>
                           </div>
                         </td>
-                        <td data-label="Status"><Badge tone={a.published ? 'success' : 'neutral'}>{a.published ? 'Publicado' : 'Rascunho'}</Badge></td>
+                        <td data-label="Status"><StatusBadge tone={a.published ? 'success' : 'neutral'}>{a.published ? 'Publicado' : 'Rascunho'}</StatusBadge></td>
                         <td data-label="Autor">{a.authorName}</td>
-                        <td data-label="Categorias"><div className="tag-row">{a.categories.map((t) => <span key={t} className="tag">{t}</span>)}</div></td>
+                        <td data-label="Categorias"><div className="tag-row">{a.categories.map((t) => <LabelBadge key={t}>{t}</LabelBadge>)}</div></td>
                         <td className="text-muted" data-label="Atualizado">{formatDate(a.updatedAt)}</td>
                       </tr>
                     ))}
@@ -510,7 +511,7 @@ function BlogCategoriesManager({
                     <span className="text-xs text-muted">{cat.description || '—'}</span>
                   </td>
                   <td data-label="Artigos">
-                    <Badge tone="neutral">{countFor(cat.name)}</Badge>
+                    <LabelBadge tone="neutral">{countFor(cat.name)}</LabelBadge>
                   </td>
                   <td data-label="Filtro no /blog">
                     <button
@@ -1026,10 +1027,10 @@ function ArticleEditor({ article, isNew, otherArticles, blogCategories, onCatego
         title={title || (isGlobal ? 'Galeria Principal do Blog' : 'Novo artigo')}
         subtitle={
           <>
-            <Badge tone={published ? 'success' : 'neutral'}>
+            <StatusBadge tone={published ? 'success' : 'neutral'}>
               {published ? 'Publicado' : 'Rascunho'}
-            </Badge>
-            {featured && <Badge tone="warning"><Star size={10} /> Destaque</Badge>}
+            </StatusBadge>
+            {featured && <LabelBadge tone="warning"><Star size={10} /> Destaque</LabelBadge>}
             {saveError ? (
               <span style={{ color: '#ef4444' }}>{saveError}</span>
             ) : saved ? (

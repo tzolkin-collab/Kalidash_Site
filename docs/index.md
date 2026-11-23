@@ -36,6 +36,7 @@ A arquitetura é dividida em site + admin + API em Go + banco MySQL em VPS. O st
 * [Bench de dados: o que os outros CRMs guardam](./benchmark-dados.md)
 * [Bench: eventos padronizados, templates de ciclo de vida e tarefas por evento](./benchmark-ciclo-de-vida.md)
 * [Notificações: erros, avisos e notificações personalizáveis](./notificacoes.md)
+* [Selos do admin: o conjunto fechado e qual usar](./selos.md) *(travado por teste)*
 * [Gatilhos personalizados: webhooks de entrada e eventos por pipeline](./gatilhos-personalizados.md)
 * [Decisões Arquitetônicas (Vite vs Next, Go vs Node, MySQL sem Redis)](./architecture-decisions.md)
 * [Design do site × conteúdo do admin: contrato de atributos (blog e Home)](./blog-design-contrato.md)

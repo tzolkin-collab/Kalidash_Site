@@ -31,8 +31,9 @@ import { lostReasonsFor } from '../lib/lostReasons';
 import OpportunityDetail from '../components/OpportunityDetail';
 import Peek from '../components/Peek';
 import ViewSettingsPopover from '../components/ViewSettingsPopover';
-import { Badge, EmptyState, ErrorBanner, Pagination, SearchBox } from '../components/ui';
+import { EmptyState, ErrorBanner, Pagination, SearchBox } from '../components/ui';
 import { TagManagerButton } from '../components/TagsAdmin';
+import { LabelBadge } from '../components/badges';
 
 const ALL = 'Visão Geral';
 
@@ -283,7 +284,7 @@ export default function Opportunities() {
     <div key={l.id} className="card lead-card" onClick={() => navigate('/leads')} title="Abrir na página Leads">
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', gap: '8px' }}>
         <span className="text-sm font-semibold">{l.name}</span>
-        <Badge tone="accent">Lead</Badge>
+        <LabelBadge tone="accent">Lead</LabelBadge>
       </div>
       <div className="text-xs text-muted" style={{ marginBottom: '8px' }}>
         <SourceName name={l.sourceName} origin={l.origin} />
@@ -301,7 +302,7 @@ export default function Opportunities() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <col.Icon size={16} color={col.color} strokeWidth={2.5} />
               <span className="text-sm font-semibold">{col.title}</span>
-              <span className="tag" style={{ marginLeft: '4px', border: 'none', background: 'var(--bg-app)' }}>{items.length}</span>
+              <span className="tab-count" style={{ marginLeft: '4px' }}>{items.length}</span>
             </div>
             <MoreHorizontal size={16} className="text-muted" />
           </div>
@@ -461,7 +462,7 @@ export default function Opportunities() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Users size={16} className="text-muted" />
                       <span className="text-sm font-semibold">{col.title}</span>
-                      <span className="tag" style={{ marginLeft: '4px', border: 'none', background: 'var(--bg-app)' }}>{items.length}</span>
+                      <span className="tab-count" style={{ marginLeft: '4px' }}>{items.length}</span>
                     </div>
                     <div className="text-xs text-muted" style={{ marginTop: '4px' }}>{col.hint} · leads não entram no valor</div>
                   </div>

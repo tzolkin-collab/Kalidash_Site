@@ -27,7 +27,8 @@ import { GROUPS, WIDGETS, WIDGET_BY_ID } from '../components/dashboard/widgets';
 import ChartBuilder from '../components/dashboard/ChartBuilder';
 import ChartWidget from '../components/dashboard/ChartWidget';
 import type { DashData } from '../components/dashboard/widgets';
-import { Badge, CustomSelect, EmptyState, ErrorBanner, Page, PageHeader, PopupDialog, SidePanel } from '../components/ui';
+import { CustomSelect, EmptyState, ErrorBanner, Page, PageHeader, PopupDialog, SidePanel } from '../components/ui';
+import { SampleBadge } from '../components/badges';
 
 // A Dashboard é uma grade de widgets (components/dashboard/widgets.tsx). Cada pessoa escolhe o que ver, em que
 // ordem e com que largura (modo "Personalizar"); o layout fica no navegador (lib/dashboardLayout.ts).
@@ -254,7 +255,7 @@ export default function Dashboard() {
                       }}
                       onDragEnd={() => { setDragId(null); setOverId(null); }}
                     ><GripVertical size={15} /></span>
-                    <span className="dash-edit-title" title={def.title}>{def.title}{def.example && <Badge tone="info">Exemplo</Badge>}</span>
+                    <span className="dash-edit-title" title={def.title}>{def.title}{def.example && <SampleBadge />}</span>
                     <CustomSelect
                       className="select select-sm dash-width"
                       value={String(item.span)}
@@ -307,7 +308,7 @@ export default function Dashboard() {
                     <li key={w.id} className="row-item">
                       <w.Icon size={16} aria-hidden="true" style={{ flexShrink: 0, color: 'var(--text-muted)' }} />
                       <div className="cell-stack">
-                        <span className="cell-primary">{w.title}{w.example && <> <Badge tone="info">Exemplo</Badge></>}</span>
+                        <span className="cell-primary">{w.title}{w.example && <> <SampleBadge /></>}</span>
                         <span className="text-xs text-muted">{w.description}</span>
                       </div>
                       {added

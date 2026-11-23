@@ -14,7 +14,8 @@ import {
 import type { Article, BlogCategory } from '../domain';
 import { updateArticle, type ArticleInput } from '../lib/blog';
 import { PreviewFrame } from '../components/PreviewFrame';
-import { Badge, Page, PageHeader } from '../components/ui';
+import { Page, PageHeader } from '../components/ui';
+import { LabelBadge } from '../components/badges';
 
 type GalleryItemState = {
   id: string;
@@ -367,7 +368,7 @@ export default function GalleryEditor({
         title="Galeria Principal do Blog"
         subtitle={
           <>
-            <Badge tone="success">Página Inicial /blog</Badge>
+            <LabelBadge tone="success">Página Inicial /blog</LabelBadge>
             {savedSuccess ? (
               <span style={{ color: '#10b981', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                 <Check size={14} /> Salvo com sucesso!
@@ -459,7 +460,7 @@ export default function GalleryEditor({
                       <Sparkles size={18} style={{ color: 'var(--accent)' }} />
                       Abertura Editorial (Hero da Galeria)
                     </h3>
-                    <Badge tone="accent" variant="line">Cabeçalho</Badge>
+                    <LabelBadge tone="accent">Cabeçalho</LabelBadge>
                   </div>
                   <p className="gallery-card-desc">
                     O cabeçalho do blog no site é organizado em duas colunas no desktop: chapéu + título na esquerda e descrição institucional na direita com divisória visual.
@@ -556,7 +557,7 @@ export default function GalleryEditor({
                       <Star size={18} style={{ color: '#eab308' }} />
                       Artigo em Destaque Principal
                     </h3>
-                    <Badge tone="warning">★ Topo da Vitrine</Badge>
+                    <LabelBadge tone="warning">★ Topo da Vitrine</LabelBadge>
                   </div>
                   <p className="gallery-card-desc">
                     O primeiro artigo visível da galeria ganha o formato expandido no topo da grade do site, com imagem ampliada e resumo em evidência.
@@ -658,9 +659,9 @@ export default function GalleryEditor({
                       <Layers size={18} style={{ color: 'var(--accent)' }} />
                       Curadoria e Ordem dos Artigos
                     </h3>
-                    <Badge tone="neutral">
+                    <LabelBadge tone="neutral">
                       {items.filter((a) => a.visible).length} visíveis · {items.filter((a) => !a.visible).length} ocultos
-                    </Badge>
+                    </LabelBadge>
                   </div>
                   <p className="gallery-card-desc">
                     Defina a posição de cada postagem na grade pública. Você pode mudar a ordem pelas setas, definir novo destaque ou alterar/remover a categoria do artigo direto aqui.
