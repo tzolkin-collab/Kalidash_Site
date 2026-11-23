@@ -1,11 +1,8 @@
 import { isSiteSource, shortSource } from '../lib/sourceName';
+import { SourceBadge } from './FieldBadge';
 
-/** Fonte do lead em forma curta, com o ícone do site (public/site-icon.svg, o mesmo do site) quando vem do site. O nome completo fica no title. */
+/** Fonte do lead em forma curta, no selo de Origem, com o ícone do site (public/site-icon.svg) quando vem do site. O nome completo fica no title. */
 export default function SourceName({ name, prefix }: { name: string; prefix?: string }) {
-  return (
-    <span title={name} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', minWidth: 0 }}>
-      {isSiteSource(name) && <img src="/site-icon.svg" alt="" width={14} height={14} style={{ flexShrink: 0, borderRadius: 3 }} />}
-      <span>{prefix}{shortSource(name)}</span>
-    </span>
-  );
+  const icon = isSiteSource(name) ? <img src="/site-icon.svg" alt="" width={12} height={12} style={{ flexShrink: 0, borderRadius: 3 }} /> : undefined;
+  return <SourceBadge title={name} icon={icon}>{prefix}{shortSource(name)}</SourceBadge>;
 }

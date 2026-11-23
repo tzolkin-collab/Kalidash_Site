@@ -1,3 +1,4 @@
+import { TaskStatusPicker } from './FieldBadge';
 import { useMemo, useState } from 'react';
 import { Check, Circle, Pencil, Trash2, X } from 'lucide-react';
 import type { EntityKind, TaskItem } from '../domain';
@@ -5,7 +6,7 @@ import { emit } from '../lib/events';
 import type { EventContext } from '../lib/events';
 import { formatDate } from '../lib/format';
 import { logChange, useHistory } from '../lib/history';
-import { canDeleteTask, dateToDueAt, deleteTask, editTask, toggleTask } from '../lib/taskActions';
+import { canDeleteTask, dateToDueAt, deleteTask, editTask, setTaskStatus, toggleTask } from '../lib/taskActions';
 import { describeChange } from '../lib/historyText';
 import { useStore } from '../lib/store';
 import { pipelinesStore } from '../mocks/pipelines';
@@ -126,7 +127,7 @@ export function TasksTab({ entity, id, name, ctx }: { entity: EntityKind; id: st
                 {t.done && t.doneAt && <> · concluída em {formatDate(t.doneAt)}</>}
               </span>
             </div>
-            <div className="tag-row"><Badge tone="accent">{t.tag}</Badge><Badge>{t.source === 'passo' ? 'Passo do ciclo' : t.source === 'requisito' ? 'Requisito' : 'Manual'}</Badge>
+            <div className="tag-row"><TaskStatusPicker task={t} onChange={(s) => setTaskStatus(t, s)} /><Badge tone="accent">{t.tag}</Badge><Badge>{t.source === 'passo' ? 'Passo do ciclo' : t.source === 'requisito' ? 'Requisito' : 'Manual'}</Badge>
               <button type="button" className="btn btn-ghost btn-sm" onClick={() => startEdit(t)} aria-label="Editar tarefa"><Pencil size={14} /></button>
               {/* Tarefa de requisito não se exclui: o gate a recriaria na próxima checagem. */}
               {canDeleteTask(t) && <button type="button" className="btn btn-ghost btn-sm" onClick={() => remove(t)} aria-label="Excluir tarefa"><Trash2 size={14} /></button>}

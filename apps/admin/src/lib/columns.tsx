@@ -1,3 +1,4 @@
+import { PriorityBadge } from '../components/FieldBadge';
 import type { ReactNode } from 'react';
 import type { Opportunity } from '../types';
 import { formatCurrency, formatDate } from './format';
@@ -16,9 +17,6 @@ export type ColumnDef = {
   render: (opp: Opportunity) => ReactNode;
 };
 
-const PRIORITIES: Record<string, string> = { LOW: 'Baixa', MEDIUM: 'Média', HIGH: 'Alta' };
-const priorityLabel = (priority: string) => PRIORITIES[priority] ?? priority;
-
 const dash = <span className="text-muted">—</span>;
 
 export const SYSTEM_COLUMNS: ColumnDef[] = [
@@ -27,7 +25,7 @@ export const SYSTEM_COLUMNS: ColumnDef[] = [
   { id: 'stage', label: 'Estágio', group: 'system', removable: true, render: (o) => <StageBadge stage={o.stage} opp={o} /> },
   { id: 'tags', label: 'Tags', group: 'system', removable: true, render: (o) => <Tags tags={o.tags} /> },
   { id: 'value', label: 'Valor', group: 'system', removable: true, render: (o) => (o.isLead ? dash : <span className="font-medium" style={{ whiteSpace: 'nowrap' }}>{formatCurrency(o.value)}</span>) },
-  { id: 'priority', label: 'Prioridade', group: 'system', removable: true, render: (o) => (o.priority ? <span className="tag">{priorityLabel(o.priority)}</span> : dash) },
+  { id: 'priority', label: 'Prioridade', group: 'system', removable: true, render: (o) => (o.priority ? <PriorityBadge priority={o.priority} /> : dash) },
   { id: 'owner', label: 'Dono', group: 'system', removable: true, render: (o) => <Owner opp={o} /> },
   { id: 'contact', label: 'Contato', group: 'system', removable: true, render: (o) => o.contactName ?? dash },
   { id: 'company', label: 'Empresa', group: 'system', removable: true, render: (o) => o.companyName ?? dash },

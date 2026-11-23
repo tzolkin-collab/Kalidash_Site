@@ -1,3 +1,4 @@
+import TagChip from '../components/TagChip';
 import SourceName from '../components/SourceName';
 import { useMemo, useState } from 'react';
 import { ArrowRightCircle, Plus, XCircle } from 'lucide-react';
@@ -140,7 +141,7 @@ export default function Leads() {
                   </td>
                   <td data-label="Dono">{ownerLabel(l) ?? <span className="text-muted">Sem dono</span>}</td>
                   <td data-label="Valor est." className="cell-num">{l.estimatedValue ? formatCurrency(l.estimatedValue) : <span className="text-muted">—</span>}</td>
-                  <td data-label="Tags">{l.tags.length > 0 ? <div className="tag-row">{l.tags.map((t) => <span key={t} className="tag">{t}</span>)}</div> : <span className="text-muted">—</span>}</td>
+                  <td data-label="Tags">{l.tags.length > 0 ? <div className="tag-row">{l.tags.map((t) => <TagChip key={t} name={t} />)}</div> : <span className="text-muted">—</span>}</td>
                   <td data-label="Entrou em" className="text-muted cell-num">{formatDate(l.createdAt)}</td>
                   <td onClick={(e) => e.stopPropagation()}>
                     <div className="row-actions">

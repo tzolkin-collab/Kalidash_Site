@@ -1,3 +1,4 @@
+import { statusOf } from './taskStatus.ts';
 import type { Pipeline, TaskItem } from '../domain';
 import { writableSources } from './sourceLink.ts';
 
@@ -67,14 +68,14 @@ export const isSyncableTask = (t: TaskItem, crm = false) =>
   (t.entity === 'opportunity' && isRealOpportunityId(t.entityId)) || (crm && (t.entity === 'lead' || t.entity === 'person' || t.entity === 'company'));
 
 export function taskProjection(t: TaskItem): string {
-  return JSON.stringify([t.title, t.tag, t.assignee ?? null, t.dueAt ?? null, t.done]);
+  return JSON.stringify([t.title, t.tag, t.assignee ?? null, t.dueAt ?? null, t.done, statusOf(t)]);
 }
 
 /**
  * Corpo do PUT /api/tasks/{id}. Prazo e responsável vazios vão como `null` (B-07): `undefined` some do JSON e o
  * servidor entende "não enviado", então limpar o campo na ficha voltava no F5. O servidor aceitar `null` é do WP4-1.
  */
-export const taskUpdateBody = (t: TaskItem) => ({ title: t.title, tag: t.tag, assignee: t.assignee ?? null, dueAt: t.dueAt ?? null, done: t.done });
+export const taskUpdateBody = (t: TaskItem) => ({ title: t.title, tag: t.tag, assignee: t.assignee ?? null, dueAt: t.dueAt ?? null, done: t.done, status: statusOf(t) });
 
 export type TaskChanges = { create: TaskItem[]; update: TaskItem[]; remove: string[] };
 

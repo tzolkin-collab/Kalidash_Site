@@ -1,3 +1,4 @@
+import TagChip from '../components/TagChip';
 import SourceName from '../components/SourceName';
 import { shortSource } from '../lib/sourceName';
 import React, { useCallback, useMemo, useState } from 'react';
@@ -262,7 +263,7 @@ export default function Opportunities() {
         </div>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', gap: '4px' }}>{opp.tags && opp.tags.map((t) => <span key={t} className="tag">{t}</span>)}</div>
+        <div style={{ display: 'flex', gap: '4px' }}>{opp.tags && opp.tags.map((t) => <TagChip key={t} name={t} />)}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span className="text-sm font-semibold text-muted">{formatCurrency(opp.value)}</span>
           <div className="avatar-stack">
@@ -286,7 +287,7 @@ export default function Opportunities() {
       <div className="text-xs text-muted" style={{ marginBottom: '8px' }}>
         <SourceName name={l.sourceName} prefix={l.origin === 'INBOUND' ? undefined : 'Trouxe: '} />
       </div>
-      <div className="tag-row">{l.tags.map((t) => <span key={t} className="tag">{t}</span>)}</div>
+      <div className="tag-row">{l.tags.map((t) => <TagChip key={t} name={t} />)}</div>
     </div>
   );
 

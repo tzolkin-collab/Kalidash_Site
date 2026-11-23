@@ -206,6 +206,11 @@ export default function App() {
                 <a href="#" className="nav-link" onClick={toggleTheme}>
                   {isDarkMode ? <><Sun size={18} className="nav-icon" strokeWidth={2} /> Usar tema claro</> : <><Moon size={18} className="nav-icon" strokeWidth={2} /> Usar tema escuro</>}
                 </a>
+                {auth.status === 'in' && (
+                  <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); void logout(); }}>
+                    <LogOut size={18} className="nav-icon" strokeWidth={2} /> Sair
+                  </a>
+                )}
               </div>
             </nav>
             {currentUser && (

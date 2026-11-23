@@ -214,6 +214,8 @@ func routeScope(r *http.Request) (scope string, public bool) {
 		return pick("pipelines:read", "pipelines:manage"), false
 	case strings.HasPrefix(p, "/api/tasks"):
 		return pick("tasks:read", "tasks:write"), false
+	case strings.HasPrefix(p, "/api/tags"):
+		return pick("leads:read", "leads:write"), false // catálogo de categorias das tags (tags.go): quem lê e edita leads
 	case p == "/api/gate/check":
 		return "tasks:read", false // confere requisitos de etapa; consulta pura desde o WP4-1 (não grava tarefa)
 	case strings.HasPrefix(p, "/api/crm/people/") && strings.HasSuffix(p, "/document"):

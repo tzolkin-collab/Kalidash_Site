@@ -100,9 +100,18 @@ test('B-10: com a API ligada, oportunidade de exemplo nunca aparece; fora dela, 
 
 test('B-07: limpar prazo ou responsável envia null no PUT; preenchidos seguem como estão', () => {
   const limpa = JSON.parse(JSON.stringify(taskUpdateBody(task({ assignee: undefined, dueAt: undefined, done: true }))));
-  assert.deepEqual(limpa, { title: 'Ligar', tag: 'Comercial', assignee: null, dueAt: null, done: true });
+  assert.deepEqual(limpa, { title: 'Ligar', tag: 'Comercial', assignee: null, dueAt: null, done: true, status: 'DONE' });
   assert.ok('dueAt' in limpa && 'assignee' in limpa); // as chaves existem no JSON (undefined sumiria)
   const cheia = taskUpdateBody(task({ assignee: 'Diego', dueAt: '2026-10-30T00:00:00Z' }));
   assert.equal(cheia.assignee, 'Diego');
   assert.equal(cheia.dueAt, '2026-10-30T00:00:00Z');
+});
+
+test('status da tarefa vai no PUT e mudar só o status já conta como alteração (sincroniza)', () => {
+  assert.equal(taskUpdateBody(task({ done: false })).status, 'TODO'); // tarefa sem status: A fazer
+  assert.equal(taskUpdateBody(task({ done: false, status: 'BLOCKED' })).status, 'BLOCKED');
+  assert.equal(taskUpdateBody(task({ done: true, status: 'DOING' })).status, 'DONE'); // concluída é sempre DONE
+  assert.notEqual(taskProjection(task({ done: false, status: 'TODO' })), taskProjection(task({ done: false, status: 'DOING' })));
+  const snap = new Map([['t1', taskProjection(task({ id: 't1', done: false, status: 'TODO' }))]]);
+  assert.deepEqual(diffTasks(snap, [task({ id: 't1', done: false, status: 'DOING' })]).update.map((t) => t.id), ['t1']);
 });
