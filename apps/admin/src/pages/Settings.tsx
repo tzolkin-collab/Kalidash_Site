@@ -132,7 +132,7 @@ function ProfileTab() {
       <section className="panel-card profile-card" style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
         <div style={{ position: 'relative', width: '72px', height: '72px' }}>
           {me.avatarUrl ? (
-            <img src={me.avatarUrl} alt={me.name} className="avatar profile-avatar" style={{ width: '72px', height: '72px', borderRadius: '50%', objectFit: 'cover' }} />
+            <img src={me.avatarUrl} alt={me.name} referrerPolicy="no-referrer" className="avatar profile-avatar" style={{ width: '72px', height: '72px', borderRadius: '50%', objectFit: 'cover' }} />
           ) : (
             <span className="avatar profile-avatar" style={{ width: '72px', height: '72px', fontSize: '24px' }}>{initials(me.name)}</span>
           )}
@@ -280,7 +280,7 @@ function TeamTab() {
               {team.map((m) => (
                 <tr key={m.id}>
                   <td><div className="cell-avatar">{m.avatarUrl ? (
-                    <img src={m.avatarUrl} alt={m.name} className="avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
+                    <img src={m.avatarUrl} alt={m.name} referrerPolicy="no-referrer" className="avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
                   ) : (
                     <span className="avatar">{initials(m.name)}</span>
                   )}<div className="cell-stack"><span className="cell-primary">{m.name}{m.id === meId && <span className="text-muted"> (você)</span>}{m.root && <span className="text-muted"> · raiz</span>}</span><span className="text-xs text-muted">{m.email}</span></div></div></td>

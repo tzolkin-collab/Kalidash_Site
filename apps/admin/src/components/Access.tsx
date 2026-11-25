@@ -148,7 +148,7 @@ export function PermissionsTab() {
           const custom = (m.scopesExtra?.length ?? 0) + (m.scopesDenied?.length ?? 0) > 0;
           return (
             <button key={m.id} type="button" className={`acc-person ${current?.id === m.id ? 'active' : ''}`} onClick={() => { setSel(m.id); setSavedId(undefined); }} aria-current={current?.id === m.id}>
-              <span className="avatar">{initials(m.name)}</span>
+              {m.avatarUrl ? <img src={m.avatarUrl} alt="" className="avatar" referrerPolicy="no-referrer" style={{ objectFit: 'cover' }} /> : <span className="avatar">{initials(m.name)}</span>}
               <span className="acc-person-main">
                 <span className="acc-person-name">{m.name}{m.id === auth.user?.id && <span className="text-muted"> (você)</span>}</span>
                 <span className="acc-person-meta">
@@ -223,7 +223,7 @@ function PersonAccess({ member, catalog, saved, onSaved }: { member: TeamMember;
   return (
     <div className="acc-detail">
       <header className="acc-detail-head">
-        <span className="avatar acc-avatar">{initials(member.name)}</span>
+        {member.avatarUrl ? <img src={member.avatarUrl} alt="" className="avatar acc-avatar" referrerPolicy="no-referrer" style={{ objectFit: 'cover' }} /> : <span className="avatar acc-avatar">{initials(member.name)}</span>}
         <div className="acc-detail-id">
           <h2>{member.name}</h2>
           <span className="text-muted">{member.email}</span>

@@ -207,8 +207,10 @@ func routeScope(r *http.Request) (scope string, public bool) {
 		return pick("team:read", "team:manage"), false // a lista alimenta os seletores de responsável de qualquer tela
 	case strings.HasPrefix(p, "/api/tokens"):
 		return "keys:manage", false
-	case p == "/api/mcp" || p == "/api/mcp/info":
-		return "mcp:use", false // servidor MCP; cada ferramenta confere o escopo da própria rota (mcp.go)
+	case p == "/api/oauth/consent":
+		return "", false // consentimento do OAuth do MCP: só a pessoa logada (token nunca), mcp_oauth.go
+	case p == "/api/mcp" || strings.HasPrefix(p, "/api/mcp/"):
+		return "mcp:use", false // servidor MCP, info e conexões; cada ferramenta confere o escopo da própria rota (mcp.go)
 	case p == "/api/access/catalog":
 		return "", false // catálogo de escopos e presets: qualquer pessoa logada (a tela de permissões lê)
 	case strings.HasPrefix(p, "/api/blog/"):

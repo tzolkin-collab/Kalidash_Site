@@ -141,7 +141,7 @@ func isWrite(method string) bool {
 func withAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		scope, public := routeScope(r)
-		if r.URL.Path == "/api/public/leads" || strings.HasPrefix(r.URL.Path, "/api/connect/") {
+		if r.URL.Path == "/api/public/leads" || strings.HasPrefix(r.URL.Path, "/api/connect/") || oauthBypass(r.URL.Path) {
 			next.ServeHTTP(w, r) // CORS e autenticação próprios (public_leads.go, connect_ingest.go)
 			return
 		}
@@ -167,7 +167,21 @@ func withAuth(next http.Handler) http.Handler {
 			return
 		}
 		var m Member
-		if secret, has := bearerToken(r); has {
+		ctx := r.Context()
+		if secret, has := bearerToken(r); has && isOAuthAccessToken(secret) {
+			// Agente conectado por OAuth (mcp_oauth.go): age como a pessoa que aprovou, e só no /api/mcp.
+			var caller mcpCaller
+			var err error
+			if m, caller, err = oauthPrincipal(secret); err != nil {
+				mcpUnauthorized(w, r, "invalid_token", "token do agente inválido, expirado ou revogado")
+				return
+			}
+			if r.URL.Path != "/api/mcp" {
+				writeAuthErr(w, http.StatusForbidden, "o token do agente só alcança /api/mcp")
+				return
+			}
+			ctx = withMCPCaller(ctx, caller)
+		} else if has {
 			var err error
 			if m, _, err = tokenPrincipal(r, secret); err != nil {
 				if errors.Is(err, errTokenInvalid) {
@@ -185,6 +199,10 @@ func withAuth(next http.Handler) http.Handler {
 		} else {
 			var ok bool
 			if m, ok = sessionMember(w, r); !ok {
+				if r.URL.Path == "/api/mcp" {
+					mcpUnauthorized(w, r, "", "conecte o agente pelo OAuth ou use um token de API")
+					return
+				}
 				writeAuthErr(w, http.StatusUnauthorized, "faça login")
 				return
 			}
@@ -193,7 +211,7 @@ func withAuth(next http.Handler) http.Handler {
 			writeAuthErr(w, http.StatusForbidden, "falta a permissão "+scope)
 			return
 		}
-		next.ServeHTTP(w, r.WithContext(withPrincipal(r.Context(), m)))
+		next.ServeHTTP(w, r.WithContext(withPrincipal(ctx, m)))
 	})
 }
 

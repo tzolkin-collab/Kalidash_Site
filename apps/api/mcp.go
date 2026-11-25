@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -363,8 +364,14 @@ func handleMCP(w http.ResponseWriter, r *http.Request) {
 	case "initialize":
 		var p struct {
 			ProtocolVersion string `json:"protocolVersion"`
+			ClientInfo      struct {
+				Name    string `json:"name"`
+				Title   string `json:"title"`
+				Version string `json:"version"`
+			} `json:"clientInfo"`
 		}
 		_ = json.Unmarshal(req.Params, &p)
+		rememberClientInfo(m, firstNonEmpty(p.ClientInfo.Title, p.ClientInfo.Name), p.ClientInfo.Version)
 		version := mcpProtocolLatest
 		if mcpProtocols[p.ProtocolVersion] {
 			version = p.ProtocolVersion
@@ -411,7 +418,7 @@ func handleMCP(w http.ResponseWriter, r *http.Request) {
 		}
 		start := time.Now()
 		text, isErr := runMCPTool(r, m, t, p.Arguments)
-		mcpRecord(m, t.Name, !isErr, time.Since(start))
+		mcpRecord(mcpCallerOf(r, m), t.Name, !isErr, time.Since(start))
 		writeRPC(w, req.ID, map[string]any{"content": []map[string]any{{"type": "text", "text": text}}, "isError": isErr}, nil)
 	default:
 		writeRPC(w, req.ID, nil, &rpcError{-32601, "método não suportado: " + req.Method})
@@ -466,14 +473,73 @@ func runMCPTool(r *http.Request, m Member, t *mcpTool, args map[string]any) (str
 	return out, false
 }
 
+// ---- quem chama ----
+
+// mcpCaller: o provedor e a pessoa por trás de uma chamada, para a aba MCP mostrar nome e logo.
+// Kind: oauth (agente conectado por OAuth), token (token de API) ou session (pessoa logada no admin).
+type mcpCaller struct {
+	Kind     string `json:"kind"`
+	Provider string `json:"provider"`
+	Version  string `json:"version,omitempty"`
+	LogoURI  string `json:"logoUri,omitempty"`
+	Domain   string `json:"domain,omitempty"`
+	Person   string `json:"person"`
+}
+
+type callerKey struct{}
+
+func withMCPCaller(ctx context.Context, c mcpCaller) context.Context {
+	return context.WithValue(ctx, callerKey{}, c)
+}
+
+type clientInfo struct{ Name, Version string }
+
+var (
+	clientInfoMu sync.Mutex
+	clientInfos  = map[string]clientInfo{} // principal → o clientInfo do último initialize
+)
+
+func rememberClientInfo(m Member, name, version string) {
+	if name == "" {
+		return
+	}
+	clientInfoMu.Lock()
+	defer clientInfoMu.Unlock()
+	if len(clientInfos) > 500 {
+		clientInfos = map[string]clientInfo{}
+	}
+	clientInfos[m.ID] = clientInfo{clip(name, 80), clip(version, 40)}
+}
+
+func mcpCallerOf(r *http.Request, m Member) mcpCaller {
+	clientInfoMu.Lock()
+	info := clientInfos[m.ID]
+	clientInfoMu.Unlock()
+	if c, ok := r.Context().Value(callerKey{}).(mcpCaller); ok {
+		c.Version = info.Version
+		return c
+	}
+	c := mcpCaller{Kind: "session", Provider: info.Name, Version: info.Version, Person: firstNonEmpty(m.Name, m.Email)}
+	if isTokenPrincipal(m) {
+		c.Kind = "token"
+		c.Person = strings.TrimPrefix(m.Name, tokenAuthLabel)
+	}
+	if c.Provider == "" {
+		c.Provider = map[string]string{"token": "Token de API", "session": "Admin (sessão)"}[c.Kind]
+	} else {
+		c.Domain = providerDomain(c.Provider, "", nil)
+	}
+	return c
+}
+
 // ---- últimas chamadas (memória) ----
 
 type mcpCall struct {
-	At    time.Time `json:"at"`
-	Actor string    `json:"actor"`
-	Tool  string    `json:"tool"`
-	OK    bool      `json:"ok"`
-	MS    int64     `json:"ms"`
+	At time.Time `json:"at"`
+	mcpCaller
+	Tool string `json:"tool"`
+	OK   bool   `json:"ok"`
+	MS   int64  `json:"ms"`
 }
 
 var (
@@ -481,14 +547,10 @@ var (
 	mcpCalls   []mcpCall
 )
 
-func mcpRecord(m Member, tool string, ok bool, d time.Duration) {
-	actor := m.Name
-	if actor == "" {
-		actor = m.Email
-	}
+func mcpRecord(c mcpCaller, tool string, ok bool, d time.Duration) {
 	mcpCallsMu.Lock()
 	defer mcpCallsMu.Unlock()
-	mcpCalls = append([]mcpCall{{At: time.Now(), Actor: actor, Tool: tool, OK: ok, MS: d.Milliseconds()}}, mcpCalls...)
+	mcpCalls = append([]mcpCall{{At: time.Now(), mcpCaller: c, Tool: tool, OK: ok, MS: d.Milliseconds()}}, mcpCalls...)
 	if len(mcpCalls) > 50 {
 		mcpCalls = mcpCalls[:50]
 	}

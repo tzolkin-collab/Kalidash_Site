@@ -13,6 +13,7 @@ import PeopleCompanies from './pages/PeopleCompanies';
 import PipelineSettings from './pages/PipelineSettings';
 import Projects from './pages/Projects';
 import Login from './pages/Login';
+import AuthorizeAgent, { OAUTH_PENDING_KEY } from './pages/AuthorizeAgent';
 import Unreachable from './pages/Unreachable';
 import SettingsPage from './pages/Settings';
 import Tasks from './pages/Tasks';
@@ -68,6 +69,15 @@ export default function App() {
   const currentUser = auth.status === 'in' && auth.user ? auth.user : localUser;
   const can = useCan();
   useEffect(() => { void initAuth(); }, []);
+  // Consentimento do OAuth do MCP: sem sessão, guarda o pedido e volta a ele depois do login (o Google devolve à raiz).
+  const isConsent = segments[0] === 'autorizar-agente';
+  useEffect(() => {
+    if (isConsent && auth.status === 'anon' && window.location.search) sessionStorage.setItem(OAUTH_PENDING_KEY, window.location.search);
+    if (!isConsent && auth.status === 'in') {
+      const pending = sessionStorage.getItem(OAUTH_PENDING_KEY);
+      if (pending) window.location.replace(`/autorizar-agente${pending}`);
+    }
+  }, [isConsent, auth.status]);
   // Os dados só são pedidos à API depois de saber quem está logado (ou que a API não exige login).
   const authSettled = auth.status === 'off' || auth.status === 'in';
   useEffect(() => {
@@ -112,6 +122,7 @@ export default function App() {
 
   if (auth.status === 'loading') return <div className="app-wrapper"><Loading /></div>;
   if (auth.status === 'anon') return <div className="app-wrapper"><Login /></div>;
+  if (isConsent && auth.status === 'in') return <div className="app-wrapper"><AuthorizeAgent /></div>;
   if (auth.status === 'unreachable') return <div className="app-wrapper"><Unreachable /></div>;
   if (auth.status === 'nologin') return <div className="app-wrapper"><Unreachable nologin /></div>;
 
@@ -224,7 +235,7 @@ export default function App() {
                 title="Ver perfil nas configurações"
               >
                 {currentUser.avatarUrl ? (
-                  <img src={currentUser.avatarUrl} alt={currentUser.name} className="avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
+                  <img src={currentUser.avatarUrl} alt={currentUser.name} referrerPolicy="no-referrer" className="avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
                 ) : (
                   <span className="avatar">{initials(currentUser.name || currentUser.email)}</span>
                 )}
