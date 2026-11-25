@@ -92,6 +92,9 @@ func initDB() {
 	if authEnabled() {
 		ensureAuthSchema()
 	}
+	if emailAutomationsEnabled() {
+		ensureEmailSchema()
+	}
 	if connectEnabled() {
 		ensureConnectSchema()
 	}
@@ -232,6 +235,9 @@ func handleMoveOpportunity(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+	if movedToWon(payload.Stage, won) {
+		emitOpportunityWon(payload.ID) // e-mail automático "Boas-vindas ao cliente", se ligado (um por oportunidade)
 	}
 
 	// 0 linhas afetadas também é "nada mudou" (mover para a etapa em que já está: o MySQL sem clientFoundRows
@@ -453,6 +459,10 @@ func main() {
 	}
 	if connectEnabled() {
 		registerConnectRoutes(mux)
+	}
+	if emailAutomationsEnabled() {
+		registerEmailRoutes(mux) // modelos, fluxos prontos e fila de e-mail (email_automations.go)
+		startEmailWorker()
 	}
 	var handler http.Handler = mux
 	if authEnabled() {

@@ -50,7 +50,7 @@ var scopeCatalog = []scopeDef{
 	{ID: "blog:read", Group: "Conteúdo", Label: "Ver o blog (inclui rascunhos)", Desc: "Lê rascunhos e configurações. Artigos publicados são públicos."},
 	{ID: "blog:write", Group: "Conteúdo", Label: "Escrever no blog", Desc: "Cria, edita, publica e envia imagens."},
 	{ID: "emails:send", Group: "Conteúdo", Label: "Enviar e-mails", Desc: "Dispara e-mails pela conta de envio."},
-	{ID: "automations:manage", Group: "Automação", Label: "Gerenciar automações", Desc: "Cria e altera automações e gatilhos.", Reserved: true},
+	{ID: "automations:manage", Group: "Automação", Label: "Gerenciar automações", Desc: "Liga e desliga automações e edita os modelos de e-mail que elas enviam."},
 	{ID: "forms:write", Group: "Conexão de LPs", Label: "Enviar formulários (connect.js)", Desc: "Cria leads vindos de um projeto conectado. Pode ir no HTML da página.", Publishable: true},
 	{ID: "analytics:write", Group: "Conexão de LPs", Label: "Enviar eventos (analytics)", Desc: "Pageview e origem de um projeto conectado. Pode ir no HTML.", Publishable: true, Reserved: true},
 	{ID: "ads:read", Group: "Conexão de LPs", Label: "Ler mídia paga", Desc: "Sincroniza custo e CPL das contas de anúncios. Nunca no HTML.", Reserved: true},
@@ -226,6 +226,10 @@ func routeScope(r *http.Request) (scope string, public bool) {
 		return pick("leads:read", "leads:write"), false
 	case p == "/api/emails/send":
 		return "emails:send", false
+	case strings.HasPrefix(p, "/api/email/"):
+		// Modelos, fluxos prontos e fila de e-mail (email_automations.go). Ler: quem envia e-mails; ligar fluxo,
+		// editar modelo e reenviar: Admin/Gerente (D35).
+		return pick("emails:send", "automations:manage"), false
 	}
 	// Rota sem escopo mapeado: pessoas logadas passam (como antes); token nunca (nega por padrão).
 	return "", false

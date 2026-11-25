@@ -88,6 +88,8 @@ type inboundLead struct {
 	Test     bool
 	Actor    string
 	ClientIP string
+	// EmailEvent: evento das automações de e-mail ("" = lead.criado). A newsletter usa newsletter.inscrito.
+	EmailEvent string
 }
 
 type connectStore interface {
@@ -473,6 +475,17 @@ func (sqlConnectStore) IngestLead(in inboundLead) (LeadDTO, error) {
 	}
 	if in.Form != nil {
 		if _, err := tx.Exec(`UPDATE TrackedForm SET submissions = submissions + 1, lastSubmissionAt = ? WHERE id = ? AND projectId = ?`, now, in.Form.ID, in.Project.ID); err != nil {
+			return LeadDTO{}, err
+		}
+	}
+	// Automações de e-mail (outbox): o job entra na mesma transação do lead. Envio de teste não dispara nada.
+	if !in.Test {
+		event := in.EmailEvent
+		if event == "" {
+			event = "lead.criado"
+		}
+		if _, err := enqueueEmailEvent(tx, emailEvent{Event: event, EntityKind: "lead", EntityID: id, EntityName: in.Name, To: in.Email,
+			Vars: map[string]string{"nome": in.Name}}, now); err != nil {
 			return LeadDTO{}, err
 		}
 	}

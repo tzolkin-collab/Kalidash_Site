@@ -358,6 +358,7 @@ func saveLeadV2(in leadInput, ip string) error {
 		Tags:   tags,
 		Custom: custom,
 		Actor:  "Site", ClientIP: ip,
+		EmailEvent: emailEventForSource(in.Source),
 	})
 	return err
 }
@@ -418,4 +419,12 @@ func saveLead(in leadInput) error {
 		return err
 	}
 	return tx.Commit()
+}
+
+// emailEventForSource: a inscrição da newsletter dispara o fluxo da newsletter, não o de boas-vindas ao lead.
+func emailEventForSource(source string) string {
+	if isNewsletter(source) {
+		return "newsletter.inscrito"
+	}
+	return "lead.criado"
 }
