@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS EmailJob (
 `
 
 func ensureEmailSchema() {
-	for _, stmt := range splitStatements(emailSchema) {
+	for _, stmt := range splitStatements(emailSchema + newsletterSchema) {
 		if _, err := db.Exec(stmt); err != nil {
 			log.Fatalf("❌ Erro ao criar tabelas de e-mail: %v", err)
 		}
@@ -516,6 +516,7 @@ func registerEmailRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/email/automations/{id}", enableCORS(handleEmailAutomationByID))
 	mux.HandleFunc("/api/email/jobs", enableCORS(handleEmailJobs))
 	mux.HandleFunc("/api/email/jobs/{id}/retry", enableCORS(handleEmailJobRetry))
+	registerNewsletterRoutes(mux)
 }
 
 type EmailTemplateDTO struct {

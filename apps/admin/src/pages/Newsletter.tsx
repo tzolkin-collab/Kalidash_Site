@@ -8,6 +8,7 @@ import { usePaged } from '../lib/usePaged';
 import { useShell } from '../lib/shell';
 import { leadsStore } from '../mocks/leads';
 import LeadSheet from '../components/LeadSheet';
+import { NewsletterEditions } from '../components/NewsletterEditions';
 import PartySheets from '../components/PartySheets';
 import type { PartyRef } from '../components/PartySheets';
 import { Badge, CustomSelect, EmptyState, Page, PageHeader, Pagination, SampleBanner, SearchBox, StatCard, Tabs } from '../components/ui';
@@ -97,13 +98,13 @@ function csv(rows: Inscrito[]): string {
   return ['Nome,E-mail,Inscrito em,Onde se inscreveu,Material pedido', ...linhas].join('\n');
 }
 
-type Aba = 'todos' | 'material';
+type Aba = 'edicoes' | 'todos' | 'material';
 
 export default function Newsletter() {
   const crmMode = useCrmMode();
   const { navigate } = useShell();
   const [leads] = useStore(leadsStore);
-  const [aba, setAba] = useState<Aba>('todos');
+  const [aba, setAba] = useState<Aba>('edicoes');
   const [busca, setBusca] = useState('');
   const [lugar, setLugar] = useState<'' | Lugar>('');
   const [openLead, setOpenLead] = useState<string | null>(null);
@@ -198,20 +199,22 @@ export default function Newsletter() {
       <div className="notice" role="note" style={{ marginTop: '16px' }}>
         <span>
           <Mail size={14} style={{ verticalAlign: '-2px', marginRight: '6px' }} />
-          As edições são montadas e enviadas no Resend (Broadcasts), no segmento "Newsletter do blog": cada inscrição feita no site entra lá sozinha, e o descadastro é do próprio Resend. Quem se inscreveu antes da ligação entra pelo CSV (Resend &gt; Contacts &gt; Import). Os modelos visuais de teste ficam em{' '}
-          <a href="#/emails" onClick={(e) => { e.preventDefault(); navigate('/emails'); }}>E-mails</a>.
+          Cada inscrição feita no site entra sozinha no segmento "Newsletter do blog" do Resend, e o descadastro é do próprio Resend. As edições usam um modelo de{' '}
+          <a href="#/emails" onClick={(e) => { e.preventDefault(); navigate('/emails'); }}>E-mails</a> e saem pelo Resend Broadcasts, na aba Edições.
         </span>
       </div>
 
       <Tabs
         tabs={[
-          { id: 'todos' as const, label: 'Todos', count: inscritos.length },
+          { id: 'edicoes' as const, label: 'Edições' },
+          { id: 'todos' as const, label: 'Inscritos', count: inscritos.length },
           { id: 'material' as const, label: 'Pediram material', count: stats.material },
         ]}
         value={aba}
         onChange={(id) => { setAba(id); paged.setPage(1); }}
       />
 
+      {aba === 'edicoes' ? <NewsletterEditions onOpenTemplates={() => navigate('/emails')} /> : <>
       <div className="toolbar">
         <SearchBox value={busca} onChange={setBusca} placeholder="Buscar por nome, e-mail, material ou página…" />
         <CustomSelect className="select select-sm" value={lugar} onChange={(e) => setLugar(e.target.value as '' | Lugar)} aria-label="Filtrar por onde se inscreveu">
@@ -271,6 +274,7 @@ export default function Newsletter() {
         </div>
         <Pagination page={paged.page} pageSize={paged.pageSize} total={paged.total} onPage={paged.setPage} onPageSize={paged.setPageSize} />
       </div>
+      </>}
 
       {openLead && <LeadSheet key={openLead} leadId={openLead} onClose={() => setOpenLead(null)} onOpenParty={(ref) => { setOpenLead(null); setOpenParty(ref); }} onNotice={setNotice} />}
       <PartySheets open={openParty} onOpen={setOpenParty} />

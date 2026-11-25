@@ -461,6 +461,8 @@ td:hover .badge-line .badge-text {
 .popup-close { display: grid; width: 32px; height: 32px; place-items: center; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--text-muted); cursor: pointer; }
 .popup-close:hover { border-color: var(--border-subtle); background: var(--bg-surface-hover); color: var(--text-primary); }
 .popup-body { padding: 20px 24px 22px; overflow-y: auto; flex: 1; }
+/* Lista de um seletor aberta dentro do diálogo: não recorta (o próprio menu rola). */
+.popup-card:has(.custom-select-popover), .popup-card:has(.custom-select-popover) .popup-body { overflow: visible; }
 .popup-body .field { gap: 8px; }
 .popup-body .field-label { color: var(--text-primary); font-size: 12px; font-weight: 650; }
 .popup-footer { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 9px; padding: 14px 24px; background: linear-gradient(180deg, var(--bg-surface), var(--bg-app)); border-top: 1px solid var(--border-subtle); flex-shrink: 0; }
