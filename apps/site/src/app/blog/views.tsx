@@ -72,9 +72,15 @@ export type ArticleViewData = {
   /** HTML do corpo, exportado pelo editor do admin */
   body: string;
   publishedAt?: string | null;
+  /** "Atualizado em": aparece quando cai num dia diferente da publicação */
+  contentUpdatedAt?: string | null;
   /** usado como sufixo da origem do lead do material gratuito (ArticleEnhancer) */
   slug?: string;
 };
+
+/** Dia no fuso de Brasília ("2026-11-25"), para comparar publicação e atualização. */
+const formatDay = (iso?: string | null) =>
+  iso ? new Date(iso).toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" }) : "";
 
 export function estimateReadingTime(textOrHtml: string): number {
   if (!textOrHtml) return 3;
@@ -398,6 +404,10 @@ export function ArticleView({
         year: "numeric",
       })
     : "";
+  const updatedDate =
+    article.contentUpdatedAt && formatDay(article.contentUpdatedAt) !== formatDay(article.publishedAt)
+      ? new Date(article.contentUpdatedAt).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })
+      : "";
   const primaryCategory = article.categories?.[0] || "AI Culture";
 
   return (
@@ -435,7 +445,13 @@ export function ArticleView({
             {formattedDate && (
               <>
                 <span className={articleStyles.metaDot}>·</span>
-                <span className={articleStyles.dateText}>{formattedDate}</span>
+                <time className={articleStyles.dateText} dateTime={article.publishedAt ?? undefined}>{formattedDate}</time>
+              </>
+            )}
+            {updatedDate && (
+              <>
+                <span className={articleStyles.metaDot}>·</span>
+                <time className={articleStyles.dateText} dateTime={article.contentUpdatedAt ?? undefined}>Atualizado em {updatedDate}</time>
               </>
             )}
             <span className={articleStyles.metaDot}>·</span>

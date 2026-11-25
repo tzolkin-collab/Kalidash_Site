@@ -1,3 +1,4 @@
+import { articleModifiedAt } from "./blog";
 import type { Article } from "./blog";
 import { SITE_URL } from "./siteUrl";
 
@@ -23,7 +24,7 @@ export function articleJsonLd(article: Article) {
       description: article.seoDescription || article.excerpt || undefined,
       image: [image],
       datePublished: article.publishedAt || article.createdAt,
-      dateModified: article.updatedAt || article.publishedAt || article.createdAt,
+      dateModified: articleModifiedAt(article),
       author: { "@type": "Person", name: article.authorName || "Equipe Kalidash" },
       publisher: {
         "@type": "Organization",

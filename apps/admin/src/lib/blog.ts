@@ -13,7 +13,7 @@ export async function listArticles(): Promise<Article[]> {
   return res.json();
 }
 
-export type ArticleInput = Omit<Article, 'id' | 'createdAt' | 'updatedAt' | 'publishedAt'> & { id?: string };
+export type ArticleInput = Omit<Article, 'id' | 'createdAt' | 'updatedAt' | 'publishedAt' | 'updatedBy' | 'contentUpdatedAt'> & { id?: string };
 
 export async function createArticle(input: ArticleInput): Promise<Article> {
   const res = await fetch(BASE, {

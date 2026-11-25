@@ -22,11 +22,17 @@ export type Article = {
   createdAt: string;
   updatedAt: string;
   publishedAt?: string | null;
-  // Campos do BC-1 (ainda não existem na API; o site já os respeita se vierem): ficam opcionais.
+  // Campos do BC-1 (SEO). Opcionais: uma API antiga não os manda.
   noindex?: boolean | null;
   ogImageUrl?: string | null;
   canonicalUrl?: string | null;
+  /** "Atualizado em": só muda quando título, resumo ou texto de um artigo já publicado mudam. */
+  contentUpdatedAt?: string | null;
 };
+
+/** Data de modificação para SEO (JSON-LD, Open Graph, sitemap): a última mudança de conteúdo, ou a publicação. */
+export const articleModifiedAt = (a: Pick<Article, "contentUpdatedAt" | "publishedAt" | "createdAt">) =>
+  a.contentUpdatedAt || a.publishedAt || a.createdAt;
 
 // Slug reservado da Galeria Principal (hero e SEO de /blog). Nunca é um artigo público.
 export const GALLERY_SLUG = "blog-global";

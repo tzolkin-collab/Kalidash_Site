@@ -1,8 +1,8 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import type { Metadata } from "next";
 import { ArticleView } from "../views";
 import type { GalleryItem } from "../views";
-import { fetchArticleBySlug, fetchPublishedArticles, isReservedArticleSlug } from "@/lib/blog";
+import { articleModifiedAt, fetchArticleBySlug, fetchPublishedArticles, isReservedArticleSlug } from "@/lib/blog";
 import { SITE_URL } from "@/lib/siteUrl";
 import { DEFAULT_OG_IMAGE, absoluteUrl, articleJsonLd, jsonLd } from "@/lib/blogSeo";
 import { sanitizeArticleHtml } from "@/lib/sanitizeHtml";
@@ -57,7 +57,7 @@ export async function generateMetadata({
       siteName: "Kalidash",
       locale: "pt_BR",
       publishedTime: article.publishedAt || undefined,
-      modifiedTime: article.updatedAt || undefined,
+      modifiedTime: articleModifiedAt(article) || undefined,
       authors: article.authorName ? [article.authorName] : undefined,
       images: [{ url: image, alt: article.title }],
     },
@@ -70,6 +70,8 @@ export default async function ArticlePage({ params }: PageProps) {
   const article = await resolveArticle(slug);
 
   if (isReservedArticleSlug(slug) || !article) notFound();
+  // Slug antigo: a API devolve o artigo pelo histórico de slugs, com o slug atual. Redireciona (308, permanente).
+  if (article.slug !== slug) permanentRedirect(`/blog/${encodeURIComponent(article.slug)}`);
 
   // Busca outros artigos publicados para recomendação (priorizando a mesma categoria)
   const all = await fetchPublishedArticles();

@@ -330,6 +330,16 @@ export type Article = {
   categories: string[];
   seoTitle?: string;
   seoDescription?: string;
+  /** Imagem do compartilhamento (WhatsApp, LinkedIn). Vazia: a capa. */
+  ogImageUrl?: string;
+  /** Só quando o artigo saiu antes em outro endereço. Vazia: o próprio /blog/slug. */
+  canonicalUrl?: string;
+  /** Publicado, mas fora do Google e do sitemap. */
+  noindex?: boolean;
+  /** Quem salvou por último (nome da pessoa logada). */
+  updatedBy?: string;
+  /** "Atualizado em" do site: muda quando título, resumo ou texto de um artigo publicado mudam. */
+  contentUpdatedAt?: string;
   createdAt: string;
   updatedAt: string;
   publishedAt?: string;

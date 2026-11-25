@@ -679,6 +679,9 @@ function ArticleEditor({ article, isNew, otherArticles, blogCategories, onCatego
   const [published, setPublished] = useState(article.published);
   const [seoTitle, setSeoTitle] = useState(article.seoTitle ?? '');
   const [seoDescription, setSeoDescription] = useState(article.seoDescription ?? '');
+  const [ogImageUrl, setOgImageUrl] = useState(article.ogImageUrl ?? '');
+  const [canonicalUrl, setCanonicalUrl] = useState(article.canonicalUrl ?? '');
+  const [noindex, setNoindex] = useState(article.noindex ?? false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -820,6 +823,8 @@ function ArticleEditor({ article, isNew, otherArticles, blogCategories, onCatego
       coverImageUrl: coverImageUrl.trim() || undefined, coverImagePos, featured, published,
       authorName, categories: categories.split(',').map((t) => t.trim()).filter(Boolean),
       seoTitle: seoTitle.trim() || undefined, seoDescription: seoDescription.trim() || undefined,
+      // Vão sempre, mesmo vazios: a API mantém o que não vem no corpo, e apagar o campo tem que valer.
+      ogImageUrl: ogImageUrl.trim(), canonicalUrl: canonicalUrl.trim(), noindex,
     };
     const request = (isGlobal ? saveCardEdits() : Promise.resolve())
       .then(() => (isNew ? createArticle(input) : updateArticle(article.id, input)));
@@ -1112,13 +1117,13 @@ function ArticleEditor({ article, isNew, otherArticles, blogCategories, onCatego
 
                 <button
                   type="button"
-                  className={`btn btn-sm super-bar-seo-btn ${seoTitle || seoDescription ? 'has-seo' : ''}`}
+                  className={`btn btn-sm super-bar-seo-btn ${seoTitle || seoDescription || ogImageUrl || canonicalUrl || noindex ? 'has-seo' : ''}`}
                   onClick={() => setSeoModalOpen(true)}
                   title="Configurar prévia e títulos para o Google"
                 >
                   <Globe size={13} />
                   <span>SEO & Google</span>
-                  {(seoTitle || seoDescription) && <span className="seo-dot" />}
+                  {(seoTitle || seoDescription || ogImageUrl || canonicalUrl || noindex) && <span className="seo-dot" />}
                 </button>
               </div>
             )}
@@ -1423,6 +1428,39 @@ function ArticleEditor({ article, isNew, otherArticles, blogCategories, onCatego
               <div className="serp-title">{shownTitle.slice(0, 60)}</div>
               <div className="serp-desc">{shownDescription.slice(0, 160)}</div>
             </div>
+            {!isGlobal && (
+              <>
+                <Field label="Imagem de compartilhamento" hint="O que aparece ao mandar o link no WhatsApp ou no LinkedIn (1200 × 630). Vazio: usa a capa.">
+                  <input
+                    className="input"
+                    value={ogImageUrl}
+                    maxLength={500}
+                    placeholder={coverImageUrl || 'https://… ou /imagem.png'}
+                    onChange={(e) => { setOgImageUrl(e.target.value); touch(); }}
+                  />
+                </Field>
+                <Field label="Endereço canônico" hint="Só se este texto saiu antes em outro site (LinkedIn, Medium): o Google credita o original. Vazio: este artigo.">
+                  <input
+                    className="input"
+                    value={canonicalUrl}
+                    maxLength={500}
+                    placeholder="https://…"
+                    onChange={(e) => { setCanonicalUrl(e.target.value); touch(); }}
+                  />
+                </Field>
+                <label className="check-row">
+                  <input type="checkbox" checked={noindex} onChange={(e) => { setNoindex(e.target.checked); touch(); }} />
+                  <span>
+                    <strong>Esconder do Google</strong>
+                    <span className="field-hint" style={{ display: 'block' }}>O artigo continua no blog para quem tem o link, mas fica fora da busca e do sitemap. Bom para páginas de teste e conteúdo só para clientes.</span>
+                  </span>
+                </label>
+                <p className="field-hint">
+                  Trocar o endereço (slug) de um artigo publicado mantém o antigo funcionando: ele redireciona para o novo.
+                  {article.updatedBy && <> Última edição por {article.updatedBy}.</>}
+                </p>
+              </>
+            )}
           </div>
         </PopupDialog>
       )}

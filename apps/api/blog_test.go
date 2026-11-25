@@ -152,3 +152,37 @@ func TestSlugifyLetrasExtras(t *testing.T) {
 		}
 	}
 }
+
+func TestNormalizeArticleSEO(t *testing.T) {
+	s := func(v string) *string { return &v }
+	a := Article{SeoTitle: s("  "), OgImageURL: s(" /img/capa.png "), CanonicalURL: s("https://medium.com/@x/post")}
+	if err := normalizeArticleSEO(&a); err != nil {
+		t.Fatal(err)
+	}
+	if a.SeoTitle != nil || *a.OgImageURL != "/img/capa.png" {
+		t.Errorf("limpeza: %+v", a)
+	}
+	for _, bad := range []Article{
+		{CanonicalURL: s("/blog/x")},
+		{CanonicalURL: s("javascript:alert(1)")},
+		{OgImageURL: s("//evil.com/x.png")},
+		{OgImageURL: s("data:image/png;base64,AAA")},
+	} {
+		if err := normalizeArticleSEO(&bad); err == nil {
+			t.Errorf("devia recusar %+v", bad)
+		}
+	}
+}
+
+func TestContentChangedSoEmArtigoPublicado(t *testing.T) {
+	pub := Article{Published: true, Title: "T", Excerpt: "E", Body: "<p>B</p>"}
+	if contentChanged(true, "T", "E", "<p>B</p>", pub) {
+		t.Error("nada mudou")
+	}
+	if !contentChanged(true, "T", "E", "<p>A</p>", pub) {
+		t.Error("texto mudou num publicado")
+	}
+	if contentChanged(false, "T", "E", "<p>A</p>", pub) {
+		t.Error("primeira publicação não é atualização")
+	}
+}
