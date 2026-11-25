@@ -136,6 +136,9 @@ export type Stakeholder = { personId: string; description: string; tag: string }
 
 export type EntityKind = 'lead' | 'person' | 'company' | 'opportunity' | 'pipeline';
 
+/** Andamento da tarefa. DONE anda junto com `done`. */
+export type TaskStatus = 'TODO' | 'DOING' | 'BLOCKED' | 'DONE';
+
 export type TaskItem = {
   id: string;
   entity: EntityKind;
@@ -147,6 +150,8 @@ export type TaskItem = {
   dueAt?: string;
   done: boolean;
   doneAt?: string;
+  /** Ausente nas tarefas antigas: vale A fazer (ou Concluída, se `done`). */
+  status?: TaskStatus;
   source: 'manual' | 'passo' | 'requisito';
   /** Nas nascidas de um requisito: liga de volta pra ele, para checar o gate. */
   requirementId?: string;

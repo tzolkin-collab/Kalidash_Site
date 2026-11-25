@@ -1,3 +1,4 @@
+import TagChip from './TagChip';
 import { Building2, CheckCircle2, CircleDashed, CircleDot, XCircle, User } from 'lucide-react';
 import type { StageKind } from '../domain';
 import type { Opportunity } from '../types';
@@ -64,7 +65,7 @@ export function Tags({ tags }: { tags?: string[] }) {
   if (!tags || tags.length === 0) return <span className="text-muted">—</span>;
   return (
     <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-      {tags.map((t) => <span key={t} className="tag">{t}</span>)}
+      {tags.map((t) => <TagChip key={t} name={t} />)}
     </div>
   );
 }

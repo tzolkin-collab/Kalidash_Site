@@ -1,33 +1,45 @@
-import { useMemo, useState } from 'react';
-import { FlaskConical, RefreshCw } from 'lucide-react';
-import { formatCurrency } from '../lib/format';
+import { useEffect, useMemo, useState } from 'react';
+import { BarChart3, Check, ChevronLeft, ChevronRight, FlaskConical, GripVertical, Pencil, Plus, RefreshCw, RotateCcw, Save, SlidersHorizontal, X } from 'lucide-react';
 import { useOpportunities } from '../lib/useOpportunities';
 import { useShell } from '../lib/shell';
 import { useStore } from '../lib/store';
+import { useAuth } from '../lib/auth';
 import { pipelinesStore } from '../mocks/pipelines';
 import { leadsStore } from '../mocks/leads';
 import { tasksStore } from '../mocks/tasks';
 import { useCrmMode } from '../lib/crmMode';
 import { useSyncMode } from '../lib/workflowSync';
 import { leadMetrics, leadOrigins, overdueTasks, taskMetrics } from '../lib/dashboardMetrics';
+import { activityByDay, activityByPerson, activityKinds, cpfReveals, discardReasons, firstContact, deltaPct, leadCampaigns, leadsBetween, lostCents, lostReasons, openByPipeline, openTasksByAssignee, periodWindows, salesCycle, weeklyTrend, winRate, wonBetween, wonByOwner } from '../lib/commercialMetrics';
+import { historyStore } from '../lib/history';
+import { loadRecentHistory } from '../lib/historySync';
 import { PERIODS, salesMetrics, stageInfo, toCents } from '../lib/salesMetrics';
 import { activePipelines, kanbanStages, resolveStage } from '../lib/stages';
 import type { Period } from '../lib/salesMetrics';
-import { StageBadge } from '../components/cells';
-import { EmptyState, ErrorBanner, Page, PageHeader, StatCard } from '../components/ui';
+import { CUSTOM_SPANS, SPANS, SPAN_LABEL, addCustom, addItem, clearLayout, defaultLayout, isCustomId, layoutKey, loadLayout, moveItem, normalizeLayout, removeItem, saveLayout, setSpan, updateCustom } from '../lib/dashboardLayout';
+import { chartTitle, normalizeChart } from '../lib/chartSpec';
+import { runChart } from '../lib/chartData';
+import { MAX_NAME, MAX_VIEWS, addView, loadViews, removeView, saveViews, viewsKey } from '../lib/dashboardViews';
+import type { ChartCtx } from '../lib/chartData';
+import { PRESETS } from '../lib/dashboardPresets';
+import type { Layout, Span } from '../lib/dashboardLayout';
+import { GROUPS, WIDGETS, WIDGET_BY_ID } from '../components/dashboard/widgets';
+import ChartBuilder from '../components/dashboard/ChartBuilder';
+import ChartWidget from '../components/dashboard/ChartWidget';
+import type { DashData } from '../components/dashboard/widgets';
+import { Badge, CustomSelect, EmptyState, ErrorBanner, Page, PageHeader, PopupDialog, SidePanel } from '../components/ui';
 
-// Métricas calculadas na hora a partir de /api/leads (as oportunidades reais); valor ganho e ticket
-// médio seguem o período escolhido (data de ganho). Contas em lib/salesMetrics.ts, em centavos.
-// Leads, origem e tarefas (WP3b) vêm das mesmas stores que Leads e Tarefas e só aparecem quando o CRM e o
-// workflow estão na API (dado real); com os exemplos a seção explica e não mostra número. A galeria de gráficos de demonstração
-// fica em /dashboard/demonstracao (DashboardDemo.tsx), separada das métricas reais.
-
-
-const percent = (n: number) => `${(n * 100).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%`;
+// A Dashboard é uma grade de widgets (components/dashboard/widgets.tsx). Cada pessoa escolhe o que ver, em que
+// ordem e com que largura (modo "Personalizar"); o layout fica no navegador (lib/dashboardLayout.ts).
+// Métricas calculadas na hora a partir de /api/leads (as oportunidades reais); valor ganho e ticket médio seguem
+// o período escolhido (data de ganho). Contas em lib/salesMetrics.ts, em centavos. Leads e tarefas só têm número
+// quando o CRM e o workflow estão na API; os widgets "Exemplo" usam os gráficos da galeria, com números inventados.
 
 export default function Dashboard() {
   const { opportunities, loading, error, reload } = useOpportunities();
   const { navigate } = useShell();
+  const auth = useAuth();
+  const key = layoutKey(auth.user?.id);
 
   const [pipelines] = useStore(pipelinesStore);
   const [period, setPeriod] = useState<Period>('month');
@@ -35,12 +47,39 @@ export default function Dashboard() {
   const syncMode = useSyncMode();
   const [leads] = useStore(leadsStore);
   const [tasks] = useStore(tasksStore);
-  const realLeads = crmMode === 'api';
-  const realTasks = syncMode === 'api';
-  const lm = useMemo(() => leadMetrics(leads, period), [leads, period]);
-  const origins = useMemo(() => leadOrigins(leads, period), [leads, period]);
-  const tm = useMemo(() => taskMetrics(tasks, period), [tasks, period]);
-  const late = useMemo(() => overdueTasks(tasks), [tasks]);
+  const [history] = useStore(historyStore);
+
+  const [layout, setLayout] = useState<Layout>(() => loadLayout(key, WIDGETS));
+  const [editing, setEditing] = useState(false);
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
+  const vkey = viewsKey(auth.user?.id);
+  const [views, setViews] = useState(() => loadViews(vkey, WIDGETS));
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [viewName, setViewName] = useState('');
+  const [viewError, setViewError] = useState<string | null>(null);
+  const [builder, setBuilder] = useState<{ id?: string } | null>(null);
+  const [applied, setApplied] = useState<{ name: string; before: Layout } | null>(null);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
+
+  useEffect(() => { setLayout(loadLayout(key, WIDGETS)); }, [key]);
+  useEffect(() => { setViews(loadViews(vkey, WIDGETS)); }, [vkey]);
+  // Os widgets de atividade leem o histórico recente (as 500 últimas ações); só existe com o CRM na API.
+  useEffect(() => { if (crmMode === 'api') void loadRecentHistory(); }, [crmMode]);
+
+  const update = (next: Layout) => { setLayout(next); saveLayout(key, next); };
+  const commitViews = (next: typeof views) => { setViews(next); saveViews(vkey, next); };
+  const submitView = () => {
+    const r = addView(views, viewName, layout);
+    if (r.error) { setViewError(r.error); return; }
+    commitViews(r.views);
+    setSaveOpen(false);
+    setViewName('');
+    setViewError(null);
+  };
+  // Aplica um modelo pronto e guarda o layout anterior para o "Desfazer".
+  const applyPreset = (name: string, items: Layout) => { setApplied({ name, before: layout }); update(normalizeLayout(items, WIDGETS)); };
 
   const stats = useMemo(() => {
     const m = salesMetrics(opportunities, pipelines, period);
@@ -62,14 +101,82 @@ export default function Dashboard() {
     };
   }, [opportunities, pipelines, period]);
 
-  const maxCount = Math.max(1, ...stats.byStage.map((s) => s.count));
+  const data: DashData = {
+    period, loading, stats, navigate,
+    realLeads: crmMode === 'api',
+    realTasks: syncMode === 'api',
+    lm: useMemo(() => leadMetrics(leads, period), [leads, period]),
+    origins: useMemo(() => leadOrigins(leads, period), [leads, period]),
+    tm: useMemo(() => taskMetrics(tasks, period), [tasks, period]),
+    late: useMemo(() => overdueTasks(tasks), [tasks]),
+    realHistory: crmMode === 'api',
+    hero: useMemo(() => {
+      const w = periodWindows(period);
+      // Mini gráficos: ritmo semanal das últimas 12 semanas (independe do período escolhido).
+      const weekly = (measure: 'won-value' | 'leads-created') => {
+        const cfg = normalizeChart({ visual: 'line', measure, granularity: 'week' });
+        const res = cfg ? runChart(cfg, { opps: opportunities, pipelines, leads, tasks, history, period }) : null;
+        return res?.kind === 'series' ? res.points.map((p) => p.value) : [];
+      };
+      const sparks = { wonSpark: weekly('won-value'), leadsSpark: weekly('leads-created') };
+      if (!w) {
+        return { wonCents: stats.wonCents, wonCount: stats.wonCount, wonDelta: null, newLeads: leads.filter((l) => !l.archivedAt).length, leadsDelta: null, hasPrevious: false, ...sparks };
+      }
+      const cur = wonBetween(opportunities, pipelines, w.from, w.to);
+      const prev = wonBetween(opportunities, pipelines, w.prevFrom, w.prevTo);
+      const nl = leadsBetween(leads, w.from, w.to);
+      return { wonCents: cur.cents, wonCount: cur.count, wonDelta: deltaPct(cur.cents, prev.cents), newLeads: nl, leadsDelta: deltaPct(nl, leadsBetween(leads, w.prevFrom, w.prevTo)), hasPrevious: true, ...sparks };
+    }, [opportunities, pipelines, period, leads, tasks, history, stats.wonCents, stats.wonCount]),
+    c: useMemo(() => ({
+      owners: wonByOwner(opportunities, pipelines, period),
+      lost: lostReasons(opportunities, pipelines),
+      lostCents: lostCents(opportunities, pipelines),
+      cycle: salesCycle(opportunities, pipelines, period),
+      winRate: winRate(opportunities, pipelines),
+      trend: weeklyTrend(opportunities, pipelines, 8),
+      byPipeline: openByPipeline(opportunities, pipelines),
+      firstContact: firstContact(leads, period),
+      discard: discardReasons(leads),
+      campaigns: leadCampaigns(leads, period),
+      actPerson: activityByPerson(history, period),
+      actKinds: activityKinds(history, period),
+      actDays: activityByDay(history, 14),
+      reveals: cpfReveals(history, period),
+      tasksByAssignee: openTasksByAssignee(tasks),
+    }), [opportunities, pipelines, period, leads, history, tasks]),
+  };
+
+  // Dados que os gráficos configuráveis leem (o mesmo CRM de sempre; a janela de tempo vem de cada gráfico).
+  const chartCtx: ChartCtx = useMemo(() => ({ opps: opportunities, pipelines, leads, tasks, history, period }), [opportunities, pipelines, leads, tasks, history, period]);
+
+  const onDrop = (targetId: string) => {
+    if (dragId && dragId !== targetId) {
+      update(moveItem(layout, layout.findIndex((i) => i.id === dragId), layout.findIndex((i) => i.id === targetId)));
+    }
+    setDragId(null);
+    setOverId(null);
+  };
+
+  const hiddenCount = WIDGETS.filter((w) => !layout.some((i) => i.id === w.id)).length;
 
   return (
     <Page>
       <PageHeader
         title="Dashboard"
-        subtitle="Visão geral do funil, dos leads e das tarefas (dado real da API)."
-        actions={<button type="button" className="btn" onClick={reload} disabled={loading}><RefreshCw size={14} /> Atualizar</button>}
+        subtitle={editing ? 'Arraste pela alça para reordenar, escolha a largura de cada bloco e tire o que não precisa.' : 'Visão geral do funil, dos leads e das tarefas. Personalize para ver só o que importa.'}
+        actions={editing ? (
+          <>
+            <button type="button" className="btn" onClick={() => { setCatalogOpen(false); setBuilder({}); }}><BarChart3 size={14} /> Adicionar gráfico</button>
+            <button type="button" className="btn" onClick={() => { setBuilder(null); setCatalogOpen(true); }}><Plus size={14} /> Adicionar widget{hiddenCount ? ` (${hiddenCount})` : ''}</button>
+            <button type="button" className="btn" onClick={() => setResetOpen(true)}><RotateCcw size={14} /> Restaurar padrão</button>
+            <button type="button" className="btn btn-solid" onClick={() => { setEditing(false); setCatalogOpen(false); setApplied(null); }}><Check size={14} /> Concluir</button>
+          </>
+        ) : (
+          <>
+            <button type="button" className="btn" onClick={reload} disabled={loading}><RefreshCw size={14} /> Atualizar</button>
+            <button type="button" className="btn" onClick={() => setEditing(true)}><SlidersHorizontal size={14} /> Personalizar</button>
+          </>
+        )}
       />
 
       {error && <ErrorBanner title={error} onRetry={reload}>Os números abaixo ficam zerados até carregar.</ErrorBanner>}
@@ -81,139 +188,174 @@ export default function Dashboard() {
           </button>
         ))}
       </div>
-
-      <div className="stat-grid stat-grid-3">
-        <StatCard label="Oportunidades abertas" value={stats.openCount} hint={`${stats.total} no total`} />
-        <StatCard label="Valor em aberto" value={formatCurrency(stats.openCents / 100)} hint="Tudo que está em andamento" />
-        <StatCard
-          label="Previsão ponderada"
-          value={formatCurrency(stats.forecastCents / 100)}
-          hint={stats.openWithoutProbability ? `Valor × probabilidade da etapa · ${stats.openWithoutProbability} sem probabilidade ficam de fora` : 'Valor × probabilidade da etapa'}
-        />
-        <StatCard label="Valor ganho" value={formatCurrency(stats.wonCents / 100)} tone="success" hint={`${stats.wonCount} ${stats.wonCount === 1 ? 'contrato' : 'contratos'} · ${PERIODS.find((p) => p.id === period)?.label.toLowerCase()}`} />
-        <StatCard label="Ticket médio" value={formatCurrency(stats.averageCents / 100)} hint="Média do valor ganho no período" />
-        <StatCard label="Taxa de conversão" value={percent(stats.conversion)} hint="Ganhas sobre o total" />
-      </div>
       {stats.wonWithoutDate > 0 && period !== 'all' && (
-        <p className="text-xs text-muted" style={{ margin: '-8px 0 16px' }}>
+        <p className="text-xs text-muted" style={{ margin: '0 0 16px' }}>
           {stats.wonWithoutDate} {stats.wonWithoutDate === 1 ? 'oportunidade ganha não tem' : 'oportunidades ganhas não têm'} data de fechamento e só {stats.wonWithoutDate === 1 ? 'entra' : 'entram'} em "Tudo".
         </p>
       )}
 
-      <div className="two-col">
-        <section className="section panel-card">
-          <h2 className="section-title">Funil por etapa</h2>
-          {stats.total === 0 && !loading ? (
-            <EmptyState title="Ainda não há oportunidades">Crie a primeira em Oportunidades para ver o funil.</EmptyState>
-          ) : (
-            <div className="funnel">
-              {stats.byStage.map((s) => (
-                <div key={s.id} className="funnel-row">
-                  <span className="funnel-label">{s.label}</span>
-                  <div className="funnel-track" aria-hidden="true">
-                    <div className="funnel-bar" style={{ width: `${(s.count / maxCount) * 100}%`, background: s.color }} />
-                  </div>
-                  <span className="funnel-count">{s.count}</span>
-                  <span className="funnel-value">{formatCurrency(s.value)}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section className="section panel-card">
-          <h2 className="section-title">Maiores oportunidades abertas</h2>
-          {stats.biggest.length === 0 ? (
-            <EmptyState title="Nada em aberto">As oportunidades abertas aparecem aqui, da maior para a menor.</EmptyState>
-          ) : (
-            <ul className="top-list">
-              {stats.biggest.map((o) => (
-                <li key={o.id}>
-                  <button type="button" className="top-item" onClick={() => navigate('/oportunidades')}>
-                    <span className="cell-stack">
-                      <span className="cell-primary">{o.title}</span>
-                      <span className="text-xs text-muted">{o.companyName || o.contactName || 'Sem contato'}</span>
-                    </span>
-                    <StageBadge stage={o.stage} opp={o} />
-                    <span className="font-semibold">{formatCurrency(o.value)}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </div>
-
-      <h2 className="section-title" style={{ margin: '28px 0 12px' }}>Leads e origem</h2>
-      {!realLeads ? (
-        <p className="text-xs text-muted">Os leads aparecem aqui quando o servidor estiver conectado. Sem ele, a tela de Leads também fica vazia.</p>
-      ) : (
-        <>
-          <div className="stat-grid">
-            <StatCard label="Leads ativos" value={lm.active} hint={`${lm.unseen} ainda não ${lm.unseen === 1 ? 'foi aberto' : 'foram abertos'}`} />
-            <StatCard label="Novos no período" value={lm.newInPeriod} hint={PERIODS.find((p) => p.id === period)?.label} />
-            <StatCard label="Aguardando contato" value={lm.waitingContact} tone={lm.waitingContact ? 'warning' : undefined} hint="Ativos sem primeiro contato" />
-            <StatCard label="Qualificados" value={lm.qualified} tone="success" hint={`${lm.discarded} descartados · ${percent(lm.qualifiedRate)} de qualificação`} />
-          </div>
-          <section className="section panel-card" style={{ marginTop: 16 }}>
-            <h2 className="section-title">Origem dos leads</h2>
-            {origins.length === 0 ? (
-              <EmptyState title="Nenhum lead no período">Os leads que entrarem por formulário, LP ou cadastro aparecem aqui por fonte.</EmptyState>
-            ) : (
-              <div className="funnel">
-                {origins.map((o) => (
-                  <div key={`${o.origin}-${o.label}`} className="funnel-row">
-                    <span className="funnel-label">{o.label}</span>
-                    <div className="funnel-track" aria-hidden="true">
-                      <div className="funnel-bar" style={{ width: `${(o.count / Math.max(1, origins[0].count)) * 100}%`, background: o.origin === 'INBOUND' ? 'var(--accent)' : 'var(--text-muted)' }} />
-                    </div>
-                    <span className="funnel-count">{o.count}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        </>
+      {editing && (
+        <div className="dash-presets" role="group" aria-label="Modelos prontos">
+          <span className="dash-presets-label">Modelos prontos</span>
+          {PRESETS.map((p) => (
+            <button key={p.id} type="button" className="chip" title={p.description} onClick={() => applyPreset(p.name, p.items)}>{p.name}</button>
+          ))}
+          <button type="button" className="chip" title="O layout de fábrica da Dashboard" onClick={() => applyPreset('Padrão', defaultLayout(WIDGETS))}>Padrão</button>
+          {views.map((v) => (
+            <span key={v.id} className="dash-view">
+              <button type="button" className="chip" title="Visão salva por você" onClick={() => applyPreset(v.name, v.items)}>{v.name}</button>
+              <button type="button" className="dash-view-x" aria-label={`Apagar a visão ${v.name}`} title="Apagar visão" onClick={() => commitViews(removeView(views, v.id))}><X size={12} /></button>
+            </span>
+          ))}
+          <button type="button" className="chip chip-dashed" disabled={views.length >= MAX_VIEWS} title={views.length >= MAX_VIEWS ? `O limite é de ${MAX_VIEWS} visões` : 'Guardar a Dashboard como está, com um nome'} onClick={() => { setViewError(null); setSaveOpen(true); }}><Save size={12} /> Salvar visão atual</button>
+        </div>
+      )}
+      {editing && applied && (
+        <div className="notice" role="status">
+          <span><strong>{applied.name}</strong> aplicado. Ajuste o que quiser abaixo.</span>
+          <button type="button" className="btn btn-sm" onClick={() => { update(applied.before); setApplied(null); }}>Desfazer</button>
+        </div>
       )}
 
-      <h2 className="section-title" style={{ margin: '28px 0 12px' }}>Tarefas</h2>
-      {!realTasks ? (
-        <p className="text-xs text-muted">As tarefas aparecem aqui quando o servidor estiver conectado. Sem ele, a tela de Tarefas também fica vazia.</p>
+      {layout.length === 0 ? (
+        <EmptyState title="Nenhum widget na Dashboard">
+          <button type="button" className="btn btn-solid" onClick={() => { setEditing(true); setCatalogOpen(true); }}><Plus size={14} /> Adicionar widget</button>
+        </EmptyState>
       ) : (
-        <>
-          <div className="stat-grid">
-            <StatCard label="Tarefas abertas" value={tm.open} hint={`${tm.noDue} sem prazo`} />
-            <StatCard label="Atrasadas" value={tm.overdue} tone={tm.overdue ? 'danger' : undefined} hint="Prazo vencido e não concluída" />
-            <StatCard label="Vencem em 7 dias" value={tm.dueSoon} hint="Ainda dentro do prazo" />
-            <StatCard label="Concluídas no período" value={tm.doneInPeriod} tone="success" hint={PERIODS.find((p) => p.id === period)?.label} />
-          </div>
-          <section className="section panel-card" style={{ marginTop: 16 }}>
-            <h2 className="section-title">O que está atrasado</h2>
-            {late.length === 0 ? (
-              <EmptyState title="Nada atrasado">As tarefas com prazo vencido aparecem aqui, da mais antiga para a mais nova.</EmptyState>
-            ) : (
-              <ul className="top-list">
-                {late.map((t) => (
-                  <li key={t.id}>
-                    <button type="button" className="top-item" onClick={() => navigate('/tarefas')}>
-                      <span className="cell-stack">
-                        <span className="cell-primary">{t.title}</span>
-                        <span className="text-xs text-muted">{t.entityName}{t.assignee ? ` · ${t.assignee}` : ''}</span>
-                      </span>
-                      <span className="text-xs text-muted">prazo {new Date(t.dueAt as string).toLocaleDateString('pt-BR')}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        </>
+        <div className="dash-grid" data-editing={editing}>
+          {layout.map((item, index) => {
+            const base = WIDGET_BY_ID.get(item.id);
+            const chart = isCustomId(item.id) ? item.config : undefined;
+            const def = base ?? (chart ? { title: chartTitle(chart), spans: CUSTOM_SPANS, example: false, render: () => <ChartWidget cfg={chart} ctx={chartCtx} /> } : null);
+            if (!def) return null;
+            return (
+              <div
+                key={item.id}
+                className="dash-item"
+                data-span={item.span}
+                data-dragging={dragId === item.id}
+                data-over={editing && overId === item.id && dragId !== item.id}
+                onDragOver={editing && dragId ? (e) => { e.preventDefault(); if (overId !== item.id) setOverId(item.id); } : undefined}
+                onDrop={editing ? (e) => { e.preventDefault(); onDrop(item.id); } : undefined}
+              >
+                {editing && (
+                  <div className="dash-edit-bar">
+                    <span
+                      className="dash-grip"
+                      draggable
+                      role="button"
+                      aria-label={`Arrastar ${def.title}`}
+                      title="Arraste para mudar a posição"
+                      onDragStart={(e) => {
+                        const box = e.currentTarget.closest('.dash-item');
+                        if (box) e.dataTransfer.setDragImage(box, 16, 16);
+                        e.dataTransfer.effectAllowed = 'move';
+                        setDragId(item.id);
+                      }}
+                      onDragEnd={() => { setDragId(null); setOverId(null); }}
+                    ><GripVertical size={15} /></span>
+                    <span className="dash-edit-title" title={def.title}>{def.title}{def.example && <Badge tone="info">Exemplo</Badge>}</span>
+                    <CustomSelect
+                      className="select select-sm dash-width"
+                      value={String(item.span)}
+                      onChange={(e) => update(setSpan(layout, item.id, Number(e.target.value) as Span, WIDGETS))}
+                      aria-label={`Largura de ${def.title}`}
+                    >
+                      {SPANS.filter((s) => def.spans.includes(s)).map((s) => <option key={s} value={String(s)}>{SPAN_LABEL[s]}</option>)}
+                    </CustomSelect>
+                    {chart && <button type="button" className="icon-btn bare" onClick={() => setBuilder({ id: item.id })} aria-label={`Editar ${def.title}`} title="Editar gráfico"><Pencil size={14} /></button>}
+                    <button type="button" className="icon-btn bare" disabled={index === 0} onClick={() => update(moveItem(layout, index, index - 1))} aria-label={`Mover ${def.title} para antes`} title="Mover para antes"><ChevronLeft size={15} /></button>
+                    <button type="button" className="icon-btn bare" disabled={index === layout.length - 1} onClick={() => update(moveItem(layout, index, index + 1))} aria-label={`Mover ${def.title} para depois`} title="Mover para depois"><ChevronRight size={15} /></button>
+                    <button type="button" className="icon-btn bare" onClick={() => update(removeItem(layout, item.id))} aria-label={`Tirar ${def.title}`} title="Tirar da Dashboard"><X size={15} /></button>
+                  </div>
+                )}
+                <div className="dash-body">{def.render(data)}</div>
+              </div>
+            );
+          })}
+        </div>
       )}
 
       <p className="text-xs text-muted" style={{ marginTop: 24 }}>
         <FlaskConical size={12} style={{ verticalAlign: '-2px' }} />{' '}
-        Quer ver modelos de gráfico? A <button type="button" className="link-btn" onClick={() => navigate('/dashboard/demonstracao')}>galeria de demonstração</button> usa números inventados e fica separada destas métricas.
+        Os widgets marcados como Exemplo usam números inventados. Veja todos os modelos na <button type="button" className="link-btn" onClick={() => navigate('/dashboard/demonstracao')}>galeria de demonstração</button>.
       </p>
+
+      {builder && (
+        <ChartBuilder
+          initial={builder.id ? layout.find((i) => i.id === builder.id)?.config : undefined}
+          ctx={chartCtx}
+          onClose={() => setBuilder(null)}
+          onSave={(cfg) => { update(builder.id ? updateCustom(layout, builder.id, cfg) : addCustom(layout, cfg).layout); setBuilder(null); }}
+        />
+      )}
+
+      {catalogOpen && (
+        <SidePanel
+          title="Adicionar widget"
+          subtitle="Escolha o que passa a aparecer na sua Dashboard. Só você vê este layout."
+          onClose={() => setCatalogOpen(false)}
+          footer={<button type="button" className="btn btn-solid" onClick={() => setCatalogOpen(false)}>Fechar</button>}
+        >
+          {GROUPS.map((group) => (
+            <section key={group} className="dash-catalog-group">
+              <h3 className="section-title">{group}</h3>
+              <ul className="row-list">
+                {WIDGETS.filter((w) => w.group === group).map((w) => {
+                  const added = layout.some((i) => i.id === w.id);
+                  return (
+                    <li key={w.id} className="row-item">
+                      <w.Icon size={16} aria-hidden="true" style={{ flexShrink: 0, color: 'var(--text-muted)' }} />
+                      <div className="cell-stack">
+                        <span className="cell-primary">{w.title}{w.example && <> <Badge tone="info">Exemplo</Badge></>}</span>
+                        <span className="text-xs text-muted">{w.description}</span>
+                      </div>
+                      {added
+                        ? <button type="button" className="btn btn-sm" onClick={() => update(removeItem(layout, w.id))}>Tirar</button>
+                        : <button type="button" className="btn btn-sm btn-solid" onClick={() => update(addItem(layout, w.id, WIDGETS))}><Plus size={12} /> Adicionar</button>}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ))}
+        </SidePanel>
+      )}
+
+      {saveOpen && (
+        <PopupDialog
+          title="Salvar esta visão"
+          description="Guarda a Dashboard como está agora (widgets, ordem, larguras e gráficos) com um nome, para voltar a ela com um clique."
+          onClose={() => setSaveOpen(false)}
+          footer={(
+            <>
+              <button type="button" className="btn" onClick={() => setSaveOpen(false)}>Cancelar</button>
+              <button type="button" className="btn btn-solid" onClick={submitView}>Salvar visão</button>
+            </>
+          )}
+        >
+          <label className="field">
+            <span className="field-label">Nome da visão</span>
+            <input className="input" autoFocus value={viewName} maxLength={MAX_NAME} placeholder="Ex.: Reunião de segunda" onChange={(e) => { setViewName(e.target.value); setViewError(null); }} onKeyDown={(e) => { if (e.key === 'Enter') submitView(); }} />
+            {viewError && <span className="field-error">{viewError}</span>}
+          </label>
+        </PopupDialog>
+      )}
+
+      {resetOpen && (
+        <PopupDialog
+          title="Restaurar o layout padrão?"
+          description="Os widgets voltam para a ordem e a largura de fábrica. O layout que você montou é descartado."
+          tone="warning"
+          onClose={() => setResetOpen(false)}
+          footer={(
+            <>
+              <button type="button" className="btn" onClick={() => setResetOpen(false)}>Cancelar</button>
+              <button type="button" className="btn btn-solid" onClick={() => { clearLayout(key); setLayout(defaultLayout(WIDGETS)); setResetOpen(false); }}>Restaurar</button>
+            </>
+          )}
+        />
+      )}
     </Page>
   );
 }

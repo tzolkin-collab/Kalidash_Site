@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Download, Mail } from 'lucide-react';
+import { Download, LayoutTemplate, Send, Upload, UserPlus } from 'lucide-react';
 import type { Lead } from '../domain';
 import { formatDate } from '../lib/format';
 import { useStore } from '../lib/store';
@@ -11,7 +11,7 @@ import LeadSheet from '../components/LeadSheet';
 import { NewsletterEditions } from '../components/NewsletterEditions';
 import PartySheets from '../components/PartySheets';
 import type { PartyRef } from '../components/PartySheets';
-import { Badge, CustomSelect, EmptyState, Page, PageHeader, Pagination, SampleBanner, SearchBox, StatCard, Tabs } from '../components/ui';
+import { Badge, CustomSelect, InfoPop, EmptyState, Page, PageHeader, Pagination, SampleBanner, SearchBox, StatCard, Tabs } from '../components/ui';
 
 /* Newsletter do blog. Não há cadastro à parte: cada inscrição feita no site (POST /api/public/leads com a origem
  * "blog-newsletter-…") vira um Lead no CRM, com a tag "Newsletter" e a origem do formulário em customData.formSource.
@@ -196,12 +196,20 @@ export default function Newsletter() {
         <StatCard label="Pediram material" value={stats.material} hint="A equipe envia o material por e-mail" tone={stats.material ? 'warning' : undefined} />
       </div>
 
-      <div className="notice" role="note" style={{ marginTop: '16px' }}>
-        <span>
-          <Mail size={14} style={{ verticalAlign: '-2px', marginRight: '6px' }} />
-          Cada inscrição feita no site entra sozinha no segmento "Newsletter do blog" do Resend, e o descadastro é do próprio Resend. As edições usam um modelo de{' '}
-          <a href="#/emails" onClick={(e) => { e.preventDefault(); navigate('/emails'); }}>E-mails</a> e saem pelo Resend Broadcasts, na aba Edições.
-        </span>
+      <div className="info-row">
+        <InfoPop icon={Send} label="Enviar edições" title="Edições pelo admin">
+          Na aba Edições: escolha um modelo de E-mails (ou crie um a partir de um artigo), mande um teste para você e envie ou agende. Sai pelo Resend Broadcasts, no segmento "Newsletter do blog".
+        </InfoPop>
+        <InfoPop icon={UserPlus} label="Novas inscrições" title="Inscrição e descadastro">
+          Cada inscrição feita no site entra no Resend sozinha, e o descadastro é do próprio Resend.
+        </InfoPop>
+        <InfoPop icon={Upload} label="Inscritos antigos" title="Quem se inscreveu antes da ligação">
+          Use "Sincronizar inscritos" na aba Edições: leva os inscritos do CRM para o segmento, sem reinscrever quem saiu.
+        </InfoPop>
+        <InfoPop icon={LayoutTemplate} label="Modelos" title="Modelos visuais">
+          Ficam em{' '}
+          <a href="#/emails" onClick={(e) => { e.preventDefault(); navigate('/emails'); }}>E-mails</a>.
+        </InfoPop>
       </div>
 
       <Tabs

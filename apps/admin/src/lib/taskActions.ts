@@ -1,4 +1,5 @@
-import type { EntityKind, Pipeline, Requirement, TaskItem } from '../domain';
+import type { EntityKind, Pipeline, Requirement, TaskItem, TaskStatus } from '../domain';
+import { TASK_STATUS_META, statusOf, withStatus } from './taskStatus';
 import { pipelinesStore } from '../mocks/pipelines';
 import { tasksStore } from '../mocks/tasks';
 import { ensureTask } from './gate';
@@ -16,12 +17,29 @@ const ctxOf = (t: TaskItem, ctx?: EventContext): EventContext => ctx ?? eventCon
 
 /** Conclui ou reabre. Sem responsável, quem conclui assume (nunca troca quem já foi designado). */
 export function toggleTask(task: TaskItem, ctx?: EventContext) {
-  const done = !task.done;
-  const claims = done && !task.assignee;
+  setTaskStatus(task, task.done ? 'TODO' : 'DONE', ctx);
+}
+
+/**
+ * Muda o status da tarefa. Concluída (DONE) é o mesmo que concluir: marca `done`, quem conclui assume se não havia
+ * responsável e as automações recebem o evento. Sair de Concluída reabre. Entre A fazer, Em andamento e Bloqueada só
+ * o status muda.
+ */
+export function setTaskStatus(task: TaskItem, next: TaskStatus, ctx?: EventContext) {
+  const before = statusOf(task);
+  if (before === next) return;
+  const completing = next === 'DONE';
+  const reopening = before === 'DONE' && !completing;
+  const claims = completing && !task.assignee;
   const actor = currentActor();
-  tasksStore.set((prev) => prev.map((t) => (t.id === task.id ? { ...t, done, doneAt: done ? new Date().toISOString() : undefined, assignee: claims ? actor : t.assignee } : t)));
-  logChange({ ...ref(task), kind: 'event', note: `${done ? 'Tarefa concluída' : 'Tarefa reaberta'}: ${task.title}${claims ? ` — sem responsável definido, ${actor} assumiu` : ''}` });
-  if (done) emit('tarefa.concluida', ctxOf(task, ctx));
+  tasksStore.set((prev) => prev.map((t) => (t.id === task.id ? { ...t, ...withStatus(t, next), assignee: claims ? actor : t.assignee } : t)));
+  const note = completing
+    ? `Tarefa concluída: ${task.title}${claims ? ` — sem responsável definido, ${actor} assumiu` : ''}`
+    : reopening
+      ? `Tarefa reaberta (${TASK_STATUS_META[next].label}): ${task.title}`
+      : `Status da tarefa mudou de ${TASK_STATUS_META[before].label} para ${TASK_STATUS_META[next].label}: ${task.title}`;
+  logChange({ ...ref(task), kind: 'event', note });
+  if (completing) emit('tarefa.concluida', ctxOf(task, ctx));
 }
 
 export type TaskEdit = { title: string; assignee?: string; dueAt?: string };
