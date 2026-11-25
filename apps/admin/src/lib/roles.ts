@@ -7,7 +7,7 @@ import type { Role } from '../domain';
 
 // WP3b (D4): o Vendedor tem os escopos "own" (só o que é dele) no lugar de leads:read/leads:write.
 const SELLER_SCOPES = ['leads:own', 'opportunities:own', 'people:read', 'people:write', 'history:read', 'history:write', 'pipelines:read', 'tasks:read', 'tasks:write', 'emails:send', 'team:read'];
-const MANAGER_SCOPES = [...SELLER_SCOPES, 'leads:read', 'leads:write', 'leads:origin', 'people:document', 'pipelines:manage', 'blog:read', 'blog:write', 'automations:manage', 'keys:manage'];
+const MANAGER_SCOPES = [...SELLER_SCOPES, 'leads:read', 'leads:write', 'leads:origin', 'people:document', 'pipelines:manage', 'blog:read', 'blog:write', 'automations:manage', 'mcp:use', 'keys:manage'];
 
 /** Escopos padrão do perfil (sem extras nem removidos). `null` para o Admin = todos. */
 export function presetScopes(role: Role): string[] | null {

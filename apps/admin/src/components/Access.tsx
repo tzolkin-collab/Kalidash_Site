@@ -30,7 +30,7 @@ const ROLE_BLURB: Record<Role, string> = {
 const ROLES: Role[] = ['ADMIN', 'MANAGER', 'SELLER'];
 const when = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }) : '');
 
-function Offline({ what }: { what: string }) {
+export function Offline({ what }: { what: string }) {
   return (
     <EmptyState title="Disponível com o login ligado">
       {what} depende do login com Google, que não está ligado neste servidor. Hoje o admin abre sem autenticação e a equipe é de exemplo, então não há o que configurar aqui.
@@ -38,7 +38,7 @@ function Offline({ what }: { what: string }) {
   );
 }
 
-function LoadError({ message, onRetry }: { message?: string; onRetry: () => void }) {
+export function LoadError({ message, onRetry }: { message?: string; onRetry: () => void }) {
   return (
     <div className="acc-error" role="alert">
       <TriangleAlert size={18} />
@@ -51,7 +51,7 @@ function LoadError({ message, onRetry }: { message?: string; onRetry: () => void
   );
 }
 
-function Skeleton({ rows = 4 }: { rows?: number }) {
+export function Skeleton({ rows = 4 }: { rows?: number }) {
   return (
     <div className="acc-skeleton" aria-busy="true" aria-label="Carregando">
       {Array.from({ length: rows }, (_, i) => <span key={i} style={{ width: `${92 - i * 11}%` }} />)}
@@ -304,7 +304,7 @@ function curl(token: string) {
   return `curl -H "Authorization: Bearer ${token}" \\\n  ${API_URL}/api/crm/leads`;
 }
 
-async function copyText(text: string): Promise<boolean> {
+export async function copyText(text: string): Promise<boolean> {
   try {
     await navigator.clipboard.writeText(text);
     return true;

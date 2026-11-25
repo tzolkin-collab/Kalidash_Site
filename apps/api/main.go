@@ -456,6 +456,7 @@ func main() {
 
 	if authEnabled() {
 		registerAuthRoutes(mux)
+		registerMCPRoutes(mux) // agentes por MCP, só com login ligado (tokens de API com mcp:use; mcp.go)
 	}
 	if connectEnabled() {
 		registerConnectRoutes(mux)

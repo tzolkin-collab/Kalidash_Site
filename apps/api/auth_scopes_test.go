@@ -92,6 +92,7 @@ func TestRotaExigeEscopo(t *testing.T) {
 		{"GET", "/api/tokens", "keys:manage"}, {"POST", "/api/tokens", "keys:manage"}, {"DELETE", "/api/tokens/x", "keys:manage"},
 		{"GET", "/api/projects", "keys:manage"}, {"POST", "/api/projects", "keys:manage"}, {"PUT", "/api/projects/p1", "keys:manage"},
 		{"POST", "/api/projects/p1/forms", "keys:manage"}, {"DELETE", "/api/projects/p1/forms/f1", "keys:manage"},
+		{"POST", "/api/mcp", "mcp:use"}, {"GET", "/api/mcp/info", "mcp:use"},
 	}
 	used := map[string]bool{}
 	for _, c := range cases {

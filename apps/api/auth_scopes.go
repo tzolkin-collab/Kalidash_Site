@@ -51,6 +51,7 @@ var scopeCatalog = []scopeDef{
 	{ID: "blog:write", Group: "Conteúdo", Label: "Escrever no blog", Desc: "Cria, edita, publica e envia imagens."},
 	{ID: "emails:send", Group: "Conteúdo", Label: "Enviar e-mails", Desc: "Dispara e-mails pela conta de envio."},
 	{ID: "automations:manage", Group: "Automação", Label: "Gerenciar automações", Desc: "Liga e desliga automações e edita os modelos de e-mail que elas enviam."},
+	{ID: "mcp:use", Group: "Automação", Label: "Conectar agentes (MCP)", Desc: "Usa o servidor MCP (/api/mcp). Cada ferramenta ainda exige o escopo da área dela (ex.: Ver leads)."},
 	{ID: "forms:write", Group: "Conexão de LPs", Label: "Enviar formulários (connect.js)", Desc: "Cria leads vindos de um projeto conectado. Pode ir no HTML da página.", Publishable: true},
 	{ID: "analytics:write", Group: "Conexão de LPs", Label: "Enviar eventos (analytics)", Desc: "Pageview e origem de um projeto conectado. Pode ir no HTML.", Publishable: true, Reserved: true},
 	{ID: "ads:read", Group: "Conexão de LPs", Label: "Ler mídia paga", Desc: "Sincroniza custo e CPL das contas de anúncios. Nunca no HTML.", Reserved: true},
@@ -86,7 +87,7 @@ var sellerScopes = []string{
 }
 
 var managerScopes = append(append([]string{}, sellerScopes...),
-	"leads:read", "leads:write", "leads:origin", "people:document", "pipelines:manage", "blog:read", "blog:write", "automations:manage", "keys:manage",
+	"leads:read", "leads:write", "leads:origin", "people:document", "pipelines:manage", "blog:read", "blog:write", "automations:manage", "mcp:use", "keys:manage",
 	"forms:write", "analytics:write", "ads:read")
 
 func presetScopes(role string) []string {
@@ -206,6 +207,8 @@ func routeScope(r *http.Request) (scope string, public bool) {
 		return pick("team:read", "team:manage"), false // a lista alimenta os seletores de responsável de qualquer tela
 	case strings.HasPrefix(p, "/api/tokens"):
 		return "keys:manage", false
+	case p == "/api/mcp" || p == "/api/mcp/info":
+		return "mcp:use", false // servidor MCP; cada ferramenta confere o escopo da própria rota (mcp.go)
 	case p == "/api/access/catalog":
 		return "", false // catálogo de escopos e presets: qualquer pessoa logada (a tela de permissões lê)
 	case strings.HasPrefix(p, "/api/blog/"):

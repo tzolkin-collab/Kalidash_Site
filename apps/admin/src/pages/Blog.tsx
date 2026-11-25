@@ -221,7 +221,7 @@ export default function Blog({ postId }: { postId?: string }) {
                           </div>
                         </td>
                         <td data-label="Status"><Badge tone={a.published ? 'success' : 'neutral'}>{a.published ? 'Publicado' : 'Rascunho'}</Badge></td>
-                        <td data-label="Autor">{a.authorName}</td>
+                        <td data-label="Autor" style={{ whiteSpace: 'nowrap' }}>{a.authorName}</td>
                         <td data-label="Categorias"><div className="tag-row">{a.categories.map((t) => <span key={t} className="tag">{t}</span>)}</div></td>
                         <td className="text-muted" data-label="Atualizado">{formatDate(a.updatedAt)}</td>
                       </tr>
@@ -1025,6 +1025,25 @@ function ArticleEditor({ article, isNew, otherArticles, blogCategories, onCatego
     return Math.max(1, Math.ceil(words / 200));
   }, [title, excerpt, editor.document, tick]);
 
+  // Título e resumo crescem com o texto (textarea com rows fixo cortava o título longo).
+  const titleRef = useRef<HTMLTextAreaElement>(null);
+  const excerptRef = useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(() => {
+    const fit = () => {
+      for (const el of [titleRef.current, excerptRef.current]) {
+        if (!el) continue;
+        el.style.height = 'auto';
+        el.style.height = `${el.scrollHeight}px`;
+      }
+    };
+    fit();
+    const target = titleRef.current?.parentElement;
+    if (!target || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(fit);
+    ro.observe(target);
+    return () => ro.disconnect();
+  }, [title, excerpt, view]);
+
   return (
     <Page>
       <PageHeader
@@ -1215,12 +1234,11 @@ function ArticleEditor({ article, isNew, otherArticles, blogCategories, onCatego
                     <article className="article-canvas">
                       {/* 1. Header Meta: Categoria, Data, Tempo de Leitura (Idêntico ao Preview do Site) */}
                       <div className="canvas-header-meta">
-                        <div className="canvas-category-badge" title="Escolha a categoria principal ou adicione tags separadas por vírgula" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                          <Tag size={11} />
-                          {blogCategories.length > 0 && (
+                        <span className="canvas-category" title="Categoria principal: aparece no cartão e no topo do artigo">
+                          {blogCategories.length > 0 ? (
                             <select
                               aria-label="Categoria principal"
-                              style={{ background: 'transparent', border: 'none', color: 'inherit', fontWeight: 700, fontSize: 'inherit', fontFamily: 'inherit', cursor: 'pointer', paddingRight: '4px' }}
+                              className="canvas-category-select"
                               value={
                                 blogCategories.find((c) => c.name.toLowerCase() === (categories.split(',')[0]?.trim().toLowerCase() ?? ''))?.name ?? ''
                               }
@@ -1233,20 +1251,26 @@ function ArticleEditor({ article, isNew, otherArticles, blogCategories, onCatego
                                 touch();
                               }}
                             >
-                              <option value="">Escolher categoria…</option>
+                              <option value="">Categoria…</option>
                               {blogCategories.map((c) => (
                                 <option key={c.id} value={c.name}>{c.name}</option>
                               ))}
                             </select>
+                          ) : (
+                            <span>{categories.split(',')[0]?.trim() || 'Sem categoria'}</span>
                           )}
+                        </span>
+                        <label className="canvas-tags" title="Categorias extras, separadas por vírgula. A primeira é a principal.">
+                          <Tag size={12} aria-hidden />
                           <input
                             id="field-categories"
                             className="canvas-category-input"
                             value={categories}
                             onChange={(e) => { setCategories(e.target.value); touch(); }}
-                            placeholder="Cases, Posts… (a 1ª aparece no cartão)"
+                            placeholder="Cases, Posts… (a 1ª é a principal)"
+                            aria-label="Categorias do artigo"
                           />
-                        </div>
+                        </label>
                         <span className="canvas-meta-dot">·</span>
                         <span className="canvas-date-text">
                           {published && article.publishedAt ? formatDate(article.publishedAt) : 'Hoje'}
@@ -1260,6 +1284,7 @@ function ArticleEditor({ article, isNew, otherArticles, blogCategories, onCatego
 
                       {/* 2. Título do Artigo (Grande tipografia editorial, idêntica ao h1 do site) */}
                       <textarea
+                        ref={titleRef}
                         id="field-title"
                         className="canvas-title-input"
                         rows={1}
@@ -1270,9 +1295,10 @@ function ArticleEditor({ article, isNew, otherArticles, blogCategories, onCatego
 
                       {/* 3. Subtítulo / Resumo Editorial (idêntico ao lead/excerpt do site) */}
                       <textarea
+                        ref={excerptRef}
                         id="field-excerpt"
                         className="canvas-excerpt-input"
-                        rows={2}
+                        rows={1}
                         value={excerpt}
                         placeholder="Adicione um resumo ou subtítulo cativante para introduzir a leitura..."
                         onChange={(e) => { setExcerpt(e.target.value); touch(); }}

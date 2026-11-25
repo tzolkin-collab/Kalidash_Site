@@ -1862,3 +1862,136 @@ textarea.inline-input { resize: vertical; }
 .tm-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-subtle); }
 .tm-cat + .tm-cat { margin-top: 16px; }
 .tm-cat-head { margin: 0 0 6px; font-size: 13px; font-weight: 700; }
+
+/* ==========================================================================
+ * Editor do blog, v2 (25/11): o canvas fala a mesma língua do artigo no site
+ * (apps/site/src/app/blog/[slug]/article.module.css): Fraunces nos títulos, Source Sans 18px no corpo,
+ * réguas e categoria em dourado, links terracota, 860px de largura de texto. A barra de controles fica presa no topo.
+ * ========================================================================== */
+.article-canvas-container {
+  --cv-ink: #0a0a0a;
+  --cv-text: #3c373f;
+  --cv-muted: #6b6470;
+  --cv-gold: #a88a58;
+  --cv-gold-text: #8f7248;
+  --cv-rule: rgba(168, 138, 88, 0.35);
+  --cv-link: #a4533c;
+  --cv-title: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --cv-body: 'Source Sans 3', system-ui, sans-serif;
+  max-width: 980px;
+  padding: 48px 56px 96px;
+}
+.dark .article-canvas-container {
+  --cv-ink: #f5f5f5;
+  --cv-text: #d4d4d4;
+  --cv-muted: #a3a3a3;
+  --cv-gold-text: #c4a673;
+  --cv-rule: rgba(196, 166, 115, 0.3);
+  --cv-link: #e8a58f;
+}
+.article-canvas { font-family: var(--cv-body); color: var(--cv-text); }
+
+/* Barra de controles presa no topo da página enquanto o texto rola. */
+.editor-super-bar { position: sticky; top: 0; z-index: 20; }
+.editor-views { padding: 3px; border-radius: 9px; background: var(--bg-surface-hover); gap: 2px; }
+.editor-views .btn { border-color: transparent; background: transparent; box-shadow: none; }
+.editor-views .btn.btn-solid { background: var(--bg-surface); color: var(--text-primary); border-color: var(--border-subtle); box-shadow: var(--shadow-sm); }
+
+/* Metadados: categoria como o "eyebrow" do site, depois data e leitura, tudo numa linha. */
+.canvas-header-meta { gap: 8px 12px; margin-bottom: 20px; font-size: 13px; }
+.canvas-category { display: inline-flex; align-items: center; }
+.canvas-category-select {
+  appearance: none; -webkit-appearance: none;
+  border: 0; background: transparent; padding: 2px 16px 2px 0; cursor: pointer;
+  font-family: var(--font-label, var(--cv-body)); font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--cv-gold-text);
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 6px) 55%, calc(100% - 2px) 55%;
+  background-size: 4px 4px; background-repeat: no-repeat;
+}
+.canvas-category-select:focus-visible { outline: 2px solid var(--cv-gold); outline-offset: 2px; border-radius: 4px; }
+.canvas-tags {
+  display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 999px;
+  border: 1px dashed var(--border-subtle); color: var(--cv-muted); cursor: text;
+}
+.canvas-tags:focus-within { border-style: solid; border-color: var(--cv-gold); }
+.canvas-tags .canvas-category-input { min-width: 0; width: 22ch; font-size: 12px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--cv-text); }
+.canvas-tags .canvas-category-input::placeholder { color: var(--cv-muted); opacity: 0.7; font-style: normal; }
+.canvas-meta-dot { color: var(--cv-rule); }
+.canvas-date-text, .canvas-reading-badge { color: var(--cv-muted); font-size: 13px; }
+
+/* Título e resumo: mesmas fontes e medidas do site (crescem com o texto, ver Blog.tsx). */
+.canvas-title-input {
+  font-family: var(--cv-title); font-weight: 400; font-size: clamp(34px, 3.6vw, 56px); line-height: 1.04; letter-spacing: -0.02em;
+  color: var(--cv-ink); margin: 0 0 20px; text-wrap: balance;
+}
+.canvas-title-input::placeholder { color: var(--cv-muted); opacity: 0.45; }
+.canvas-excerpt-input { font-family: var(--cv-body); font-size: clamp(18px, 1.5vw, 21px); line-height: 1.5; color: var(--cv-text); margin: 0 0 28px; max-width: 46ch; }
+.canvas-excerpt-input::placeholder { color: var(--cv-muted); opacity: 0.6; font-style: normal; }
+
+/* Autor: régua dourada em cima e embaixo, sem o selo de gradiente (o site também não mostra). */
+.canvas-author-bar { padding: 14px 0; border-color: var(--cv-rule); margin-bottom: 32px; }
+.canvas-author-avatar { width: 34px; height: 34px; border-radius: 6px; background: var(--cv-ink); color: var(--bg-surface); box-shadow: none; font-size: 12px; }
+.canvas-author-select { font-family: var(--cv-body); font-size: 15px; color: var(--cv-ink); }
+.canvas-author-role { font-size: 12px; color: var(--cv-muted); }
+
+/* Capa: 21:9 com canto de 12px, como no site; as ferramentas aparecem ao passar o mouse. */
+.canvas-cover-container { border-radius: 12px; box-shadow: 0 18px 44px rgba(0, 0, 0, 0.12); margin-bottom: 40px; }
+.canvas-cover-card { border-radius: 12px; }
+.canvas-cover-card img { height: auto; aspect-ratio: 21 / 9; }
+.canvas-cover-floating-tools { opacity: 0; transform: translateY(4px); transition: opacity 0.15s ease, transform 0.15s ease; }
+.canvas-cover-card:hover .canvas-cover-floating-tools,
+.canvas-cover-card:focus-within .canvas-cover-floating-tools { opacity: 1; transform: none; }
+@media (hover: none) { .canvas-cover-floating-tools { opacity: 1; transform: none; } }
+
+/* Corpo: a leitura do site (18px, 1.72), títulos em Fraunces com régua dourada, links terracota. */
+.canvas-body .bn-editor { padding-inline: 48px !important; font-family: var(--cv-body); background: transparent; }
+.canvas-body .bn-container { --bn-font-family: var(--cv-body); }
+.canvas-body .bn-block-content { font-size: 18px; line-height: 1.72; color: var(--cv-text); }
+.canvas-body .bn-block-content[data-content-type="heading"] { color: var(--cv-ink); font-family: var(--cv-title); font-weight: 500; letter-spacing: -0.02em; }
+.canvas-body .bn-block-content[data-content-type="heading"][data-level="1"] { font-size: 40px; line-height: 1.1; }
+.canvas-body .bn-block-content[data-content-type="heading"][data-level="2"] { font-size: 32px; line-height: 1.15; }
+.canvas-body .bn-block-content[data-content-type="heading"][data-level="3"] { font-size: 24px; line-height: 1.25; }
+.canvas-body .bn-block-outer:has(> .bn-block > .bn-block-content[data-content-type="heading"][data-level="2"]):not(:first-child) {
+  margin-top: 1.6em; padding-top: 20px; border-top: 1px solid var(--cv-rule);
+}
+.canvas-body .bn-inline-content a, .canvas-body .bn-block-content a { color: var(--cv-link); text-decoration: underline; text-underline-offset: 3px; }
+.canvas-body .bn-block-content[data-content-type="quote"] { border-left: 0; border-top: 1px solid var(--cv-gold); padding: 16px 0 0; font-family: var(--cv-title); font-size: 26px; line-height: 1.3; color: var(--cv-ink); }
+.canvas-body .bn-block-content[data-content-type="codeBlock"] { font-size: 14px; }
+
+@media (max-width: 900px) {
+  .article-canvas-container { padding: 28px 20px 64px; }
+  .canvas-body .bn-editor { padding-inline: 28px !important; }
+}
+/* Lado a lado: o canvas tem metade da largura, então menos respiro e título menor. */
+.editor-split[data-view="split"] .article-canvas-container { padding: 32px 24px 72px; }
+.editor-split[data-view="split"] .canvas-title-input { font-size: clamp(30px, 2.6vw, 42px); }
+.editor-split[data-view="split"] .canvas-body .bn-editor { padding-inline: 32px !important; }
+/* O h2/h3 interno do BlockNote herda a fonte global do admin; aqui ele herda a do bloco (Fraunces). */
+.canvas-body .bn-block-content[data-content-type="heading"] .bn-inline-content { font-family: inherit; font-weight: inherit; letter-spacing: inherit; line-height: inherit; }
+.editor-views .btn { color: var(--text-muted); font-weight: 500; }
+.editor-views .btn.btn-solid { color: var(--text-primary); font-weight: 600; }
+
+/* ---------- Configurações → MCP e agentes (components/McpTab.tsx) ---------- */
+.mcp-pane { gap: 24px; }
+.mcp-card { display: grid; gap: 10px; padding: 16px 18px; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-surface); }
+.mcp-card-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.mcp-card-head > div:first-child { display: grid; gap: 4px; min-width: 0; }
+.mcp-card-actions { display: flex; align-items: center; gap: 10px; }
+.mcp-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+.mcp-url { font-family: var(--font-mono, ui-monospace, monospace); font-size: 14px; color: var(--text-primary); word-break: break-all; }
+.mcp-steps { display: grid; gap: 0; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-surface); }
+.mcp-step { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 14px; padding: 18px; }
+.mcp-step + .mcp-step { border-top: 1px solid var(--border-subtle); }
+.mcp-step-num { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--bg-surface-hover); border: 1px solid var(--border-subtle); font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.mcp-step-body { display: grid; gap: 8px; justify-items: start; min-width: 0; }
+.mcp-step-body > strong { font-size: 14px; color: var(--text-primary); }
+.mcp-step-body p { margin: 0; font-size: 13px; line-height: 1.55; }
+.mcp-snippet-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.mcp-code { position: relative; width: 100%; }
+.mcp-code pre { margin: 0; padding: 14px 16px; padding-right: 110px; border-radius: 10px; background: #0f1117; color: #e6e8ee; font-family: var(--font-mono, ui-monospace, monospace); font-size: 12.5px; line-height: 1.6; overflow-x: auto; white-space: pre; }
+.mcp-code-copy { position: absolute; top: 8px; right: 8px; }
+.mcp-h3 { margin: 0 0 4px; font-size: 15px; font-weight: 600; color: var(--text-primary); }
+.mcp-empty { display: flex; align-items: center; gap: 10px; padding: 18px; border: 1px dashed var(--border-subtle); border-radius: 12px; color: var(--text-muted); font-size: 13px; }
+.mcp-code pre code { font: inherit; color: inherit; background: none; padding: 0; }
+.mcp-pane .mcp-url, .mcp-code pre { font-family: ui-monospace, 'Cascadia Code', Consolas, 'SF Mono', Menlo, monospace; }

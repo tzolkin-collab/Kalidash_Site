@@ -20,8 +20,9 @@ import { Badge, EmptyState, Field, Page, PageHeader, PopupDialog, SampleBanner, 
 import { CustomSelect } from '../components/ui';
 import { PermissionsTab, TokensTab } from '../components/Access';
 import TagsAdmin from '../components/TagsAdmin';
+import { McpTab } from '../components/McpTab';
 
-type Tab = 'profile' | 'team' | 'permissions' | 'tokens' | 'tags' | 'notifications' | 'webhooks' | 'audit';
+type Tab = 'profile' | 'team' | 'permissions' | 'tokens' | 'mcp' | 'tags' | 'notifications' | 'webhooks' | 'audit';
 
 const ROLE_LABEL: Record<Role, string> = { ADMIN: 'Admin', MANAGER: 'Gerente', SELLER: 'Vendedor' };
 const when = (iso?: string) => (iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : 'Nunca');
@@ -39,7 +40,7 @@ export default function Settings() {
   const [tab, setTab] = useState<Tab>('profile');
   return (
     <Page>
-      <PageHeader title="Configurações" subtitle="Seu perfil, a equipe e os acessos, os webhooks de saída e o registro do que foi feito." />
+      <PageHeader title="Configurações" subtitle="Seu perfil, a equipe e os acessos, os agentes conectados por MCP, os webhooks de saída e o registro do que foi feito." />
       {/* Com o login e o CRM na API só os Webhooks seguem de exemplo: o aviso fica só nessa aba (WP3b). */}
       {(!(auth.status === 'in' && crmMode === 'api') || tab === 'webhooks') && (
         <SampleBanner>
@@ -52,7 +53,7 @@ export default function Settings() {
         </SampleBanner>
       )}
       <Tabs
-        tabs={[{ id: 'profile' as Tab, label: 'Meu perfil' }, { id: 'team' as Tab, label: 'Equipe e acessos' }, { id: 'permissions' as Tab, label: 'Permissões' }, { id: 'tokens' as Tab, label: 'Tokens de API' }, { id: 'tags' as Tab, label: 'Tags' }, { id: 'notifications' as Tab, label: 'Notificações' }, { id: 'webhooks' as Tab, label: 'Webhooks' }, { id: 'audit' as Tab, label: 'Auditoria' }]}
+        tabs={[{ id: 'profile' as Tab, label: 'Meu perfil' }, { id: 'team' as Tab, label: 'Equipe e acessos' }, { id: 'permissions' as Tab, label: 'Permissões' }, { id: 'tokens' as Tab, label: 'Tokens de API' }, { id: 'mcp' as Tab, label: 'MCP e agentes' }, { id: 'tags' as Tab, label: 'Tags' }, { id: 'notifications' as Tab, label: 'Notificações' }, { id: 'webhooks' as Tab, label: 'Webhooks' }, { id: 'audit' as Tab, label: 'Auditoria' }]}
         value={tab}
         onChange={setTab}
       />
@@ -60,6 +61,7 @@ export default function Settings() {
       {tab === 'team' && <TeamTab />}
       {tab === 'permissions' && <PermissionsTab />}
       {tab === 'tokens' && <TokensTab />}
+      {tab === 'mcp' && <McpTab onGoTokens={() => setTab('tokens')} />}
       {tab === 'tags' && <TagsAdmin />}
       {tab === 'notifications' && <NotificationsTab />}
       {tab === 'webhooks' && <WebhooksTab />}
