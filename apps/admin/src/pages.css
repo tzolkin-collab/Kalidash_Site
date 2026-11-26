@@ -2065,3 +2065,7 @@ textarea.inline-input { resize: vertical; }
   .an-rule dd:not(.an-rule-value):not(.an-rule-end) { grid-column: 1 / -1; }
   .an-share { margin-left: auto; width: 56px; }
 }
+.an-hero[data-cols="5"] { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.an-hero[data-cols="5"] .dash-hero-value { font-size: clamp(24px, 2.2vw, 36px); }
+@media (max-width: 1000px) { .an-hero[data-cols="5"] { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.an-warn { color: var(--dash-warn-ink) !important; font-weight: 600 !important; }

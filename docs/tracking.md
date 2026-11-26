@@ -179,6 +179,20 @@ buscador) → Indicação (outro referrer) → Direto / sem origem.
 - **Último toque** usa as UTMs do momento do formulário.
 - **Sem origem acima de 30%** dos leads do site liga o aviso: a leitura por canal deixa de ser confiável.
 
-**Próximas etapas**: custo de mídia lido na hora da Meta Marketing API e da Google Ads API (custo por lead
-qualificado e ROAS, casando `utm_campaign` com o nome da campanha) e o campo opcional "Como você conheceu a
-Kalidash?" para comparar a origem declarada com a rastreada.
+**Investimento em mídia** (`GET /api/analytics/spend?from=AAAA-MM-DD&to=AAAA-MM-DD`, `apps/api/analytics_spend.go`):
+gasto por campanha lido na hora da Meta (Marketing API, insights por campanha) e do Google Ads (Google Ads API,
+GAQL em `googleAds:searchStream`), com cache de 15 minutos em memória e nada gravado. Cada plataforma entra sozinha
+quando as variáveis dela existem (lista em `apps/api/.env.example`); uma que falha mostra o erro e não derruba a
+outra.
+
+- A campanha da plataforma casa com o `utm_campaign` do lead pelo nome normalizado (sem acento, minúsculo, `_` no
+  lugar de espaço). Por isso o nome da campanha no gerenciador precisa ser o mesmo do `utm_campaign`, ou o anúncio
+  usa a UTM dinâmica do nome da campanha.
+- Com investimento, o resumo ganha **Investimento** e **Custo por lead qualificado** (com o retorno, receita ÷
+  investimento); canais e campanhas ganham investimento, custo por qualificado e retorno.
+- Campanha ou canal com gasto e nenhum lead no período aparece com zero leads e o aviso "Gastou sem trazer lead".
+- Versões: Marketing API `v26.0` e Google Ads API `v26` por padrão (`META_ADS_GRAPH_VERSION`,
+  `GOOGLE_ADS_API_VERSION`). As duas plataformas aposentam versões; ao ver erro de versão, suba o número.
+
+**Próxima etapa**: o campo opcional "Como você conheceu a Kalidash?" para comparar a origem declarada com a
+rastreada.

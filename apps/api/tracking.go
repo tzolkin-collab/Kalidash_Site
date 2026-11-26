@@ -34,7 +34,7 @@ import (
 //     nem reenvia a conversão, mesmo com clique duplo, nova tentativa de rede ou reenvio do navegador.
 //
 // Variáveis: META_PIXEL_ID, META_CAPI_ACCESS_TOKEN, META_TEST_EVENT_CODE (opcional), META_GRAPH_VERSION
-// (opcional, padrão v21.0), GA4_MEASUREMENT_ID, GA4_API_SECRET. Sem elas o lead entra normalmente e a
+// (opcional, padrão v26.0; a Meta aposenta versões, ver o changelog da Graph API), GA4_MEASUREMENT_ID, GA4_API_SECRET. Sem elas o lead entra normalmente e a
 // camada correspondente fica "skipped" na TrackingEvent.
 
 var eventIDRe = regexp.MustCompile(`^[A-Za-z0-9_-]{8,64}$`)
@@ -54,7 +54,7 @@ func loadTrackingConfig() trackingConfig {
 		GA4Secret:    strings.TrimSpace(os.Getenv("GA4_API_SECRET")),
 	}
 	if c.GraphVersion == "" {
-		c.GraphVersion = "v21.0"
+		c.GraphVersion = "v26.0"
 	}
 	return c
 }
