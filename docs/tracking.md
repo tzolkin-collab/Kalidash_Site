@@ -31,12 +31,34 @@ criação do link, não só na gravação.
 | Google Ads | `google` | `cpc` | `<tema>_<aaaamm>` | `<grupo>` |
 | LinkedIn Ads | `linkedin` | `paid_social` | `<tema>_<aaaamm>` | `<anuncio>` |
 | Orgânico Instagram (bio, stories, "comente aqui") | `instagram` | `social` | `<tema>` | `bio` \| `stories` \| `comentario` \| `dm` |
-| Orgânico LinkedIn | `linkedin` | `social` | `<tema>` | `post` \| `comentario` |
-| WhatsApp (lista, grupo, 1:1) | `whatsapp` | `messaging` | `<tema>` | `lista` \| `grupo` \| `direto` |
-| E-mail / newsletter | `resend` | `email` | `<edicao>` ex.: `newsletter_2026_11` | `<link>` |
+| Orgânico LinkedIn | `linkedin` | `social` | `<tema>` | `post` \| `comentario` \| `perfil` |
+| WhatsApp (lista, grupo, 1:1, status) | `whatsapp` | `messaging` | `<tema>` | `lista` \| `grupo` \| `direto` \| `status` |
+| YouTube (descrição) | `youtube` | `social` | `<tema>` | `descricao` |
+| TikTok (bio) | `tiktok` | `social` | `<tema>` | `bio` |
+| Assinatura de e-mail | `email` | `email` | `<tema>` | `assinatura` |
+| Newsletter (edições do admin) | `newsletter` | `email` | `<slug do artigo>` | — |
+
+**Orgânico: não monte à mão.** Use o admin, **Links de divulgação** (seção 2.1): ele gera os links de todos os canais
+orgânicos acima já na convenção. Para separar duas peças do mesmo tema, o campo "Peça" vira o fim do `utm_content`
+(ex.: `stories_reels_01`).
 
 Exemplo (link do "comente aqui" no Instagram que leva ao material):
 `https://kalidash.com.br/blog/guia-ia?utm_source=instagram&utm_medium=social&utm_campaign=material_ia&utm_content=comentario`
+
+### 2.1 Links de divulgação (tagueamento orgânico)
+
+Admin > **Links de divulgação** (`apps/admin/src/pages/Links.tsx`, quem edita o blog). Escolha o conteúdo (página do
+site ou artigo publicado), confira o tema (`utm_campaign`, vem do slug) e copie, por canal:
+
+- **Link curto** `kalidash.com.br/l/<código>`: para bio, stories e WhatsApp. O site (`apps/site/src/app/l/[code]/route.ts`)
+  pergunta à API (`GET /api/public/links/<código>`) e redireciona (302) para a página com as UTMs; o tracking do site
+  guarda a atribuição normalmente e o referrer original (Instagram, LinkedIn) segue junto. Código desconhecido ou
+  arquivado leva para a home. Robôs de prévia (WhatsApp, LinkedIn, Instagram) seguem o link mas não contam clique.
+- **Link completo** com as UTMs: o mesmo destino, para onde o endereço não aparece (botão, e-mail).
+
+Os links ficam na tabela `CampaignLink` (`apps/api/campaign_links.go`): o mesmo destino com as mesmas UTMs reaproveita
+o mesmo código. A aba "Links criados" mostra cliques e leads (leads cuja última campanha bate com a do link). O destino é
+sempre um caminho do próprio site, nunca um endereço externo (o link curto não vira redirecionamento aberto).
 
 ## 3. Atribuição (o que é guardado e quando)
 
@@ -130,3 +152,33 @@ visitas de `localhost` entram nos relatórios reais.
 3. **GA4**: DebugView (Admin > DebugView) ou o relatório Tempo real.
 4. **Banco**: `SELECT name, source, metaStatus, ga4Status, lastError FROM TrackingEvent ORDER BY createdAt DESC LIMIT 20;`
    (`sent` = entregue, `skipped` = camada sem configuração, `failed` = ver `lastError`).
+
+## 9. Analytics (admin, `/analytics`)
+
+Página só de leitura: nenhuma tabela nova e nenhum evento ou página vista gravado. Canais, campanhas e receita são
+calculados no admin a partir dos leads e oportunidades (`apps/admin/src/lib/channels.ts` e `acquisitionMetrics.ts`);
+a saúde das conversões vem de `GET /api/analytics/tracking-health` (SELECT agregado em `TrackingEvent`, escopo
+`leads:read`).
+
+**O que cada número conta**
+
+- **Coorte**: leads criados no período (arquivados ficam fora) e tudo o que geraram depois, mesmo que a venda feche
+  fora da janela. A oportunidade do lead vem de `convertedOpportunityId` ou do `leadId` da oportunidade.
+- **Pipeline gerado**: soma do valor das oportunidades da coorte. **Receita ganha**: só as em etapa ganha.
+- **Qualificados**: lead com status `QUALIFIED` ou com oportunidade fora da etapa de lead.
+- **Ciclo**: mediana de dias entre a criação do lead e o ganho.
+- **Taxas** só aparecem com 5 casos ou mais; abaixo disso, "—". Comparação: mesma duração imediatamente antes.
+
+**Regra de canais** (primeira que bater): Outbound → Projeto conectado → Google Ads (`gclid`/`gbraid`/`wbraid` ou
+`cpc`) → Meta Ads (`paid_social`) → Orgânico · rede (`social`; `fbclid` sozinho também é orgânico, porque a Meta o
+põe em links de post) → WhatsApp (`messaging`) → E-mail e newsletter (`email`) → Busca orgânica (referrer de
+buscador) → Indicação (outro referrer) → Direto / sem origem.
+
+- **Primeiro toque** (padrão) usa `first_utm_*` e `landing_page`; se a descoberta foi sem campanha e a campanha veio
+  depois, o lead conta como Direto. Lead antigo sem primeiro toque gravado usa o último.
+- **Último toque** usa as UTMs do momento do formulário.
+- **Sem origem acima de 30%** dos leads do site liga o aviso: a leitura por canal deixa de ser confiável.
+
+**Próximas etapas**: custo de mídia lido na hora da Meta Marketing API e da Google Ads API (custo por lead
+qualificado e ROAS, casando `utm_campaign` com o nome da campanha) e o campo opcional "Como você conheceu a
+Kalidash?" para comparar a origem declarada com a rastreada.

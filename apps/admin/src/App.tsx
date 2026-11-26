@@ -8,6 +8,7 @@ import Automations from './pages/Automations';
 import Clients from './pages/Clients';
 import Leads from './pages/Leads';
 import Newsletter from './pages/Newsletter';
+import Links from './pages/Links';
 import Opportunities from './pages/Opportunities';
 import PeopleCompanies from './pages/PeopleCompanies';
 import PipelineSettings from './pages/PipelineSettings';
@@ -40,6 +41,8 @@ const Emails = lazy(() => import('./Emails'));
 const TaskWorkflow = lazy(() => import('./pages/TaskWorkflow'));
 // O editor de texto do Blog (TipTap) também.
 const Blog = lazy(() => import('./pages/Blog'));
+// Analytics usa recharts e as métricas de aquisição: só carrega quando a página abre.
+const Analytics = lazy(() => import('./pages/Analytics'));
 function NotFound({ path }: { path: string }) {
   return (
     <Page>
@@ -133,6 +136,9 @@ export default function App() {
     case 'dashboard':
       page = second === 'demonstracao' ? <DashboardDemo /> : <Dashboard />;
       break;
+    case 'analytics':
+      page = <Analytics />;
+      break;
     case 'leads':
       page = <Leads />;
       break;
@@ -158,6 +164,9 @@ export default function App() {
       break;
     case 'newsletter':
       page = <Newsletter />;
+      break;
+    case 'links':
+      page = can.manageBlog ? <Links /> : <NotFound path={`${path} (sem permissão)`} />;
       break;
     case 'projetos':
       page = <Projects />;
@@ -201,7 +210,7 @@ export default function App() {
               {NAV_GROUPS.map((group, i) => (
                 <div key={group.title ?? i}>
                   {group.title && <div className="nav-group-title">{group.title}</div>}
-                  {group.items.filter((it) => it.path !== '/blog' || can.manageBlog).map(({ path: to, label, Icon }) => {
+                  {group.items.filter((it) => (it.path !== '/blog' && it.path !== '/links') || can.manageBlog).map(({ path: to, label, Icon }) => {
                     const active = isActive(path === '/' ? '/dashboard' : path, to);
                     return (
                       <a key={to} href={`#${to}`} className={`nav-link ${active ? 'active' : ''}`} aria-current={active ? 'page' : undefined} onClick={() => setIsMobileMenuOpen(false)}>

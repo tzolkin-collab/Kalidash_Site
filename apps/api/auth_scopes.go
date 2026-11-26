@@ -190,11 +190,17 @@ func routeScope(r *http.Request) (scope string, public bool) {
 	case p == "/api/public/leads":
 		// Captura de lead pelos formulários das LPs. Tem origem permitida, limite por IP e honeypot próprios.
 		return "", true
+	case read && strings.HasPrefix(p, "/api/public/links/"):
+		// Link curto /l/<código>: o site pergunta o destino servidor a servidor. Só devolve caminho do site e UTMs
+		// (campaign_links.go). A gestão dos links fica em /api/blog/links (blog:read / blog:write).
+		return "", true
 	case strings.HasPrefix(p, "/api/connect/"):
 		// Entrada do connect.js e da API direta. A autenticação é o token (Authorization: Bearer) com forms:write,
 		// conferida no handler junto com a origem do projeto, o limite de taxa e o honeypot (connect_ingest.go).
 		// Não pode passar pelo CORS do admin: a página do cliente está em outro domínio.
 		return "", true
+	case strings.HasPrefix(p, "/api/analytics/"):
+		return "leads:read", false // Analytics: só leitura de envios de conversão (analytics.go)
 	case strings.HasPrefix(p, "/api/projects"):
 		return "keys:manage", false // projetos conectados e formulários rastreados: Admin/Gerente
 	case read && (p == "/api/blog/article" || p == "/api/blog/settings" || p == "/api/blog/categories"):
