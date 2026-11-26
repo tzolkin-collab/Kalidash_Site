@@ -189,8 +189,15 @@ func releaseEvent(id string) { inflight.Delete(id) }
 // ---- evento de conversão ----
 
 type conversionEvent struct {
-	EventID   string
-	Name      string // "Lead" na Meta, "generate_lead" no GA4
+	EventID string
+	Name    string // "Lead" na Meta, "generate_lead" no GA4
+	// Conversões offline (offline_conversions.go). Vazios = o lead do formulário, como sempre.
+	GA4Name      string   // nome no GA4 (padrão generate_lead)
+	ActionSource string   // "website" (padrão) ou "system_generated" (etapa do CRM)
+	Value        *float64 // valor da venda, em Currency
+	Currency     string
+	// Extra: parâmetros a mais no custom_data da Meta e nos params do GA4 (ex.: content_category da inscrição).
+	Extra     map[string]string
 	Time      time.Time
 	Email     string
 	Phone     string
@@ -202,17 +209,34 @@ type conversionEvent struct {
 }
 
 func buildConversion(in leadInput, eventID, ip, ua string) conversionEvent {
-	attr := map[string]string{}
-	for k, v := range in.Attribution {
-		if s := clean(strOf(v), 500); s != "" {
-			attr[k] = s
-		}
-	}
+	attr := cleanAttribution(in.Attribution, true) // mesmas chaves e mesma convenção de UTMs gravadas no lead
 	return conversionEvent{
 		EventID: eventID, Name: "Lead", Time: time.Now(),
 		Email: in.Email, Phone: in.Phone, FullName: in.Name, Source: in.Source,
 		IP: ip, UserAgent: clean(ua, 400), Attr: attr,
 	}
+}
+
+// signupKind: "material" para quem pediu um material gratuito dos guias (blog-newsletter-material…), "newsletter"
+// para as demais inscrições do blog.
+func signupKind(source string) string {
+	if strings.HasPrefix(source, newsletterSource+"-material") {
+		return "material"
+	}
+	return "newsletter"
+}
+
+// buildSignupConversion: inscrição na newsletter ou pedido de material. Sai como CompleteRegistration na Meta e
+// sign_up no GA4, NÃO como Lead/generate_lead: o Lead fica só para quem pede diagnóstico ou contato, e as campanhas
+// que otimizam por ele não se misturam com inscrição. content_category (newsletter | material) separa os dois; na
+// Meta, uma conversão personalizada com o filtro content_category = material vira a meta das campanhas de material.
+// O navegador dispara o mesmo evento com o mesmo event_id (lib/tracking.ts, trackSignup).
+func buildSignupConversion(in leadInput, eventID, ip, ua string) conversionEvent {
+	ev := buildConversion(in, eventID, ip, ua)
+	kind := signupKind(in.Source)
+	ev.Name, ev.GA4Name = "CompleteRegistration", "sign_up"
+	ev.Extra = map[string]string{"content_category": kind, "content_name": in.Source, "method": kind}
+	return ev
 }
 
 // dispatchConversion roda em segundo plano depois que o lead gravou. Trocável nos testes.
@@ -348,15 +372,22 @@ func metaPayload(cfg trackingConfig, ev conversionEvent) map[string]any {
 			custom[k] = v
 		}
 	}
+	if ev.Value != nil {
+		custom["value"], custom["currency"] = *ev.Value, firstNonEmpty(ev.Currency, "BRL")
+	}
+	for k, v := range ev.Extra {
+		custom[k] = v
+	}
+	source := firstNonEmpty(ev.ActionSource, "website")
 	event := map[string]any{
 		"event_name":    ev.Name,
 		"event_time":    ev.Time.Unix(),
 		"event_id":      ev.EventID,
-		"action_source": "website",
+		"action_source": source,
 		"user_data":     user,
 		"custom_data":   custom,
 	}
-	if v := ev.Attr["page_url"]; v != "" {
+	if v := ev.Attr["page_url"]; v != "" && source == "website" {
 		event["event_source_url"] = v
 	}
 	body := map[string]any{"data": []any{event}, "access_token": cfg.MetaToken}
@@ -388,23 +419,32 @@ func ga4Payload(ev conversionEvent) map[string]any {
 		"form_name":            ev.Source,
 		"event_id":             ev.EventID,
 	}
-	if v := ev.Attr["ga_session_id"]; v != "" {
-		if n, err := strconv.ParseInt(v, 10, 64); err == nil {
-			params["session_id"] = n
+	// A sessão e a página só valem para o envio do formulário: uma etapa do CRM acontece dias depois, fora dela.
+	if firstNonEmpty(ev.ActionSource, "website") == "website" {
+		if v := ev.Attr["ga_session_id"]; v != "" {
+			if n, err := strconv.ParseInt(v, 10, 64); err == nil {
+				params["session_id"] = n
+			}
 		}
-	}
-	if v := ev.Attr["page_url"]; v != "" {
-		params["page_location"] = v
+		if v := ev.Attr["page_url"]; v != "" {
+			params["page_location"] = v
+		}
 	}
 	for _, k := range []string{"utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "interest"} {
 		if v := ev.Attr[k]; v != "" {
 			params[k] = v
 		}
 	}
+	if ev.Value != nil {
+		params["value"], params["currency"] = *ev.Value, firstNonEmpty(ev.Currency, "BRL")
+	}
+	for k, v := range ev.Extra {
+		params[k] = v
+	}
 	return map[string]any{
 		"client_id":        clientID,
 		"timestamp_micros": ev.Time.UnixMicro(),
-		"events":           []any{map[string]any{"name": "generate_lead", "params": params}},
+		"events":           []any{map[string]any{"name": firstNonEmpty(ev.GA4Name, "generate_lead"), "params": params}},
 	}
 }
 

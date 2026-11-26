@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useRef, useState, type FormEvent } from "react";
 import { config } from "../home/content";
-import { getAttribution, newEventId } from "@/lib/tracking";
+import { getAttribution, newEventId, trackSignup } from "@/lib/tracking";
 import styles from "./newsletter.module.css";
 
 /* CTA "receber os conteúdos por e-mail" (jornada J3 do mapa de CTAs). Pede só nome e e-mail e grava como lead no
  * CRM pela mesma captura do site (POST /api/leads -> /api/public/leads), com a origem "blog-newsletter": a API
- * aceita sem WhatsApp e não conta como conversão Lead da mídia paga. Aqui só vai o evento sign_up para o GA4. */
+ * aceita sem WhatsApp e não conta como conversão Lead da mídia paga. A inscrição tem conversão própria (trackSignup):
+ * CompleteRegistration na Meta e sign_up no GA4, com content_category "material" no bloco de material gratuito e
+ * "newsletter" nos demais, e o mesmo event_id da API de Conversões. */
 
 const emailOk = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
@@ -47,28 +49,24 @@ export default function NewsletterSignup({ placement, variant = "band", origem, 
     setStatus("sending");
     const eventId = (eventIdRef.current ??= newEventId());
     try {
+      const source = `blog-newsletter-${placement}${origem ? `-${origem}` : ""}`;
       const res = await fetch(config.leadEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
           email,
-          source: `blog-newsletter-${placement}${origem ? `-${origem}` : ""}`,
+          source,
           website: String(form.get("website") ?? ""),
           event_id: eventId,
           attribution: getAttribution(),
         }),
       });
       if (!res.ok) throw new Error(String(res.status));
+      const out = await res.json().catch(() => ({}));
       eventIdRef.current = null;
       setStatus("sent");
-      try {
-        const w = window as unknown as { gtag?: (...a: unknown[]) => void; dataLayer?: unknown[] };
-        w.gtag?.("event", "sign_up", { method: "newsletter_blog", placement });
-        (w.dataLayer ??= []).push({ event: "newsletter_signup", placement, event_id: eventId });
-      } catch {
-        /* rastreamento bloqueado */
-      }
+      trackSignup(eventId, placement === "material" ? "material" : "newsletter", source, out, { placement });
     } catch {
       setStatus("error");
     }

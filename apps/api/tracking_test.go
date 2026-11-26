@@ -100,35 +100,61 @@ func TestPublicLeadIdempotent(t *testing.T) {
 	}
 }
 
-// Newsletter do blog: entra sem WhatsApp, grava o lead e não dispara a conversão Lead da mídia paga.
+// Newsletter e material do blog: entram sem WhatsApp, gravam o lead e disparam a conversão de inscrição
+// (CompleteRegistration / sign_up), nunca o Lead da mídia paga.
 func TestPublicLeadNewsletter(t *testing.T) {
 	t.Setenv("ALLOWED_ORIGINS", "")
 	t.Setenv("SITE_URL", "")
 	t.Setenv("META_PIXEL_ID", "123")
 	t.Setenv("META_CAPI_ACCESS_TOKEN", "tok")
 	var saved []leadInput
-	dispatched := 0
+	var events []conversionEvent
 	oldStore, oldSaver, oldDispatch := tracking, leadSaver, dispatchConversion
 	tracking = newMemTracking()
 	leadSaver = func(in leadInput, ip string) error { saved = append(saved, in); return nil }
-	dispatchConversion = func(ev conversionEvent) { dispatched++ }
+	dispatchConversion = func(ev conversionEvent) { events = append(events, ev) }
 	t.Cleanup(func() { tracking, leadSaver, dispatchConversion = oldStore, oldSaver, oldDispatch })
 
-	body := `{"name":"Ana Souza","email":"ana@empresa.com","source":"blog-newsletter","event_id":"6c1e2f4e-3c1a-4c7e-9d1e-2f9b8a7c6d5e"}`
-	req := httptest.NewRequest("POST", "/api/public/leads", strings.NewReader(body))
-	req.Header.Set("X-Forwarded-For", "8.0.0.9")
-	rec := httptest.NewRecorder()
-	handlePublicLead(rec, req)
-	var out map[string]any
-	_ = json.Unmarshal(rec.Body.Bytes(), &out)
-	if rec.Code != 201 || len(saved) != 1 || saved[0].Source != "blog-newsletter" {
-		t.Fatalf("newsletter: %d %v %+v", rec.Code, out, saved)
+	cases := []struct{ source, eventID, kind string }{
+		{"blog-newsletter", "6c1e2f4e-3c1a-4c7e-9d1e-2f9b8a7c6d5e", "newsletter"},
+		{"blog-newsletter-material-guia-de-ia", "7d2f3a5b-4d2b-4d8f-8e2f-3a0c9b8d7e6f", "material"},
 	}
-	if dispatched != 0 {
-		t.Errorf("newsletter disparou %d conversão(ões), queria 0", dispatched)
-	}
-	if ss, _ := out["serverSide"].(map[string]any); len(ss) != 0 {
-		t.Errorf("serverSide da newsletter deveria vir vazio: %v", ss)
+	for i, c := range cases {
+		body := `{"name":"Ana Souza","email":"ana@empresa.com","source":"` + c.source + `","event_id":"` + c.eventID + `"}`
+		req := httptest.NewRequest("POST", "/api/public/leads", strings.NewReader(body))
+		req.Header.Set("X-Forwarded-For", "8.0.0.9")
+		req.Header.Set("X-Client-User-Agent", "Mozilla/5.0 Teste")
+		rec := httptest.NewRecorder()
+		handlePublicLead(rec, req)
+		var out map[string]any
+		_ = json.Unmarshal(rec.Body.Bytes(), &out)
+		if rec.Code != 201 || len(saved) != i+1 || saved[i].Source != c.source {
+			t.Fatalf("%s: %d %v %+v", c.kind, rec.Code, out, saved)
+		}
+		if len(events) != i+1 {
+			t.Fatalf("%s: esperava 1 conversão, vieram %d no total", c.kind, len(events))
+		}
+		ev := events[i]
+		if ev.Name != "CompleteRegistration" || ev.GA4Name != "sign_up" || ev.EventID != c.eventID {
+			t.Errorf("%s: evento %s/%s %s", c.kind, ev.Name, ev.GA4Name, ev.EventID)
+		}
+		if ev.Extra["content_category"] != c.kind || ev.Extra["content_name"] != c.source {
+			t.Errorf("%s: extra %v", c.kind, ev.Extra)
+		}
+		if ev.IP != "8.0.0.9" || ev.UserAgent != "Mozilla/5.0 Teste" {
+			t.Errorf("%s: ip/ua %q %q", c.kind, ev.IP, ev.UserAgent)
+		}
+		if ss, _ := out["serverSide"].(map[string]any); ss["meta"] != true {
+			t.Errorf("%s: serverSide deveria avisar a Meta pelo servidor: %v", c.kind, ss)
+		}
+		e := metaPayload(trackingConfig{}, ev)["data"].([]any)[0].(map[string]any)
+		if e["event_name"] != "CompleteRegistration" || e["custom_data"].(map[string]any)["content_category"] != c.kind {
+			t.Errorf("%s: payload Meta %v", c.kind, e)
+		}
+		g := ga4Payload(ev)["events"].([]any)[0].(map[string]any)
+		if g["name"] != "sign_up" || g["params"].(map[string]any)["method"] != c.kind {
+			t.Errorf("%s: payload GA4 %v", c.kind, g)
+		}
 	}
 }
 

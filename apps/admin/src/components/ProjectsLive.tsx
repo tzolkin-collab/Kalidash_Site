@@ -200,6 +200,7 @@ function ProjectPanel({ project, pipelines, onClose, onSaved }: { project: ApiPr
   const [stageId, setStageId] = useState(project?.stageId ?? leadStages[0]?.id ?? '');
   const [sourceName, setSourceName] = useState(project?.sourceName ?? '');
   const [origins, setOrigins] = useState((project?.origins ?? []).join('\n'));
+  const [mediaConversions, setMediaConversions] = useState(project?.mediaConversions ?? false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const urlOk = /^https?:\/\/[^\s/]+\.[^\s/]+|^https?:\/\/localhost/.test(url);
@@ -209,7 +210,7 @@ function ProjectPanel({ project, pipelines, onClose, onSaved }: { project: ApiPr
   const save = async () => {
     setBusy(true);
     setError(null);
-    const input: ProjectInput = { name: name.trim(), url: url.trim(), stack: stack.trim(), description: description.trim(), pipelineId, stageId: stage, sourceName: sourceName.trim() || name.trim(), origins: origins.split(/\s+/).filter(Boolean) };
+    const input: ProjectInput = { name: name.trim(), url: url.trim(), stack: stack.trim(), description: description.trim(), pipelineId, stageId: stage, sourceName: sourceName.trim() || name.trim(), origins: origins.split(/\s+/).filter(Boolean), mediaConversions };
     const res = project ? await updateProject(project.id, input) : await createProject(input);
     setBusy(false);
     if ('error' in res) setError(res.error);
@@ -231,6 +232,9 @@ function ProjectPanel({ project, pipelines, onClose, onSaved }: { project: ApiPr
           <Field label="Coluna de entrada" hint={leadStages.length === 0 ? 'Este funil não tem coluna de leads.' : undefined}><CustomSelect className="select" value={stage} onChange={(e) => setStageId(e.target.value)} aria-label="Coluna">{leadStages.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</CustomSelect></Field>
         </div>
         <Field label="Fonte do lead" hint="Aparece no lead como origem inbound. Vazio: o nome do projeto."><input className="input" value={sourceName} onChange={(e) => setSourceName(e.target.value)} placeholder={name || 'Nome do projeto'} /></Field>
+        <Field label="Conversões de mídia" hint="Ligue só para LPs do próprio Kalidash: cada lead vira conversão no Pixel e no GA4 do Kalidash (Lead, qualificado e ganho). Projeto de cliente com pixel próprio fica desligado.">
+          <label className="text-sm" style={{ display: 'flex', gap: 8, alignItems: 'center' }}><input type="checkbox" checked={mediaConversions} onChange={(e) => setMediaConversions(e.target.checked)} /> Enviar conversões para a Meta e o GA4 do Kalidash</label>
+        </Field>
         <Field label="Outras origens aceitas" hint="Uma por linha, só esquema e domínio. Ex.: https://www.exemplo.com.br ou https://*.vercel.app"><textarea className="textarea" value={origins} onChange={(e) => setOrigins(e.target.value)} rows={3} /></Field>
         <Field label="Stack"><input className="input" value={stack} onChange={(e) => setStack(e.target.value)} placeholder="Ex.: WordPress, Next.js, HTML estático" /></Field>
         <Field label="Descrição (SEO)"><textarea className="textarea" value={description} onChange={(e) => setDescription(e.target.value)} /></Field>

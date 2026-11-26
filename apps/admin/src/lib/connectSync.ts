@@ -30,13 +30,14 @@ export type ApiProject = {
   pipelineId: string | null; // null = fonte desconectada (D40): o projeto existe mas não recebe envios
   stageId: string | null;
   sourceName: string;
+  mediaConversions?: boolean; // leads viram conversão pelo servidor no pixel/GA4 do Kalidash (opt-in)
   submissions: number;
   lastSubmissionAt?: string;
   createdAt?: string;
   forms: TrackedForm[];
 };
 
-export type ProjectInput = Pick<ApiProject, 'name' | 'url' | 'origins' | 'stack' | 'description' | 'pipelineId' | 'stageId' | 'sourceName'>;
+export type ProjectInput = Pick<ApiProject, 'name' | 'url' | 'origins' | 'stack' | 'description' | 'pipelineId' | 'stageId' | 'sourceName' | 'mediaConversions'>;
 export type FormInput = Pick<TrackedForm, 'name' | 'selector' | 'fields' | 'consentSelector'>;
 
 type Load<T> = { status: 'idle' | 'loading' | 'ready' | 'error'; data?: T; error?: string };

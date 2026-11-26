@@ -505,3 +505,110 @@ func TestOriginPatternsDoProjeto(t *testing.T) {
 		}
 	}
 }
+
+// Conversão das LPs: event_id do connect.js grava 1 lead e manda 1 Lead pelo servidor, com as UTMs na convenção;
+// chave de teste grava o lead mas não manda nada para a mídia; a configuração avisa o que o servidor cobre.
+func TestEntradaConversaoEEnvioUnico(t *testing.T) {
+	t.Setenv("META_PIXEL_ID", "123")
+	t.Setenv("META_CAPI_ACCESS_TOKEN", "tok")
+	c := setupConnect(t)
+	oldStore, oldDispatch := tracking, dispatchConversion
+	tracking = newMemTracking()
+	var events []conversionEvent
+	dispatchConversion = func(ev conversionEvent) { events = append(events, ev) }
+	t.Cleanup(func() { tracking, dispatchConversion = oldStore, oldDispatch })
+
+	live := c.snippetKey("live")
+	body := `{"event_id":"lp-evt-0001-abcd","form":"#contato","lead":{"nome":"Maria Souza","email":"maria@exemplo.com"},` +
+		`"attribution":{"utm_source":" Instagram ","utm_campaign":"Material IA","fbclid":"AbC123","_fbp":"fb.1.2.3"}}`
+
+	// Projeto sem "conversões de mídia" (padrão): grava o lead, mas nada sai para o pixel/GA4 do Kalidash.
+	off := c.post(live, testLPOrigin, strings.Replace(body, "lp-evt-0001-abcd", "lp-evt-0000-abcd", 1))
+	if off.Code != 201 || len(events) != 0 || strings.Contains(off.Body.String(), `"meta":true`) {
+		t.Fatalf("projeto sem opt-in: %d conversões %d %s", off.Code, len(events), off.Body)
+	}
+	c.cs.mu.Lock()
+	c.cs.projects[c.project.ID].MediaConversions = true
+	c.cs.leads = nil
+	c.cs.mu.Unlock()
+	first := c.post(live, testLPOrigin, body)
+	again := c.post(live, testLPOrigin, body) // clique duplo / nova tentativa
+	if first.Code != 201 || again.Code != 200 {
+		t.Fatalf("envios: %d %d", first.Code, again.Code)
+	}
+	var out map[string]any
+	_ = json.Unmarshal(first.Body.Bytes(), &out)
+	if out["eventId"] != "lp-evt-0001-abcd" || out["serverSide"].(map[string]any)["meta"] != true {
+		t.Errorf("resposta: %v", out)
+	}
+	if !strings.Contains(again.Body.String(), `"duplicate":true`) {
+		t.Errorf("reenvio deveria vir como duplicado: %s", again.Body)
+	}
+	if len(c.cs.leads) != 1 || len(events) != 1 {
+		t.Fatalf("leads %d, conversões %d (queria 1 e 1)", len(c.cs.leads), len(events))
+	}
+	ev := events[0]
+	if ev.Name != "Lead" || ev.EventID != "lp-evt-0001-abcd" || ev.Email != "maria@exemplo.com" || ev.Source != "LP Consultoria" {
+		t.Errorf("evento: %+v", ev)
+	}
+	if ev.Attr["utm_source"] != "instagram" || ev.Attr["utm_campaign"] != "material_ia" || ev.Attr["fbclid"] != "AbC123" || ev.Attr["_fbp"] != "fb.1.2.3" {
+		t.Errorf("atribuição (UTM na convenção, fbclid intacto): %v", ev.Attr)
+	}
+	m, _ := c.cs.leads[0].Custom["match"].(map[string]string)
+	if m["event_id"] != "lp-evt-0001-abcd" {
+		t.Errorf("match do lead: %v", c.cs.leads[0].Custom["match"])
+	}
+
+	// Chave de teste: grava, não manda conversão e avisa serverSide vazio.
+	test := c.snippetKey("test")
+	rec := c.post(test, testLPOrigin, strings.Replace(body, "lp-evt-0001-abcd", "lp-evt-0002-abcd", 1))
+	if rec.Code != 201 || len(c.cs.leads) != 2 || len(events) != 1 || strings.Contains(rec.Body.String(), `"meta":true`) {
+		t.Errorf("chave de teste: %d leads %d conversões %d %s", rec.Code, len(c.cs.leads), len(events), rec.Body)
+	}
+
+	// Configuração: serverSide para o connect.js não duplicar no navegador.
+	req := httptest.NewRequest("GET", "/api/connect/config", nil)
+	req.Header.Set("Authorization", "Bearer "+live)
+	req.Header.Set("Origin", testLPOrigin)
+	cfg := httptest.NewRecorder()
+	handleConnectConfig(cfg, req)
+	if cfg.Code != 200 || !strings.Contains(cfg.Body.String(), `"serverSide":{"ga4":false,"meta":true}`) {
+		t.Errorf("config: %d %s", cfg.Code, cfg.Body)
+	}
+}
+
+func TestNormalizeUTM(t *testing.T) {
+	for in, want := range map[string]string{" Instagram ": "instagram", "Material IA": "material_ia", "black+friday": "black_friday", "ok": "ok"} {
+		if got := normalizeUTM(in); got != want {
+			t.Errorf("normalizeUTM(%q) = %q, queria %q", in, got, want)
+		}
+	}
+}
+
+// Editar o projeto sem mandar mediaConversions (ex.: vínculo da fonte ao funil) não desliga o opt-in.
+func TestProjetoMantemConversoesDeMidia(t *testing.T) {
+	c := setupConnect(t)
+	put := func(body string) *httptest.ResponseRecorder {
+		req := httptest.NewRequest("PUT", "/api/projects/"+c.project.ID, strings.NewReader(body))
+		req.SetPathValue("id", c.project.ID)
+		rec := httptest.NewRecorder()
+		handleProjectByID(rec, req)
+		return rec
+	}
+	base := `"name":"LP Consultoria","url":"https://lp.exemplo.com","pipelineId":"pl-1","stageId":"pl-1:novos"`
+	if rec := put(`{` + base + `,"mediaConversions":true}`); rec.Code != 200 {
+		t.Fatalf("ligar: %d %s", rec.Code, rec.Body)
+	}
+	if rec := put(`{` + base + `}`); rec.Code != 200 {
+		t.Fatalf("editar: %d %s", rec.Code, rec.Body)
+	}
+	if p, _ := c.cs.ProjectByID(c.project.ID); !p.MediaConversions {
+		t.Error("PUT sem o campo desligou as conversões de mídia")
+	}
+	if rec := put(`{` + base + `,"mediaConversions":false}`); rec.Code != 200 {
+		t.Fatalf("desligar: %d %s", rec.Code, rec.Body)
+	}
+	if p, _ := c.cs.ProjectByID(c.project.ID); p.MediaConversions {
+		t.Error("PUT com false deveria desligar")
+	}
+}

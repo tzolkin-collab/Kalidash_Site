@@ -237,7 +237,8 @@ func handleMoveOpportunity(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if movedToWon(payload.Stage, won) {
-		emitOpportunityWon(payload.ID) // e-mail automático "Boas-vindas ao cliente", se ligado (um por oportunidade)
+		emitOpportunityWon(payload.ID)           // e-mail automático "Boas-vindas ao cliente", se ligado (um por oportunidade)
+		emitOpportunityWonConversion(payload.ID) // Purchase na Meta e close_convert_lead no GA4 (offline_conversions.go)
 	}
 
 	// 0 linhas afetadas também é "nada mudou" (mover para a etapa em que já está: o MySQL sem clientFoundRows

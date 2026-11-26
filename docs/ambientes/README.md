@@ -19,16 +19,15 @@ graph TD
     end
 
     subgraph "Camada de Captura & Tracking (Frontend)"
-        LP --> GTM["Google Tag Manager (GTM)"]
+        LP --> Tags["GA4 + Meta Pixel + Clarity (direto no código)"]
+        LP --> GTM["GTM (só tags extras, lendo o dataLayer)"]
         LP --> Forms["Formulário (Site / connect.js)"]
-        GTM --> GA4Client["Google Analytics 4 (Sessões/Visitas)"]
-        GTM --> GAdsConv["Google Ads (Conversão de Lead)"]
-        GTM --> MetaPix["Meta Pixel (Evento Lead)"]
     end
 
     subgraph "Camada de Ingestão & Negócio (Backend Go)"
         Forms -->|POST /api/public/leads ou /api/connect/leads| API["Kalidash API (Go)"]
         API --> DB[(MySQL / TiDB)]
+        API -->|API de Conversões + GA4 Measurement Protocol, mesmo event_id| Midia["Meta / GA4 (servidor)"]
         API -.->|Google Analytics Data API (Leitura com Cache 30m)| GA4Server["Propriedade GA4 (Workspace Kalidash)"]
     end
 
@@ -49,15 +48,17 @@ O pipeline do site representa a esteira que transforma cliques de anúncios e vi
 Quando o visitante acessa o site da Kalidash (`https://kalidash.com.br`) vindo de uma campanha de mídia:
 - **Google Ads**: A URL recebe parâmetros como `?gclid=...&utm_source=google&utm_medium=cpc&utm_campaign=ai-culture`.
 - **Meta Ads**: A URL recebe parâmetros como `?fbclid=...&utm_source=meta&utm_medium=paid_social&utm_campaign=capacitacao-ia`.
-- **Persistência**: O script client-side armazena esses parâmetros em `sessionStorage` para garantir que, mesmo que o visitante navegue entre diferentes páginas (ex: Home → Sobre nós → Diagnóstico), a atribuição original do anúncio não seja perdida.
+- **Persistência**: O site (`lib/tracking.ts`) e o `connect.js` guardam esses parâmetros no `localStorage` na primeira página vista (último toque por 90 dias e primeiro toque permanente), para que a atribuição não se perca entre páginas (ex: Home → Sobre nós → Diagnóstico) nem numa volta posterior. Convenção de UTMs e detalhes em [`docs/tracking.md`](../tracking.md).
 
 ### Etapa 2: Interação e Formulário de Diagnóstico
-No site, a principal porta de entrada é o **Diagnóstico de IA** (na Home e na rota `/diagnostico`):
+No site, a principal porta de entrada é o **Diagnóstico de IA** (rota `/diagnostico`):
 1. O usuário preenche as respostas (desafios da empresa, estágio atual, área de interesse).
 2. Na última etapa, preenche os dados de contato (Nome, E-mail, WhatsApp, Empresa, Cargo).
-3. Ao clicar em enviar, ocorre o **Disparo Duplo**:
-   - **Disparo A (DataLayer / Mídia)**: Envia o evento `generate_lead` para o `window.dataLayer`. O Google Tag Manager intercepta e notifica simultaneamente o Google Ads (otimizando o custo por clique) e o Meta Ads (alimentando o algoritmo do Pixel).
-   - **Disparo B (CRM / Ingestão)**: Dispara um `POST` com os dados do lead, respostas do diagnóstico e objeto de atribuição (`utm_*`, `gclid`, `fbclid`, `referrer`, `device`) para a API em Go.
+3. Ao clicar em enviar, o envio leva um `event_id` (um por envio):
+   - **CRM / Ingestão**: `POST` com os dados do lead, respostas do diagnóstico, `event_id` e atribuição (`utm_*`, `gclid`, `fbclid`, `referrer`, `device`, `_fbp`, `_fbc`, ids do GA4) para a API em Go, que grava 1 lead por `event_id`.
+   - **Mídia, servidor**: a API manda o `Lead` pela API de Conversões da Meta e o `generate_lead` pelo GA4 (Measurement Protocol), com o mesmo `event_id`.
+   - **Mídia, navegador**: o Pixel dispara `Lead` com o mesmo `event_id` (a Meta junta os dois); o gtag só dispara o `generate_lead` se o servidor não o mandou; o dataLayer recebe `lead_form_submitted` para tags extras do GTM.
+   - Taxonomia completa de eventos (newsletter, material, conversões offline) em [`docs/tracking.md`](../tracking.md).
 
 ### Etapa 3: Recepção no Funil do CRM
 Na API em Go:
@@ -92,8 +93,8 @@ O ecossistema foi projetado para que o tracking central da Kalidash e os Projeto
 
 - **Projetos Conectados** são propriedades digitais de terceiros ou páginas de campanhas isoladas.
 - Eles utilizam o snippet `connect.js` com uma chave pública de projeto (`kld_live_...`).
-- O `connect.js` já captura automaticamente as origens, referrers e parâmetros de campanha, entregando o lead diretamente no funil configurado daquele projeto no CRM da Kalidash.
-- O `connect.js` emite o evento `window.dataLayer.push({ event: 'generate_lead', ... })`, permitindo que LPs de clientes que possuam seu próprio GTM marquem conversões em suas próprias contas sem interferir na conta central da Kalidash.
+- O `connect.js` já captura automaticamente as origens, referrers e parâmetros de campanha, entregando o lead diretamente no funil configurado daquele projeto no CRM da Kalidash. Conversões pelo servidor no Pixel/GA4 do Kalidash só saem se o projeto tiver "Conversões de mídia" ligado (padrão desligado; ver [`docs/tracking.md`](../tracking.md)).
+- Cada envio do `connect.js` leva um `event_id`: a API grava 1 lead por id e manda o `Lead` pela API de Conversões (chave `kld_live_`; a `kld_test_` não manda nada). No navegador, o `connect.js` dispara o Pixel com o mesmo id, o `generate_lead` do gtag quando o servidor não manda o GA4 e `dataLayer.push({ event: 'lead_form_submitted', ... })` para o GTM da própria LP. A LP não deve disparar o próprio `Lead` no envio (ver [`docs/tracking.md`](../tracking.md), seção 6).
 
 ---
 
@@ -121,7 +122,7 @@ Nesta pasta (`docs/ambientes/`), cada aplicação possui seu modelo documentado:
 
 | Arquivo | Aplicação | Descrição |
 | :--- | :--- | :--- |
-| [`site.env.example`](./site.env.example) | `apps/site` | Configurações do Next.js, endpoints de API e IDs de GTM, GA4 e Meta Pixel. |
+| [`site.env.example`](./site.env.example) | `apps/site` | Configurações do Next.js, endpoints de API e IDs de GTM, GA4, Meta Pixel e Clarity. |
 | [`api.env.example`](./api.env.example) | `apps/api` | Banco de dados, segurança de sessões, Google Workspace SSO, Service Account do GA4, Resend e limites do Connect. |
 | [`admin.env.example`](./admin.env.example) | `apps/admin` | URL pública da API Go para o painel Vite PWA. |
 | [`studio.env.example`](./studio.env.example) | `apps/studio` | Conexão direta Prisma para inspeção do banco e migrações. |

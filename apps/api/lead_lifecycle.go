@@ -360,6 +360,7 @@ func handleQualifyLead(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, err)
 		return
 	}
+	emitLeadQualified(got) // QualifiedLead na Meta e qualify_lead no GA4 (offline_conversions.go)
 	writeJSON(w, http.StatusCreated, map[string]any{"lead": got, "opportunity": opp, "movedTasks": moved})
 }
 
