@@ -20,6 +20,7 @@ import { listLinks, shortLabel } from '../lib/campaignLinks';
 import type { CampaignLink } from '../lib/campaignLinks';
 import { loadTrackingHealth } from '../lib/analyticsApi';
 import type { TrackingHealth } from '../lib/analyticsApi';
+import { deliveryLayers } from '../lib/trackingHealth';
 import { Delta, Spark } from '../components/dashboard/widgets';
 import { ErrorBanner, Page, PageHeader } from '../components/ui';
 
@@ -108,8 +109,6 @@ function Section({ title, note, children, id }: { title: string; note?: string; 
   );
 }
 
-const STATUS_LABEL: Record<string, string> = { sent: 'enviados', failed: 'falharam', skipped: 'sem configuração', pending: 'pendentes' };
-
 export default function Analytics() {
   const { navigate } = useShell();
   const { opportunities, error: oppError, reload } = useOpportunities();
@@ -153,22 +152,7 @@ export default function Analytics() {
   const hasPrev = !!prev;
   const d = (cur: number, before?: number) => <Delta value={before === undefined ? null : deltaPct(cur, before)} hasPrevious={hasPrev} />;
 
-  const layers = useMemo(() => {
-    if (!health) return [];
-    const line = (layer: 'meta' | 'ga4') => {
-      const names = [...new Set(health.counts.filter((c) => c.layer === layer).map((c) => c.name))].sort();
-      return names.map((name) => {
-        const parts = health.counts.filter((c) => c.layer === layer && c.name === name && c.count > 0).sort((a, b) => a.status.localeCompare(b.status));
-        return `${name}: ${parts.map((p) => `${p.count} ${STATUS_LABEL[p.status] ?? p.status}`).join(', ')}`;
-      }).join(' · ');
-    };
-    const failed = (layer: 'meta' | 'ga4') => health.counts.some((c) => c.layer === layer && c.status === 'failed' && c.count > 0);
-    return [
-      { name: 'Meta (API de Conversões)', state: failed('meta') ? 'bad' : health.configured.meta ? 'ok' : 'warn', status: failed('meta') ? 'Com falhas' : health.configured.meta ? 'Ligada' : 'Sem credencial', detail: line('meta') || 'Nenhum envio no período' },
-      { name: 'GA4 pelo servidor', state: failed('ga4') ? 'bad' : health.configured.ga4 ? 'ok' : 'idle', status: failed('ga4') ? 'Com falhas' : health.configured.ga4 ? 'Ligado' : 'Só pelo navegador', detail: line('ga4') || 'Nenhum envio no período' },
-      { name: 'Conversões offline', state: health.offline ? 'ok' : 'idle', status: health.offline ? 'Ligadas' : 'Desligadas', detail: 'Lead qualificado e venda do CRM voltam para a Meta e o GA4' },
-    ];
-  }, [health]);
+  const layers = useMemo(() => (health ? deliveryLayers(health.counts) : []), [health]);
 
   // Quebras sem dado no período viram uma linha com o próximo passo, em vez de uma seção vazia.
   const pending: { name: string; why: string; action?: ReactNode }[] = [];
