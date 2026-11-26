@@ -171,7 +171,7 @@ const OTHERS: { id: OtherId; title: string; note: string; Icon: LucideIcon; span
 const signedPct = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n * 100).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}%`;
 
 /** Variação contra o período anterior: seta e % coloridos; sem base, a razão em texto neutro. */
-function Delta({ value, hasPrevious }: { value: number | null; hasPrevious: boolean }) {
+export function Delta({ value, hasPrevious }: { value: number | null; hasPrevious: boolean }) {
   if (!hasPrevious) return <span className="dash-delta" data-tone="flat">Sem comparação em "Tudo"</span>;
   if (value === null) return <span className="dash-delta" data-tone="flat">Sem base no período anterior</span>;
   const tone = value > 0.0005 ? 'up' : value < -0.0005 ? 'down' : 'flat';
@@ -185,7 +185,7 @@ function Delta({ value, hasPrevious }: { value: number | null; hasPrevious: bool
 }
 
 /** Mini gráfico de linha (sem eixos) para o resumo: mostra o ritmo das últimas semanas. */
-function Spark({ values, label }: { values: number[]; label: string }) {
+export function Spark({ values, label }: { values: number[]; label: string }) {
   if (values.length < 2 || values.every((v) => !v)) return <div className="dash-spark dash-spark-empty" aria-hidden="true" />;
   const W = 120;
   const H = 28;

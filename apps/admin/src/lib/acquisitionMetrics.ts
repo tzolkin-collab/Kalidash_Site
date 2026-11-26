@@ -189,3 +189,30 @@ export function quality(rows: Outcome[]): Quality {
   const share = rate(untracked, site.length);
   return { inbound: site.length, untracked, untrackedShare: share, withUtm, withMetaCookie, alert: share !== null && share > UNTRACKED_ALERT };
 }
+
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
+/**
+ * Leitura do período em uma ou duas frases: o canal que mais gerou pipeline (ou, sem pipeline, o que mais trouxe
+ * leads rastreados) e o que impede a leitura (origem perdida ou base pequena). `fmt` formata centavos.
+ */
+export function readout(s: Summary, channels: GroupRow[], q: Quality, fmt: (cents: number) => string): string {
+  if (!s.leads) return 'Nenhum lead criado neste período.';
+  const parts: string[] = [];
+  const [top, second] = channels;
+  if (top && top.pipelineCents > 0) {
+    const share = Math.round((top.pipelineCents / s.pipelineCents) * 100);
+    parts.push(`${top.label} gerou ${share}% do pipeline (${fmt(top.pipelineCents)}), com ${plural(top.leads, 'lead', 'leads')}.`);
+    if (second && second.pipelineCents > 0) parts.push(`Em seguida vem ${second.label} (${fmt(second.pipelineCents)}).`);
+  } else {
+    parts.push(`${plural(s.leads, 'lead', 'leads')} e nenhuma oportunidade aberta ainda.`);
+    const tracked = [...channels].filter((c) => c.key !== UNTRACKED_KEY).sort((a, b) => b.leads - a.leads)[0];
+    if (tracked) parts.push(`${tracked.label} é o canal rastreado que mais trouxe leads (${tracked.leads}).`);
+  }
+  if (q.alert) {
+    parts.push(`${q.untracked} de ${q.inbound} leads do site chegaram sem origem: antes de mexer em verba, coloque UTM em todo anúncio e use os Links de divulgação no orgânico.`);
+  } else if (s.leads < MIN_BASE) {
+    parts.push(`Com menos de ${MIN_BASE} leads, trate como sinal, não como conclusão.`);
+  }
+  return parts.join(' ');
+}

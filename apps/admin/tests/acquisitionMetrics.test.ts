@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { channelOf, campaignOf, landingOf } from '../src/lib/channels.ts';
-import { byCampaign, byChannel, byLanding, byOrganicPiece, cohort, outcomes, quality, rate, signupsByPage, summary } from '../src/lib/acquisitionMetrics.ts';
+import { byCampaign, byChannel, byLanding, byOrganicPiece, cohort, outcomes, quality, rate, readout, signupsByPage, summary } from '../src/lib/acquisitionMetrics.ts';
 
 const pipelines = [{
   id: 'p', name: 'Vendas', stages: [
@@ -121,4 +121,19 @@ test('qualidade: sem origem acima de 30% liga o aviso; outbound e projetos ficam
   const q = quality(outcomes(leads, [], pipelines, 'last'));
   assert.deepEqual([q.inbound, q.untracked, q.withUtm, q.withMetaCookie, q.alert], [5, 2, 2, 1, true]);
   assert.equal(q.untrackedShare, 0.4);
+});
+
+test('leitura do período: canal que mais gerou pipeline e aviso de origem perdida', () => {
+  const fmt = (c: number) => `R$ ${c / 100}`;
+  const meta = { utm_source: 'meta', utm_medium: 'paid_social' };
+  const leads = [lead(meta, { id: 'm1', convertedOpportunityId: 'x1' }), lead(meta), lead({ utm_source: 'instagram', utm_medium: 'social' }), lead({}), lead({}), lead({})];
+  const rows = outcomes(leads, [opp('x1', 'p:q', 3000)], pipelines, 'last');
+  const text = readout(summary(rows), byChannel(rows), quality(rows), fmt);
+  assert.match(text, /^Meta Ads gerou 100% do pipeline \(R\$ 3000\), com 2 leads\./);
+  assert.match(text, /3 de 6 leads do site chegaram sem origem/);
+
+  const few = outcomes([lead({ utm_source: 'instagram', utm_medium: 'social' }), lead({ utm_source: 'instagram', utm_medium: 'social' })], [], pipelines, 'last');
+  assert.equal(readout(summary(few), byChannel(few), quality(few), fmt),
+    '2 leads e nenhuma oportunidade aberta ainda. Orgânico · Instagram é o canal rastreado que mais trouxe leads (2). Com menos de 5 leads, trate como sinal, não como conclusão.');
+  assert.equal(readout(summary([]), [], quality([]), fmt), 'Nenhum lead criado neste período.');
 });
