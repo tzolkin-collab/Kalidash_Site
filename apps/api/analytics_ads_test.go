@@ -24,6 +24,9 @@ func TestMetaAdRows(t *testing.T) {
 		case strings.HasSuffix(r.URL.Path, "/insights"):
 			w.Write([]byte(`{"data":[{"date_start":"2026-11-02","ad_id":"apagado","spend":"1"}]}`))
 		default:
+			if f := r.URL.Query().Get("filtering"); !strings.Contains(f, `"ad.id"`) || !strings.Contains(f, `"a1"`) || !strings.Contains(f, `"apagado"`) {
+				t.Errorf("estrutura só dos anúncios com entrega: %q", f)
+			}
 			w.Write([]byte(`{"data":[{"id":"a1","effective_status":"ACTIVE","campaign":{"effective_status":"ACTIVE","daily_budget":"15000"},"adset":{"effective_status":"CAMPAIGN_PAUSED"},"creative":{"id":"cr","video_id":"v9","image_hash":"h","thumbnail_url":"https://x/t.jpg"}}]}`))
 		}
 	}))

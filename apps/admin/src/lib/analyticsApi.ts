@@ -32,7 +32,11 @@ export async function loadSpend(from: string, to: string): Promise<SpendReport> 
 // GET /api/analytics/ads (apps/api/analytics_ads.go): uma linha por anúncio e por dia, lida da Meta. Até 92 dias.
 export type AdsReport = { from: string; to: string; configured: boolean; currency?: string; rows: MetaRow[]; error?: string; fetchedAt: string };
 export async function loadAds(from: string, to: string): Promise<AdsReport> {
-  const res = await fetch(`${API_URL}/api/analytics/ads?from=${from}&to=${to}`, { credentials: 'include' });
+  // Limite de espera: sem ele, uma conexão presa deixava a tela em "Lendo os anúncios…" para sempre.
+  const res = await fetch(`${API_URL}/api/analytics/ads?from=${from}&to=${to}`, { credentials: 'include', signal: AbortSignal.timeout(75_000) })
+    .catch((e: unknown) => {
+      throw new Error(e instanceof DOMException && e.name === 'TimeoutError' ? 'A leitura passou de 75 segundos. Tente de novo ou escolha um período menor.' : 'A API não respondeu.');
+    });
   if (!res.ok) {
     let msg = `erro ${res.status}`;
     try { msg = (await res.json())?.error || msg; } catch { /* sem corpo */ }
