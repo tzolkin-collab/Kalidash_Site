@@ -33,6 +33,7 @@ func blogDB(t *testing.T) {
 	}
 	db.Exec("DROP TABLE IF EXISTS Article")
 	db.Exec("DROP TABLE IF EXISTS BlogSettings")
+	db.Exec("DROP TABLE IF EXISTS ArticleSlugHistory")
 	ensureBlogSchema()
 }
 
@@ -238,5 +239,66 @@ func TestOrderGalleryPura(t *testing.T) {
 	}
 	if len(orderGallery(nil, []string{"x"})) != 0 {
 		t.Error("vazio deveria devolver vazio")
+	}
+}
+
+func TestIntegrationBlogSlugAntigoSEOEAtualizadoEm(t *testing.T) {
+	blogDB(t)
+	a := blogCreate(t, map[string]any{"title": "Guia de agentes", "body": "<p>v1</p>", "published": true, "noindex": true, "ogImageUrl": "/og.png"})
+	if !a.Noindex || a.OgImageURL == nil || *a.OgImageURL != "/og.png" {
+		t.Errorf("SEO no POST: %+v", a)
+	}
+	bySlug := func(slug string) (int, Article) {
+		code, body := blogCall(handleBlogArticleBySlug, "GET", "/api/blog/article?slug="+slug, nil)
+		var got Article
+		json.Unmarshal(body, &got)
+		return code, got
+	}
+
+	// Troca o slug: o antigo responde com o artigo de slug novo (o site faz o 301).
+	put := func(in map[string]any) Article {
+		in["id"] = a.ID
+		code, body := blogCall(handleBlogArticles, "PUT", "/api/blog/articles", in)
+		if code != 200 {
+			t.Fatalf("PUT: %d %s", code, body)
+		}
+		var up Article
+		json.Unmarshal(body, &up)
+		return up
+	}
+	up := put(map[string]any{"title": "Guia de agentes", "slug": "agentes-de-ia", "body": "<p>v1</p>", "published": true, "noindex": true})
+	if up.ContentUpdatedAt != nil {
+		t.Error("só trocar o slug não é atualização de conteúdo")
+	}
+	if code, got := bySlug("guia-de-agentes"); code != 200 || got.Slug != "agentes-de-ia" {
+		t.Errorf("slug antigo: %d %q", code, got.Slug)
+	}
+	// Troca de novo: os dois antigos apontam para o atual. Sem "noindex" no corpo, ele fica como estava.
+	if kept := put(map[string]any{"title": "Guia de agentes", "slug": "agentes", "body": "<p>v1</p>", "published": true}); !kept.Noindex || kept.OgImageURL == nil {
+		t.Errorf("SEO ausente no corpo deveria ficar: %+v", kept)
+	}
+	for _, old := range []string{"guia-de-agentes", "agentes-de-ia"} {
+		if code, got := bySlug(old); code != 200 || got.Slug != "agentes" {
+			t.Errorf("%s: %d %q", old, code, got.Slug)
+		}
+	}
+	// Outro artigo novo com um slug antigo: ele é que aparece, sem redirecionamento.
+	b := blogCreate(t, map[string]any{"title": "Agentes de IA", "published": true})
+	if code, got := bySlug("agentes-de-ia"); code != 200 || got.ID != b.ID {
+		t.Errorf("slug reaproveitado: %d %+v", code, got)
+	}
+	// Texto mudou num publicado: "Atualizado em" aparece. noindex desligado volta como false.
+	up = put(map[string]any{"title": "Guia de agentes", "slug": "agentes", "body": "<p>v2</p>", "published": true, "noindex": false})
+	if up.ContentUpdatedAt == nil || up.Noindex {
+		t.Errorf("atualizado em / noindex: %+v", up)
+	}
+	// Despublicado: nem slug atual nem antigo aparecem.
+	put(map[string]any{"title": "Guia de agentes", "slug": "agentes", "body": "<p>v2</p>", "published": false})
+	if code, _ := bySlug("guia-de-agentes"); code != 404 {
+		t.Errorf("despublicado pelo slug antigo: %d", code)
+	}
+	// Canônica relativa é recusada.
+	if code, _ := blogCall(handleBlogArticles, "PUT", "/api/blog/articles", map[string]any{"id": a.ID, "title": "x", "canonicalUrl": "/blog/x"}); code != 400 {
+		t.Errorf("canônica relativa: %d", code)
 	}
 }

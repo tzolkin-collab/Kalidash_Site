@@ -41,7 +41,10 @@ function touchFromUrl(search: string): Touch {
   const q = new URLSearchParams(search);
   const t: Touch = {};
   for (const k of LAST_KEYS) {
-    const v = q.get(k)?.trim();
+    let v = q.get(k)?.trim();
+    // Convenção: UTMs em minúsculas e sem espaços (a API aplica a mesma regra ao gravar). Ids de clique (gclid,
+    // fbclid…) ficam como vieram: diferenciam maiúsculas e a Meta/Google recusam o id alterado.
+    if (v && k.startsWith("utm_")) v = v.toLowerCase().replace(/\s+/g, "_");
     if (v) t[k] = v.slice(0, 300);
   }
   return t;
@@ -151,6 +154,34 @@ export function getAttribution(): Record<string, string> {
   return attr;
 }
 
+/* Microsoft Clarity (components/Analytics). Cria a mesma fila do snippet oficial quando o Clarity está ligado,
+ * para as chamadas feitas antes do script carregar não se perderem (o snippet reaproveita a fila). Sem o id do
+ * projeto não faz nada. */
+type ClarityFn = ((...args: unknown[]) => void) & { q?: unknown[] };
+
+function clarity(...args: unknown[]) {
+  if (typeof window === "undefined" || !process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID) return;
+  const w = window as Window & { clarity?: ClarityFn };
+  try {
+    if (typeof w.clarity !== "function") {
+      const stub: ClarityFn = (...a: unknown[]) => {
+        (stub.q = stub.q || []).push(a);
+      };
+      w.clarity = stub;
+    }
+    w.clarity(...args);
+  } catch {
+    /* Clarity bloqueado */
+  }
+}
+
+const CLARITY_TAGS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "first_utm_source", "first_utm_campaign"] as const;
+
+/* Marca a gravação com a campanha (último e primeiro toque) para filtrar sessões por UTM no painel do Clarity. */
+export function tagClarityAttribution(attr: Record<string, string> = getAttribution()) {
+  for (const k of CLARITY_TAGS) if (attr[k]) clarity("set", k, attr[k]);
+}
+
 export function newEventId(): string {
   try {
     if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
@@ -198,4 +229,44 @@ export function trackLead(eventId: string, formName: string, res: LeadResponse, 
   } catch {
     /* sem dataLayer */
   }
+  // Clarity: a sessão ganha o formulário e o event_id (o mesmo do lead no CRM e na Meta), o evento de conversão
+  // e prioridade de gravação, para a sessão de quem converteu não cair na amostragem.
+  clarity("set", "lead_form", formName);
+  clarity("set", "event_id", id);
+  clarity("event", "lead_submitted");
+  clarity("upgrade", "lead_submitted");
+}
+
+/* Inscrição na newsletter ou pedido de material gratuito (blog). NÃO é Lead: o Lead fica para diagnóstico e
+ * contato, e as campanhas que otimizam por ele não se misturam com inscrição.
+ *   Meta: CompleteRegistration com o mesmo event_id da API de Conversões (a Meta junta os dois);
+ *         content_category = "newsletter" | "material" separa os dois numa conversão personalizada.
+ *   GA4:  sign_up (method = newsletter | material), por UMA camada só (serverSide.ga4 diz se o servidor mandou).
+ * A camada servidor está em apps/api/tracking.go (buildSignupConversion). */
+export function trackSignup(eventId: string, kind: "newsletter" | "material", source: string, res: LeadResponse, extra: Record<string, unknown> = {}) {
+  if (typeof window === "undefined" || res.duplicate || res.pending) return;
+  const w = window as Win;
+  const id = res.eventId || eventId;
+  try {
+    w.fbq?.("track", "CompleteRegistration", { content_category: kind, content_name: source }, { eventID: id });
+  } catch {
+    /* Pixel bloqueado: a API de Conversões cobre */
+  }
+  if (!res.serverSide?.ga4) {
+    try {
+      w.gtag?.("event", "sign_up", { method: kind, content_name: source, event_id: id });
+    } catch {
+      /* gtag bloqueado */
+    }
+  }
+  try {
+    w.dataLayer = w.dataLayer || [];
+    w.dataLayer.push({ event: kind === "material" ? "material_signup" : "newsletter_signup", signup_kind: kind, lead_source: source, event_id: id, ...extra });
+  } catch {
+    /* sem dataLayer */
+  }
+  clarity("set", "lead_form", source);
+  clarity("set", "event_id", id);
+  clarity("event", `${kind}_signup`);
+  clarity("upgrade", `${kind}_signup`);
 }

@@ -136,6 +136,9 @@ export type Stakeholder = { personId: string; description: string; tag: string }
 
 export type EntityKind = 'lead' | 'person' | 'company' | 'opportunity' | 'pipeline';
 
+/** Andamento da tarefa. DONE anda junto com `done`. */
+export type TaskStatus = 'TODO' | 'DOING' | 'BLOCKED' | 'DONE';
+
 export type TaskItem = {
   id: string;
   entity: EntityKind;
@@ -147,6 +150,8 @@ export type TaskItem = {
   dueAt?: string;
   done: boolean;
   doneAt?: string;
+  /** Ausente nas tarefas antigas: vale A fazer (ou Concluída, se `done`). */
+  status?: TaskStatus;
   source: 'manual' | 'passo' | 'requisito';
   /** Nas nascidas de um requisito: liga de volta pra ele, para checar o gate. */
   requirementId?: string;
@@ -330,6 +335,16 @@ export type Article = {
   categories: string[];
   seoTitle?: string;
   seoDescription?: string;
+  /** Imagem do compartilhamento (WhatsApp, LinkedIn). Vazia: a capa. */
+  ogImageUrl?: string;
+  /** Só quando o artigo saiu antes em outro endereço. Vazia: o próprio /blog/slug. */
+  canonicalUrl?: string;
+  /** Publicado, mas fora do Google e do sitemap. */
+  noindex?: boolean;
+  /** Quem salvou por último (nome da pessoa logada). */
+  updatedBy?: string;
+  /** "Atualizado em" do site: muda quando título, resumo ou texto de um artigo publicado mudam. */
+  contentUpdatedAt?: string;
   createdAt: string;
   updatedAt: string;
   publishedAt?: string;

@@ -3,11 +3,11 @@
 import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { captureAttribution } from "@/lib/tracking";
+import { captureAttribution, tagClarityAttribution } from "@/lib/tracking";
 
-/* GA4 (gtag.js) e Meta Pixel carregados direto, sem GTM. Use um caminho OU o outro: com GTM ligado e as
- * tags de GA4/Pixel dentro dele, deixe NEXT_PUBLIC_GA_MEASUREMENT_ID e NEXT_PUBLIC_META_PIXEL_ID vazios,
- * senão cada visita conta em dobro.
+/* GA4 (gtag.js), Meta Pixel e Microsoft Clarity carregados direto, sem GTM. Use um caminho OU o outro: com GTM
+ * ligado e as tags dentro dele, deixe NEXT_PUBLIC_GA_MEASUREMENT_ID, NEXT_PUBLIC_META_PIXEL_ID e
+ * NEXT_PUBLIC_CLARITY_PROJECT_ID vazios, senão cada visita conta em dobro.
  * Fora do rastreamento: /preview (a pré-visualização embutida no admin) e /admin. */
 const UNTRACKED = ["/preview", "/admin"];
 
@@ -17,14 +17,21 @@ declare global {
   }
 }
 
-export default function Analytics({ gaId, pixelId }: { gaId?: string; pixelId?: string }) {
+/* O id do projeto vai dentro de um script inline: só aceita o formato do Clarity (letras e números). */
+const CLARITY_ID = /^[a-z0-9]{6,20}$/i;
+
+export default function Analytics({ gaId, pixelId, clarityId }: { gaId?: string; pixelId?: string; clarityId?: string }) {
   const pathname = usePathname() ?? "/";
   const firstView = useRef(true);
   const untracked = UNTRACKED.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  const clarity = clarityId && CLARITY_ID.test(clarityId) ? clarityId : "";
 
-  // Guarda UTMs e ids de clique a cada página vista (primeiro e último toque, lib/tracking.ts).
+  // Guarda UTMs e ids de clique a cada página vista (primeiro e último toque, lib/tracking.ts) e marca a
+  // gravação do Clarity com a campanha (a fila do snippet guarda as chamadas até o script carregar).
   useEffect(() => {
-    if (!untracked) captureAttribution();
+    if (untracked) return;
+    captureAttribution();
+    tagClarityAttribution();
   }, [pathname, untracked]);
 
   // PageView do Pixel nas trocas de rota do Next (a primeira já sai no script de init).
@@ -73,6 +80,15 @@ export default function Analytics({ gaId, pixelId }: { gaId?: string; pixelId?: 
             />
           </noscript>
         </>
+      ) : null}
+      {clarity ? (
+        <Script
+          id="ms-clarity"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script","${clarity}");`,
+          }}
+        />
       ) : null}
     </>
   );

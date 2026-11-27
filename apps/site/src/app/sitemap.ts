@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/siteUrl";
-import { fetchBlogCategories, fetchPublishedArticles, isReservedArticleSlug } from "@/lib/blog";
+import { articleModifiedAt, fetchBlogCategories, fetchPublishedArticles, isReservedArticleSlug } from "@/lib/blog";
 
 // Home, blog, categorias e cada artigo publicado. Se a API estiver fora do ar na geração, sai só o que é fixo.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -26,7 +26,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     ...articles.map((a) => ({
       url: `${SITE_URL}/blog/${a.slug}`,
-      lastModified: a.updatedAt,
+      lastModified: articleModifiedAt(a),
       changeFrequency: "monthly" as const,
       priority: 0.6,
     })),

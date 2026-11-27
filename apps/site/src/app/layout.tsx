@@ -91,6 +91,7 @@ export default function RootLayout({
         <Analytics
           gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}
           pixelId={process.env.NEXT_PUBLIC_META_PIXEL_ID}
+          clarityId={process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID}
         />
         {children}
         <RouteTransition />

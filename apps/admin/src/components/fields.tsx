@@ -1,6 +1,13 @@
+import { MAX_TAG_LENGTH } from '../lib/tags';
+import { useCrmMode } from '../lib/crmMode';
+import { pushErro } from '../lib/notify';
+import { saveTagCategory, useKnownTags, useTagCatalog } from '../lib/tagSync';
+import type { TagCategory } from '../lib/tagCatalog';
+import TagChip from './TagChip';
+import TagPicker from './TagPicker';
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { CalendarDays, ChevronLeft, ChevronRight, Clock3, Eye, Plus, Trash2, X } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight, Clock3, Eye, Plus, Trash2 } from 'lucide-react';
 import type { ContactPoint } from '../domain';
 import { CustomSelect } from './ui';
 
@@ -234,48 +241,33 @@ export function ReadOnlyField({ label, children, hint }: { label: string; childr
   return <PropRow label={label} hint={hint}>{children}</PropRow>;
 }
 
-export function TagsField({ label, value, options, allowCreate, onCommit, onCreate, hint }: { label: string; value: string[]; options: string[]; allowCreate?: boolean; onCommit: (tags: string[]) => void; onCreate?: (tag: string) => void; hint?: string }) {
-  const [adding, setAdding] = useState(false);
-  const [draft, setDraft] = useState('');
-  const available = options.filter((o) => !value.includes(o));
+export function TagsField({ label, value, options, allowCreate, onCommit, onCreate, hint }: { label: string; value: string[]; options: string[]; allowCreate?: boolean; onCommit: (tags: string[]) => void; onCreate?: (tag: string, category: TagCategory) => void; hint?: string }) {
+  const [open, setOpen] = useState(false);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const catalog = useTagCatalog();
+  const crmMode = useCrmMode();
+  const all = useKnownTags(options);
 
-  const add = (raw: string) => {
-    const tag = raw.trim();
-    setDraft('');
-    setAdding(false);
-    if (!tag || value.includes(tag)) return;
-    const known = options.find((o) => o.toLowerCase() === tag.toLowerCase());
-    if (!known && !allowCreate) return;
-    if (!known) onCreate?.(tag);
-    onCommit([...value, known ?? tag]);
+  const close = () => { setOpen(false); trigger.current?.focus(); };
+  const pick = (name: string) => { onCommit([...value, name]); close(); };
+  const create = (raw: string, category: TagCategory) => {
+    const name = raw.trim().slice(0, MAX_TAG_LENGTH);
+    if (!name) return;
+    // guarda a categoria no catálogo (API ou memória) e põe a tag no registro
+    void saveTagCategory(name, category, crmMode === 'api').then((err) => { if (err) pushErro('Não foi possível guardar a categoria da tag', `${err} A tag foi adicionada, mas a categoria vale só por palpite.`); });
+    onCreate?.(name, category);
+    onCommit([...value, name]);
+    close();
   };
 
   return (
     <PropRow label={label} hint={hint}>
       <div className="chip-list">
         {value.map((t) => (
-          <span key={t} className="tag tag-removable">
-            {t}
-            <button type="button" onClick={() => onCommit(value.filter((x) => x !== t))} aria-label={`Remover ${t}`}><X size={11} /></button>
-          </span>
+          <TagChip key={t} name={t} onRemove={() => onCommit(value.filter((x) => x !== t))} />
         ))}
-        {adding ? (
-          <>
-            <input
-              autoFocus
-              className="inline-input tag-input"
-              list={`tags-${label}`}
-              value={draft}
-              placeholder={allowCreate ? 'Escolha ou crie' : 'Escolha uma tag'}
-              onChange={(e) => setDraft(e.target.value)}
-              onBlur={() => add(draft)}
-              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); add(draft); } if (e.key === 'Escape') { e.stopPropagation(); setDraft(''); setAdding(false); } }}
-            />
-            <datalist id={`tags-${label}`}>{available.map((o) => <option key={o} value={o} />)}</datalist>
-          </>
-        ) : (
-          <button type="button" className="chip-add" onClick={() => setAdding(true)}><Plus size={12} /> Tag</button>
-        )}
+        <button ref={trigger} type="button" className="chip-add" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((v) => !v)}><Plus size={12} /> Tag</button>
+        {open && <TagPicker anchor={trigger.current} value={value} options={all} catalog={catalog} allowCreate={allowCreate} onPick={pick} onCreate={create} onClose={close} />}
       </div>
     </PropRow>
   );

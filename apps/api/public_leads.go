@@ -41,6 +41,9 @@ type leadInput struct {
 	// EventID: id do envio, gerado no navegador e repetido nas novas tentativas. É a chave de idempotência
 	// (TrackingEvent) e o event_id que junta o Pixel e a API de Conversões da Meta (tracking.go).
 	EventID string `json:"event_id,omitempty"`
+	// UserAgent do navegador de quem enviou (cabeçalho, nunca o corpo). Fica no lead (customData.match) para as
+	// conversões offline das etapas do CRM saírem com os mesmos dados de correspondência do envio.
+	UserAgent string `json:"-"`
 }
 
 // clean tira caracteres de controle e espaços das pontas e corta no limite (em runes).
@@ -73,7 +76,8 @@ func digits(s string) string {
 
 // newsletterSource: inscrição para receber os conteúdos do blog por e-mail (CTA do blog, jornada J3). Pede só
 // nome e e-mail, então o WhatsApp é opcional; entra no CRM como lead, mas não dispara a conversão Lead da mídia
-// paga (Meta e GA4), que fica para quem pede diagnóstico ou contato.
+// paga (Meta e GA4), que fica para quem pede diagnóstico ou contato. A inscrição tem conversão própria:
+// CompleteRegistration na Meta e sign_up no GA4 (buildSignupConversion em tracking.go).
 const newsletterSource = "blog-newsletter"
 
 func isNewsletter(source string) bool { return strings.HasPrefix(source, newsletterSource) }
@@ -266,6 +270,11 @@ func handlePublicLead(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ip := clientIP(r)
+	ua := r.Header.Get("X-Client-User-Agent")
+	if ua == "" {
+		ua = r.Header.Get("User-Agent")
+	}
+	in.EventID, in.UserAgent = eventID, ua
 	if err := leadSaver(in, ip); err != nil {
 		log.Println("❌ captura de lead:", err)
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "não foi possível registrar agora"})
@@ -274,13 +283,9 @@ func handlePublicLead(w http.ResponseWriter, r *http.Request) {
 	if err := tracking.MarkLeadSaved(eventID); err != nil {
 		log.Println("⚠️ TrackingEvent:", err)
 	}
-	ua := r.Header.Get("X-Client-User-Agent")
-	if ua == "" {
-		ua = r.Header.Get("User-Agent")
-	}
 	if isNewsletter(in.Source) {
-		resp["serverSide"] = map[string]bool{}
 		dispatchNewsletter(in) // contato no Resend, segmento da newsletter (newsletter_resend.go)
+		dispatchConversion(buildSignupConversion(in, eventID, ip, ua))
 	} else {
 		dispatchConversion(buildConversion(in, eventID, ip, ua))
 	}
@@ -339,18 +344,11 @@ func saveLeadV2(in leadInput, ip string) error {
 		}
 	}
 	custom := map[string]any{"via": "formulário do site", "formSource": in.Source}
-	if len(in.Attribution) > 0 {
-		attr := map[string]string{}
-		for k, v := range in.Attribution {
-			if attributionKeys[k] || k == "interest" {
-				if s := clean(strOf(v), 500); s != "" {
-					attr[k] = s
-				}
-			}
-		}
-		if len(attr) > 0 {
-			custom["attribution"] = attr
-		}
+	if attr := cleanAttribution(in.Attribution, true); len(attr) > 0 {
+		custom["attribution"] = attr
+	}
+	if m := matchData(ip, in.UserAgent, in.EventID); len(m) > 0 {
+		custom["match"] = m
 	}
 	_, err = connectDB.IngestLead(inboundLead{
 		Project: Project{PipelineID: nullableID(pipelineID), StageID: nullableID(stageID), SourceName: sourceName},
@@ -358,6 +356,7 @@ func saveLeadV2(in leadInput, ip string) error {
 		Tags:   tags,
 		Custom: custom,
 		Actor:  "Site", ClientIP: ip,
+		EmailEvent: emailEventForSource(in.Source),
 	})
 	return err
 }
@@ -418,4 +417,12 @@ func saveLead(in leadInput) error {
 		return err
 	}
 	return tx.Commit()
+}
+
+// emailEventForSource: a inscrição da newsletter dispara o fluxo da newsletter, não o de boas-vindas ao lead.
+func emailEventForSource(source string) string {
+	if isNewsletter(source) {
+		return "newsletter.inscrito"
+	}
+	return "lead.criado"
 }

@@ -20,34 +20,34 @@ var db *sql.DB
 
 // Opportunity representa o card principal no Kanban e Tabela
 type Opportunity struct {
-	ID            string    `json:"id"`
-	Title         string    `json:"title"`
-	Value         *float64  `json:"value"`
-	Stage         string    `json:"stage"` // correspondia ao column_id
-	Priority      string    `json:"priority"`
-	Tags          []string  `json:"tags"`
-	
+	ID       string   `json:"id"`
+	Title    string   `json:"title"`
+	Value    *float64 `json:"value"`
+	Stage    string   `json:"stage"` // correspondia ao column_id
+	Priority string   `json:"priority"`
+	Tags     []string `json:"tags"`
+
 	// Dados Relacionais
-	CompanyID     *string   `json:"companyId,omitempty"`
-	CompanyName   *string   `json:"companyName,omitempty"`
-	CompanyLogo   *string   `json:"companyLogo,omitempty"`
-	
-	ContactID     *string   `json:"contactId,omitempty"`
-	ContactName   *string   `json:"contactName,omitempty"`
-	ContactAvatar *string   `json:"contactAvatar,omitempty"`
-	
-	OwnerID       *string   `json:"ownerId,omitempty"`
-	OwnerName     *string   `json:"ownerName,omitempty"`
-	OwnerAvatar   *string   `json:"ownerAvatar,omitempty"`
+	CompanyID   *string `json:"companyId,omitempty"`
+	CompanyName *string `json:"companyName,omitempty"`
+	CompanyLogo *string `json:"companyLogo,omitempty"`
+
+	ContactID     *string `json:"contactId,omitempty"`
+	ContactName   *string `json:"contactName,omitempty"`
+	ContactAvatar *string `json:"contactAvatar,omitempty"`
+
+	OwnerID     *string `json:"ownerId,omitempty"`
+	OwnerName   *string `json:"ownerName,omitempty"`
+	OwnerAvatar *string `json:"ownerAvatar,omitempty"`
 	// Responsável na equipe (TeamMember), só com CRM_API=1; ownerId é o vínculo antigo com User.
-	OwnerMemberID *string   `json:"ownerMemberId,omitempty"`
+	OwnerMemberID *string `json:"ownerMemberId,omitempty"`
 
 	// Motivo de perda (WP4-2, D28): preenchido só enquanto a oportunidade está numa etapa Perdida.
 	LostReason     *string `json:"lostReason,omitempty"`
 	LostReasonNote *string `json:"lostReasonNote,omitempty"`
-	
-	WonAt         *time.Time `json:"wonAt"`
-	CreatedAt     time.Time `json:"created_at"`
+
+	WonAt     *time.Time `json:"wonAt"`
+	CreatedAt time.Time  `json:"created_at"`
 }
 
 type Note struct {
@@ -92,12 +92,17 @@ func initDB() {
 	if authEnabled() {
 		ensureAuthSchema()
 	}
+	if emailAutomationsEnabled() {
+		ensureEmailSchema()
+	}
 	if connectEnabled() {
 		ensureConnectSchema()
 	}
 	ensureBlogSchema()
-	ensureTrackingSchema() // tabela nova TrackingEvent (idempotência da captura de lead); não altera nada existente
-	alignCollations()      // tabelas da API na mesma collation das do Prisma (collation.go)
+	ensureCampaignLinkSchema() // tabela nova CampaignLink (links de divulgação, campaign_links.go)
+	ensureCreativeSchema()     // tabela nova Creative (criativos orgânicos, creatives.go)
+	ensureTrackingSchema()     // tabela nova TrackingEvent (idempotência da captura de lead); não altera nada existente
+	alignCollations()          // tabelas da API na mesma collation das do Prisma (collation.go)
 	initStorage()
 }
 
@@ -232,6 +237,10 @@ func handleMoveOpportunity(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+	if movedToWon(payload.Stage, won) {
+		emitOpportunityWon(payload.ID)           // e-mail automático "Boas-vindas ao cliente", se ligado (um por oportunidade)
+		emitOpportunityWonConversion(payload.ID) // Purchase na Meta e close_convert_lead no GA4 (offline_conversions.go)
 	}
 
 	// 0 linhas afetadas também é "nada mudou" (mover para a etapa em que já está: o MySQL sem clientFoundRows
@@ -395,7 +404,7 @@ func handleSendEmail(w http.ResponseWriter, r *http.Request) {
 		"subject": req.Subject,
 		"html":    req.Body,
 	}
-	
+
 	payloadBytes, _ := json.Marshal(resendPayload)
 	httpReq, _ := http.NewRequest("POST", "https://api.resend.com/emails", bytes.NewBuffer(payloadBytes))
 	httpReq.Header.Set("Authorization", "Bearer "+resendKey)
@@ -419,7 +428,7 @@ func handleSendEmail(w http.ResponseWriter, r *http.Request) {
 	content := fmt.Sprintf("Assunto: %s\n\n%s", req.Subject, req.Body)
 	insertQuery := `INSERT INTO Note (id, content, type, opportunityId, createdAt) VALUES (?, ?, ?, ?, ?)`
 	_, err = db.Exec(insertQuery, noteID, content, "EMAIL", req.OpportunityID, time.Now())
-	
+
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, `{"status":"success", "message": "Email enviado e logado com sucesso!"}`)
 }
@@ -440,6 +449,10 @@ func main() {
 	mux.HandleFunc("/api/blog/settings", enableCORS(handleBlogSettings))
 	mux.HandleFunc("/api/blog/categories", enableCORS(handleBlogCategories))
 	mux.HandleFunc("/api/public/leads", handlePublicLead) // pública: CORS e limites próprios (public_leads.go)
+	registerAnalyticsRoutes(mux)                          // página Analytics do admin, só leitura (analytics.go)
+	registerAnalyticsSpendRoutes(mux)                     // investimento em mídia da Meta e do Google Ads (analytics_spend.go)
+	registerCampaignLinkRoutes(mux)                       // links de divulgação e links curtos /l/ (campaign_links.go)
+	registerCreativeRoutes(mux)                           // criativos orgânicos do admin > Tráfego (creatives.go)
 
 	if workflowEnabled() {
 		registerWorkflowRoutes(mux)
@@ -450,9 +463,15 @@ func main() {
 
 	if authEnabled() {
 		registerAuthRoutes(mux)
+		registerMCPRoutes(mux)      // agentes por MCP, só com login ligado (tokens de API com mcp:use; mcp.go)
+		registerMCPOAuthRoutes(mux) // e por OAuth, de qualquer provedor (mcp_oauth.go)
 	}
 	if connectEnabled() {
 		registerConnectRoutes(mux)
+	}
+	if emailAutomationsEnabled() {
+		registerEmailRoutes(mux) // modelos, fluxos prontos e fila de e-mail (email_automations.go)
+		startEmailWorker()
 	}
 	var handler http.Handler = mux
 	if authEnabled() {
@@ -467,7 +486,7 @@ func main() {
 		port = port[1:]
 	}
 	fmt.Printf("🚀 API do Kalidash (Go + MySQL) rodando em http://localhost:%s\n", port)
-	
+
 	if err := http.ListenAndServe(":"+port, handler); err != nil {
 		log.Fatalf("Erro ao iniciar API: %v", err)
 	}

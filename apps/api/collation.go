@@ -22,12 +22,15 @@ const collationRef = "Opportunity"
 
 // apiTables: tabelas criadas pela própria API (CREATE TABLE IF NOT EXISTS nos ensure*Schema).
 var apiTables = []string{
-	"Pipeline", "PipelineStage", "StageRequirement", "Task", // workflow_schema.go
+	"Pipeline", "PipelineStage", "StageRequirement", "Task", "Tag", // workflow_schema.go, tags.go
 	"CompanyStakeholder", "Lead", "ChangeLog", // crm_schema.go
 	"TeamMember", "AuthSession", "ApiToken", // auth_store.go
 	"ConnectedProject", "TrackedForm", // connect_projects.go
-	"Article", "BlogSettings", "BlogCategory", // blog.go
+	"Article", "BlogSettings", "BlogCategory", "ArticleSlugHistory", // blog.go
 	"TrackingEvent", // tracking.go
+	"EmailTemplate", "EmailAutomation", "EmailJob", "NewsletterEdition", // email_automations.go, newsletter_editions.go
+	"McpOAuthClient", "McpOAuthCode", "McpOAuthGrant", // mcp_oauth.go
+	"Creative", // creatives.go
 }
 
 var collationName = regexp.MustCompile(`^[a-z0-9_]+$`)

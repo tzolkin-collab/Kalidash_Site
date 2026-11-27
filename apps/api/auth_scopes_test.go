@@ -82,10 +82,17 @@ func TestRotaExigeEscopo(t *testing.T) {
 		{"GET", "/api/blog/articles", "blog:read"}, {"POST", "/api/blog/articles", "blog:write"}, {"POST", "/api/blog/upload", "blog:write"},
 		{"POST", "/api/blog/categories", "blog:write"}, {"PUT", "/api/blog/categories", "blog:write"}, {"DELETE", "/api/blog/categories", "blog:write"},
 		{"POST", "/api/emails/send", "emails:send"},
+		{"GET", "/api/email/templates", "emails:send"}, {"POST", "/api/email/templates", "automations:manage"}, {"PUT", "/api/email/templates/t1", "automations:manage"},
+		{"GET", "/api/email/automations", "emails:send"}, {"PUT", "/api/email/automations/lead-boas-vindas", "automations:manage"},
+		{"GET", "/api/email/jobs", "emails:send"}, {"POST", "/api/email/jobs/j1/retry", "automations:manage"},
+		{"GET", "/api/email/newsletter", "emails:send"}, {"POST", "/api/email/newsletter/editions", "automations:manage"},
+		{"POST", "/api/email/newsletter/editions/e1/test", "automations:manage"}, {"POST", "/api/email/newsletter/editions/e1/send", "automations:manage"},
+		{"POST", "/api/email/newsletter/sync", "automations:manage"},
 		{"GET", "/api/team", "team:read"}, {"POST", "/api/team", "team:manage"}, {"PUT", "/api/team/x", "team:manage"},
 		{"GET", "/api/tokens", "keys:manage"}, {"POST", "/api/tokens", "keys:manage"}, {"DELETE", "/api/tokens/x", "keys:manage"},
 		{"GET", "/api/projects", "keys:manage"}, {"POST", "/api/projects", "keys:manage"}, {"PUT", "/api/projects/p1", "keys:manage"},
 		{"POST", "/api/projects/p1/forms", "keys:manage"}, {"DELETE", "/api/projects/p1/forms/f1", "keys:manage"},
+		{"POST", "/api/mcp", "mcp:use"}, {"GET", "/api/mcp/info", "mcp:use"},
 	}
 	used := map[string]bool{}
 	for _, c := range cases {

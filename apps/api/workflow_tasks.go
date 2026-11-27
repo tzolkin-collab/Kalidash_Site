@@ -25,6 +25,9 @@ type TaskDTO struct {
 	// em `assignee` e o Vendedor passa a ver as tarefas atribuídas a ele.
 	AssigneeMemberID *string    `json:"assigneeMemberId,omitempty"`
 	DueAt            *time.Time `json:"dueAt,omitempty"`
+	// Status é o andamento da tarefa: TODO, DOING, BLOCKED ou DONE. DONE e `done` andam juntos (o gate de etapa e as
+	// métricas leem `done`); os outros três valem enquanto a tarefa está aberta.
+	Status string     `json:"status"`
 	Done             bool       `json:"done"`
 	DoneAt           *time.Time `json:"doneAt,omitempty"`
 	Source           string     `json:"source"` // manual | passo | requisito
@@ -79,15 +82,47 @@ func parseDT(s string) time.Time {
 	return time.Time{}
 }
 
-const taskCols = `id, title, tag, source, entityKind, entityId, entityName, requirementId, assignee, dueAt, done, doneAt, createdAt, assigneeMemberId`
+const taskCols = `id, title, tag, source, entityKind, entityId, entityName, requirementId, assignee, dueAt, done, doneAt, createdAt, assigneeMemberId, status`
+
+var taskStatuses = map[string]bool{"TODO": true, "DOING": true, "BLOCKED": true, "DONE": true}
+
+// normalizeTaskStatus: tarefa concluída é sempre DONE; aberta, mantém o status se for válido, senão volta para TODO.
+// Também cobre as tarefas antigas (sem status) e quem mudou `done` por fora.
+func normalizeTaskStatus(done bool, status string) string {
+	if done {
+		return "DONE"
+	}
+	if taskStatuses[status] && status != "DONE" {
+		return status
+	}
+	return "TODO"
+}
+
+// applyTaskStatus põe a tarefa no status pedido e mantém done/doneAt coerentes. Quem chama confere o gate do
+// requisito ANTES de concluir (ver `completing`).
+func applyTaskStatus(cur *TaskDTO, status string, now time.Time) error {
+	if !taskStatuses[status] {
+		return errors.New("status inválido (use TODO, DOING, BLOCKED ou DONE)")
+	}
+	if status == "DONE" {
+		if !cur.Done {
+			cur.Done, cur.DoneAt = true, &now
+		}
+	} else {
+		cur.Done, cur.DoneAt = false, nil
+	}
+	cur.Status = status
+	return nil
+}
 
 func scanTask(sc interface{ Scan(...any) error }) (TaskDTO, error) {
 	var t TaskDTO
-	var req, assignee, member sql.NullString
+	var req, assignee, member, status sql.NullString
 	var due, doneAt, created sql.NullString
-	if err := sc.Scan(&t.ID, &t.Title, &t.Tag, &t.Source, &t.Entity, &t.EntityID, &t.EntityName, &req, &assignee, &due, &t.Done, &doneAt, &created, &member); err != nil {
+	if err := sc.Scan(&t.ID, &t.Title, &t.Tag, &t.Source, &t.Entity, &t.EntityID, &t.EntityName, &req, &assignee, &due, &t.Done, &doneAt, &created, &member, &status); err != nil {
 		return t, err
 	}
+	t.Status = normalizeTaskStatus(t.Done, status.String)
 	t.CreatedAt = parseDT(created.String)
 	if req.Valid {
 		t.RequirementID = &req.String
@@ -236,7 +271,7 @@ func handleTasks(w http.ResponseWriter, r *http.Request) {
 			writeTaskErr(w, err)
 			return
 		}
-		t.ID, t.Done, t.DoneAt, t.CreatedAt = wfID("task"), false, nil, time.Now()
+		t.ID, t.Done, t.DoneAt, t.CreatedAt, t.Status = wfID("task"), false, nil, time.Now(), "TODO"
 		// Só tarefa de requisito carrega requirementId (o front gera as dos leads; as das oportunidades
 		// nascem no gate do servidor). Ela é idempotente: a chave única (requisito, registro) devolve a
 		// tarefa que já existe em vez de duplicar.
@@ -378,7 +413,27 @@ func handleTaskByID(w http.ResponseWriter, r *http.Request) {
 				cur.DueAt = &d
 			}
 		}
-		if pr.has("done") && !isNull("done") {
+		if pr.has("status") && !isNull("status") {
+			// O status manda: DONE conclui (com o mesmo gate de requisito), os outros reabrem a tarefa.
+			var st string
+			if json.Unmarshal(pr["status"], &st) != nil {
+				bad("status")
+				return
+			}
+			if st == "DONE" && !cur.Done && cur.RequirementID != nil {
+				if msg, err := fieldGap(*cur.RequirementID, cur.Entity, cur.EntityID); err != nil {
+					writeErr(w, err)
+					return
+				} else if msg != "" {
+					writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": msg})
+					return
+				}
+			}
+			if err := applyTaskStatus(&cur, st, time.Now()); err != nil {
+				writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": err.Error()})
+				return
+			}
+		} else if pr.has("done") && !isNull("done") {
 			var done bool
 			if json.Unmarshal(pr["done"], &done) != nil {
 				bad("done")
@@ -403,12 +458,13 @@ func handleTaskByID(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
+		cur.Status = normalizeTaskStatus(cur.Done, cur.Status) // concluir pelo `done` leva o status a DONE; reabrir volta a TODO
 		if err := validateTask(&cur); err != nil {
 			writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": err.Error()})
 			return
 		}
-		if _, err := db.Exec(`UPDATE Task SET title = ?, tag = ?, assignee = ?, assigneeMemberId = ?, dueAt = ?, done = ?, doneAt = ? WHERE id = ?`,
-			cur.Title, cur.Tag, cur.Assignee, cur.AssigneeMemberID, cur.DueAt, cur.Done, cur.DoneAt, id); err != nil {
+		if _, err := db.Exec(`UPDATE Task SET title = ?, tag = ?, assignee = ?, assigneeMemberId = ?, dueAt = ?, done = ?, doneAt = ?, status = ? WHERE id = ?`,
+			cur.Title, cur.Tag, cur.Assignee, cur.AssigneeMemberID, cur.DueAt, cur.Done, cur.DoneAt, cur.Status, id); err != nil {
 			writeErr(w, err)
 			return
 		}

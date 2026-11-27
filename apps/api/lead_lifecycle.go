@@ -325,8 +325,9 @@ func handleQualifyLead(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusUnprocessableEntity, map[string]any{"error": "faltam campos para qualificar: " + strings.Join(labels, ", "), "missing": missing})
 		return
 	}
-	// Gate de SAÍDA da etapa do lead (e de ENTRADA da primeira etapa aberta). Consulta pura: se barrar, nada é gravado.
-	blockers, err := checkGate(gateInput{EntityKind: "lead", EntityID: lead.ID, EntityName: lead.Name, FromStageID: lead.StageID, ToStageID: firstOpen}, false)
+	// Gate de SAÍDA da etapa do lead (e de ENTRADA da primeira etapa aberta). É uma tentativa, como o mover: se barrar,
+	// só as tarefas dos requisitos são gravadas (sem elas a pessoa não teria o que concluir); o lead não muda.
+	blockers, err := checkGate(gateInput{EntityKind: "lead", EntityID: lead.ID, EntityName: lead.Name, FromStageID: lead.StageID, ToStageID: firstOpen}, true)
 	if err != nil {
 		writeErr(w, err)
 		return
@@ -360,6 +361,7 @@ func handleQualifyLead(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, err)
 		return
 	}
+	emitLeadQualified(got) // QualifiedLead na Meta e qualify_lead no GA4 (offline_conversions.go)
 	writeJSON(w, http.StatusCreated, map[string]any{"lead": got, "opportunity": opp, "movedTasks": moved})
 }
 

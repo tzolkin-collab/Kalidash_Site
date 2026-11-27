@@ -1,3 +1,4 @@
+import { MAX_TAG_LENGTH } from '../lib/tags';
 import { useEffect, useMemo, useState } from 'react';
 import { Archive, ArchiveRestore, ArrowDown, ArrowUp, Bell, ExternalLink, Link2, Pencil, Plus, Sparkles, Trash2, X } from 'lucide-react';
 import type { CustomField, CustomFieldType, Pipeline, Requirement, Source, Stage, StageKind, Step } from '../domain';
@@ -518,7 +519,7 @@ function TagList({ title, hint, tags, locked, lockedHint, onChange }: { title: s
         ))}
       </div>
       <div className="row-actions" style={{ justifyContent: 'flex-start' }}>
-        <input className="input" style={{ maxWidth: '260px' }} value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } }} placeholder="Nova tag" />
+        <input className="input" style={{ maxWidth: '260px' }} value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } }} placeholder="Nova tag" maxLength={MAX_TAG_LENGTH} title={`Até ${MAX_TAG_LENGTH} caracteres`} />
         <button type="button" className="btn" onClick={add} disabled={!draft.trim()}><Plus size={14} /> Adicionar</button>
       </div>
     </div>

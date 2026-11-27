@@ -1,3 +1,4 @@
+import TagChip from '../components/TagChip';
 import { useMemo, useState } from 'react';
 import { Building2, Plus, User } from 'lucide-react';
 import type { Lifecycle } from '../domain';
@@ -110,7 +111,7 @@ export default function PeopleCompanies() {
                       <td data-label="Empresas"><div>{mine.length ? mine.map((c) => c.name).join(', ') : <span className="text-muted">Pessoa física</span>}{p.role && <div className="text-xs text-muted">{p.role}</div>}</div></td>
                       <td className="mono" data-label="CPF">{p.document ? maskCpf(p.document) : <span className="text-muted">—</span>}</td>
                       <td className="text-muted" data-label="Telefone">{p.phone}</td>
-                      <td data-label="Tags"><div className="tag-row">{p.tags.map((t) => <span key={t} className="tag">{t}</span>)}</div></td>
+                      <td data-label="Tags"><div className="tag-row">{p.tags.map((t) => <TagChip key={t} name={t} />)}</div></td>
                       <td data-label="Ciclo de vida"><LifecycleBadge value={p.lifecycle} /></td>
                       <td className="text-muted" data-label="Cadastro">{formatDate(p.createdAt)}</td>
                     </tr>

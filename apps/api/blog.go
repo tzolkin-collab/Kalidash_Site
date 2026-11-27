@@ -4,9 +4,12 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"sort"
@@ -40,6 +43,15 @@ type Article struct {
 	CreatedAt      time.Time  `json:"createdAt"`
 	UpdatedAt      time.Time  `json:"updatedAt"`
 	PublishedAt    *time.Time `json:"publishedAt,omitempty"`
+	// BC-1 (SEO). OgImageURL: imagem do compartilhamento (vazia: a capa). CanonicalURL: só quando o artigo foi
+	// publicado antes em outro endereço (vazia: o próprio /blog/slug). Noindex: publicado, mas fora do Google e
+	// do sitemap. ContentUpdatedAt: o "Atualizado em" do site; muda só quando título, resumo ou texto de um
+	// artigo já publicado mudam (salvar SEO, capa ou categoria não conta).
+	OgImageURL       *string    `json:"ogImageUrl,omitempty"`
+	CanonicalURL     *string    `json:"canonicalUrl,omitempty"`
+	Noindex          bool       `json:"noindex"`
+	UpdatedBy        string     `json:"updatedBy,omitempty"`
+	ContentUpdatedAt *time.Time `json:"contentUpdatedAt,omitempty"`
 }
 
 type BlogSettings struct {
@@ -95,6 +107,32 @@ func ensureBlogSchema() {
 	_, err = db.Exec(`ALTER TABLE Article ADD COLUMN bodyJson LONGTEXT NULL AFTER body`)
 	if err != nil && !strings.Contains(err.Error(), "Duplicate column") {
 		log.Fatal("❌ Erro ao adicionar coluna bodyJson:", err)
+	}
+
+	// BC-1: colunas de SEO e "atualizado em". Mesmo padrão do bodyJson (ALTER aditivo, "Duplicate column" é normal).
+	for _, col := range []string{
+		`ogImageUrl VARCHAR(500) NULL`,
+		`canonicalUrl VARCHAR(500) NULL`,
+		`noindex TINYINT(1) NOT NULL DEFAULT 0`,
+		`updatedBy VARCHAR(160) NULL`,
+		`contentUpdatedAt DATETIME NULL`,
+	} {
+		if _, err := db.Exec(`ALTER TABLE Article ADD COLUMN ` + col); err != nil && !strings.Contains(err.Error(), "Duplicate column") {
+			log.Fatal("❌ Erro ao adicionar coluna de SEO no Article:", err)
+		}
+	}
+
+	// Slugs antigos: trocar o slug de um artigo guarda o anterior aqui, e /blog/<antigo> responde 301 para o atual.
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS ArticleSlugHistory (
+			oldSlug VARCHAR(255) PRIMARY KEY,
+			articleId VARCHAR(64) NOT NULL,
+			createdAt DATETIME NOT NULL,
+			INDEX idx_slughistory_article (articleId)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+	`)
+	if err != nil {
+		log.Fatal("❌ Erro ao criar tabela ArticleSlugHistory:", err)
 	}
 
 	_, err = db.Exec(`
@@ -204,13 +242,20 @@ func scanArticle(rows *sql.Rows) (Article, error) {
 	var coverPos sql.NullInt64
 	var publishedAt sql.NullTime
 	var bodyJSON sql.NullString
+	var updatedBy sql.NullString
+	var contentUpdatedAt sql.NullTime
 	err := rows.Scan(
 		&a.ID, &a.Title, &a.Slug, &a.Excerpt, &a.Body, &bodyJSON, &a.CoverImageURL, &coverPos,
 		&a.Featured, &a.Published, &a.AuthorName, &categoriesJSON,
 		&a.SeoTitle, &a.SeoDescription, &a.CreatedAt, &a.UpdatedAt, &publishedAt,
+		&a.OgImageURL, &a.CanonicalURL, &a.Noindex, &updatedBy, &contentUpdatedAt,
 	)
 	if err != nil {
 		return a, err
+	}
+	a.UpdatedBy = updatedBy.String
+	if contentUpdatedAt.Valid {
+		a.ContentUpdatedAt = &contentUpdatedAt.Time
 	}
 	if bodyJSON.Valid {
 		a.BodyJSON = &bodyJSON.String
@@ -319,7 +364,7 @@ func applyGalleryHybridOrder(published []Article) []Article {
 	return orderGallery(published, curated)
 }
 
-const articleColumns = `id, title, slug, excerpt, body, bodyJson, coverImageUrl, coverImagePos, featured, published, authorName, categories, seoTitle, seoDescription, createdAt, updatedAt, publishedAt`
+const articleColumns = `id, title, slug, excerpt, body, bodyJson, coverImageUrl, coverImagePos, featured, published, authorName, categories, seoTitle, seoDescription, createdAt, updatedAt, publishedAt, ogImageUrl, canonicalUrl, noindex, updatedBy, contentUpdatedAt`
 
 // handleBlogArticles: GET lista (?published=true filtra pro que o site pode mostrar e aplica ordem hibrida Q14),
 // POST cria, PUT atualiza (id no corpo), DELETE remove (?id=).
@@ -369,7 +414,12 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Título é obrigatório", http.StatusBadRequest)
 			return
 		}
+		if err := normalizeArticleSEO(&a); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 		a.ID = fmt.Sprintf("%d", time.Now().UnixNano())
+		a.UpdatedBy = actorOf(r)
 		if strings.TrimSpace(a.Slug) == "" {
 			a.Slug = slugify(a.Title)
 		} else {
@@ -395,10 +445,10 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 		categoriesJSON, _ := json.Marshal(a.Categories)
 
 		_, err := db.Exec(
-			`INSERT INTO Article (`+articleColumns+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			`INSERT INTO Article (`+articleColumns+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
 			a.ID, a.Title, a.Slug, a.Excerpt, a.Body, a.BodyJSON, a.CoverImageURL, a.CoverImagePos,
 			a.Featured, a.Published, a.AuthorName, categoriesJSON, a.SeoTitle, a.SeoDescription,
-			a.CreatedAt, a.UpdatedAt, a.PublishedAt,
+			a.CreatedAt, a.UpdatedAt, a.PublishedAt, a.OgImageURL, a.CanonicalURL, a.Noindex, a.UpdatedBy,
 		)
 		if err != nil {
 			if isDuplicateKey(err) {
@@ -408,6 +458,8 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		// Um slug novo que era o antigo de outro artigo passa a ser deste: o redirecionamento antigo sai.
+		_, _ = db.Exec(`DELETE FROM ArticleSlugHistory WHERE oldSlug = ?`, a.Slug)
 		notifySite(articlePaths(a.Slug))
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
@@ -415,19 +467,36 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 
 	case http.MethodPut:
 		r.Body = http.MaxBytesReader(w, r.Body, 4<<20) // 4 MB
-		var a Article
-		if err := json.NewDecoder(r.Body).Decode(&a); err != nil {
+		raw, err := io.ReadAll(r.Body)
+		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		var a Article
+		if err := json.Unmarshal(raw, &a); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		// Campos de SEO que não vieram no corpo ficam como estão (tela antiga, ou que salva só parte do artigo).
+		var sent map[string]json.RawMessage
+		_ = json.Unmarshal(raw, &sent)
 		if a.ID == "" {
 			http.Error(w, "id é obrigatório", http.StatusBadRequest)
 			return
 		}
 
-		var alreadyPublishedAt sql.NullTime
+		if err := normalizeArticleSEO(&a); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		var alreadyPublishedAt, prevContentUpdatedAt sql.NullTime
 		var previousSlug string
-		err := db.QueryRow(`SELECT publishedAt, slug FROM Article WHERE id = ?`, a.ID).Scan(&alreadyPublishedAt, &previousSlug)
+		var prevTitle string
+		var prevExcerpt, prevBody sql.NullString
+		var prevPublished, prevNoindex bool
+		var prevOg, prevCanonical *string
+		err = db.QueryRow(`SELECT publishedAt, slug, title, excerpt, body, published, contentUpdatedAt, noindex, ogImageUrl, canonicalUrl FROM Article WHERE id = ?`, a.ID).
+			Scan(&alreadyPublishedAt, &previousSlug, &prevTitle, &prevExcerpt, &prevBody, &prevPublished, &prevContentUpdatedAt, &prevNoindex, &prevOg, &prevCanonical)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				http.Error(w, "Artigo não encontrado", http.StatusNotFound)
@@ -455,7 +524,23 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		if _, ok := sent["noindex"]; !ok {
+			a.Noindex = prevNoindex
+		}
+		if _, ok := sent["ogImageUrl"]; !ok {
+			a.OgImageURL = prevOg
+		}
+		if _, ok := sent["canonicalUrl"]; !ok {
+			a.CanonicalURL = prevCanonical
+		}
 		a.UpdatedAt = time.Now()
+		a.UpdatedBy = actorOf(r)
+		if prevContentUpdatedAt.Valid {
+			a.ContentUpdatedAt = &prevContentUpdatedAt.Time
+		}
+		if contentChanged(prevPublished, prevTitle, prevExcerpt.String, prevBody.String, a) {
+			a.ContentUpdatedAt = &a.UpdatedAt
+		}
 		if a.Categories == nil {
 			a.Categories = []string{}
 		}
@@ -469,10 +554,17 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 			a.PublishedAt = &alreadyPublishedAt.Time
 		}
 
-		res, err := db.Exec(
-			`UPDATE Article SET title=?, slug=?, excerpt=?, body=?, bodyJson=?, coverImageUrl=?, coverImagePos=?, featured=?, published=?, authorName=?, categories=?, seoTitle=?, seoDescription=?, updatedAt=?, publishedAt=? WHERE id=?`,
+		tx, err := db.Begin()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer tx.Rollback()
+		res, err := tx.Exec(
+			`UPDATE Article SET title=?, slug=?, excerpt=?, body=?, bodyJson=?, coverImageUrl=?, coverImagePos=?, featured=?, published=?, authorName=?, categories=?, seoTitle=?, seoDescription=?, updatedAt=?, publishedAt=?, ogImageUrl=?, canonicalUrl=?, noindex=?, updatedBy=?, contentUpdatedAt=? WHERE id=?`,
 			a.Title, a.Slug, a.Excerpt, a.Body, a.BodyJSON, a.CoverImageURL, a.CoverImagePos, a.Featured, a.Published,
-			a.AuthorName, categoriesJSON, a.SeoTitle, a.SeoDescription, a.UpdatedAt, a.PublishedAt, a.ID,
+			a.AuthorName, categoriesJSON, a.SeoTitle, a.SeoDescription, a.UpdatedAt, a.PublishedAt,
+			a.OgImageURL, a.CanonicalURL, a.Noindex, a.UpdatedBy, a.ContentUpdatedAt, a.ID,
 		)
 		if err != nil {
 			if isDuplicateKey(err) {
@@ -485,6 +577,14 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 		affected, _ := res.RowsAffected()
 		if affected == 0 {
 			http.Error(w, "Artigo não encontrado", http.StatusNotFound)
+			return
+		}
+		if err := recordSlugChange(tx, a.ID, previousSlug, a.Slug, a.UpdatedAt); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if err := tx.Commit(); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		// Reconsulta em vez de devolver `a` direto: o corpo do PUT não manda createdAt, então
@@ -526,6 +626,7 @@ func handleBlogArticles(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Artigo não encontrado", http.StatusNotFound)
 			return
 		}
+		_, _ = db.Exec(`DELETE FROM ArticleSlugHistory WHERE articleId = ?`, id)
 		notifySite(articlePaths(deletedSlug))
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprint(w, `{"status":"success"}`)
@@ -547,18 +648,16 @@ func handleBlogArticleBySlug(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "slug é obrigatório", http.StatusBadRequest)
 		return
 	}
-	rows, err := db.Query(`SELECT `+articleColumns+` FROM Article WHERE slug = ? AND published = 1 LIMIT 1`, slug)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	// Pelo slug atual; se não houver, pelo histórico de slugs (o artigo volta com o slug novo e o site responde
+	// 301 de /blog/<antigo> para /blog/<atual>).
+	a, err := publishedArticleBy(`a.slug = ?`, slug)
+	if errors.Is(err, sql.ErrNoRows) {
+		a, err = publishedArticleBy(`a.id = (SELECT articleId FROM ArticleSlugHistory WHERE oldSlug = ?)`, slug)
 	}
-	defer rows.Close()
-
-	if !rows.Next() {
+	if errors.Is(err, sql.ErrNoRows) {
 		http.Error(w, "Artigo não encontrado", http.StatusNotFound)
 		return
 	}
-	a, err := scanArticle(rows)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -923,3 +1022,88 @@ func renameCategoryInArticles(oldName, newName string) {
 	}
 }
 
+
+// publishedArticleBy devolve o artigo publicado que casa com a condição (sql.ErrNoRows se nenhum).
+func publishedArticleBy(cond string, arg any) (Article, error) {
+	rows, err := db.Query(`SELECT `+articleColumnsAs("a")+` FROM Article a WHERE `+cond+` AND a.published = 1 LIMIT 1`, arg)
+	if err != nil {
+		return Article{}, err
+	}
+	defer rows.Close()
+	if !rows.Next() {
+		if err := rows.Err(); err != nil {
+			return Article{}, err
+		}
+		return Article{}, sql.ErrNoRows
+	}
+	return scanArticle(rows)
+}
+
+// articleColumnsAs prefixa cada coluna com o alias da tabela.
+func articleColumnsAs(alias string) string {
+	cols := strings.Split(articleColumns, ",")
+	for i, c := range cols {
+		cols[i] = alias + "." + strings.TrimSpace(c)
+	}
+	return strings.Join(cols, ", ")
+}
+
+// recordSlugChange guarda o slug anterior quando o slug muda, para o 301. Se o artigo volta a um slug que já foi
+// dele, esse redirecionamento some (o slug está vivo de novo).
+func recordSlugChange(x execer, articleID, oldSlug, newSlug string, now time.Time) error {
+	if _, err := x.Exec(`DELETE FROM ArticleSlugHistory WHERE oldSlug = ?`, newSlug); err != nil {
+		return err
+	}
+	if oldSlug == "" || oldSlug == newSlug || isReservedSlug(oldSlug) {
+		return nil
+	}
+	_, err := x.Exec(`INSERT INTO ArticleSlugHistory (oldSlug, articleId, createdAt) VALUES (?, ?, ?)
+		ON DUPLICATE KEY UPDATE articleId = VALUES(articleId), createdAt = VALUES(createdAt)`, oldSlug, articleID, now)
+	return err
+}
+
+// contentChanged diz se o "Atualizado em" deve mudar: o artigo já estava publicado e o título, o resumo ou o
+// texto mudaram. Rascunho e primeira publicação não contam.
+func contentChanged(wasPublished bool, prevTitle, prevExcerpt, prevBody string, a Article) bool {
+	if !wasPublished || !a.Published {
+		return false
+	}
+	return strings.TrimSpace(prevTitle) != strings.TrimSpace(a.Title) ||
+		strings.TrimSpace(prevExcerpt) != strings.TrimSpace(a.Excerpt) ||
+		strings.TrimSpace(prevBody) != strings.TrimSpace(a.Body)
+}
+
+// normalizeArticleSEO limpa e valida os campos de SEO: vazio vira nulo; canônica precisa ser absoluta
+// (http/https); imagem pode ser absoluta ou caminho do site ("/...").
+func normalizeArticleSEO(a *Article) error {
+	clean := func(p **string, max int) {
+		if *p == nil {
+			return
+		}
+		v := strings.TrimSpace(**p)
+		if v == "" {
+			*p = nil
+			return
+		}
+		if len([]rune(v)) > max {
+			v = string([]rune(v)[:max])
+		}
+		*p = &v
+	}
+	clean(&a.SeoTitle, 255)
+	clean(&a.SeoDescription, 500)
+	clean(&a.OgImageURL, 500)
+	clean(&a.CanonicalURL, 500)
+	if a.CanonicalURL != nil && !isHTTPURL(*a.CanonicalURL) {
+		return errors.New("o endereço canônico precisa ser um link completo (https://...)")
+	}
+	if a.OgImageURL != nil && !isHTTPURL(*a.OgImageURL) && !(strings.HasPrefix(*a.OgImageURL, "/") && !strings.HasPrefix(*a.OgImageURL, "//")) {
+		return errors.New("a imagem de compartilhamento precisa ser um link (https://...) ou um caminho do site (/...)")
+	}
+	return nil
+}
+
+func isHTTPURL(s string) bool {
+	u, err := url.Parse(s)
+	return err == nil && (u.Scheme == "https" || u.Scheme == "http") && u.Host != "" && !strings.ContainsAny(s, " \t\r\n\"<>")
+}

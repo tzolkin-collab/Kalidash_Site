@@ -9,10 +9,12 @@ import type { AutomationRow } from '../mocks/automations';
 import { pipelinesStore } from '../mocks/pipelines';
 import { templatesStore } from '../mocks/templates';
 import StepsEditor from '../components/StepsEditor';
+import { EmailFlowsTab } from '../components/EmailFlows';
+import { useEmail } from '../lib/emailApi';
 import { Badge, EmptyState, Field, Page, PageHeader, PopupDialog, SampleBanner, SearchBox, SidePanel, Switch, Tabs } from '../components/ui';
 import { CustomSelect } from '../components/ui';
 
-type Tab = 'automations' | 'templates' | 'catalog' | 'runs';
+type Tab = 'emails' | 'automations' | 'templates' | 'catalog' | 'runs';
 
 /** Uma linha da lista: automação solta ou passo do ciclo de vida de uma pipeline. */
 type Row = AutomationRow & { stepOf?: { pipelineId: string; stepId: string } };
@@ -42,7 +44,8 @@ export default function Automations() {
   const [pipelines, setPipelines] = useStore(pipelinesStore);
   const [templates] = useStore(templatesStore);
   const [runs] = useStore(runsStore);
-  const [tab, setTab] = useState<Tab>('automations');
+  const [tab, setTab] = useState<Tab>('emails');
+  const email = useEmail();
   const [category, setCategory] = useState<'' | AutomationCategory>('');
   const [origin, setOrigin] = useState<'' | 'MANUAL' | 'MANAGED'>('');
   const [funnel, setFunnel] = useState('');
@@ -82,16 +85,18 @@ export default function Automations() {
     <Page>
       <PageHeader
         title="Automações"
-        subtitle="Os passos de ciclo de vida de cada funil e as automações avulsas, por assunto. Hoje todas rodam só neste navegador, com o admin aberto: nenhuma roda no servidor. Os passos nascem ao copiar um template de ciclo de vida para o funil."
-        actions={<button type="button" className="btn btn-solid" onClick={() => setEditing('new')}><Plus size={14} /> Nova automação</button>}
+        subtitle="Os e-mails automáticos rodam no servidor, mesmo com o admin fechado. Os passos de ciclo de vida de cada funil e as automações avulsas ainda rodam só neste navegador, com o admin aberto."
+        actions={tab === 'emails' ? undefined : <button type="button" className="btn btn-solid" onClick={() => setEditing('new')}><Plus size={14} /> Nova automação</button>}
       />
-      <SampleBanner>Nenhuma automação roda no servidor: elas só executam neste navegador, enquanto o admin está aberto, e o que chega por formulário no site não dispara nenhuma. As automações de exemplo somem ao recarregar e não há histórico de execuções do servidor.</SampleBanner>
+      {tab !== 'emails' && <SampleBanner>Nenhuma automação roda no servidor: elas só executam neste navegador, enquanto o admin está aberto, e o que chega por formulário no site não dispara nenhuma. As automações de exemplo somem ao recarregar e não há histórico de execuções do servidor.</SampleBanner>}
 
       <Tabs
-        tabs={[{ id: 'automations' as Tab, label: 'Automações', count: rows.length }, { id: 'templates' as Tab, label: 'Templates de ciclo de vida', count: templates.length }, { id: 'catalog' as Tab, label: 'Catálogo' }, { id: 'runs' as Tab, label: 'Execuções', count: runs.length }]}
+        tabs={[{ id: 'emails' as Tab, label: 'E-mails automáticos', count: email.mode === 'api' ? email.flows.filter((f) => f.active).length : undefined }, { id: 'automations' as Tab, label: 'Automações no navegador', count: rows.length }, { id: 'templates' as Tab, label: 'Templates de ciclo de vida', count: templates.length }, { id: 'catalog' as Tab, label: 'Catálogo' }, { id: 'runs' as Tab, label: 'Execuções', count: runs.length }]}
         value={tab}
         onChange={setTab}
       />
+
+      {tab === 'emails' && <EmailFlowsTab onEditTemplates={() => navigate('/emails')} />}
 
       {tab === 'automations' && (
         <>

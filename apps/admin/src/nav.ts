@@ -1,12 +1,18 @@
 import type { LucideIcon } from 'lucide-react';
-import { Inbox, Kanban, LayoutDashboard, ListChecks, Mail, MailOpen, Newspaper, Plug, UserCheck, Users, Zap } from 'lucide-react';
+import { ChartLine, Inbox, Kanban, LayoutDashboard, ListChecks, Mail, MailOpen, Megaphone, Newspaper, Plug, UserCheck, Users, Zap } from 'lucide-react';
 
 export type NavItem = { path: string; label: string; Icon: LucideIcon };
 export type NavGroup = { title?: string; items: NavItem[] };
 
 // Ordem e agrupamento da barra lateral. Ver docs/dominio.md §10.
 export const NAV_GROUPS: NavGroup[] = [
-  { items: [{ path: '/dashboard', label: 'Dashboard', Icon: LayoutDashboard }] },
+  {
+    items: [
+      { path: '/dashboard', label: 'Dashboard', Icon: LayoutDashboard },
+      { path: '/analytics', label: 'Analytics', Icon: ChartLine },
+      { path: '/trafego', label: 'Tráfego', Icon: Megaphone },
+    ],
+  },
   {
     title: 'CRM',
     items: [

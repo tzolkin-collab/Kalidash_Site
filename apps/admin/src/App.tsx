@@ -8,11 +8,13 @@ import Automations from './pages/Automations';
 import Clients from './pages/Clients';
 import Leads from './pages/Leads';
 import Newsletter from './pages/Newsletter';
+import Traffic from './pages/Traffic';
 import Opportunities from './pages/Opportunities';
 import PeopleCompanies from './pages/PeopleCompanies';
 import PipelineSettings from './pages/PipelineSettings';
 import Projects from './pages/Projects';
 import Login from './pages/Login';
+import AuthorizeAgent, { OAUTH_PENDING_KEY } from './pages/AuthorizeAgent';
 import Unreachable from './pages/Unreachable';
 import SettingsPage from './pages/Settings';
 import Tasks from './pages/Tasks';
@@ -39,6 +41,8 @@ const Emails = lazy(() => import('./Emails'));
 const TaskWorkflow = lazy(() => import('./pages/TaskWorkflow'));
 // O editor de texto do Blog (TipTap) também.
 const Blog = lazy(() => import('./pages/Blog'));
+// Analytics usa recharts e as métricas de aquisição: só carrega quando a página abre.
+const Analytics = lazy(() => import('./pages/Analytics'));
 function NotFound({ path }: { path: string }) {
   return (
     <Page>
@@ -68,6 +72,15 @@ export default function App() {
   const currentUser = auth.status === 'in' && auth.user ? auth.user : localUser;
   const can = useCan();
   useEffect(() => { void initAuth(); }, []);
+  // Consentimento do OAuth do MCP: sem sessão, guarda o pedido e volta a ele depois do login (o Google devolve à raiz).
+  const isConsent = segments[0] === 'autorizar-agente';
+  useEffect(() => {
+    if (isConsent && auth.status === 'anon' && window.location.search) sessionStorage.setItem(OAUTH_PENDING_KEY, window.location.search);
+    if (!isConsent && auth.status === 'in') {
+      const pending = sessionStorage.getItem(OAUTH_PENDING_KEY);
+      if (pending) window.location.replace(`/autorizar-agente${pending}`);
+    }
+  }, [isConsent, auth.status]);
   // Os dados só são pedidos à API depois de saber quem está logado (ou que a API não exige login).
   const authSettled = auth.status === 'off' || auth.status === 'in';
   useEffect(() => {
@@ -112,6 +125,7 @@ export default function App() {
 
   if (auth.status === 'loading') return <div className="app-wrapper"><Loading /></div>;
   if (auth.status === 'anon') return <div className="app-wrapper"><Login /></div>;
+  if (isConsent && auth.status === 'in') return <div className="app-wrapper"><AuthorizeAgent /></div>;
   if (auth.status === 'unreachable') return <div className="app-wrapper"><Unreachable /></div>;
   if (auth.status === 'nologin') return <div className="app-wrapper"><Unreachable nologin /></div>;
 
@@ -121,6 +135,9 @@ export default function App() {
     case undefined:
     case 'dashboard':
       page = second === 'demonstracao' ? <DashboardDemo /> : <Dashboard />;
+      break;
+    case 'analytics':
+      page = <Analytics view={second} />;
       break;
     case 'leads':
       page = <Leads />;
@@ -147,6 +164,12 @@ export default function App() {
       break;
     case 'newsletter':
       page = <Newsletter />;
+      break;
+    case 'links':
+      page = can.manageBlog ? <Traffic view="links" /> : <NotFound path={`${path} (sem permissão)`} />; // endereço antigo
+      break;
+    case 'trafego':
+      page = can.manageBlog ? <Traffic view={second} sub={third} /> : <NotFound path={`${path} (sem permissão)`} />;
       break;
     case 'projetos':
       page = <Projects />;
@@ -190,7 +213,7 @@ export default function App() {
               {NAV_GROUPS.map((group, i) => (
                 <div key={group.title ?? i}>
                   {group.title && <div className="nav-group-title">{group.title}</div>}
-                  {group.items.filter((it) => it.path !== '/blog' || can.manageBlog).map(({ path: to, label, Icon }) => {
+                  {group.items.filter((it) => (it.path !== '/blog' && it.path !== '/trafego') || can.manageBlog).map(({ path: to, label, Icon }) => {
                     const active = isActive(path === '/' ? '/dashboard' : path, to);
                     return (
                       <a key={to} href={`#${to}`} className={`nav-link ${active ? 'active' : ''}`} aria-current={active ? 'page' : undefined} onClick={() => setIsMobileMenuOpen(false)}>
@@ -206,6 +229,11 @@ export default function App() {
                 <a href="#" className="nav-link" onClick={toggleTheme}>
                   {isDarkMode ? <><Sun size={18} className="nav-icon" strokeWidth={2} /> Usar tema claro</> : <><Moon size={18} className="nav-icon" strokeWidth={2} /> Usar tema escuro</>}
                 </a>
+                {auth.status === 'in' && (
+                  <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); void logout(); }}>
+                    <LogOut size={18} className="nav-icon" strokeWidth={2} /> Sair
+                  </a>
+                )}
               </div>
             </nav>
             {currentUser && (
@@ -219,7 +247,7 @@ export default function App() {
                 title="Ver perfil nas configurações"
               >
                 {currentUser.avatarUrl ? (
-                  <img src={currentUser.avatarUrl} alt={currentUser.name} className="avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
+                  <img src={currentUser.avatarUrl} alt={currentUser.name} referrerPolicy="no-referrer" className="avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
                 ) : (
                   <span className="avatar">{initials(currentUser.name || currentUser.email)}</span>
                 )}

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -31,15 +32,18 @@ func isLeadField(f string) bool {
 }
 
 type Project struct {
-	ID               string    `json:"id"`
-	Name             string    `json:"name"`
-	URL              string    `json:"url"`
-	Origins          []string  `json:"origins"` // origens extras aceitas (além da do URL), ex.: https://www.exemplo.com.br
-	Stack            string    `json:"stack,omitempty"`
-	Description      string    `json:"description,omitempty"`
-	PipelineID       nullableID `json:"pipelineId"` // null = projeto sem funil (fonte desconectada, D40)
-	StageID          nullableID `json:"stageId"`
-	SourceName       string    `json:"sourceName"` // fonte do lead (inbound)
+	ID          string     `json:"id"`
+	Name        string     `json:"name"`
+	URL         string     `json:"url"`
+	Origins     []string   `json:"origins"` // origens extras aceitas (além da do URL), ex.: https://www.exemplo.com.br
+	Stack       string     `json:"stack,omitempty"`
+	Description string     `json:"description,omitempty"`
+	PipelineID  nullableID `json:"pipelineId"` // null = projeto sem funil (fonte desconectada, D40)
+	StageID     nullableID `json:"stageId"`
+	SourceName  string     `json:"sourceName"` // fonte do lead (inbound)
+	// MediaConversions liga a conversão pelo servidor (Meta CAPI / GA4 MP) dos leads deste projeto, com o pixel e o GA4
+	// do Kalidash. Desligado por padrão: projeto de cliente com pixel próprio não deve cair nas campanhas do Kalidash.
+	MediaConversions bool      `json:"mediaConversions"`
 	Submissions      int       `json:"submissions"`
 	LastSubmissionAt *FlexTime `json:"lastSubmissionAt,omitempty"`
 	ArchivedAt       *FlexTime `json:"archivedAt,omitempty"`
@@ -88,6 +92,8 @@ type inboundLead struct {
 	Test     bool
 	Actor    string
 	ClientIP string
+	// EmailEvent: evento das automações de e-mail ("" = lead.criado). A newsletter usa newsletter.inscrito.
+	EmailEvent string
 }
 
 type connectStore interface {
@@ -115,6 +121,7 @@ CREATE TABLE IF NOT EXISTS ConnectedProject (
 	pipelineId VARCHAR(64) NULL,
 	stageId VARCHAR(128) NULL,
 	sourceName VARCHAR(255) NOT NULL,
+	mediaConversions TINYINT(1) NOT NULL DEFAULT 0,
 	submissions INT NOT NULL DEFAULT 0,
 	lastSubmissionAt DATETIME NULL,
 	archivedAt DATETIME NULL,
@@ -155,6 +162,16 @@ func ensureConnectSchema() {
 			if _, err := db.Exec("ALTER TABLE ConnectedProject MODIFY " + c.col + " " + c.ddl); err != nil {
 				log.Fatalf("❌ CONNECT: não consegui permitir NULL em ConnectedProject.%s: %v", c.col, err)
 			}
+		}
+	}
+	// Conversões de mídia por projeto (opt-in): tabelas antigas ganham a coluna desligada.
+	var hasMedia int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ConnectedProject' AND COLUMN_NAME = 'mediaConversions'`).Scan(&hasMedia); err != nil {
+		log.Fatalf("❌ CONNECT: não consegui ler ConnectedProject.mediaConversions: %v", err)
+	}
+	if hasMedia == 0 {
+		if _, err := db.Exec("ALTER TABLE ConnectedProject ADD COLUMN mediaConversions TINYINT(1) NOT NULL DEFAULT 0 AFTER sourceName"); err != nil {
+			log.Fatalf("❌ CONNECT: não consegui criar ConnectedProject.mediaConversions: %v", err)
 		}
 	}
 	log.Println("✅ Projetos conectados e connect.js prontos (CRM_API=1 + AUTH_API=1)")
@@ -276,12 +293,12 @@ func validateForm(f *TrackedForm) error {
 
 type sqlConnectStore struct{}
 
-const projectCols = `id, name, url, origins, stack, description, pipelineId, stageId, sourceName, submissions, lastSubmissionAt, archivedAt, createdAt`
+const projectCols = `id, name, url, origins, stack, description, pipelineId, stageId, sourceName, mediaConversions, submissions, lastSubmissionAt, archivedAt, createdAt`
 
 func scanProject(sc interface{ Scan(...any) error }) (Project, error) {
 	var p Project
 	var origins, stack, desc, last, archived, created, pipeline, stage sql.NullString
-	if err := sc.Scan(&p.ID, &p.Name, &p.URL, &origins, &stack, &desc, &pipeline, &stage, &p.SourceName, &p.Submissions, &last, &archived, &created); err != nil {
+	if err := sc.Scan(&p.ID, &p.Name, &p.URL, &origins, &stack, &desc, &pipeline, &stage, &p.SourceName, &p.MediaConversions, &p.Submissions, &last, &archived, &created); err != nil {
 		return p, err
 	}
 	p.PipelineID, p.StageID = nullableID(pipeline.String), nullableID(stage.String)
@@ -323,12 +340,12 @@ func (sqlConnectStore) SaveProject(p *Project, replace bool) error {
 	origins, _ := json.Marshal(p.Origins)
 	now := time.Now()
 	if !replace {
-		_, err := db.Exec(`INSERT INTO ConnectedProject (id, name, url, origins, stack, description, pipelineId, stageId, sourceName, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-			p.ID, p.Name, p.URL, string(origins), nullStr(p.Stack), nullStr(p.Description), nullStr(string(p.PipelineID)), nullStr(string(p.StageID)), p.SourceName, now, now)
+		_, err := db.Exec(`INSERT INTO ConnectedProject (id, name, url, origins, stack, description, pipelineId, stageId, sourceName, mediaConversions, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			p.ID, p.Name, p.URL, string(origins), nullStr(p.Stack), nullStr(p.Description), nullStr(string(p.PipelineID)), nullStr(string(p.StageID)), p.SourceName, p.MediaConversions, now, now)
 		return err
 	}
-	res, err := db.Exec(`UPDATE ConnectedProject SET name = ?, url = ?, origins = ?, stack = ?, description = ?, pipelineId = ?, stageId = ?, sourceName = ?, updatedAt = ? WHERE id = ? AND archivedAt IS NULL`,
-		p.Name, p.URL, string(origins), nullStr(p.Stack), nullStr(p.Description), nullStr(string(p.PipelineID)), nullStr(string(p.StageID)), p.SourceName, now, p.ID)
+	res, err := db.Exec(`UPDATE ConnectedProject SET name = ?, url = ?, origins = ?, stack = ?, description = ?, pipelineId = ?, stageId = ?, sourceName = ?, mediaConversions = ?, updatedAt = ? WHERE id = ? AND archivedAt IS NULL`,
+		p.Name, p.URL, string(origins), nullStr(p.Stack), nullStr(p.Description), nullStr(string(p.PipelineID)), nullStr(string(p.StageID)), p.SourceName, p.MediaConversions, now, p.ID)
 	if err != nil {
 		return err
 	}
@@ -476,6 +493,17 @@ func (sqlConnectStore) IngestLead(in inboundLead) (LeadDTO, error) {
 			return LeadDTO{}, err
 		}
 	}
+	// Automações de e-mail (outbox): o job entra na mesma transação do lead. Envio de teste não dispara nada.
+	if !in.Test {
+		event := in.EmailEvent
+		if event == "" {
+			event = "lead.criado"
+		}
+		if _, err := enqueueEmailEvent(tx, emailEvent{Event: event, EntityKind: "lead", EntityID: id, EntityName: in.Name, To: in.Email,
+			Vars: map[string]string{"nome": in.Name}}, now); err != nil {
+			return LeadDTO{}, err
+		}
+	}
 	if err := tx.Commit(); err != nil {
 		return LeadDTO{}, err
 	}
@@ -498,9 +526,9 @@ func registerConnectRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/projects/{id}", enableCORS(handleProjectByID))
 	mux.HandleFunc("/api/projects/{id}/forms", enableCORS(handleProjectForms))
 	mux.HandleFunc("/api/projects/{id}/forms/{formId}", enableCORS(handleProjectFormByID))
-	mux.HandleFunc("/api/connect/leads", handleConnectLead)     // CORS e token próprios (connect_ingest.go)
-	mux.HandleFunc("/api/connect/config", handleConnectConfig)  // idem
-	mux.HandleFunc("/connect.js", handleConnectScript)          // o snippet
+	mux.HandleFunc("/api/connect/leads", handleConnectLead)    // CORS e token próprios (connect_ingest.go)
+	mux.HandleFunc("/api/connect/config", handleConnectConfig) // idem
+	mux.HandleFunc("/connect.js", handleConnectScript)         // o snippet
 }
 
 func projectView(p Project) (ProjectView, error) {
@@ -591,11 +619,21 @@ func handleProjectByID(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPut:
 		var p Project
 		r.Body = http.MaxBytesReader(w, r.Body, 32<<10)
-		if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
+		raw, err := io.ReadAll(r.Body)
+		if err != nil || json.Unmarshal(raw, &p) != nil {
 			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "corpo inválido"})
 			return
 		}
 		p.ID = id
+		// Quem edita sem conhecer o campo (ex.: o vínculo da fonte ao funil) não desliga as conversões sem querer.
+		var keys map[string]json.RawMessage
+		if json.Unmarshal(raw, &keys) == nil {
+			if _, sent := keys["mediaConversions"]; !sent {
+				if cur, err := connectDB.ProjectByID(id); err == nil {
+					p.MediaConversions = cur.MediaConversions
+				}
+			}
+		}
 		if err := validateProject(&p); err != nil {
 			writeJSON(w, http.StatusUnprocessableEntity, map[string]string{"error": err.Error()})
 			return

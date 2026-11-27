@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -151,7 +152,13 @@ func handleConnectConfig(w http.ResponseWriter, r *http.Request) {
 		out = append(out, pubForm{f.ID, f.Name, f.Selector, f.Fields, f.ConsentSelector})
 	}
 	w.Header().Set("Cache-Control", "no-store")
-	writeJSON(w, http.StatusOK, map[string]any{"project": map[string]string{"id": p.ID, "name": p.Name}, "env": tok.Env, "forms": out})
+	// serverSide: o que a API manda pelo servidor em cada envio (Meta CAPI, GA4 MP). O connect.js usa para não repetir
+	// no navegador, já no submit (a página pode sair antes da resposta do envio). Chave de teste: nada sai.
+	serverSide := map[string]bool{}
+	if mediaOn(tok, p) {
+		serverSide = loadTrackingConfig().serverSide()
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"project": map[string]string{"id": p.ID, "name": p.Name}, "env": tok.Env, "forms": out, "serverSide": serverSide})
 }
 
 func handleConnectScript(w http.ResponseWriter, r *http.Request) {
@@ -206,6 +213,41 @@ var attributionKeys = map[string]bool{
 	"ga_client_id": true, "ga_session_id": true, "fbclid_at": true,
 }
 
+// utmKeys: os parâmetros de campanha que seguem a convenção (minúsculas, sem espaço). Ids de clique (gclid, fbclid…)
+// e cookies ficam como vieram: diferenciam maiúsculas e a Meta/Google recusam o id alterado.
+var utmKeys = map[string]bool{
+	"utm_source": true, "utm_medium": true, "utm_campaign": true, "utm_content": true, "utm_term": true,
+	"first_utm_source": true, "first_utm_medium": true, "first_utm_campaign": true,
+}
+
+var utmSpaces = regexp.MustCompile(`[\s+]+`)
+
+// normalizeUTM aplica a convenção de UTMs na gravação: minúsculas, sem espaços nas pontas e espaço (ou "+") virando
+// "_". Assim "Instagram", "instagram " e "instagram" contam como a mesma origem no CRM e nos relatórios.
+// O GA4 lê a URL como veio: a convenção vale na criação dos links (docs/tracking.md).
+func normalizeUTM(v string) string {
+	return utmSpaces.ReplaceAllString(strings.ToLower(strings.TrimSpace(v)), "_")
+}
+
+// cleanAttribution: só as chaves conhecidas, como texto limpo, com as UTMs na convenção. withInterest mantém o
+// "interest" do formulário de diagnóstico do site.
+func cleanAttribution(in map[string]any, withInterest bool) map[string]string {
+	attr := map[string]string{}
+	for k, v := range in {
+		if !attributionKeys[k] && !(withInterest && k == "interest") {
+			continue
+		}
+		s := clean(strOf(v), 500)
+		if utmKeys[k] {
+			s = normalizeUTM(s)
+		}
+		if s != "" {
+			attr[k] = s
+		}
+	}
+	return attr
+}
+
 func handleConnectLead(w http.ResponseWriter, r *http.Request) {
 	if !connectEnabled() {
 		http.NotFound(w, r)
@@ -239,6 +281,9 @@ func handleConnectLead(w http.ResponseWriter, r *http.Request) {
 		Lead        map[string]any `json:"lead"`
 		Website     string         `json:"website"` // honeypot
 		Attribution map[string]any `json:"attribution"`
+		// EventID: id do envio gerado pelo connect.js (repetido nas novas tentativas). Igual ao do site: evita o
+		// 2º lead em clique duplo e junta o Pixel da LP com a API de Conversões (tracking.go).
+		EventID string `json:"event_id"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
 		connectErr(w, http.StatusBadRequest, "corpo inválido")
@@ -265,6 +310,23 @@ func handleConnectLead(w http.ResponseWriter, r *http.Request) {
 		return
 	case email == "" && phone == "":
 		connectErr(w, http.StatusUnprocessableEntity, "informe ao menos um contato (e-mail ou telefone)")
+		return
+	}
+
+	// Envio único por event_id (TrackingEvent), como no formulário do site.
+	eventID := normalizeEventID(in.EventID)
+	if !acquireEvent(eventID) {
+		writeJSON(w, http.StatusAccepted, map[string]any{"ok": true, "pending": true, "eventId": eventID})
+		return
+	}
+	defer releaseEvent(eventID)
+	claim, err := tracking.Claim(eventID, "Lead", clean("connect:"+p.ID, 60))
+	if err != nil {
+		log.Println("⚠️ TrackingEvent (connect):", err) // sem a tabela o lead ainda entra; só a idempotência fica de fora
+		claim = claimNew
+	}
+	if claim == claimDone {
+		writeJSON(w, http.StatusOK, map[string]any{"ok": true, "duplicate": true, "eventId": eventID})
 		return
 	}
 
@@ -295,19 +357,16 @@ func handleConnectLead(w http.ResponseWriter, r *http.Request) {
 			custom[k] = v
 		}
 	}
-	attr := map[string]string{}
-	for k, v := range in.Attribution {
-		if attributionKeys[k] {
-			if s := clean(strOf(v), 500); s != "" {
-				attr[k] = s
-			}
-		}
-	}
+	attr := cleanAttribution(in.Attribution, false)
 	if len(attr) > 0 {
 		custom["attribution"] = attr
 	}
 	if tok.Env == "test" {
 		custom["test"] = true
+	}
+	ip, ua := clientIP(r), r.Header.Get("User-Agent")
+	if m := matchData(ip, ua, eventID); len(m) > 0 {
+		custom["match"] = m
 	}
 
 	tags := []string{"Inbound", p.Name}
@@ -320,12 +379,36 @@ func handleConnectLead(w http.ResponseWriter, r *http.Request) {
 	lead, err := connectDB.IngestLead(inboundLead{
 		Project: p, Form: form, Name: name, Email: email, Phone: phone,
 		Message: clean(firstOf(in.Lead, "mensagem", "message"), 2000), Tags: cleanStrings(tags, 60), Custom: custom,
-		Test: tok.Env == "test", Actor: "Connect: " + p.Name, ClientIP: clientIP(r),
+		Test: tok.Env == "test", Actor: "Connect: " + p.Name, ClientIP: ip,
 	})
 	if err != nil {
 		log.Println("❌ connect: lead do projeto", p.ID, "-", err)
 		connectErr(w, http.StatusInternalServerError, "não foi possível registrar agora")
 		return
 	}
-	writeJSON(w, http.StatusCreated, map[string]any{"ok": true, "id": lead.ID})
+	if err := tracking.MarkLeadSaved(eventID); err != nil {
+		log.Println("⚠️ TrackingEvent (connect):", err)
+	}
+
+	// Conversão Lead pelo servidor (Meta e GA4), igual ao formulário do site, só nos projetos com conversões de mídia
+	// ligadas. Chave de teste (kld_test_) não manda nada para a mídia. serverSide diz ao connect.js o que já saiu
+	// daqui, para ele não duplicar no navegador.
+	serverSide := map[string]bool{}
+	if mediaOn(tok, p) {
+		serverSide = loadTrackingConfig().serverSide()
+		source := p.Name
+		if form != nil {
+			source = p.Name + " — " + form.Name
+		}
+		dispatchConversion(conversionEvent{
+			EventID: eventID, Name: "Lead", Time: time.Now(),
+			Email: email, Phone: phone, FullName: name, Source: clean(source, 120),
+			IP: ip, UserAgent: clean(ua, 400), Attr: attr,
+		})
+	}
+	writeJSON(w, http.StatusCreated, map[string]any{"ok": true, "id": lead.ID, "eventId": eventID, "serverSide": serverSide})
 }
+
+// mediaOn: os leads deste envio viram conversão pelo servidor (pixel e GA4 do Kalidash)? Só com chave live e com o
+// projeto marcado em "conversões de mídia" (opt-in, Project.MediaConversions).
+func mediaOn(tok APIToken, p Project) bool { return tok.Env != "test" && p.MediaConversions }

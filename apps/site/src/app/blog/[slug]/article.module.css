@@ -1515,3 +1515,12 @@
 @media (min-width: 1024px) {
   .page .articleHead > [data-block="newsletter"] { margin-left: min(16.66%, 213px); }
 }
+
+/* ==========================================================================
+ * Corpo ainda mais largo (25/11): 860px no desktop, na mesma borda do título. Entre 1024 e ~1300px ele ocupa a coluna
+ * inteira (o recuo de 16,66% já limita), e no celular segue os 100%. Linhas de ~90 caracteres a 18px.
+ * ========================================================================== */
+.page .body { max-width: 860px; }
+@media (min-width: 1440px) {
+  .page .body { font-size: 18.5px; }
+}

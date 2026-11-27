@@ -93,6 +93,7 @@ func ensureWorkflowSchema() {
 		}
 	}
 	ensureWorkflowColumns()
+	ensureTagSchema()
 	log.Println("✅ Tabelas de funil, requisitos e tarefas prontas (WORKFLOW_API=1)")
 }
 
@@ -105,6 +106,7 @@ var workflowColumns = []colSpec{
 	{"Task", "assigneeMemberId", "VARCHAR(64) NULL"},
 	{"Opportunity", "pipelineId", "VARCHAR(64) NULL"},
 	{"StageRequirement", "fieldKey", "VARCHAR(40) NULL"}, // D41: qual dado a tarefa de campo exige (cnpj, cpf, email, phone)
+	{"Task", "status", "VARCHAR(10) NOT NULL DEFAULT 'TODO'"}, // andamento: TODO, DOING, BLOCKED, DONE (DONE andam junto com `done`)
 }
 
 func ensureWorkflowColumns() {
@@ -119,6 +121,10 @@ func ensureWorkflowColumns() {
 		if _, err := db.Exec(fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s", c.table, c.col, c.ddl)); err != nil {
 			log.Fatalf("❌ Funis: não consegui adicionar %s.%s: %v", c.table, c.col, err)
 		}
+	}
+	// Tarefa já concluída antes do status existir vira DONE (idempotente: só toca em quem está incoerente).
+	if _, err := db.Exec(`UPDATE Task SET status = 'DONE' WHERE done = 1 AND status <> 'DONE'`); err != nil {
+		log.Println("⚠️ Funis: backfill de Task.status falhou (o status é derivado de `done` na leitura):", err)
 	}
 	if err := backfillOpportunityPipelines(); err != nil {
 		log.Println("⚠️ Funis: backfill de Opportunity.pipelineId falhou (as contagens usam a etapa):", err)
@@ -177,4 +183,5 @@ func registerWorkflowRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/tasks", enableCORS(handleTasks))
 	mux.HandleFunc("/api/tasks/{id}", enableCORS(handleTaskByID))
 	mux.HandleFunc("/api/gate/check", enableCORS(handleGateCheck))
+	registerTagRoutes(mux)
 }

@@ -1,5 +1,5 @@
 import './setup-easy-email-i18n';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { ComponentType, ReactNode } from 'react';
 import { EmailEditorProvider, EmailEditor } from 'easy-email-editor';
 import 'easy-email-editor/lib/style.css';
@@ -9,13 +9,16 @@ import '@arco-themes/react-easy-email-theme/css/arco.css';
 import { BlockManager, BasicType, AdvancedType, JsonToMjml } from 'easy-email-core';
 import mjml from 'mjml-browser';
 import {
-  Save, Mail, Plus, ArrowLeft
+  Save, Mail, Plus, ArrowLeft, Trash2
 } from 'lucide-react';
 import { startEditorDomTranslation } from './easy-email-dom-translate';
 import { API_URL } from './lib/api';
 import { useAuth } from './lib/auth';
 import { emailLog } from './mocks/team';
 import { Badge, Page, PageHeader, PopupDialog, SampleBanner, Tabs } from './components/ui';
+import { EmailJobsTable } from './components/EmailFlows';
+import { deleteTemplate, saveTemplate, useEmailBoot } from './lib/emailApi';
+import { useCan } from './lib/permissions';
 
 // A lib tipa "categories" como obrigatória, mas já traz um padrão em tempo de execução.
 // Passar [] esvaziaria o painel de blocos, então só ajustamos o tipo.
@@ -30,17 +33,35 @@ const getBlock = (type: BasicType | AdvancedType) => BlockManager.getBlockByType
 export default function Emails() {
   const [activeTab, setActiveTab] = useState<'inbox' | 'templates' | 'history'>('inbox');
 
-  // Real State for Templates
-  const [templates, setTemplates] = useState([
-    { id: 1, name: 'Boas-vindas (Inbound)', tag: 'Lead Frio', subject: 'Bem-vindo ao Kalidash!', design: null },
-    { id: 2, name: 'Follow-up Reunião', tag: 'Acompanhamento', subject: 'Resumo da nossa reunião', design: null }
+  // Com EMAIL_AUTOMATIONS=1 na API os modelos são do servidor (os fluxos automáticos os enviam); sem a flag, ficam
+  // só nesta tela, como antes. Um modelo novo é rascunho ('new:…') até o primeiro "Salvar".
+  const email = useEmailBoot();
+  const onServer = email.mode === 'api';
+  const can = useCan();
+  const canManage = can.has('automations:manage');
+  type Draft = { id: string; name: string; tag: string; subject: string; design: any; html?: string; saved: boolean };
+  const [localTemplates, setLocalTemplates] = useState<Draft[]>([
+    { id: 'l1', name: 'Boas-vindas (Inbound)', tag: 'Lead Frio', subject: 'Bem-vindo ao Kalidash!', design: null, saved: false },
+    { id: 'l2', name: 'Follow-up Reunião', tag: 'Acompanhamento', subject: 'Resumo da nossa reunião', design: null, saved: false }
   ]);
-  
-  const [editingTemplateId, setEditingTemplateId] = useState<number | null>(null);
+  const [drafts, setDrafts] = useState<Record<string, Draft>>({});
+  const serverTemplates: Draft[] = email.templates.map((t) => ({ id: t.id, name: t.name, tag: t.tag, subject: t.subject, design: t.design ?? null, html: t.html, saved: true }));
+  const templates: Draft[] = (onServer ? serverTemplates : localTemplates).map((t) => drafts[t.id] ?? t)
+    .concat(Object.values(drafts).filter((d) => d.id.startsWith('new:')));
+  const setTemplates = (fn: (prev: Draft[]) => Draft[]) => {
+    if (!onServer) { setLocalTemplates(fn); return; }
+    const next = fn(templates);
+    setDrafts((prev) => { const out = { ...prev }; for (const t of next) out[t.id] = t; return out; });
+  };
+  const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
   const [testDialogOpen, setTestDialogOpen] = useState(false);
   // O teste só vai para o e-mail de quem está logado (POST /api/emails/test): nunca há destinatário digitado.
   const auth = useAuth();
   const myEmail = auth.status === 'in' ? auth.user?.email : undefined;
+  const myName = auth.status === 'in' ? auth.user?.name ?? '' : '';
   const [sendingTest, setSendingTest] = useState(false);
   const [feedback, setFeedback] = useState<{ title: string; description: string; tone: 'success' | 'danger' } | null>(null);
 
@@ -51,8 +72,11 @@ export default function Emails() {
     return startEditorDomTranslation();
   }, [isEditing]);
 
-  const initialValues = {
-    subject: 'Assunto do E-mail...',
+  // O conteúdo inicial do editor: o layout salvo; sem layout (modelo criado pela API), o HTML salvo dentro de um
+  // bloco de texto, para nunca abrir um texto padrão no lugar do e-mail que os fluxos enviam. O assunto é sempre o
+  // do modelo: o campo "Assunto" do painel do editor é o único lugar onde ele se edita.
+  const pageWith = (html: string) => ({
+    subject: '',
     subTitle: 'Pré-visualização',
     content: getBlock(BasicType.PAGE).create({
       children: [
@@ -65,7 +89,7 @@ export default function Emails() {
                     getBlock(AdvancedType.TEXT).create({
                       data: {
                         value: {
-                          content: '<h1>Bem-vindo!</h1><p>Arraste novos blocos aqui ou edite este texto.</p>',
+                          content: html,
                         },
                       },
                     }),
@@ -77,27 +101,84 @@ export default function Emails() {
         }),
       ],
     }),
+  });
+  const bodyOf = (html: string) => {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    return doc.body.innerHTML.trim() || html;
+  };
+  const initialValuesFor = (t: Draft) => {
+    const base = t.design ?? pageWith(t.html ? bodyOf(t.html) : '<h1>Olá, {{primeiro_nome}}!</h1><p>Arraste novos blocos aqui ou edite este texto.</p>');
+    return { ...base, subject: t.subject };
   };
 
   const currentTemplate = templates.find(t => t.id === editingTemplateId);
 
-  const updateCurrentTemplate = (updates: any) => {
+  const updateCurrentTemplate = (updates: Partial<Draft>) => {
     setTemplates(prev => prev.map(t => t.id === editingTemplateId ? { ...t, ...updates } : t));
   };
 
-  const openEditor = (templateId: number) => {
+  const openEditor = (templateId: string) => {
     setEditingTemplateId(templateId);
   };
 
   const createNewTemplate = () => {
-    const newId = Date.now();
-    setTemplates([...templates, { id: newId, name: 'Novo Template Lindo', tag: 'Geral', subject: 'Assunto do E-mail...', design: null }]);
+    const newId = onServer ? `new:${Date.now()}` : `l${Date.now()}`;
+    const draft: Draft = { id: newId, name: 'Novo modelo', tag: 'Geral', subject: 'Oi, {{primeiro_nome}}', design: null, saved: false };
+    if (onServer) setDrafts((prev) => ({ ...prev, [newId]: draft }));
+    else setLocalTemplates((prev) => [...prev, draft]);
     setEditingTemplateId(newId);
   };
 
+  const closeEditor = () => {
+    // Rascunho nunca salvo some ao voltar; o que tem versão no servidor volta para ela.
+    if (editingTemplateId && onServer) setDrafts((prev) => { const out = { ...prev }; delete out[editingTemplateId]; return out; });
+    setEditingTemplateId(null);
+  };
+
+  /** Compila o layout do editor no HTML final (o mesmo motor do canvas e do envio de teste). */
+  const compileHtml = (values: any) => mjml(JsonToMjml({ data: values.content, mode: 'production', context: values.content })).html;
+
+  const handleSave = async (values: any) => {
+    if (!currentTemplate) return;
+    if (!onServer) {
+      updateCurrentTemplate({ design: values, subject: String(values.subject ?? '') });
+      setFeedback({ title: 'Layout salvo nesta tela', description: 'A API daqui não guarda modelos (EMAIL_AUTOMATIONS desligado): o modelo se perde ao sair desta tela.', tone: 'success' });
+      return;
+    }
+    setSaving(true);
+    try {
+      const subject = String(values.subject ?? '').trim();
+      const saved = await saveTemplate({ id: currentTemplate.saved ? currentTemplate.id : undefined, name: currentTemplate.name, tag: currentTemplate.tag, subject, html: compileHtml(values), design: values });
+      setDrafts((prev) => { const out = { ...prev }; delete out[currentTemplate.id]; return out; });
+      setEditingTemplateId(saved.id);
+      setFeedback({ title: 'Modelo salvo', description: 'Os fluxos que usam este modelo já enviam esta versão.', tone: 'success' });
+    } catch (err) {
+      setFeedback({ title: 'Não foi possível salvar', description: (err as Error).message, tone: 'danger' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!currentTemplate) return;
+    if (!currentTemplate.saved) { closeEditor(); return; }
+    setConfirmDelete(false);
+    try {
+      await deleteTemplate(currentTemplate.id);
+      setEditingTemplateId(null);
+    } catch (err) {
+      setFeedback({ title: 'Não foi possível apagar', description: (err as Error).message, tone: 'danger' });
+    }
+  };
+
+  // Calculado uma vez por modelo aberto: um objeto novo a cada render reiniciaria o editor (e apagaria o que foi
+  // arrastado) toda vez que alguém digitasse o nome do modelo. Salvar um rascunho troca o id, sem reabrir o editor.
+  const openKey = editingTemplateId?.startsWith('new:') ? 'draft' : editingTemplateId;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const initialData = useMemo(() => (currentTemplate ? initialValuesFor(currentTemplate) : null), [openKey]);
+
   // RENDERIZAÇÃO DO MODO EDIÇÃO (FULL SCREEN)
-  if (editingTemplateId && currentTemplate) {
-    const initialData = currentTemplate.design || initialValues;
+  if (editingTemplateId && currentTemplate && initialData) {
 
     return (
       // email-editor-light: o editor de e-mail é sempre claro, mesmo com o app em modo escuro.
@@ -114,19 +195,19 @@ export default function Emails() {
               setSendingTest(true);
               setTestDialogOpen(false);
               try {
-                const mjmlString = JsonToMjml({
-                  data: currentValues.content,
-                  mode: 'production',
-                  context: currentValues.content,
+                // HTML final do e-mail, compilado aqui no navegador (mesmo motor do canvas), com as variáveis trocadas
+                // pelos dados de quem está logado: a prévia chega como o lead vai ver.
+                const sample: Record<string, string> = { nome: myName || 'Maria Souza', primeiro_nome: (myName || 'Maria Souza').split(/\s+/)[0], email: myEmail, oportunidade: 'Projeto de exemplo' };
+                const fill = (text: string, escape: boolean) => text.replace(/\{\{\s*([a-z_]+)\s*\}\}/gi, (_, k: string) => {
+                  const v = sample[k.toLowerCase()] ?? '';
+                  return escape ? v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : v;
                 });
-
-                // HTML final do e-mail, compilado aqui no navegador (mesmo motor do canvas).
-                const { html } = mjml(mjmlString);
+                const html = fill(compileHtml(currentValues), true);
 
                 const response = await fetch(`${API_URL}/api/emails/test`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ subject: 'Teste de Template: ' + currentValues.subject, body: html }),
+                  body: JSON.stringify({ subject: 'Teste: ' + fill(String(currentValues.subject ?? '').trim(), false), body: html }),
                 });
 
                 if (response.ok) {
@@ -149,40 +230,37 @@ export default function Emails() {
             return (
               <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                 {/* Header do Modo Editor */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-app)' }}>
-                  <div style={{ display: 'flex', gap: '24px', flex: 1, alignItems: 'center' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', padding: '12px 24px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-app)' }}>
+                  <div style={{ display: 'flex', gap: '16px', flex: '1 1 320px', alignItems: 'center', minWidth: 0 }}>
                     <button 
-                      onClick={() => setEditingTemplateId(null)} 
+                      onClick={closeEditor} aria-label="Voltar para os modelos" 
                       style={{ background: 'transparent', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)' }}
                     >
                       <ArrowLeft size={20} />
                     </button>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      <input 
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0, flex: 1 }}>
+                      <input
                         type="text"
                         value={currentTemplate.name}
                         onChange={(e) => updateCurrentTemplate({ name: e.target.value })}
-                        className="text-xl font-bold" 
-                        style={{ outline: 'none', border: 'none', background: 'transparent' }}
+                        aria-label="Nome do modelo"
+                        className="text-xl font-bold"
+                        style={{ outline: 'none', border: 'none', background: 'transparent', minWidth: 0, width: '100%' }}
                       />
-                      <div style={{ width: '1px', height: '24px', background: 'var(--border-subtle)' }}></div>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <span className="text-sm font-semibold text-muted">Assunto:</span>
-                        <input 
-                          type="text" 
-                          value={currentTemplate.subject}
-                          onChange={(e) => updateCurrentTemplate({ subject: e.target.value })}
-                          style={{ background: 'transparent', border: 'none', fontSize: '14px', fontWeight: 500, color: 'var(--text-secondary)', outline: 'none', minWidth: '250px' }}
-                        />
-                      </div>
+                      <span className="text-xs text-muted">{'Assunto no painel à esquerda. Variáveis no assunto e no texto: {{primeiro_nome}} {{nome}} {{email}} {{oportunidade}}'}</span>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '12px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
                     <button onClick={() => { setFeedback(null); setTestDialogOpen(true); }} disabled={sendingTest || !myEmail} title={myEmail ? `Envia uma cópia para ${myEmail}` : 'Entre com a sua conta (login ligado na API) para enviar um teste: ele só vai para o seu próprio e-mail.'} style={{ background: '#2563eb', color: '#ffffff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontSize: '14px', fontWeight: 600, display: 'flex', gap: '8px', alignItems: 'center', cursor: sendingTest || !myEmail ? 'not-allowed' : 'pointer', boxShadow: 'var(--shadow-sm)', opacity: sendingTest || !myEmail ? 0.5 : 1 }}>
                       <Mail size={18} /> Enviar Teste
                     </button>{!myEmail && <span className="text-xs text-muted" role="note" style={{ maxWidth: 220 }}>Para enviar um teste, entre com a sua conta: ele só vai para o seu e-mail.</span>}
-                    <button onClick={() => { updateCurrentTemplate({ design: values }); setFeedback({ title: 'Layout salvo', description: 'O modelo foi atualizado nesta sessão.', tone: 'success' }); }} style={{ background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', padding: '10px 20px', borderRadius: '8px', fontSize: '14px', fontWeight: 600, display: 'flex', gap: '8px', alignItems: 'center', cursor: 'pointer', boxShadow: 'var(--shadow-sm)' }}>
-                      <Save size={18} /> Salvar Layout
+                    {onServer && canManage && (
+                      <button type="button" className="btn" onClick={() => (currentTemplate.saved ? setConfirmDelete(true) : void handleDelete())} title={currentTemplate.saved ? 'Apaga o modelo (recusado se um fluxo usa ele)' : 'Descarta o rascunho'}>
+                        <Trash2 size={16} /> {currentTemplate.saved ? 'Apagar' : 'Descartar'}
+                      </button>
+                    )}
+                    <button onClick={() => void handleSave(values)} disabled={saving || (onServer && !canManage)} title={onServer && !canManage ? 'Só Admin e Gerente editam os modelos que as automações enviam' : undefined} style={{ background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', padding: '10px 20px', borderRadius: '8px', fontSize: '14px', fontWeight: 600, display: 'flex', gap: '8px', alignItems: 'center', cursor: saving ? 'wait' : 'pointer', boxShadow: 'var(--shadow-sm)', opacity: saving || (onServer && !canManage) ? 0.6 : 1 }}>
+                      <Save size={18} /> {saving ? 'Salvando…' : 'Salvar modelo'}
                     </button>
                   </div>
                 </div>
@@ -205,6 +283,15 @@ export default function Emails() {
                     <p className="text-sm text-muted" style={{ margin: 0 }}>Por segurança, o teste nunca vai para outro endereço.</p>
                   </form>
                 </PopupDialog>}
+
+                {confirmDelete && <PopupDialog
+                  eyebrow="APAGAR MODELO"
+                  tone="danger"
+                  title={`Apagar "${currentTemplate.name}"?`}
+                  description="O modelo sai do servidor e não dá para desfazer. Se algum fluxo de e-mail usa este modelo, o servidor recusa: troque o modelo do fluxo antes."
+                  onClose={() => setConfirmDelete(false)}
+                  footer={<><button type="button" className="btn" onClick={() => setConfirmDelete(false)}>Cancelar</button><button type="button" className="btn btn-solid" onClick={() => void handleDelete()}>Apagar modelo</button></>}
+                />}
 
                 {feedback && <PopupDialog
                   eyebrow={feedback.tone === 'success' ? 'AÇÃO CONCLUÍDA' : 'ENVIO DE E-MAIL'}
@@ -231,7 +318,7 @@ export default function Emails() {
         actions={activeTab === 'templates' ? <button type="button" className="btn btn-solid" onClick={createNewTemplate}><Plus size={14} /> Criar template</button> : undefined}
       />
       <Tabs
-        tabs={[{ id: 'inbox' as const, label: 'Caixa de Entrada' }, { id: 'templates' as const, label: 'Modelos visuais', count: templates.length }, { id: 'history' as const, label: 'Histórico de envio', count: emailLog.length }]}
+        tabs={[{ id: 'inbox' as const, label: 'Caixa de Entrada' }, { id: 'templates' as const, label: 'Modelos visuais', count: templates.length }, { id: 'history' as const, label: 'Histórico de envio', count: onServer ? email.jobs.length : emailLog.length }]}
         value={activeTab}
         onChange={(id) => setActiveTab(id as 'inbox' | 'templates' | 'history')}
       />
@@ -250,7 +337,8 @@ export default function Emails() {
         </div>
       ) : activeTab === 'templates' ? (
         <>
-        <SampleBanner>Os modelos ainda não são salvos no servidor: o que for criado ou editado aqui se perde ao sair desta tela. O envio de teste do editor é real e vai só para o seu e-mail.</SampleBanner>
+        {email.mode === 'off' && <SampleBanner offline>Os modelos não são salvos: a API daqui não tem os e-mails automáticos ligados (EMAIL_AUTOMATIONS=1), então o que for criado ou editado se perde ao sair desta tela. O envio de teste do editor é real e vai só para o seu e-mail.</SampleBanner>}
+        {onServer && templates.length === 0 && <p className="text-sm text-muted">Nenhum modelo ainda. Crie o primeiro e escolha-o num fluxo em Automações → E-mails automáticos.</p>}
         <div className="template-grid">
           {templates.map((tpl) => (
             <button type="button" key={tpl.id} className="template-card" onClick={() => openEditor(tpl.id)}>
@@ -264,6 +352,8 @@ export default function Emails() {
           ))}
         </div>
         </>
+      ) : onServer ? (
+        <EmailJobsTable />
       ) : (
         <>
           <SampleBanner>Modelos e histórico ainda não são salvos no servidor: os envios abaixo são de exemplo. O envio de teste do editor é real e vai só para o seu e-mail.</SampleBanner>

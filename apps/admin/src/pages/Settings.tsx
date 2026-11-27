@@ -19,8 +19,10 @@ import { LOCAL_USER_ID, auditLog, localUserStore, teamStore, webhooksStore } fro
 import { Badge, EmptyState, Field, Page, PageHeader, PopupDialog, SampleBanner, SearchBox, SidePanel, Switch, Tabs } from '../components/ui';
 import { CustomSelect } from '../components/ui';
 import { PermissionsTab, TokensTab } from '../components/Access';
+import TagsAdmin from '../components/TagsAdmin';
+import { McpTab } from '../components/McpTab';
 
-type Tab = 'profile' | 'team' | 'permissions' | 'tokens' | 'notifications' | 'webhooks' | 'audit';
+type Tab = 'profile' | 'team' | 'permissions' | 'tokens' | 'mcp' | 'tags' | 'notifications' | 'webhooks' | 'audit';
 
 const ROLE_LABEL: Record<Role, string> = { ADMIN: 'Admin', MANAGER: 'Gerente', SELLER: 'Vendedor' };
 const when = (iso?: string) => (iso ? new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : 'Nunca');
@@ -38,7 +40,7 @@ export default function Settings() {
   const [tab, setTab] = useState<Tab>('profile');
   return (
     <Page>
-      <PageHeader title="Configurações" subtitle="Seu perfil, a equipe e os acessos, os webhooks de saída e o registro do que foi feito." />
+      <PageHeader title="Configurações" subtitle="Seu perfil, a equipe e os acessos, os agentes conectados por MCP, os webhooks de saída e o registro do que foi feito." />
       {/* Com o login e o CRM na API só os Webhooks seguem de exemplo: o aviso fica só nessa aba (WP3b). */}
       {(!(auth.status === 'in' && crmMode === 'api') || tab === 'webhooks') && (
         <SampleBanner>
@@ -51,7 +53,7 @@ export default function Settings() {
         </SampleBanner>
       )}
       <Tabs
-        tabs={[{ id: 'profile' as Tab, label: 'Meu perfil' }, { id: 'team' as Tab, label: 'Equipe e acessos' }, { id: 'permissions' as Tab, label: 'Permissões' }, { id: 'tokens' as Tab, label: 'Tokens de API' }, { id: 'notifications' as Tab, label: 'Notificações' }, { id: 'webhooks' as Tab, label: 'Webhooks' }, { id: 'audit' as Tab, label: 'Auditoria' }]}
+        tabs={[{ id: 'profile' as Tab, label: 'Meu perfil' }, { id: 'team' as Tab, label: 'Equipe e acessos' }, { id: 'permissions' as Tab, label: 'Permissões' }, { id: 'tokens' as Tab, label: 'Tokens de API' }, { id: 'mcp' as Tab, label: 'MCP e agentes' }, { id: 'tags' as Tab, label: 'Tags' }, { id: 'notifications' as Tab, label: 'Notificações' }, { id: 'webhooks' as Tab, label: 'Webhooks' }, { id: 'audit' as Tab, label: 'Auditoria' }]}
         value={tab}
         onChange={setTab}
       />
@@ -59,6 +61,8 @@ export default function Settings() {
       {tab === 'team' && <TeamTab />}
       {tab === 'permissions' && <PermissionsTab />}
       {tab === 'tokens' && <TokensTab />}
+      {tab === 'mcp' && <McpTab onGoTokens={() => setTab('tokens')} />}
+      {tab === 'tags' && <TagsAdmin />}
       {tab === 'notifications' && <NotificationsTab />}
       {tab === 'webhooks' && <WebhooksTab />}
       {tab === 'audit' && <AuditTab />}
@@ -128,7 +132,7 @@ function ProfileTab() {
       <section className="panel-card profile-card" style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
         <div style={{ position: 'relative', width: '72px', height: '72px' }}>
           {me.avatarUrl ? (
-            <img src={me.avatarUrl} alt={me.name} className="avatar profile-avatar" style={{ width: '72px', height: '72px', borderRadius: '50%', objectFit: 'cover' }} />
+            <img src={me.avatarUrl} alt={me.name} referrerPolicy="no-referrer" className="avatar profile-avatar" style={{ width: '72px', height: '72px', borderRadius: '50%', objectFit: 'cover' }} />
           ) : (
             <span className="avatar profile-avatar" style={{ width: '72px', height: '72px', fontSize: '24px' }}>{initials(me.name)}</span>
           )}
@@ -176,6 +180,9 @@ function ProfileTab() {
             )}
           </div>
         </div>
+        {auth.status === 'in' && (
+          <button type="button" className="btn" style={{ marginLeft: 'auto' }} onClick={() => void logout()}><LogOut size={14} /> Sair</button>
+        )}
       </section>
 
       {/* 2. Conta Conectada Real (Google) */}
@@ -273,7 +280,7 @@ function TeamTab() {
               {team.map((m) => (
                 <tr key={m.id}>
                   <td><div className="cell-avatar">{m.avatarUrl ? (
-                    <img src={m.avatarUrl} alt={m.name} className="avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
+                    <img src={m.avatarUrl} alt={m.name} referrerPolicy="no-referrer" className="avatar" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
                   ) : (
                     <span className="avatar">{initials(m.name)}</span>
                   )}<div className="cell-stack"><span className="cell-primary">{m.name}{m.id === meId && <span className="text-muted"> (você)</span>}{m.root && <span className="text-muted"> · raiz</span>}</span><span className="text-xs text-muted">{m.email}</span></div></div></td>
