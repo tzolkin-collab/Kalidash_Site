@@ -1,5 +1,11 @@
+import TagChip from './TagChip';
+import TagPicker from './TagPicker';
+import { useCrmMode } from '../lib/crmMode';
+import { saveTagCategory, useTagCatalog } from '../lib/tagSync';
+import { categoryOf, knownTags } from '../lib/tagCatalog';
 import { MAX_TAG_LENGTH } from '../lib/tags';
-import { useMemo, useState } from 'react';
+import { pushErro } from '../lib/notify';
+import { useMemo, useRef, useState } from 'react';
 import { Archive, ArchiveRestore, Plus, Trash2, UserPlus } from 'lucide-react';
 import type { Company, Lifecycle, Person, Stakeholder } from '../domain';
 import { formatCnpj, formatCpf, isValidCnpj, isValidCpf, stripDoc } from '../lib/documents';
@@ -185,7 +191,7 @@ function PersonSheet({ personId, onOpen }: { personId: string; onOpen: (ref: Par
                 <div key={c.id} className="relation-row">
                   <button type="button" className="link-inline" onClick={() => onOpen({ kind: 'company', id: c.id })}>{c.name}</button>
                   <span className="text-xs text-muted">{s?.description}</span>
-                  {s && <Badge tone="accent">{s.tag}</Badge>}
+                  {s && <TagChip name={s.tag} category="ROLE" />}
                   {c.defaultContactId === person.id && <Badge tone="success">Contato padrão</Badge>}
                 </div>
               );
@@ -311,6 +317,12 @@ function StakeholdersField({ company, onOpenPerson }: { company: Company; onOpen
   const [email, setEmail] = useState('');
   const [description, setDescription] = useState('');
   const [tag, setTag] = useState('Stakeholder');
+  const [roleOpen, setRoleOpen] = useState(false);
+  const roleBtn = useRef<HTMLButtonElement>(null);
+  const catalog = useTagCatalog();
+  const crmMode = useCrmMode();
+  // Só o que é função (Decisor, Financeiro…): "Quente" ou "Indicação" escolhidas aqui virariam função no admin inteiro.
+  const roleOptions = useMemo(() => knownTags(catalog, tags).filter((n) => categoryOf(n, catalog) === 'ROLE'), [catalog, tags]);
 
   const byId = new Map(people.map((p) => [p.id, p]));
   const names = (list: Stakeholder[]) => list.map((s) => byId.get(s.personId)?.name ?? s.personId);
@@ -392,8 +404,12 @@ function StakeholdersField({ company, onOpenPerson }: { company: Company; onOpen
             </>
           )}
           <input className="input" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Descrição (o que faz aqui)" />
-          <input className="input" list="stake-tags" maxLength={MAX_TAG_LENGTH} title={`Até ${MAX_TAG_LENGTH} caracteres`} value={tag} onChange={(e) => setTag(e.target.value)} placeholder="Tag da função (escolha ou crie)" aria-label="Tag da função" />
-          <datalist id="stake-tags">{tags.map((t) => <option key={t} value={t} />)}</datalist>
+          <div className="stake-role">
+            <button ref={roleBtn} type="button" className="btn btn-sm" aria-haspopup="listbox" aria-expanded={roleOpen} onClick={() => setRoleOpen((v) => !v)}>
+              {tag.trim() ? <TagChip name={tag.trim()} category="ROLE" /> : <><Plus size={12} /> Função do contato</>}
+            </button>
+            {roleOpen && <TagPicker anchor={roleBtn.current} value={[]} options={roleOptions} catalog={catalog} allowCreate fixedCategory="ROLE" onPick={(n) => { setTag(n); setRoleOpen(false); roleBtn.current?.focus(); }} onCreate={(n) => { const name = n.trim().slice(0, MAX_TAG_LENGTH); void saveTagCategory(name, 'ROLE', crmMode === 'api').then((err) => { if (err) pushErro('Não foi possível guardar a categoria da tag', `${err} A função foi usada, mas a categoria vale só por palpite.`); }); setTag(name); setRoleOpen(false); roleBtn.current?.focus(); }} onClose={() => { setRoleOpen(false); roleBtn.current?.focus(); }} />}
+          </div>
           <div className="row-actions" style={{ justifyContent: 'flex-start' }}>
             <button type="button" className="btn btn-sm btn-solid" disabled={!canAdd || tag.trim() === ''} onClick={add}>Adicionar</button>
             <button type="button" className="btn btn-sm" onClick={reset}>Cancelar</button>

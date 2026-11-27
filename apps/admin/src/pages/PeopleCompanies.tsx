@@ -1,4 +1,5 @@
 import TagChip from '../components/TagChip';
+import { TagManagerButton } from '../components/TagsAdmin';
 import { useMemo, useState } from 'react';
 import { Building2, Plus, User } from 'lucide-react';
 import type { Lifecycle } from '../domain';
@@ -90,6 +91,7 @@ export default function PeopleCompanies() {
         </CustomSelect>
         <label className="check-inline"><input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} /> Mostrar arquivados{archivedCount > 0 && <span className="tab-count">{archivedCount}</span>}</label>
         {view === 'companies' && reviewCount > 0 && <Badge tone="warning" title="Empresas sem CNPJ">{reviewCount} em análise</Badge>}
+        {view === 'people' && <span className="toolbar-end"><TagManagerButton /></span>}
       </div>
 
       {view === 'people' ? (

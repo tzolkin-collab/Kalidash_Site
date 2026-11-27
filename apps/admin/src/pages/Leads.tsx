@@ -1,3 +1,4 @@
+import { TagManagerButton } from '../components/TagsAdmin';
 import TagChip from '../components/TagChip';
 import SourceName from '../components/SourceName';
 import { useMemo, useState } from 'react';
@@ -109,6 +110,7 @@ export default function Leads() {
           {allTags.map((t) => <option key={t} value={t}>{t}</option>)}
         </CustomSelect>
         <label className="check-inline"><input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} /> Mostrar arquivados</label>
+        <span className="toolbar-end"><TagManagerButton /></span>
       </div>
 
       <div className="table-card">

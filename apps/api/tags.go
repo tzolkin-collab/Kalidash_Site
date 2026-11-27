@@ -22,12 +22,14 @@ import (
 const (
 	tagProfile = "PROFILE" // perfil do cliente: B2B, B2C, Enterprise…
 	tagEvent   = "EVENT"   // evento: feira, webinar, congresso…
+	tagTask    = "TASK"    // tipo de tarefa: Comercial, Dados da empresa… (tags de tarefa dos funis)
+	tagRole    = "ROLE"    // função do contato: Decisor, Financeiro… (tags de função dos stakeholders)
 	tagGeneral = "GENERAL"
 
 	tagNameMax = 40
 )
 
-var tagCategories = map[string]bool{tagProfile: true, tagEvent: true, tagGeneral: true}
+var tagCategories = map[string]bool{tagProfile: true, tagEvent: true, tagTask: true, tagRole: true, tagGeneral: true}
 
 const tagSchema = `
 CREATE TABLE IF NOT EXISTS Tag (

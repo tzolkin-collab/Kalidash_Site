@@ -231,6 +231,7 @@
 
 .toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
 .toolbar-spacer { flex: 1; }
+.toolbar-end { margin-left: auto; }
 
 /* ---------- Abas ---------- */
 .tabs { display: flex; gap: 4px; margin-bottom: 20px; box-shadow: inset 0 -1px 0 var(--border-subtle); overflow-x: auto; overflow-y: hidden; scrollbar-width: none; cursor: grab; }
@@ -1839,7 +1840,10 @@ textarea.inline-input { resize: vertical; }
 .tp-create { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border-subtle); }
 .tp-create-cat { display: flex; align-items: center; gap: 8px; padding: 4px 8px; font-size: 12px; color: var(--text-muted); }
 .tp-empty { margin: 0; padding: 14px 8px; color: var(--text-muted); font-size: 13px; text-align: center; }
-.tp-hint { margin: 0; padding: 6px 12px; border-top: 1px solid var(--border-subtle); color: var(--text-muted); font-size: 11px; }
+.tp-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 6px 5px 12px; border-top: 1px solid var(--border-subtle); }
+.tp-hint { color: var(--text-muted); font-size: 11px; }
+.tp-manage { padding: 4px 8px; border: 0; border-radius: 6px; background: transparent; color: var(--accent); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.tp-manage:hover { background: var(--bg-surface-hover); }
 
 /* Evento: rótulo em forma de ingresso (cantos recortados), âmbar */
 .tagc[data-cat="EVENT"] { --tc: var(--tc-warning); border: 0; border-radius: 4px; padding: 3px 11px; background: color-mix(in srgb, var(--tc) 14%, transparent); font-weight: 600;
@@ -1853,15 +1857,40 @@ textarea.inline-input { resize: vertical; }
 .status-pick:hover .tagc { filter: brightness(0.96); }
 
 /* Aba Tags de Configurações: migração das tags que parecem campos e catálogo */
-.tm-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-.tm-main { flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 4px; }
-.tm-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.tm-choice { min-width: 230px; max-width: 100%; }
-.tm-records summary { cursor: pointer; color: var(--text-muted); width: fit-content; }
-.tm-records[open] summary { margin-bottom: 4px; }
-.tm-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-subtle); }
-.tm-cat + .tm-cat { margin-top: 16px; }
-.tm-cat-head { margin: 0 0 6px; font-size: 13px; font-weight: 700; }
+/* Tarefa: etiqueta com o canto superior direito dobrado, verde-azulado */
+:root { --tc-task: #0f766e; --tc-role: #475569; }
+.dark { --tc-task: #5eead4; --tc-role: #94a3b8; }
+.tagc[data-cat="TASK"] { --tc: var(--tc-task); border: 0; border-radius: 3px; padding: 3px 12px 3px 9px; background: color-mix(in srgb, var(--tc) 13%, transparent); font-weight: 600; clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%); }
+/* Função do contato: pílula contornada, ícone de pessoa em círculo cheio */
+.tagc[data-cat="ROLE"] { --tc: var(--tc-role); border: 1.5px solid color-mix(in srgb, var(--tc) 45%, transparent); border-radius: 999px; background: transparent; padding-left: 4px; }
+.tagc[data-cat="ROLE"] .tagc-icon { box-sizing: content-box; padding: 2px; border-radius: 50%; background: var(--tc); color: var(--bg-surface); }
+
+/* ---- Gerenciar tags (painel lateral, components/TagsAdmin.tsx) ---- */
+.tmg { display: flex; flex-direction: column; gap: 14px; }
+.tmg-search { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border: 1px solid var(--border-subtle); border-radius: 8px; background: var(--bg-surface); color: var(--text-muted); }
+.tmg-search:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+.tmg-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text-primary); font: inherit; font-size: 14px; }
+.tmg-note { margin: -8px 0 0; }
+.tmg-empty { margin: 8px 0; }
+.tmg-group-head { display: flex; align-items: baseline; gap: 6px; margin: 0 0 2px; padding: 0 2px; color: var(--text-muted); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.tmg-group-head span { font-weight: 600; letter-spacing: 0; }
+.tmg-list { margin: 0; padding: 0; list-style: none; }
+.tmg-row { display: grid; grid-template-columns: minmax(0, 1fr) 36px auto; align-items: center; gap: 10px; min-height: 38px; padding: 0 2px; border-bottom: 1px solid var(--border-subtle); }
+.tmg-row:last-child { border-bottom: 0; }
+.tmg-row > .tagc { justify-self: start; }
+.tmg-use { color: var(--text-muted); font-size: 12px; font-variant-numeric: tabular-nums; text-align: right; }
+.tmg-cat { padding: 3px 22px 3px 8px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--text-secondary); font: inherit; font-size: 12.5px; cursor: pointer; }
+.tmg-cat:hover, .tmg-cat:focus-visible { border-color: var(--border-subtle); background: var(--bg-surface-hover); color: var(--text-primary); }
+.tmg-review { border: 1px solid color-mix(in srgb, var(--tc-warning) 35%, var(--border-subtle)); border-radius: 10px; background: color-mix(in srgb, var(--tc-warning) 6%, var(--bg-surface)); }
+.tmg-review-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 10px 12px; border: 0; background: transparent; color: var(--text-primary); font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+.tmg-review-cta { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; color: var(--accent); font-weight: 600; }
+.tmg-review-cta svg { transition: transform 0.15s; }
+.tmg-review[data-open="true"] .tmg-review-cta svg { transform: rotate(180deg); }
+.tmg-review-list { margin: 0; padding: 0 12px; list-style: none; border-top: 1px solid var(--border-subtle); }
+.tmg-review-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 8px 0; border-bottom: 1px solid var(--border-subtle); }
+.tmg-review-what { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
+.tmg-field { font-size: 12.5px; font-weight: 600; }
+.tmg-review-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 12px 10px; }
 
 /* ==========================================================================
  * Editor do blog, v2 (25/11): o canvas fala a mesma língua do artigo no site

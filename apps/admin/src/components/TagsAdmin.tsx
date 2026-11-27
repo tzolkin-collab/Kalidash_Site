@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
-import { Check, Search } from 'lucide-react';
+import { ArrowRight, ChevronDown, Search, Tags } from 'lucide-react';
 import { API_URL } from '../lib/api';
 import { useCrmMode } from '../lib/crmMode';
 import { editRecord } from '../lib/edit';
 import { logChange, show } from '../lib/history';
 import { pushErro, pushNotificacao } from '../lib/notify';
 import { PRIORITY_OPTIONS, updateBody } from '../lib/opportunityApi';
-import { useStore } from '../lib/store';
+import { createStore, useStore } from '../lib/store';
 import { CATEGORY_META, CATEGORY_ORDER, categoryOf, groupTags, knownTags, searchTags, tagKey } from '../lib/tagCatalog';
 import type { TagCategory } from '../lib/tagCatalog';
 import { saveTagCategory, useTagCatalog } from '../lib/tagSync';
@@ -14,37 +14,61 @@ import { ENTITY_LABEL, FIELD_KIND_LABEL, buildChanges, fieldKindOf, finalAction,
 import type { Action, Choice, Group, Item, Target } from '../lib/tagMigration';
 import { useOpportunities } from '../lib/useOpportunities';
 import { leadsStore } from '../mocks/leads';
-import { peopleStore } from '../mocks/people';
-import { Badge, EmptyState, PopupDialog } from './ui';
+import { companiesStore, contactTagsStore, peopleStore } from '../mocks/people';
+import { pipelinesStore } from '../mocks/pipelines';
+import { tasksStore } from '../mocks/tasks';
+import { PopupDialog, SidePanel } from './ui';
 import TagChip from './TagChip';
 
-// Aba "Tags" de Configurações. Duas partes:
-//  1. Tags que parecem campos (Novo, Urgente, Inbound…): propõe passar para o campo certo ou só tirar a tag. Nada muda
-//     sem a pessoa confirmar cada grupo; tudo fica no histórico do registro.
-//  2. Catálogo: todas as tags que existem, por categoria (Perfil do cliente, Evento, Geral), com busca e contagem de uso.
+// Gerenciar tags: abre como painel a partir das telas que usam tag (Leads, Pessoas, Oportunidades), não fica em
+// Configurações. Mostra a lista de tags por categoria, com busca, uso e troca de categoria. Quando há tags que são
+// na verdade campo (Novo, Urgente, Inbound…), aparece uma faixa "Revisar" no topo; nada muda sem confirmar.
+
+/** Um só painel para o admin inteiro: qualquer tela abre com `openTagManager()`. O host fica no App. */
+const openStore = createStore(false);
+export const openTagManager = () => openStore.set(true);
+
+/** Botão da barra de filtros das telas com tag. */
+export function TagManagerButton() {
+  return (
+    <button type="button" className="btn btn-sm" onClick={openTagManager} title="Ver e organizar as tags por categoria">
+      <Tags size={14} aria-hidden="true" /> Gerenciar tags
+    </button>
+  );
+}
+
+export function TagManagerHost() {
+  const [open, setOpen] = useStore(openStore);
+  if (!open) return null;
+  return <TagManagerPanel onClose={() => setOpen(false)} />;
+}
 
 const SUGGESTED_LABEL: Record<Action, string> = {
-  MOVE: 'Mover para o campo e tirar a tag',
-  REMOVE: 'Tirar a tag (o campo já diz isso)',
-  KEEP: 'Manter a tag (sugestão)',
+  MOVE: 'Mover para o campo',
+  REMOVE: 'Tirar a tag',
+  KEEP: 'Manter a tag',
 };
 
 const plural = (n: number, entity: Group['entity']) => `${n} ${n === 1 ? ENTITY_LABEL[entity].one : ENTITY_LABEL[entity].many}`;
 const priorityName = (p?: string) => PRIORITY_OPTIONS.find((o) => o.value === p)?.label ?? p ?? '';
 
-export default function TagsAdmin() {
+function TagManagerPanel({ onClose }: { onClose: () => void }) {
   const crmMode = useCrmMode();
   const api = crmMode === 'api';
   const { opportunities, loading, reload } = useOpportunities();
   const [leads] = useStore(leadsStore);
   const [people] = useStore(peopleStore);
   const catalog = useTagCatalog();
+  const [contactTags] = useStore(contactTagsStore);
+  const [tasks] = useStore(tasksStore);
+  const [pipelines] = useStore(pipelinesStore);
+  const [companies] = useStore(companiesStore);
 
+  const [search, setSearch] = useState('');
+  const [reviewing, setReviewing] = useState(false);
   const [choices, setChoices] = useState<Record<string, Choice>>({});
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<{ ok: number; failed: string[] } | null>(null);
-  const [search, setSearch] = useState('');
 
   const targets = useMemo<Target[]>(() => [
     ...opportunities.filter((o) => !o.isLead).map((o): Target => ({ entity: 'opportunity', id: o.id, name: o.title, tags: o.tags ?? [], priority: o.priority || undefined })),
@@ -52,6 +76,7 @@ export default function TagsAdmin() {
     ...people.filter((p) => !p.archivedAt).map((p): Target => ({ entity: 'person', id: p.id, name: p.name, tags: p.tags })),
   ], [opportunities, leads, people]);
 
+  // ---- tags que parecem campos ----
   const plan = useMemo(() => planMigration(targets), [targets]);
   const groups = useMemo(() => groupPlan(plan), [plan]);
   const groupOf = useMemo(() => {
@@ -59,13 +84,12 @@ export default function TagsAdmin() {
     for (const g of groups) for (const it of g.items) m.set(it, g.key);
     return m;
   }, [groups]);
-
   const decide = (item: Item): Action => finalAction(item, choices[groupOf.get(item) ?? ''] ?? 'SUGGESTED');
   const changes = useMemo(() => buildChanges(targets, plan, decide), [targets, plan, choices, groupOf]); // eslint-disable-line react-hooks/exhaustive-deps
   const movedPriorities = changes.filter((c) => c.patch.priority).length;
   const removedTags = changes.reduce((n, c) => n + c.removed.length, 0);
+  const fieldTags = new Set(groups.map((g) => tagKey(g.tag))).size;
 
-  // ---- aplicar ----
   const run = async () => {
     setBusy(true);
     let ok = 0;
@@ -94,19 +118,24 @@ export default function TagsAdmin() {
     setBusy(false);
     setConfirming(false);
     setChoices({});
-    setResult({ ok, failed });
+    setReviewing(false);
     if (failed.length) pushErro('Algumas alterações não foram salvas', failed.slice(0, 3).join(' · '));
-    else pushNotificacao('Tags migradas', `${ok} ${ok === 1 ? 'registro atualizado' : 'registros atualizados'}.`);
+    else pushNotificacao('Tags revisadas', `${ok} ${ok === 1 ? 'registro atualizado' : 'registros atualizados'}.`);
   };
 
-  // ---- catálogo ----
+  // ---- lista ----
   const usage = useMemo(() => {
     const m = new Map<string, number>();
-    for (const t of targets) for (const tag of new Set(t.tags.map(tagKey))) m.set(tag, (m.get(tag) ?? 0) + 1);
+    const bump = (tag: string) => { const k = tagKey(tag); if (k) m.set(k, (m.get(k) ?? 0) + 1); };
+    for (const t of targets) for (const tag of new Set(t.tags.map(tagKey))) bump(tag);
+    // Tag de tarefa e função do contato não moram em `tags`: contam as tarefas, os requisitos dos funis e os stakeholders.
+    for (const t of tasks) bump(t.tag);
+    for (const p of pipelines) for (const r of p.requirements) bump(r.tag);
+    for (const c of companies) for (const s of c.stakeholders) bump(s.tag);
     return m;
-  }, [targets]);
-  const real = useMemo(() => knownTags(catalog, targets.flatMap((t) => t.tags)).filter((n) => fieldKindOf(n) === null), [catalog, targets]);
-  const catalogGroups = useMemo(() => groupTags(searchTags(real, catalog, search), catalog), [real, catalog, search]);
+  }, [targets, tasks, pipelines, companies]);
+  const real = useMemo(() => knownTags(catalog, [...targets.flatMap((t) => t.tags), ...contactTags]).filter((n) => fieldKindOf(n) === null), [catalog, targets, contactTags]);
+  const listGroups = useMemo(() => groupTags(searchTags(real, catalog, search), catalog), [real, catalog, search]);
 
   const setCategory = async (name: string, category: TagCategory) => {
     const err = await saveTagCategory(name, category, api);
@@ -114,107 +143,93 @@ export default function TagsAdmin() {
   };
 
   return (
-    <div className="settings-pane form-stack">
-      {/* ---- 1. Tags que parecem campos ---- */}
-      <section className="panel-card">
-        <h2 className="section-title" style={{ margin: '0 0 4px', fontSize: 16 }}>Tags que parecem campos</h2>
-        <p className="text-sm text-muted" style={{ margin: '0 0 16px' }}>
-          Status, prioridade e origem têm campo próprio e não deveriam ser tag. Tag é para descrever o contato, como B2B ou Evento. Abaixo, o que encontrei e o que sugiro para cada caso. Nada muda sem você aplicar, e cada mudança fica no histórico do registro.
-        </p>
-
-        {loading && groups.length === 0 ? (
-          <p className="text-sm text-muted">Procurando nas oportunidades, leads e pessoas…</p>
-        ) : groups.length === 0 ? (
-          <EmptyState title="Nenhuma tag parece campo">Todas as tags em uso descrevem o contato. Não há nada para migrar.</EmptyState>
-        ) : (
-          <>
-            <ul className="row-list" style={{ margin: 0 }}>
-              {groups.map((g) => (
-                <li key={g.key} className="row-item tm-row">
-                  <div className="tm-main">
-                    <div className="tm-head">
-                      <TagChip name={g.tag} />
-                      <Badge tone="neutral">{FIELD_KIND_LABEL[g.kind]}</Badge>
-                      <span className="text-sm">em <strong>{plural(g.items.length, g.entity)}</strong></span>
-                    </div>
-                    <span className="text-xs text-muted">{g.note}</span>
-                    <details className="tm-records">
-                      <summary className="text-xs">Ver {g.items.length === 1 ? 'o registro' : 'os registros'}</summary>
-                      <span className="text-xs text-muted">{g.items.map((i) => i.name).join(' · ')}</span>
-                    </details>
-                  </div>
-                  <select
-                    className="select select-sm tm-choice"
-                    aria-label={`O que fazer com “${g.tag}” em ${ENTITY_LABEL[g.entity].many}`}
-                    value={choices[g.key] ?? 'SUGGESTED'}
-                    onChange={(e) => setChoices((c) => ({ ...c, [g.key]: e.target.value as Choice }))}
-                  >
-                    <option value="SUGGESTED">{SUGGESTED_LABEL[g.action]}</option>
-                    {g.action !== 'REMOVE' && <option value="REMOVE">Só tirar a tag</option>}
-                    {g.action !== 'KEEP' && <option value="KEEP">Manter a tag</option>}
-                  </select>
-                </li>
-              ))}
-            </ul>
-            <div className="tm-footer">
-              <span className="text-sm">
-                {changes.length === 0
-                  ? 'Nada marcado para mudar.'
-                  : <><strong>{changes.length} {changes.length === 1 ? 'registro' : 'registros'}</strong> {changes.length === 1 ? 'será alterado' : 'serão alterados'}: {removedTags} {removedTags === 1 ? 'tag sai' : 'tags saem'}{movedPriorities ? `, ${movedPriorities} ${movedPriorities === 1 ? 'prioridade passa' : 'prioridades passam'} para o campo` : ''}.</>}
+    <SidePanel
+      title="Tags"
+      subtitle={`${real.length} ${real.length === 1 ? 'tag' : 'tags'} em ${CATEGORY_ORDER.length} categorias. A categoria muda o desenho da tag e onde ela aparece no “+ Tag”.`}
+      onClose={onClose}
+    >
+      <div className="tmg">
+        {groups.length > 0 && (
+          <section className="tmg-review" data-open={reviewing}>
+            <button type="button" className="tmg-review-head" aria-expanded={reviewing} onClick={() => setReviewing((v) => !v)}>
+              <span>
+                <strong>{fieldTags} {fieldTags === 1 ? 'tag é campo' : 'tags são campo'}</strong>
+                <span className="text-muted"> · status, prioridade ou origem anotados como tag</span>
               </span>
-              <button type="button" className="btn btn-solid" disabled={changes.length === 0 || busy} onClick={() => setConfirming(true)}>Aplicar…</button>
-            </div>
-          </>
+              <span className="tmg-review-cta">{reviewing ? 'Fechar' : 'Revisar'} <ChevronDown size={14} aria-hidden="true" /></span>
+            </button>
+            {reviewing && (
+              <>
+                <ul className="tmg-review-list">
+                  {groups.map((g) => (
+                    <li key={g.key} className="tmg-review-row">
+                      <div className="tmg-review-what">
+                        <TagChip name={g.tag} />
+                        <ArrowRight size={13} aria-hidden="true" className="text-muted" />
+                        <span className="tmg-field">{FIELD_KIND_LABEL[g.kind]}</span>
+                        <span className="text-xs text-muted" title={g.items.map((i) => i.name).join(' · ')}>em {plural(g.items.length, g.entity)}</span>
+                      </div>
+                      <select
+                        className="select select-sm"
+                        aria-label={`O que fazer com “${g.tag}” em ${ENTITY_LABEL[g.entity].many}`}
+                        title={g.note}
+                        value={choices[g.key] ?? 'SUGGESTED'}
+                        onChange={(e) => setChoices((c) => ({ ...c, [g.key]: e.target.value as Choice }))}
+                      >
+                        <option value="SUGGESTED">{SUGGESTED_LABEL[g.action]} (sugerido)</option>
+                        {g.action !== 'REMOVE' && <option value="REMOVE">Tirar a tag</option>}
+                        {g.action !== 'KEEP' && <option value="KEEP">Manter a tag</option>}
+                      </select>
+                    </li>
+                  ))}
+                </ul>
+                <div className="tmg-review-foot">
+                  <span className="text-xs text-muted">
+                    {changes.length === 0 ? 'Nada marcado para mudar.' : `${changes.length} ${changes.length === 1 ? 'registro muda' : 'registros mudam'}. Fica no histórico de cada um.`}
+                  </span>
+                  <button type="button" className="btn btn-solid btn-sm" disabled={changes.length === 0 || busy} onClick={() => setConfirming(true)}>Aplicar</button>
+                </div>
+              </>
+            )}
+          </section>
         )}
-        {result && (
-          <div className="notice" role="status" style={{ marginTop: 12 }}>
-            <span><Check size={14} style={{ verticalAlign: '-2px' }} /> {result.ok} {result.ok === 1 ? 'registro atualizado' : 'registros atualizados'}{result.failed.length ? `; ${result.failed.length} falharam: ${result.failed.slice(0, 2).join(' · ')}` : '.'}</span>
-            <button type="button" className="icon-btn bare" onClick={() => setResult(null)} aria-label="Dispensar">×</button>
-          </div>
-        )}
-      </section>
 
-      {/* ---- 2. Catálogo ---- */}
-      <section className="panel-card">
-        <h2 className="section-title" style={{ margin: '0 0 4px', fontSize: 16 }}>Catálogo de tags</h2>
-        <p className="text-sm text-muted" style={{ margin: '0 0 12px' }}>
-          Todas as tags que existem, por categoria. A categoria define como a tag aparece e onde ela é listada no “+ Tag”.
-          {!api && ' Sem a API ligada, as categorias valem só nesta sessão.'}
-        </p>
-        <div className="toolbar" style={{ marginBottom: 8 }}>
-          <label className="search-box" style={{ maxWidth: 360 }}>
-            <Search size={14} aria-hidden="true" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar tag ou categoria…" aria-label="Buscar tag ou categoria" />
-          </label>
-        </div>
-        {catalogGroups.length === 0 ? (
-          <EmptyState title={search ? 'Nenhuma tag encontrada' : 'Ainda não há tags'}>{search ? 'Tente outro nome ou o nome de uma categoria.' : 'As tags criadas nas fichas aparecem aqui.'}</EmptyState>
-        ) : catalogGroups.map((g) => (
-          <div key={g.category} className="tm-cat">
-            <h3 className="tm-cat-head">{CATEGORY_META[g.category].label} <span className="text-xs text-muted">· {CATEGORY_META[g.category].hint}</span></h3>
-            <ul className="row-list" style={{ margin: 0 }}>
+        <label className="tmg-search">
+          <Search size={14} aria-hidden="true" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar tag ou categoria…" aria-label="Buscar tag ou categoria" />
+        </label>
+        {!api && <p className="text-xs text-muted tmg-note">Modo de exemplo: as categorias valem só nesta sessão.</p>}
+
+        {loading && real.length === 0 ? (
+          <p className="text-sm text-muted">Carregando…</p>
+        ) : listGroups.length === 0 ? (
+          <p className="text-sm text-muted tmg-empty">{search ? 'Nenhuma tag com esse nome ou categoria.' : 'Ainda não há tags.'}</p>
+        ) : listGroups.map((g) => (
+          <section key={g.category} className="tmg-group" aria-label={CATEGORY_META[g.category].label}>
+            <h3 className="tmg-group-head" title={CATEGORY_META[g.category].hint}>{CATEGORY_META[g.category].label}<span>{g.tags.length}</span></h3>
+            <ul className="tmg-list">
               {g.tags.map((name) => {
                 const n = usage.get(tagKey(name)) ?? 0;
                 return (
-                  <li key={name} className="row-item tm-row">
-                    <div className="tm-main"><TagChip name={name} category={g.category} /></div>
-                    <span className="text-xs text-muted">{n === 0 ? 'sem uso' : `em ${n} ${n === 1 ? 'registro' : 'registros'}`}</span>
-                    <select className="select select-sm tm-choice" aria-label={`Categoria de “${name}”`} value={categoryOf(name, catalog)} onChange={(e) => void setCategory(name, e.target.value as TagCategory)}>
+                  <li key={name} className="tmg-row">
+                    <TagChip name={name} category={g.category} />
+                    <span className="tmg-use" title={n === 0 ? 'Sem uso' : `Usada ${n} ${n === 1 ? 'vez' : 'vezes'} (registros, tarefas, requisitos dos funis e funções de contato)`}>{n === 0 ? '—' : n}</span>
+                    <select className="tmg-cat" aria-label={`Categoria de “${name}”`} value={categoryOf(name, catalog)} onChange={(e) => void setCategory(name, e.target.value as TagCategory)}>
                       {CATEGORY_ORDER.map((c) => <option key={c} value={c}>{CATEGORY_META[c].label}</option>)}
                     </select>
                   </li>
                 );
               })}
             </ul>
-          </div>
+          </section>
         ))}
-      </section>
+      </div>
 
       {confirming && (
         <PopupDialog
-          title="Aplicar a migração das tags?"
+          title="Aplicar a revisão das tags?"
           tone="warning"
-          description={`${changes.length} ${changes.length === 1 ? 'registro será alterado' : 'registros serão alterados'}: ${removedTags} ${removedTags === 1 ? 'tag sai' : 'tags saem'}${movedPriorities ? ` e ${movedPriorities} ${movedPriorities === 1 ? 'prioridade passa' : 'prioridades passam'} para o campo` : ''}. Cada mudança fica no histórico do registro. Para desfazer, é preciso recolocar a tag à mão.`}
+          description={`${changes.length} ${changes.length === 1 ? 'registro será alterado' : 'registros serão alterados'}: ${removedTags} ${removedTags === 1 ? 'tag sai' : 'tags saem'}${movedPriorities ? ` e ${movedPriorities} ${movedPriorities === 1 ? 'prioridade passa' : 'prioridades passam'} para o campo` : ''}. Para desfazer, é preciso recolocar a tag à mão.`}
           onClose={() => { if (!busy) setConfirming(false); }}
           footer={(
             <>
@@ -224,6 +239,6 @@ export default function TagsAdmin() {
           )}
         />
       )}
-    </div>
+    </SidePanel>
   );
 }
