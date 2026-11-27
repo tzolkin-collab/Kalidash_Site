@@ -21,6 +21,7 @@ import { useHashRoute } from './lib/router';
 import { ShellContext, useShell } from './lib/shell';
 import { EmptyState, Page, PageHeader } from './components/ui';
 import ToastHost from './components/Toasts';
+import { TagManagerHost } from './components/TagsAdmin';
 import NotificationBell from './components/NotificationBell';
 import { initWorkflowSync } from './lib/workflowSync';
 import { initCrmSync } from './lib/crmSync';
@@ -265,6 +266,7 @@ export default function App() {
           </main>
         </div>
         <ToastHost />
+        <TagManagerHost />
       </div>
     </ShellContext.Provider>
   );

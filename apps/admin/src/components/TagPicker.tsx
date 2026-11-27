@@ -4,6 +4,7 @@ import { Plus, Search } from 'lucide-react';
 import { CATEGORY_META, CATEGORY_ORDER, findTag, groupTags, searchTags, suggestCategory } from '../lib/tagCatalog';
 import type { CatalogTag, TagCategory } from '../lib/tagCatalog';
 import TagChip from './TagChip';
+import { openTagManager } from './TagsAdmin';
 
 // Seletor de tags: lista as tags que já existem, agrupadas por categoria, com busca (por nome ou por categoria).
 // Teclado: setas movem, Enter escolhe, Esc fecha. Leitores de tela: combobox + listbox com grupos nomeados.
@@ -15,6 +16,8 @@ type Props = {
   options: string[];
   catalog: CatalogTag[];
   allowCreate?: boolean;
+  /** Quando a lista só aceita uma categoria (tags de tarefa, função do contato): a nova tag nasce nela, sem perguntar. */
+  fixedCategory?: TagCategory;
   onPick: (name: string) => void;
   onCreate: (name: string, category: TagCategory) => void;
   onClose: () => void;
@@ -22,7 +25,7 @@ type Props = {
 
 const WIDTH = 300;
 
-export default function TagPicker({ anchor, value, options, catalog, allowCreate, onPick, onCreate, onClose }: Props) {
+export default function TagPicker({ anchor, value, options, catalog, allowCreate, fixedCategory, onPick, onCreate, onClose }: Props) {
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
   const [createCat, setCreateCat] = useState<TagCategory | null>(null);
@@ -35,7 +38,7 @@ export default function TagPicker({ anchor, value, options, catalog, allowCreate
   const flat = groups.flatMap((g) => g.tags);
   const typed = query.trim();
   const canCreate = Boolean(allowCreate && typed && !findTag([...options, ...value], typed));
-  const category = createCat ?? suggestCategory(typed);
+  const category = fixedCategory ?? createCat ?? suggestCategory(typed);
   const total = flat.length + (canCreate ? 1 : 0);
 
   // posição: embaixo do botão; se não couber, em cima
@@ -127,16 +130,21 @@ export default function TagPicker({ anchor, value, options, catalog, allowCreate
             >
               <Plus size={14} aria-hidden="true" /> Criar “{typed}”
             </div>
-            <label className="tp-create-cat">
+            {fixedCategory ? (
+              <p className="tp-create-cat">Entra em <strong>{CATEGORY_META[fixedCategory].label}</strong></p>
+            ) : <label className="tp-create-cat">
               <span>na categoria</span>
               <select className="select select-sm" value={category} aria-label="Categoria da nova tag" onChange={(e) => setCreateCat(e.target.value as TagCategory)} onKeyDown={(e) => e.stopPropagation()}>
                 {CATEGORY_ORDER.map((c) => <option key={c} value={c}>{CATEGORY_META[c].label}</option>)}
               </select>
-            </label>
+            </label>}
           </div>
         )}
       </div>
-      <p className="tp-hint" aria-hidden="true">↑ ↓ para navegar · Enter escolhe · Esc fecha</p>
+      <div className="tp-foot">
+        <span className="tp-hint" aria-hidden="true">↑ ↓ navegar · Enter escolhe · Esc fecha</span>
+        <button type="button" className="tp-manage" onClick={() => { onClose(); openTagManager(); }}>Gerenciar tags</button>
+      </div>
     </div>
   );
   return createPortal(node, document.body) as unknown as React.ReactElement;

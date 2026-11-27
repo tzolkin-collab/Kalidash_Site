@@ -1,3 +1,4 @@
+import TagChip from '../components/TagChip';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Background, Controls, Handle, MarkerType, Position, ReactFlow, MiniMap } from '@xyflow/react';
 import type { Edge, Node, NodeProps, ReactFlowInstance } from '@xyflow/react';
@@ -117,7 +118,7 @@ function StageNode({ data }: NodeProps<StageNodeType>) {
               <span className="wf-req-main">
                 <span className="wf-req-label">{r.label}</span>
                 <span className="wf-req-meta">
-                  <Badge tone="accent">{r.tag}</Badge>
+                  <TagChip name={r.tag} category="TASK" />
                   {r.assignee && <span className="wf-assignee"><User size={10} /> {r.assignee}</span>}
                   {r.dueDays !== undefined && <span>{r.dueDays} d</span>}
                 </span>
@@ -1063,7 +1064,7 @@ function RecordTaskPanel({
             <div>
               <span className="text-xs text-muted" style={{ fontWeight: 600, textTransform: 'uppercase' }}>Tag</span>
               <div style={{ marginTop: '2px' }}>
-                <Badge tone="accent">{requirement.tag}</Badge>
+                <TagChip name={requirement.tag} category="TASK" />
               </div>
             </div>
           </div>

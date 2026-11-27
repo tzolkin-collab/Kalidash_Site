@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { API_URL } from './api';
 import { useCrmMode } from './crmMode';
 import { createStore, newId, useStore } from './store';
-import { peopleStore } from '../mocks/people';
+import { companiesStore, peopleStore } from '../mocks/people';
+import { pipelinesStore } from '../mocks/pipelines';
 import { leadsStore } from '../mocks/leads';
-import { asCategory, knownTags, tagKey } from './tagCatalog';
+import { asCategory, knownTags, tagKey, withAuto } from './tagCatalog';
 import type { CatalogTag, TagCategory } from './tagCatalog';
 
 // Catálogo de tags na API (/api/tags): classifica o texto das tags em categorias. Sem a API (modo exemplo) ou se a
@@ -43,7 +44,7 @@ export async function loadTagCatalog(): Promise<void> {
 
 /** Guarda a categoria de uma tag. Devolve a mensagem de erro, ou null quando deu certo. */
 export async function saveTagCategory(name: string, category: TagCategory, api: boolean): Promise<string | null> {
-  const existing = tagCatalogStore.get().find((c) => tagKey(c.name) === tagKey(name));
+  const existing = tagCatalogStore.get().find((c) => tagKey(c.name) === tagKey(name)); // só a tabela Tag: o que é automático vira entrada nova
   if (!api) {
     tagCatalogStore.set((prev) => (existing ? prev.map((c) => (c.id === existing.id ? { ...c, category } : c)) : [...prev, { id: newId('tag'), name: name.trim(), category }]));
     return null;
@@ -76,12 +77,20 @@ export async function removeCatalogTag(id: string, api: boolean): Promise<string
   }
 }
 
-/** O catálogo carregado (busca na API uma vez, quando o CRM está na API). */
+/**
+ * O catálogo completo (busca na API uma vez, quando o CRM está na API): a tabela Tag mais o que já se sabe por onde a tag
+ * é usada. Tag de tarefa dos funis é "Tarefa"; a função de um stakeholder é "Função do contato".
+ */
 export function useTagCatalog(): CatalogTag[] {
   const [catalog] = useStore(tagCatalogStore);
+  const [pipelines] = useStore(pipelinesStore);
+  const [companies] = useStore(companiesStore);
   const mode = useCrmMode();
   useEffect(() => { if (mode === 'api' && !loaded) void loadTagCatalog(); }, [mode]);
-  return catalog;
+  return useMemo(
+    () => withAuto(catalog, pipelines.flatMap((p) => p.taskTags), companies.flatMap((c) => c.stakeholders.map((s) => s.tag))),
+    [catalog, pipelines, companies],
+  );
 }
 
 /** Todas as tags conhecidas: as do catálogo, as usadas em leads, pessoas e oportunidades, e as `extra` que a tela já tem. */

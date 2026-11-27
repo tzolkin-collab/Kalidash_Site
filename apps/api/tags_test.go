@@ -30,7 +30,7 @@ func TestCleanTagName(t *testing.T) {
 }
 
 func TestNormalizeCategory(t *testing.T) {
-	cases := map[string]string{"": tagGeneral, "  ": tagGeneral, "profile": tagProfile, " Event ": tagEvent, "GENERAL": tagGeneral}
+	cases := map[string]string{"": tagGeneral, "  ": tagGeneral, "profile": tagProfile, " Event ": tagEvent, "task": tagTask, " Role": tagRole, "GENERAL": tagGeneral}
 	for in, want := range cases {
 		got, err := normalizeCategory(in)
 		if err != nil || got != want {

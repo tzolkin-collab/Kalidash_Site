@@ -1,3 +1,4 @@
+import TagChip from './TagChip';
 import { TaskStatusPicker } from './FieldBadge';
 import { useMemo, useState } from 'react';
 import { Check, Circle, Pencil, Trash2, X } from 'lucide-react';
@@ -127,7 +128,7 @@ export function TasksTab({ entity, id, name, ctx }: { entity: EntityKind; id: st
                 {t.done && t.doneAt && <> · concluída em {formatDate(t.doneAt)}</>}
               </span>
             </div>
-            <div className="tag-row"><TaskStatusPicker task={t} onChange={(s) => setTaskStatus(t, s)} /><Badge tone="accent">{t.tag}</Badge><Badge>{t.source === 'passo' ? 'Passo do ciclo' : t.source === 'requisito' ? 'Requisito' : 'Manual'}</Badge>
+            <div className="tag-row"><TaskStatusPicker task={t} onChange={(s) => setTaskStatus(t, s)} /><TagChip name={t.tag} category="TASK" /><Badge>{t.source === 'passo' ? 'Passo do ciclo' : t.source === 'requisito' ? 'Requisito' : 'Manual'}</Badge>
               <button type="button" className="btn btn-ghost btn-sm" onClick={() => startEdit(t)} aria-label="Editar tarefa"><Pencil size={14} /></button>
               {/* Tarefa de requisito não se exclui: o gate a recriaria na próxima checagem. */}
               {canDeleteTask(t) && <button type="button" className="btn btn-ghost btn-sm" onClick={() => remove(t)} aria-label="Excluir tarefa"><Trash2 size={14} /></button>}

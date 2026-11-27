@@ -32,6 +32,7 @@ import OpportunityDetail from '../components/OpportunityDetail';
 import Peek from '../components/Peek';
 import ViewSettingsPopover from '../components/ViewSettingsPopover';
 import { Badge, EmptyState, ErrorBanner, Pagination, SearchBox } from '../components/ui';
+import { TagManagerButton } from '../components/TagsAdmin';
 
 const ALL = 'Visão Geral';
 
@@ -340,6 +341,7 @@ export default function Opportunities() {
         <Users size={14} /> Ver leads{crmMode !== 'api' && ' (exemplo)'}
         <span className="tab-count">{contextLeads.length}</span>
       </button>
+      <TagManagerButton />
       {viewMode === 'table' && editColumns && (
         <>
           <ColumnPicker hidden={hiddenColumns} onAdd={addColumn} />
