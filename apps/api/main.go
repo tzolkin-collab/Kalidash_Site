@@ -100,6 +100,7 @@ func initDB() {
 	}
 	ensureBlogSchema()
 	ensureCampaignLinkSchema() // tabela nova CampaignLink (links de divulgação, campaign_links.go)
+	ensureCreativeSchema()     // tabela nova Creative (criativos orgânicos, creatives.go)
 	ensureTrackingSchema()     // tabela nova TrackingEvent (idempotência da captura de lead); não altera nada existente
 	alignCollations()          // tabelas da API na mesma collation das do Prisma (collation.go)
 	initStorage()
@@ -451,6 +452,7 @@ func main() {
 	registerAnalyticsRoutes(mux)                          // página Analytics do admin, só leitura (analytics.go)
 	registerAnalyticsSpendRoutes(mux)                     // investimento em mídia da Meta e do Google Ads (analytics_spend.go)
 	registerCampaignLinkRoutes(mux)                       // links de divulgação e links curtos /l/ (campaign_links.go)
+	registerCreativeRoutes(mux)                           // criativos orgânicos do admin > Tráfego (creatives.go)
 
 	if workflowEnabled() {
 		registerWorkflowRoutes(mux)

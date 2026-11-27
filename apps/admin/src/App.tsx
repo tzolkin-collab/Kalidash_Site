@@ -8,7 +8,7 @@ import Automations from './pages/Automations';
 import Clients from './pages/Clients';
 import Leads from './pages/Leads';
 import Newsletter from './pages/Newsletter';
-import Links from './pages/Links';
+import Traffic from './pages/Traffic';
 import Opportunities from './pages/Opportunities';
 import PeopleCompanies from './pages/PeopleCompanies';
 import PipelineSettings from './pages/PipelineSettings';
@@ -166,7 +166,10 @@ export default function App() {
       page = <Newsletter />;
       break;
     case 'links':
-      page = can.manageBlog ? <Links /> : <NotFound path={`${path} (sem permissão)`} />;
+      page = can.manageBlog ? <Traffic view="links" /> : <NotFound path={`${path} (sem permissão)`} />; // endereço antigo
+      break;
+    case 'trafego':
+      page = can.manageBlog ? <Traffic view={second} sub={third} /> : <NotFound path={`${path} (sem permissão)`} />;
       break;
     case 'projetos':
       page = <Projects />;
@@ -210,7 +213,7 @@ export default function App() {
               {NAV_GROUPS.map((group, i) => (
                 <div key={group.title ?? i}>
                   {group.title && <div className="nav-group-title">{group.title}</div>}
-                  {group.items.filter((it) => (it.path !== '/blog' && it.path !== '/links') || can.manageBlog).map(({ path: to, label, Icon }) => {
+                  {group.items.filter((it) => (it.path !== '/blog' && it.path !== '/trafego') || can.manageBlog).map(({ path: to, label, Icon }) => {
                     const active = isActive(path === '/' ? '/dashboard' : path, to);
                     return (
                       <a key={to} href={`#${to}`} className={`nav-link ${active ? 'active' : ''}`} aria-current={active ? 'page' : undefined} onClick={() => setIsMobileMenuOpen(false)}>

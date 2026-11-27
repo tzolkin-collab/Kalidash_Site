@@ -2,7 +2,7 @@ import { Suspense, lazy, useMemo, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { METRICS, metricValue, series } from '../../lib/analyticsSeries';
 import type { MetricId } from '../../lib/analyticsSeries';
-import { MIN_BASE, byLanding, byOrganicPiece, rate, signupsByPage } from '../../lib/acquisitionMetrics';
+import { MIN_BASE, byCampaign, byLanding, byOrganicPiece, rate, signupsByPage } from '../../lib/acquisitionMetrics';
 import type { GroupRow, Outcome } from '../../lib/acquisitionMetrics';
 import { attributionOf, campaignOf, landingOf } from '../../lib/channels';
 import { shortLabel } from '../../lib/campaignLinks';
@@ -26,21 +26,33 @@ const DIMS: { id: Dim; label: string; first: string; empty: string }[] = [
   { id: 'landing', label: 'Página de entrada', first: 'Página', empty: 'Nenhum lead do site com página registrada.' },
 ];
 
+type Kind = 'all' | 'pago' | 'organico';
+const KINDS: { id: Kind; label: string }[] = [{ id: 'all', label: 'Pagas e orgânicas' }, { id: 'pago', label: 'Pagas' }, { id: 'organico', label: 'Orgânicas' }];
+/** Orgânica: rede social, mensagem e busca sem anúncio. Outbound, direto e indicação só aparecem em "Pagas e orgânicas". */
+const isKind = (group: GroupRow['group'], kind: Kind) =>
+  kind === 'all' || (kind === 'pago' ? group === 'pago' : group === 'organico' || group === 'mensagem' || group === 'busca');
+
 const groupValue = (r: GroupRow, m: MetricId) => (m === 'pipeline' ? r.pipelineCents : m === 'revenue' ? r.wonCents : m === 'qualified' ? r.qualified : r.leads);
 
 export default function Campaigns({ a, go }: { a: Acquisition; go: (path: string) => void }) {
   const [dim, setDim] = useState<Dim>('campaign');
   const [metric, setMetric] = useState<MetricId>('pipeline');
   const [picked, setPicked] = useState('');
+  const [kind, setKind] = useState<Kind>('all');
   const meta = METRICS.find((m) => m.id === metric)!;
   const info = DIMS.find((d) => d.id === dim)!;
 
+  // Leads do tipo escolhido (pagas ou orgânicas): valem para o gráfico, as quebras e o total.
+  const base = useMemo(() => a.rows.filter((o) => isKind(o.channel.group, kind)), [a.rows, kind]);
+  const prevBase = useMemo(() => a.prevRows?.filter((o) => isKind(o.channel.group, kind)) ?? null, [a.prevRows, kind]);
+
   const rows: (GroupRow | CampaignRow)[] = useMemo(() => {
-    if (dim === 'campaign') return a.campaigns;
-    if (dim === 'channel') return a.channelRows;
-    if (dim === 'piece') return byOrganicPiece(a.rows);
-    return byLanding(a.rows);
-  }, [dim, a.campaigns, a.channelRows, a.rows]);
+    // Com um tipo escolhido, a campanha é somada só com os leads dele; o gasto da plataforma só existe nas pagas.
+    if (dim === 'campaign') return kind === 'all' ? a.campaigns : kind === 'pago' ? a.campaigns.filter((r) => r.group === 'pago') : byCampaign(base, a.touch);
+    if (dim === 'channel') return a.channelRows.filter((r) => isKind(r.group, kind));
+    if (dim === 'piece') return byOrganicPiece(base);
+    return byLanding(base);
+  }, [dim, kind, a.campaigns, a.channelRows, a.touch, base]);
 
   const selected = rows.find((r) => r.key === picked);
   // Leads do item escolhido, com a mesma chave que o agrupamento usa (vale para o período atual e o anterior).
@@ -55,8 +67,8 @@ export default function Campaigns({ a, go }: { a: Acquisition; go: (path: string
   }, [selected, dim, a.touch]);
 
   const chart = useMemo(
-    () => series(matches ? a.rows.filter(matches) : a.rows, a.prevRows && matches ? a.prevRows.filter(matches) : a.prevRows, a.win, a.prevWin, metric),
-    [a.rows, a.prevRows, a.win, a.prevWin, metric, matches],
+    () => series(matches ? base.filter(matches) : base, prevBase && matches ? prevBase.filter(matches) : prevBase, a.win, a.prevWin, metric),
+    [base, prevBase, a.win, a.prevWin, metric, matches],
   );
 
   const logo = (r: GroupRow | CampaignRow) => {
@@ -70,7 +82,7 @@ export default function Campaigns({ a, go }: { a: Acquisition; go: (path: string
     () => [...rows].filter((r) => groupValue(r, metric) > 0).sort((x, y) => groupValue(y, metric) - groupValue(x, metric)).slice(0, 8),
     [rows, metric],
   );
-  const total = a.rows.reduce((sum, o) => sum + metricValue(o, metric), 0);
+  const total = base.reduce((sum, o) => sum + metricValue(o, metric), 0);
 
   const signups = useMemo(() => signupsByPage(a.rows.map((o) => o.lead)).slice(0, 8), [a.rows]);
   const topLinks = useMemo(() => [...a.links].sort((x, y) => y.clicks - x.clicks || (y.leads ?? 0) - (x.leads ?? 0)).slice(0, 10), [a.links]);
@@ -79,11 +91,12 @@ export default function Campaigns({ a, go }: { a: Acquisition; go: (path: string
   const spendOf = !showSpend ? undefined
     : dim === 'channel' ? (r: GroupRow | CampaignRow) => a.spendOfChannel!(r.key)
     : (r: GroupRow | CampaignRow) => ('spendCents' in r ? r.spendCents : undefined);
-  const untagged = a.rows.filter((o) => !attributionOf(o.lead).utm_campaign && !attributionOf(o.lead).first_utm_campaign).length;
+  const untagged = base.filter((o) => !attributionOf(o.lead).utm_campaign && !attributionOf(o.lead).first_utm_campaign).length;
 
   return (
     <>
       <div className="an-controls">
+        <Segmented label="Tipo" options={KINDS} value={kind} onChange={(k) => { setKind(k); setPicked(''); }} />
         <Segmented label="Agrupar por" options={DIMS} value={dim} onChange={(d) => { setDim(d); setPicked(''); }} />
         <Segmented label="Métrica" options={METRICS} value={metric} onChange={setMetric} />
       </div>
@@ -120,7 +133,7 @@ export default function Campaigns({ a, go }: { a: Acquisition; go: (path: string
         {rows.length ? <GroupTable rows={rows} first={info.first} picked={picked} onPick={(k) => setPicked((cur) => (cur === k ? '' : k))} spendOf={spendOf} icon={logo} /> : <p className="an-empty">{info.empty}</p>}
       </Section>
 
-      <Section title="Links de divulgação" note="Cliques no link curto e leads com as mesmas UTMs, desde a criação.">
+      <Section title="Links orgânicos" note="Cliques no link curto e leads com as mesmas UTMs, desde a criação.">
         {topLinks.length ? (
           <div className="table-scroll">
             <table className="data-table an-table">
@@ -137,7 +150,7 @@ export default function Campaigns({ a, go }: { a: Acquisition; go: (path: string
             </table>
           </div>
         ) : (
-          <p className="an-empty">Nenhum link criado. Cada post ganha um link curto com as UTMs certas. <button type="button" className="an-link" onClick={() => go('/links')}>Criar links <ArrowRight size={14} /></button></p>
+          <p className="an-empty">Nenhum link criado. Cada post ganha um link curto com as UTMs certas. <button type="button" className="an-link" onClick={() => go('/trafego')}>Criar criativo <ArrowRight size={14} /></button></p>
         )}
       </Section>
 

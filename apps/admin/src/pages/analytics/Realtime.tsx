@@ -148,7 +148,7 @@ export default function Realtime({ touch, go }: { touch: Touch; go: (path: strin
             rows={[...byChannel].sort((a, b) => b[1].n - a[1].n).map(([key, v]) => ({ icon: <ChannelLogo channel={key} name={v.label} domain={v.domain} />, key, label: v.label, value: v.n, display: String(v.n) }))}
           />
         </Card>
-        <Card title="Links clicados" note="Total de cliques de cada link curto" action="Ver links" onAction={() => go('/links')}>
+        <Card title="Links clicados" note="Total de cliques de cada link curto" action="Ver links" onAction={() => go('/trafego/links')}>
           <BarList
             empty="Nenhum clique em link de divulgação ainda." head={['Link', 'Cliques']}
             rows={clicked.map((l) => ({

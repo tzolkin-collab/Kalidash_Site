@@ -26,7 +26,7 @@ async function copy(text: string): Promise<boolean> {
   }
 }
 
-export default function Links() {
+export default function Links({ embedded }: { embedded?: boolean }) {
   const [aba, setAba] = useState<Aba>('gerar');
   const [articles, setArticles] = useState<Article[]>([]);
   const [links, setLinks] = useState<CampaignLink[]>([]);
@@ -54,12 +54,10 @@ export default function Links() {
     leads: links.reduce((n, l) => n + (l.leads ?? 0), 0),
   }), [links]);
 
-  return (
-    <Page>
-      <PageHeader
-        title="Links de divulgação"
-        subtitle="Escolha o conteúdo e copie o link de cada canal orgânico. Cada link já vai com as UTMs da convenção, então o clique e o lead chegam ao CRM com a origem e a campanha certas."
-      />
+  const content = (
+    <>
+      {!embedded && <PageHeader title="Links de divulgação" subtitle="Links curtos com as UTMs da convenção." />}
+      {embedded && <p className="tr-hint" style={{ marginBottom: 16 }}>Para quando não há uma peça específica. Os links criados nos criativos orgânicos também aparecem em “Links criados”.</p>}
       {loadError && <ErrorBanner title="Não foi possível carregar os links" onRetry={() => void reload()}>{loadError}</ErrorBanner>}
 
       <div className="stat-grid">
@@ -92,8 +90,9 @@ export default function Links() {
       {aba === 'gerar'
         ? <Generator articles={articles} links={links} onCreated={(l) => setLinks((cur) => cur.some((x) => x.id === l.id) ? cur : [l, ...cur])} />
         : <CreatedList links={links} onArchived={(id) => setLinks((cur) => cur.filter((l) => l.id !== id))} />}
-    </Page>
+    </>
   );
+  return embedded ? content : <Page>{content}</Page>;
 }
 
 function Generator({ articles, links, onCreated }: { articles: Article[]; links: CampaignLink[]; onCreated: (l: CampaignLink) => void }) {

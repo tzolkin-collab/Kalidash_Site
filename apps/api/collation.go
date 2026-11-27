@@ -30,6 +30,7 @@ var apiTables = []string{
 	"TrackingEvent", // tracking.go
 	"EmailTemplate", "EmailAutomation", "EmailJob", "NewsletterEdition", // email_automations.go, newsletter_editions.go
 	"McpOAuthClient", "McpOAuthCode", "McpOAuthGrant", // mcp_oauth.go
+	"Creative", // creatives.go
 }
 
 var collationName = regexp.MustCompile(`^[a-z0-9_]+$`)
