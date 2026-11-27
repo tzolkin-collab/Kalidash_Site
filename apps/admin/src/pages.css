@@ -2008,3 +2008,8 @@ textarea.inline-input { resize: vertical; }
 .consent-redirect { display: flex; align-items: flex-start; gap: 6px; margin: 0; line-height: 1.5; }
 .consent-redirect svg { flex: none; margin-top: 2px; }
 .consent-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.consent-target { display: grid; gap: 4px; padding: 12px 14px; border: 1px solid var(--border-subtle); border-radius: 10px; font-size: 13px; color: var(--text-muted); }
+.consent-target code { font-size: 15px; font-weight: 600; color: var(--text-primary); overflow-wrap: anywhere; }
+.consent-target p { margin: 4px 0 0; line-height: 1.5; }
+.consent-target[data-alert] { border-color: var(--dash-warn-ink); background: var(--dash-warn-bg); color: var(--dash-warn-ink); }
+.consent-target[data-alert] p { font-weight: 600; }

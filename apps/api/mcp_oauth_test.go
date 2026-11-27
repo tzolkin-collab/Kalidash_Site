@@ -422,6 +422,22 @@ func TestOAuthSemMcpUseNaoConecta(t *testing.T) {
 	}
 }
 
+func TestProviderIdentidade(t *testing.T) {
+	remote := []string{"https://evil.example.com/cb"}
+	if got := providerLogo("https://claude.ai/logo.png", remote); got != "" {
+		t.Errorf("logo de outro site passou: %q", got)
+	}
+	if got := providerLogo("https://cdn.evil.example.com/l.png", remote); got == "" {
+		t.Error("logo do próprio destino deveria valer")
+	}
+	if got := providerLogo("https://claude.ai/logo.png", []string{"http://127.0.0.1:5000/cb"}); got == "" {
+		t.Error("em app local a logo declarada vale")
+	}
+	if impostorHost("Claude", remote) != "evil.example.com" || impostorHost("Claude", []string{"https://claude.com/cb"}) != "" || impostorHost("Meu App", remote) != "" {
+		t.Error("aviso de nome que não bate com o destino")
+	}
+}
+
 func TestProviderDomain(t *testing.T) {
 	cases := []struct {
 		name, uri string
@@ -434,6 +450,11 @@ func TestProviderDomain(t *testing.T) {
 		{"Meu App", "https://www.meuapp.com.br", nil, "meuapp.com.br"},
 		{"Desconhecido", "", []string{"https://agente.exemplo.com/cb"}, "agente.exemplo.com"},
 		{"Local", "", []string{"http://localhost:3000/cb"}, ""},
+		// o que é declarado não vale mais que o destino do acesso
+		{"Claude", "https://claude.ai", []string{"https://evil.example.com/cb"}, "evil.example.com"},
+		{"Claude", "", []string{"https://claude.ai/cb", "https://evil.example.com/cb"}, "evil.example.com"},
+		{"Claude", "", []string{"https://naoclaude.ai/cb"}, "naoclaude.ai"},
+		{"Meu App", "https://claude.ai", []string{"https://agente.exemplo.com/cb"}, "agente.exemplo.com"},
 	}
 	for _, c := range cases {
 		if got := providerDomain(c.name, c.uri, c.redirects); got != c.want {

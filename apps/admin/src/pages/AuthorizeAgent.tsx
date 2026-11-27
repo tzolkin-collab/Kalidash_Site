@@ -12,6 +12,10 @@ export const OAUTH_PENDING_KEY = 'kld_oauth_pending';
 type ConsentInfo = {
   client: { name: string; logoUri?: string; domain?: string };
   redirectHost: string;
+  /** Aplicativo neste computador (loopback ou esquema próprio): o acesso não vai para um site. */
+  local?: boolean;
+  /** O nome diz ser de um provedor conhecido, mas o acesso volta para outro endereço. */
+  mismatch?: boolean;
   canConnect: boolean;
   member: string;
   tools: { name: string; title: string }[];
@@ -85,6 +89,15 @@ export default function AuthorizeAgent() {
             <p className="text-sm text-muted" style={{ margin: 0 }}>
               Você está conectado como <strong>{info.member}</strong>. O agente vai agir em seu nome, com as suas permissões, e tudo o que ele gravar fica no histórico como “{info.client.name} · {info.member}”.
             </p>
+            <div className="consent-target" data-alert={info.mismatch || undefined} role={info.mismatch ? 'alert' : undefined}>
+              <span>{info.local ? 'O acesso vai para um aplicativo neste computador' : 'O acesso vai para'}</span>
+              <code>{info.redirectHost}</code>
+              <p>
+                {info.mismatch
+                  ? `Atenção: o agente se apresenta como “${info.client.name}”, mas este endereço não é desse provedor. Só permita se você reconhece o endereço.`
+                  : 'O nome é informado pelo próprio agente. Confira o endereço e só permita se foi você quem começou esta conexão.'}
+              </p>
+            </div>
             {info.canConnect ? (
               <>
                 <div className="consent-tools">
@@ -94,10 +107,10 @@ export default function AuthorizeAgent() {
                     {info.tools.length === 0 && <li>Nada por enquanto: suas permissões não abrem nenhuma ferramenta.</li>}
                   </ul>
                 </div>
-                <p className="text-xs text-muted consent-redirect"><ShieldCheck size={13} /><span>Depois de aprovar, você volta para <code>{info.redirectHost}</code>. Dá para revogar a qualquer momento em Configurações → MCP e agentes.</span></p>
+                <p className="text-xs text-muted consent-redirect"><ShieldCheck size={13} /><span>Dá para revogar a qualquer momento em Configurações → MCP e agentes.</span></p>
                 <div className="consent-actions">
                   <button type="button" className="btn" disabled={busy !== null} onClick={() => void decide(false)}>{busy === 'deny' ? 'Recusando…' : 'Recusar'}</button>
-                  <button type="button" className="btn btn-solid" disabled={busy !== null} onClick={() => void decide(true)}>{busy === 'approve' ? 'Conectando…' : 'Permitir acesso'}</button>
+                  <button type="button" className={info.mismatch ? 'btn btn-danger' : 'btn btn-solid'} disabled={busy !== null} onClick={() => void decide(true)}>{busy === 'approve' ? 'Conectando…' : info.mismatch ? 'Permitir mesmo assim' : 'Permitir acesso'}</button>
                 </div>
               </>
             ) : (

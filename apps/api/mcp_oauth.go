@@ -382,32 +382,105 @@ func redirectMatches(registered []string, got string) bool {
 	return false
 }
 
-// knownProviders: nome do cliente → site do provedor, quando ele não manda client_uri (apps de desktop).
-var knownProviders = []struct{ match, domain string }{
-	{"claude", "claude.ai"}, {"anthropic", "claude.ai"},
-	{"chatgpt", "chatgpt.com"}, {"openai", "openai.com"},
-	{"cursor", "cursor.com"}, {"visual studio code", "code.visualstudio.com"}, {"vscode", "code.visualstudio.com"}, {"vs code", "code.visualstudio.com"},
-	{"windsurf", "windsurf.com"}, {"gemini", "gemini.google.com"}, {"zed", "zed.dev"}, {"n8n", "n8n.io"},
-	{"mistral", "mistral.ai"}, {"perplexity", "perplexity.ai"}, {"goose", "block.github.io"}, {"cline", "cline.bot"}, {"raycast", "raycast.com"},
+// Identidade do agente na tela de consentimento. Nome, client_uri e logo são DECLARADOS pelo próprio agente (o
+// registro é aberto), então não provam nada: quem diz para onde o acesso vai é o redirect_uri. Em endereço https de
+// fora, site e logo saem dele; só em app local (loopback ou esquema próprio, que não sai do computador) valem as
+// informações declaradas.
+
+// knownProviders: nome do cliente → sites do provedor (o primeiro é o usado quando só há o nome).
+var knownProviders = []struct {
+	match string
+	hosts []string
+}{
+	{"claude", []string{"claude.ai", "claude.com", "anthropic.com"}}, {"anthropic", []string{"claude.ai", "claude.com", "anthropic.com"}},
+	{"chatgpt", []string{"chatgpt.com", "openai.com"}}, {"openai", []string{"openai.com", "chatgpt.com"}},
+	{"cursor", []string{"cursor.com", "cursor.sh"}},
+	{"visual studio code", []string{"code.visualstudio.com", "vscode.dev", "github.dev"}}, {"vscode", []string{"code.visualstudio.com", "vscode.dev", "github.dev"}}, {"vs code", []string{"code.visualstudio.com", "vscode.dev", "github.dev"}},
+	{"windsurf", []string{"windsurf.com", "codeium.com"}}, {"gemini", []string{"gemini.google.com", "google.com"}}, {"zed", []string{"zed.dev"}},
+	{"n8n", []string{"n8n.io", "n8n.cloud"}}, {"mistral", []string{"mistral.ai"}}, {"perplexity", []string{"perplexity.ai"}},
+	{"goose", []string{"block.github.io"}}, {"cline", []string{"cline.bot"}}, {"raycast", []string{"raycast.com"}},
 }
 
-// providerDomain descobre o site do provedor: client_uri, depois o nome conhecido, depois o host do redirect.
-func providerDomain(name, clientURI string, redirects []string) string {
-	if u, err := url.Parse(clientURI); err == nil && u.Scheme == "https" && u.Hostname() != "" {
-		return strings.TrimPrefix(strings.ToLower(u.Hostname()), "www.")
-	}
+func bareHost(h string) string { return strings.TrimPrefix(strings.ToLower(h), "www.") }
+
+// sameSite: o próprio site ou um subdomínio dele (nunca o contrário, nem sufixo solto como "naoclaude.ai").
+func sameSite(host, site string) bool { return host == site || strings.HasSuffix(host, "."+site) }
+
+// claimedProvider: sites do provedor que o nome afirma ser, ou nil.
+func claimedProvider(name string) []string {
 	low := strings.ToLower(name)
 	for _, k := range knownProviders {
 		if strings.Contains(low, k.match) {
-			return k.domain
+			return k.hosts
 		}
 	}
+	return nil
+}
+
+// remoteHosts: hosts dos redirects https que saem do computador.
+func remoteHosts(redirects []string) []string {
+	out := []string{}
 	for _, r := range redirects {
-		if u, err := url.Parse(r); err == nil && u.Scheme == "https" && !isLoopbackHost(u.Hostname()) {
-			return strings.TrimPrefix(strings.ToLower(u.Hostname()), "www.")
+		if u, err := url.Parse(r); err == nil && strings.EqualFold(u.Scheme, "https") && u.Hostname() != "" && !isLoopbackHost(u.Hostname()) {
+			out = append(out, bareHost(u.Hostname()))
+		}
+	}
+	return out
+}
+
+// impostorHost: o primeiro destino remoto que não pertence ao provedor que o nome afirma ser ("" = nenhum).
+func impostorHost(name string, redirects []string) string {
+	sites := claimedProvider(name)
+	if sites == nil {
+		return ""
+	}
+	for _, h := range remoteHosts(redirects) {
+		ok := false
+		for _, s := range sites {
+			ok = ok || sameSite(h, s)
+		}
+		if !ok {
+			return h
 		}
 	}
 	return ""
+}
+
+// providerDomain descobre o site mostrado para o agente: o destino remoto (o suspeito primeiro, quando há vários);
+// em app local, o nome conhecido e depois o client_uri.
+func providerDomain(name, clientURI string, redirects []string) string {
+	if h := impostorHost(name, redirects); h != "" {
+		return h
+	}
+	if hosts := remoteHosts(redirects); len(hosts) > 0 {
+		return hosts[0]
+	}
+	if sites := claimedProvider(name); sites != nil {
+		return sites[0]
+	}
+	if u, err := url.Parse(clientURI); err == nil && u.Scheme == "https" && u.Hostname() != "" {
+		return bareHost(u.Hostname())
+	}
+	return ""
+}
+
+// providerLogo aceita a logo declarada só quando ela é do mesmo site do destino remoto (em app local não há destino
+// remoto para comparar). Sem logo, a tela usa o ícone do site mostrado.
+func providerLogo(logoURI string, redirects []string) string {
+	hosts := remoteHosts(redirects)
+	if len(hosts) == 0 {
+		return logoURI
+	}
+	u, err := url.Parse(logoURI)
+	if err != nil || u.Hostname() == "" {
+		return ""
+	}
+	for _, h := range hosts {
+		if !sameSite(bareHost(u.Hostname()), h) {
+			return ""
+		}
+	}
+	return logoURI
 }
 
 func httpsOrEmpty(raw string) string {
@@ -559,7 +632,7 @@ func handleOAuthRegister(w http.ResponseWriter, r *http.Request) {
 	c := oauthClient{
 		ID:           randomSecret("kmcp_c_", 12),
 		Name:         clip(name, 120),
-		LogoURI:      httpsOrEmpty(req.LogoURI),
+		LogoURI:      providerLogo(httpsOrEmpty(req.LogoURI), req.RedirectURIs),
 		ClientURI:    httpsOrEmpty(req.ClientURI),
 		RedirectURIs: req.RedirectURIs,
 		CreatedAt:    time.Now(),
@@ -689,15 +762,23 @@ func handleOAuthConsent(w http.ResponseWriter, r *http.Request) {
 				tools = append(tools, map[string]string{"name": mcpTools[i].Name, "title": mcpTools[i].Title})
 			}
 		}
+		// A identidade vale para o destino DESTE pedido: um cliente pode registrar mais de um redirect.
+		target := p.RedirectURI
+		if target == "" && len(c.RedirectURIs) == 1 {
+			target = c.RedirectURIs[0]
+		}
 		redirectHost := ""
-		if u, err := url.Parse(p.RedirectURI); err == nil {
+		if u, err := url.Parse(target); err == nil {
 			redirectHost = u.Scheme + "://" + u.Host
 		}
+		to := []string{target}
 		writeJSON(w, http.StatusOK, map[string]any{
-			"client":       map[string]string{"name": c.Name, "logoUri": c.LogoURI, "domain": c.Domain},
+			"client":       map[string]string{"name": c.Name, "logoUri": providerLogo(c.LogoURI, to), "domain": providerDomain(c.Name, c.ClientURI, to)},
 			"redirectHost": redirectHost,
+			"local":        len(remoteHosts(to)) == 0,
+			"mismatch":     impostorHost(c.Name, to) != "",
 			"canConnect":   hasScope(m.Scopes, "mcp:use"),
-			"member":       m.Name,
+			"member":       firstNonEmpty(m.Name, m.Email),
 			"tools":        tools,
 		})
 	case http.MethodPost:
