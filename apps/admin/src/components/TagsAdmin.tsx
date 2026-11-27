@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, ChevronDown, Search, Tags } from 'lucide-react';
 import { API_URL } from '../lib/api';
 import { useCrmMode } from '../lib/crmMode';
@@ -39,6 +39,16 @@ export function TagManagerButton() {
 
 export function TagManagerHost() {
   const [open, setOpen] = useStore(openStore);
+  // O painel é da tela que o abriu: trocar de tela (as rotas são por hash, lib/router.ts) fecha.
+  useEffect(() => {
+    if (!open) return;
+    // Só o caminho conta: mudar o que vem depois do "?" (filtro, aba) não é trocar de tela.
+    const screen = () => window.location.hash.split('?')[0];
+    const from = screen();
+    const close = () => { if (screen() !== from) setOpen(false); };
+    window.addEventListener('hashchange', close);
+    return () => window.removeEventListener('hashchange', close);
+  }, [open, setOpen]);
   if (!open) return null;
   return <TagManagerPanel onClose={() => setOpen(false)} />;
 }
