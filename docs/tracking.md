@@ -27,7 +27,7 @@ criação do link, não só na gravação.
 
 | Canal | `utm_source` | `utm_medium` | `utm_campaign` | `utm_content` |
 |---|---|---|---|---|
-| Meta Ads (Instagram/Facebook) | `meta` | `paid_social` | `<tema>_<aaaamm>` ex.: `material_ia_202611` | `<anuncio>` ex.: `video_carol_01` |
+| Meta Ads (Instagram/Facebook) | `meta` | `paid_social` | `{{campaign.name}}` | `{{ad.id}}` (e `utm_term={{adset.id}}`) |
 | Google Ads | `google` | `cpc` | `<tema>_<aaaamm>` | `<grupo>` |
 | LinkedIn Ads | `linkedin` | `paid_social` | `<tema>_<aaaamm>` | `<anuncio>` |
 | Orgânico Instagram (bio, stories, "comente aqui") | `instagram` | `social` | `<tema>` | `bio` \| `stories` \| `comentario` \| `dm` |
@@ -37,6 +37,13 @@ criação do link, não só na gravação.
 | TikTok (bio) | `tiktok` | `social` | `<tema>` | `bio` |
 | Assinatura de e-mail | `email` | `email` | `<tema>` | `assinatura` |
 | Newsletter (edições do admin) | `newsletter` | `email` | `<slug do artigo>` | — |
+
+**Meta Ads: cole no anúncio** (Gerenciador de Anúncios > anúncio > Rastreamento > Parâmetros de URL):
+
+`utm_source=meta&utm_medium=paid_social&utm_campaign={{campaign.name}}&utm_content={{ad.id}}&utm_term={{adset.id}}`
+
+O nome da campanha liga o lead ao investimento; o ID do anúncio liga o lead ao criativo em Tráfego > Pago. Anúncios
+antigos com `utm_source={{site_source_name}}` (`fb`, `ig`, `an`, `msg`) também contam como Meta Ads.
 
 **Orgânico: não monte à mão.** Use o admin, **Links de divulgação** (seção 2.1): ele gera os links de todos os canais
 orgânicos acima já na convenção. Para separar duas peças do mesmo tema, o campo "Peça" vira o fim do `utm_content`

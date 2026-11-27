@@ -37,6 +37,8 @@ export type AdRow = Counts & {
   /** O que identifica o arquivo ou a publicação: hash da imagem, ID do vídeo ou ID do post. */
   assetKey?: string;
   format: 'video' | 'image' | 'carousel';
+  /** Miniatura servida pela Meta; ausente nos exemplos. */
+  thumbnailUrl?: string;
 };
 
 const KEYS: (keyof Counts)[] = ['spend', 'impressions', 'clicks', 'pageViews', 'views3s', 'leads', 'qualified', 'sales', 'revenue'];
@@ -89,9 +91,9 @@ export function mergeAds(rows: AdRow[]): AdRow[] {
   return [...map.values()];
 }
 
-export type Period = 'today' | 'yesterday' | '7d' | '14d' | '30d';
+export type Period = 'today' | 'yesterday' | '7d' | '14d' | '30d' | '90d';
 export const PAID_PERIODS: { id: Period; label: string }[] = [
-  { id: 'today', label: 'Hoje' }, { id: 'yesterday', label: 'Ontem' }, { id: '7d', label: 'Últimos 7 dias' }, { id: '14d', label: 'Últimos 14 dias' }, { id: '30d', label: 'Últimos 30 dias' },
+  { id: 'today', label: 'Hoje' }, { id: 'yesterday', label: 'Ontem' }, { id: '7d', label: 'Últimos 7 dias' }, { id: '14d', label: 'Últimos 14 dias' }, { id: '30d', label: 'Últimos 30 dias' }, { id: '90d', label: 'Últimos 90 dias' },
 ];
 
 export const isoDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;

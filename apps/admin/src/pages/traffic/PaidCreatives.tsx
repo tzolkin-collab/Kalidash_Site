@@ -78,7 +78,10 @@ export default function PaidCreatives({ rows }: { rows: AdRow[] }) {
                   <td className="tr-name">
                     <span className="tr-cell">
                       <span className="tr-rank">{i + 1}</span>
-                      <span className="tr-thumb" title={`${label} (a miniatura vem do Meta quando a conta for conectada)`}><Icon size={18} aria-hidden /></span>
+                      <span className="tr-thumb" title={label}>
+                        <Icon size={18} aria-hidden />
+                        {g.ads.find((a) => a.thumbnailUrl) && <img src={g.ads.find((a) => a.thumbnailUrl)!.thumbnailUrl} alt="" loading="lazy" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.hidden = true; }} />}
+                      </span>
                       <span className="tr-label">
                         <button type="button" className="tr-drill" onClick={(e) => { e.stopPropagation(); setOpen(g.key); }}>{g.name}</button>
                         <span className="tr-meta">

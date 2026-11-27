@@ -142,6 +142,7 @@ func cachedSpend(platform, from, to string, fetch func() ([]spendCampaign, strin
 
 func registerAnalyticsSpendRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/analytics/spend", enableCORS(handleSpend))
+	mux.HandleFunc("/api/analytics/ads", enableCORS(handleAnalyticsAds)) // leitura por anúncio (analytics_ads.go)
 	logSpendConfig()
 }
 

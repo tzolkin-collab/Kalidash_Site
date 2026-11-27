@@ -31,7 +31,7 @@ function savedColumns(): Preferences {
   return [...PRESETS[0].columns];
 }
 
-export default function PaidCampaigns({ rows }: { rows: AdRow[] }) {
+export default function PaidCampaigns({ rows, sample }: { rows: AdRow[]; sample?: boolean }) {
   const [level, setLevel] = useState<Level>('campaign');
   const [picked, setPicked] = useState<Partial<Record<Level, string[]>>>({});
   const [search, setSearch] = useState('');
@@ -101,7 +101,7 @@ export default function PaidCampaigns({ rows }: { rows: AdRow[] }) {
     const url = URL.createObjectURL(new Blob([`﻿${text}`], { type: 'text/csv;charset=utf-8' }));
     const a = document.createElement('a');
     a.href = url;
-    a.download = `trafego-pago-${level}-exemplo.csv`;
+    a.download = `trafego-pago-${level}${sample ? '-exemplo' : ''}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };

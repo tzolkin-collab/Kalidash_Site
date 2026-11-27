@@ -65,8 +65,14 @@ function hostOf(url: string | undefined): string {
   }
 }
 
+// Anúncios antigos da conta usam utm_source={{site_source_name}} (fb, ig, an, msg: só a Meta preenche assim) e o nome
+// do conjunto em utm_medium. Sem um meio da nossa convenção, é anúncio da Meta; os orgânicos usam "instagram"/"social".
+const META_PLACEMENT = /^(fb|ig|an|msg)$/;
+const OWN_MEDIUM = /^(social|messaging|email|organic|referral)$/;
+
 function fromUtm(source: string, medium: string): Channel | null {
   if (!source && !medium) return null;
+  if (META_PLACEMENT.test(source) && medium && !OWN_MEDIUM.test(medium)) return { key: 'meta_ads', label: 'Meta Ads', group: 'pago' };
   if (PAID_MEDIUM.test(medium)) {
     if (source === 'google' || medium === 'cpc' && !source) return { key: 'google_ads', label: 'Google Ads', group: 'pago' };
     if (['meta', 'facebook', 'fb', 'instagram', 'ig'].includes(source)) return { key: 'meta_ads', label: 'Meta Ads', group: 'pago' };
