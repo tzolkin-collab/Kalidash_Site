@@ -5,6 +5,7 @@ import { periodStart, stageInfo, toCents } from './salesMetrics.ts';
 import type { Period } from './salesMetrics.ts';
 import { shortSource } from './sourceName.ts';
 import { activePipelines, kanbanStages, resolveStage } from './stages.ts';
+import { funnelRows, pickFunnelPipeline } from './funnelData.ts';
 import { MEASURE_BY_ID, VISUAL_BY_ID } from './chartSpec.ts';
 import type { ChartConfig, DimId, MeasureId, Unit } from './chartSpec.ts';
 
@@ -12,7 +13,7 @@ import type { ChartConfig, DimId, MeasureId, Unit } from './chartSpec.ts';
 // resultado no formato que o visual pede. Puro e testado em tests/chartData.test.ts. Valores em reais (dinheiro)
 // ou unidades (contagem); as somas são feitas em centavos para não acumular erro de ponto flutuante.
 
-export type ChartCtx = { opps: Opportunity[]; pipelines: Pipeline[]; leads: Lead[]; tasks: TaskItem[]; history: ChangeEntry[]; period: Period; now?: Date };
+export type ChartCtx = { opps: Opportunity[]; pipelines: Pipeline[]; leads: Lead[]; tasks: TaskItem[]; history: ChangeEntry[]; period: Period; now?: Date; /** Funil escolhido no widget de funil (senão o primeiro ativo). */ funnelPipelineId?: string };
 
 export type SeriesPoint = { label: string; value: number; prev?: number };
 export type SeriesResult = { kind: 'series'; unit: Unit; points: SeriesPoint[]; hasPrev: boolean; total: number };
@@ -259,17 +260,9 @@ export function runChart(cfg: ChartConfig, c: ChartCtx): ChartResult {
 }
 
 function stagesResult(id: MeasureId, c: ChartCtx, unit: Unit): StagesResult {
-  const pipeline = activePipelines(c.pipelines)[0];
-  const stages = kanbanStages(pipeline).filter((s) => s.kind !== 'LOST');
+  const rows = funnelRows(pickFunnelPipeline(c.pipelines, c.funnelPipelineId), c.opps, c.leads, c.pipelines);
   const money = id === 'stage-value';
-  const sums = new Map<string, number>();
-  for (const o of c.opps) {
-    if (o.isLead) continue;
-    const r = resolveStage(o, c.pipelines);
-    if (!r.stage || r.pipeline?.id !== pipeline?.id) continue;
-    sums.set(r.stage.id, (sums.get(r.stage.id) ?? 0) + (money ? toCents(o.value) : 1));
-  }
-  return { kind: 'stages', unit, rows: stages.map((s) => ({ label: s.name, value: toUnit(sums.get(s.id) ?? 0, unit), color: s.color })) };
+  return { kind: 'stages', unit, rows: rows.map((r) => ({ label: r.label, value: toUnit(money ? r.cents : r.count, unit), color: r.color })) };
 }
 
 /** Resultado sem nada para mostrar (tudo zero ou vazio): o visual mostra o estado vazio em vez de um gráfico em branco. */

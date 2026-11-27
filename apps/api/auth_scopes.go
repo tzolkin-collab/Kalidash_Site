@@ -30,7 +30,7 @@ type scopeDef struct {
 }
 
 // scopeGroups mantém a ordem de exibição das áreas.
-var scopeGroups = []string{"CRM", "Funis e tarefas", "Conteúdo", "Automação", "Conexão de LPs", "Administração"}
+var scopeGroups = []string{"CRM", "Funis e tarefas", "Conteúdo", "Relatórios", "Automação", "Conexão de LPs", "Administração"}
 
 var scopeCatalog = []scopeDef{
 	{ID: "leads:read", Group: "CRM", Label: "Ver leads e oportunidades", Desc: "Lista e abre leads, oportunidades e notas."},
@@ -52,6 +52,7 @@ var scopeCatalog = []scopeDef{
 	{ID: "emails:send", Group: "Conteúdo", Label: "Enviar e-mails", Desc: "Dispara e-mails pela conta de envio."},
 	{ID: "automations:manage", Group: "Automação", Label: "Gerenciar automações", Desc: "Liga e desliga automações e edita os modelos de e-mail que elas enviam."},
 	{ID: "mcp:use", Group: "Automação", Label: "Conectar agentes (MCP)", Desc: "Usa o servidor MCP (/api/mcp). Cada ferramenta ainda exige o escopo da área dela (ex.: Ver leads)."},
+	{ID: "analytics:read", Group: "Relatórios", Label: "Ver métricas do site", Desc: "Lê visitas, páginas e origem do tráfego do site (Google Analytics) na Dashboard."},
 	{ID: "forms:write", Group: "Conexão de LPs", Label: "Enviar formulários (connect.js)", Desc: "Cria leads vindos de um projeto conectado. Pode ir no HTML da página.", Publishable: true},
 	{ID: "analytics:write", Group: "Conexão de LPs", Label: "Enviar eventos (analytics)", Desc: "Pageview e origem de um projeto conectado. Pode ir no HTML.", Publishable: true, Reserved: true},
 	{ID: "ads:read", Group: "Conexão de LPs", Label: "Ler mídia paga", Desc: "Sincroniza custo e CPL das contas de anúncios. Nunca no HTML.", Reserved: true},
@@ -87,7 +88,7 @@ var sellerScopes = []string{
 }
 
 var managerScopes = append(append([]string{}, sellerScopes...),
-	"leads:read", "leads:write", "leads:origin", "people:document", "pipelines:manage", "blog:read", "blog:write", "automations:manage", "mcp:use", "keys:manage",
+	"leads:read", "leads:write", "leads:origin", "people:document", "pipelines:manage", "blog:read", "blog:write", "automations:manage", "mcp:use", "keys:manage", "analytics:read",
 	"forms:write", "analytics:write", "ads:read")
 
 func presetScopes(role string) []string {
@@ -209,6 +210,8 @@ func routeScope(r *http.Request) (scope string, public bool) {
 		return "keys:manage", false
 	case p == "/api/oauth/consent":
 		return "", false // consentimento do OAuth do MCP: só a pessoa logada (token nunca), mcp_oauth.go
+	case p == "/api/site-metrics":
+		return "analytics:read", false // relatórios do GA4 (site_metrics.go)
 	case p == "/api/mcp" || strings.HasPrefix(p, "/api/mcp/"):
 		return "mcp:use", false // servidor MCP, info e conexões; cada ferramenta confere o escopo da própria rota (mcp.go)
 	case p == "/api/access/catalog":

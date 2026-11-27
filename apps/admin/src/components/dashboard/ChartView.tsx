@@ -3,6 +3,7 @@ import type { TreemapNode } from 'recharts';
 import { formatCurrency } from '../../lib/format';
 import type { BoxResult, ChartResult, GoalResult, MatrixResult, PointsResult, RowsResult, SeriesResult, StackedResult, StagesResult, TreeResult } from '../../lib/chartData';
 import { OTHERS } from '../../lib/chartData';
+import { FunnelShape } from './FunnelShape';
 import type { ChartConfig, Unit } from '../../lib/chartSpec';
 
 // Desenha o resultado de runChart (lib/chartData.ts) no visual escolhido. Um só lugar para cores, formatação e
@@ -143,18 +144,7 @@ function Pareto({ r, height }: { r: RowsResult; height: number }) {
 }
 
 function Stages({ r }: { r: StagesResult }) {
-  const max = Math.max(1, ...r.rows.map((x) => x.value));
-  return (
-    <div className="funnel">
-      {r.rows.map((row) => (
-        <div key={row.label} className="funnel-row funnel-row-rank">
-          <span className="funnel-label" title={row.label}>{row.label}</span>
-          <div className="funnel-track" aria-hidden="true"><div className="funnel-bar" style={{ width: `${(row.value / max) * 100}%`, background: row.color }} /></div>
-          <span className="funnel-count">{fmt(row.value, r.unit)}</span>
-        </div>
-      ))}
-    </div>
-  );
+  return <FunnelShape steps={r.rows.map((row) => ({ key: row.label, label: row.label, amount: row.value, text: fmt(row.value, r.unit), color: row.color }))} />;
 }
 
 

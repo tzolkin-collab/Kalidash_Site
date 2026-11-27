@@ -4,12 +4,13 @@ import type { ChartCtx } from '../../lib/chartData';
 import { MEASURE_BY_ID, VISUAL_BY_ID, chartTitle } from '../../lib/chartSpec';
 import type { ChartConfig } from '../../lib/chartSpec';
 import { PERIODS } from '../../lib/salesMetrics';
+import { pickFunnelPipeline } from '../../lib/funnelData';
 import { EmptyState } from '../ui';
 
 const ChartView = lazy(() => import('./ChartView'));
 
 /** A que dado o gráfico se refere, em uma frase curta (período, janela ou "situação atual"). */
-export function chartScope(cfg: ChartConfig, ctx: Pick<ChartCtx, 'period'>): string {
+export function chartScope(cfg: ChartConfig, ctx: Pick<ChartCtx, 'period'> & Partial<Pick<ChartCtx, 'pipelines' | 'funnelPipelineId'>>): string {
   const m = MEASURE_BY_ID.get(cfg.measure);
   const shape = VISUAL_BY_ID.get(cfg.visual)?.shape;
   if (!m || !shape) return '';
@@ -18,7 +19,10 @@ export function chartScope(cfg: ChartConfig, ctx: Pick<ChartCtx, 'period'>): str
     const span = cfg.granularity === 'day' ? `Últimos ${n} dias` : `Últimas ${n} semanas`;
     return cfg.compare ? `${span} · comparado ao período anterior` : span;
   }
-  if (shape === 'stages') return 'Primeiro funil ativo · situação atual';
+  if (shape === 'stages') {
+    const p = ctx.pipelines ? pickFunnelPipeline(ctx.pipelines, ctx.funnelPipelineId) : undefined;
+    return `${p ? `Funil ${p.name}` : 'Primeiro funil ativo'} · situação atual`;
+  }
   if (shape === 'points' || shape === 'distribution') return 'Vendas ganhas com data de criação e de ganho';
   if (m.hasDate) return PERIODS.find((p) => p.id === ctx.period)?.label ?? '';
   return m.id.startsWith('lost') ? 'Em todo o histórico' : 'Situação atual';

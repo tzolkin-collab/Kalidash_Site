@@ -50,6 +50,7 @@ const PHRASE: Record<string, string> = {
   'emails:send': 'enviar e-mails',
   'automations:manage': 'gerenciar automações',
   'mcp:use': 'conectar agentes (MCP)',
+  'analytics:read': 'ver métricas do site',
   'team:read': 'ver a equipe',
   'team:manage': 'gerenciar equipe e permissões',
   'keys:manage': 'gerenciar tokens de API',

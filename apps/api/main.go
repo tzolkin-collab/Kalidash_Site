@@ -446,6 +446,7 @@ func main() {
 	mux.HandleFunc("/api/blog/settings", enableCORS(handleBlogSettings))
 	mux.HandleFunc("/api/blog/categories", enableCORS(handleBlogCategories))
 	mux.HandleFunc("/api/public/leads", handlePublicLead) // pública: CORS e limites próprios (public_leads.go)
+	mux.HandleFunc("/api/site-metrics", enableCORS(handleSiteMetrics)) // relatórios do GA4 na Dashboard (site_metrics.go)
 
 	if workflowEnabled() {
 		registerWorkflowRoutes(mux)

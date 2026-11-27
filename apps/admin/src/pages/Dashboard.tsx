@@ -4,6 +4,8 @@ import { useOpportunities } from '../lib/useOpportunities';
 import { useShell } from '../lib/shell';
 import { useStore } from '../lib/store';
 import { useAuth } from '../lib/auth';
+import { useCan } from '../lib/permissions';
+import { API_URL } from '../lib/api';
 import { pipelinesStore } from '../mocks/pipelines';
 import { leadsStore } from '../mocks/leads';
 import { tasksStore } from '../mocks/tasks';
@@ -14,7 +16,8 @@ import { activityByDay, activityByPerson, activityKinds, cpfReveals, discardReas
 import { historyStore } from '../lib/history';
 import { loadRecentHistory } from '../lib/historySync';
 import { PERIODS, salesMetrics, stageInfo, toCents } from '../lib/salesMetrics';
-import { activePipelines, kanbanStages, resolveStage } from '../lib/stages';
+import { funnelPrefKey, funnelRows, loadFunnelPref, pickFunnelPipeline, saveFunnelPref } from '../lib/funnelData';
+import { activePipelines } from '../lib/stages';
 import type { Period } from '../lib/salesMetrics';
 import { CUSTOM_SPANS, SPANS, SPAN_LABEL, addCustom, addItem, clearLayout, defaultLayout, isCustomId, layoutKey, loadLayout, moveItem, normalizeLayout, removeItem, saveLayout, setSpan, updateCustom } from '../lib/dashboardLayout';
 import { chartTitle, normalizeChart } from '../lib/chartSpec';
@@ -26,7 +29,7 @@ import type { Layout, Span } from '../lib/dashboardLayout';
 import { GROUPS, WIDGETS, WIDGET_BY_ID } from '../components/dashboard/widgets';
 import ChartBuilder from '../components/dashboard/ChartBuilder';
 import ChartWidget from '../components/dashboard/ChartWidget';
-import type { DashData } from '../components/dashboard/widgets';
+import type { DashData, SiteMetrics, SiteState } from '../components/dashboard/widgets';
 import { Badge, CustomSelect, EmptyState, ErrorBanner, Page, PageHeader, PopupDialog, SidePanel } from '../components/ui';
 
 // A Dashboard é uma grade de widgets (components/dashboard/widgets.tsx). Cada pessoa escolhe o que ver, em que
@@ -60,6 +63,53 @@ export default function Dashboard() {
   const [viewError, setViewError] = useState<string | null>(null);
   const [builder, setBuilder] = useState<{ id?: string } | null>(null);
   const [applied, setApplied] = useState<{ name: string; before: Layout } | null>(null);
+  // Métricas do site (GA4): só busca se a pessoa pode ver e se algum widget do site está na Dashboard.
+  const can = useCan();
+  const canSite = can.has('analytics:read');
+  const [site, setSite] = useState<SiteState>({ status: 'loading' });
+  const wantsSite = layout.some((i) => i.id.startsWith('site-'));
+  useEffect(() => {
+    if (!wantsSite) return;
+    if (auth.status !== 'in') { setSite({ status: 'offline' }); return; }
+    if (!canSite) { setSite({ status: 'forbidden' }); return; }
+    let alive = true;
+    setSite({ status: 'loading' });
+    void (async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/site-metrics?period=${period}`);
+        const body = await res.json().catch(() => ({}));
+        if (!alive) return;
+        if (res.status === 404) setSite({ status: 'unconfigured', error: 'Esta API ainda não tem a rota de métricas do site. Atualize a API.' });
+        else if (res.status === 403) setSite({ status: 'forbidden' });
+        else if (body.configured === false) setSite({ status: 'unconfigured', error: typeof body.error === 'string' ? body.error : undefined });
+        else if (!res.ok) setSite({ status: 'error', error: typeof body.error === 'string' ? body.error : `A API respondeu ${res.status}.` });
+        else setSite({ status: 'ok', data: body as SiteMetrics });
+      } catch {
+        if (alive) setSite({ status: 'offline' });
+      }
+    })();
+    return () => { alive = false; };
+  }, [period, wantsSite, canSite, auth.status]);
+  // Uma vez por pessoa: quem já tinha um layout salvo ganha os widgets do site logo depois do resumo de vendas.
+  useEffect(() => {
+    if (auth.status !== 'in' || !auth.user?.id) return;
+    const flag = `kalidash.dashboard.site-added.v1.${auth.user.id}`;
+    try {
+      if (localStorage.getItem(flag)) return;
+      localStorage.setItem(flag, '1');
+    } catch { return; }
+    if (layout.some((i) => i.id.startsWith('site-'))) return;
+    const add = WIDGETS.filter((w) => w.group === 'Site' && w.inDefault).map((w) => ({ id: w.id, span: w.defaultSpan }));
+    const at = Math.max(0, layout.findIndex((i) => i.id === 'hero-today') + 1);
+    update([...layout.slice(0, at), ...add, ...layout.slice(at)]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth.status, auth.user?.id]);
+
+  const fkey = funnelPrefKey(auth.user?.id);
+  const [funnelPref, setFunnelPref] = useState<string | null>(() => loadFunnelPref(fkey));
+  useEffect(() => { setFunnelPref(loadFunnelPref(fkey)); }, [fkey]);
+  const funnelPipe = pickFunnelPipeline(pipelines, funnelPref);
+  const chooseFunnel = (id: string) => { setFunnelPref(id); saveFunnelPref(fkey, id); };
   const [dragId, setDragId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
 
@@ -83,7 +133,6 @@ export default function Dashboard() {
 
   const stats = useMemo(() => {
     const m = salesMetrics(opportunities, pipelines, period);
-    const funnelPipeline = activePipelines(pipelines)[0];
     const isKind = (stage: string, kind: string) => stageInfo(stage, pipelines)?.kind === kind;
     const sumCents = (list: typeof opportunities) => list.reduce((acc, o) => acc + toCents(o.value), 0);
     const won = opportunities.filter((o) => isKind(o.stage, 'WON'));
@@ -92,17 +141,15 @@ export default function Dashboard() {
       ...m,
       total: opportunities.length,
       conversion: opportunities.length ? won.length / opportunities.length : 0,
-      // Funil do primeiro funil ativo; leads e perdidas ficam de fora, como nos totais de valor.
-      byStage: kanbanStages(funnelPipeline).filter((s) => s.kind !== 'LOST').map((s) => {
-        const items = opportunities.filter((o) => { const r = resolveStage(o, pipelines); return r.pipeline?.id === funnelPipeline?.id && r.stage?.id === s.id; });
-        return { id: s.id, label: s.name, color: s.color, count: items.length, value: sumCents(items) / 100 };
-      }),
+      // Funil escolhido no widget (ou o primeiro ativo): etapas de lead contam leads; as demais, oportunidades.
+      byStage: funnelRows(funnelPipe, opportunities, leads, pipelines).map((r) => ({ id: r.id, label: r.label, color: r.color, count: r.count, value: r.cents / 100, isLead: r.isLeadStage })),
       biggest: [...open].sort((a, b) => (b.value || 0) - (a.value || 0)).slice(0, 5),
     };
-  }, [opportunities, pipelines, period]);
+  }, [opportunities, pipelines, period, leads, funnelPipe]);
 
   const data: DashData = {
-    period, loading, stats, navigate,
+    period, loading, stats, navigate, site,
+    funnel: { pipelineId: funnelPipe?.id, name: funnelPipe?.name ?? '', options: activePipelines(pipelines).map((p) => ({ id: p.id, name: p.name })), choose: chooseFunnel },
     realLeads: crmMode === 'api',
     realTasks: syncMode === 'api',
     lm: useMemo(() => leadMetrics(leads, period), [leads, period]),
@@ -147,7 +194,7 @@ export default function Dashboard() {
   };
 
   // Dados que os gráficos configuráveis leem (o mesmo CRM de sempre; a janela de tempo vem de cada gráfico).
-  const chartCtx: ChartCtx = useMemo(() => ({ opps: opportunities, pipelines, leads, tasks, history, period }), [opportunities, pipelines, leads, tasks, history, period]);
+  const chartCtx: ChartCtx = useMemo(() => ({ opps: opportunities, pipelines, leads, tasks, history, period, funnelPipelineId: funnelPipe?.id }), [opportunities, pipelines, leads, tasks, history, period, funnelPipe?.id]);
 
   const onDrop = (targetId: string) => {
     if (dragId && dragId !== targetId) {
@@ -222,7 +269,7 @@ export default function Dashboard() {
           <button type="button" className="btn btn-solid" onClick={() => { setEditing(true); setCatalogOpen(true); }}><Plus size={14} /> Adicionar widget</button>
         </EmptyState>
       ) : (
-        <div className="dash-grid" data-editing={editing}>
+        <div className="dash-wrap"><div className="dash-grid" data-editing={editing}>
           {layout.map((item, index) => {
             const base = WIDGET_BY_ID.get(item.id);
             const chart = isCustomId(item.id) ? item.config : undefined;
@@ -233,26 +280,34 @@ export default function Dashboard() {
                 key={item.id}
                 className="dash-item"
                 data-span={item.span}
+                data-id={item.id}
                 data-dragging={dragId === item.id}
                 data-over={editing && overId === item.id && dragId !== item.id}
-                onDragOver={editing && dragId ? (e) => { e.preventDefault(); if (overId !== item.id) setOverId(item.id); } : undefined}
-                onDrop={editing ? (e) => { e.preventDefault(); onDrop(item.id); } : undefined}
               >
                 {editing && (
                   <div className="dash-edit-bar">
                     <span
                       className="dash-grip"
-                      draggable
                       role="button"
                       aria-label={`Arrastar ${def.title}`}
                       title="Arraste para mudar a posição"
-                      onDragStart={(e) => {
-                        const box = e.currentTarget.closest('.dash-item');
-                        if (box) e.dataTransfer.setDragImage(box, 16, 16);
-                        e.dataTransfer.effectAllowed = 'move';
+                      onPointerDown={(e) => {
+                        // Arrastar por ponteiro (mouse, toque e caneta): o arrastar nativo do HTML falha com
+                        // toque e em vários navegadores. O bloco sob o ponteiro vira o destino.
+                        if (e.button !== 0) return;
+                        e.preventDefault();
+                        e.currentTarget.setPointerCapture(e.pointerId);
                         setDragId(item.id);
+                        setOverId(null);
                       }}
-                      onDragEnd={() => { setDragId(null); setOverId(null); }}
+                      onPointerMove={(e) => {
+                        if (dragId !== item.id) return;
+                        const el = document.elementFromPoint(e.clientX, e.clientY)?.closest<HTMLElement>('.dash-item');
+                        const target = el?.dataset.id ?? null;
+                        if (target !== overId) setOverId(target);
+                      }}
+                      onPointerUp={() => { if (dragId === item.id && overId) onDrop(overId); setDragId(null); setOverId(null); }}
+                      onPointerCancel={() => { setDragId(null); setOverId(null); }}
                     ><GripVertical size={15} /></span>
                     <span className="dash-edit-title" title={def.title}>{def.title}{def.example && <Badge tone="info">Exemplo</Badge>}</span>
                     <CustomSelect
@@ -273,7 +328,7 @@ export default function Dashboard() {
               </div>
             );
           })}
-        </div>
+        </div></div>
       )}
 
       <p className="text-xs text-muted" style={{ marginTop: 24 }}>

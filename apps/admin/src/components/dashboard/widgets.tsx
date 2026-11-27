@@ -14,7 +14,8 @@ import type { TaskItem } from '../../domain';
 import type { Opportunity } from '../../types';
 import type { WidgetSpec, Span } from '../../lib/dashboardLayout';
 import { StageBadge } from '../cells';
-import { Badge, EmptyState, StatCard } from '../ui';
+import { Badge, CustomSelect, EmptyState, StatCard } from '../ui';
+import { FunnelShape } from './FunnelShape';
 
 // Catálogo de widgets da Dashboard. Cada widget sabe se desenhar a partir dos mesmos números de sempre
 // (DashData, calculado em pages/Dashboard.tsx); o layout (ordem, largura, quem aparece) é de cada pessoa
@@ -26,7 +27,7 @@ const DemoOther = lazy(() => import('./DemoWidgets').then((m) => ({ default: m.O
 type OtherId = Parameters<typeof import('./DemoWidgets').OtherDemo>[0]['id'];
 type SeriesMode = Parameters<typeof import('./DemoWidgets').SeriesDemo>[0]['mode'];
 
-export type StageRow = { id: string; label: string; color: string; count: number; value: number };
+export type StageRow = { id: string; label: string; color: string; count: number; value: number; isLead?: boolean };
 
 export type DashData = {
   period: Period;
@@ -48,10 +49,24 @@ export type DashData = {
     actPerson: Row[]; actKinds: Row[]; actDays: DayPoint[]; reveals: { total: number; recent: ChangeEntry[] }; tasksByAssignee: Row[];
   };
   navigate: (path: string) => void;
+  /** Métricas do site (GA4, GET /api/site-metrics). */
+  site: SiteState;
+  /** Qual funil o widget de funil mostra e como trocar. */
+  funnel: { pipelineId?: string; name: string; options: { id: string; name: string }[]; choose: (id: string) => void };
 };
 
-export type WidgetGroup = 'Vendas' | 'Leads' | 'Tarefas' | 'Atividade' | 'Exemplos';
-export const GROUPS: WidgetGroup[] = ['Vendas', 'Leads', 'Tarefas', 'Atividade', 'Exemplos'];
+export type SiteTotals = { users: number; newUsers: number; sessions: number; views: number; engagementRate: number; avgSessionSeconds: number };
+export type SiteMetrics = {
+  configured: true; period: string; from: string; to: string; totals: SiteTotals; previous: SiteTotals | null;
+  daily: { date: string; users: number; sessions: number }[]; pages: { path: string; title: string; views: number; users: number }[];
+  channels: { label: string; sessions: number }[]; sources: { label: string; sessions: number }[]; fetchedAt: string;
+};
+export type SiteState =
+  | { status: 'loading' } | { status: 'forbidden' } | { status: 'offline' }
+  | { status: 'unconfigured'; error?: string } | { status: 'error'; error: string } | { status: 'ok'; data: SiteMetrics };
+
+export type WidgetGroup = 'Vendas' | 'Site' | 'Leads' | 'Tarefas' | 'Atividade' | 'Exemplos';
+export const GROUPS: WidgetGroup[] = ['Vendas', 'Site', 'Leads', 'Tarefas', 'Atividade', 'Exemplos'];
 
 export type WidgetDef = WidgetSpec & {
   title: string;
@@ -78,7 +93,7 @@ const kpi = (
   render: (d: DashData) => ReactNode, defaultSpan: Span = 3,
 ): WidgetDef => ({ id, title, group, Icon, description, inDefault: false, defaultSpan, spans: KPI_SPANS, render });
 
-function FunnelBars({ rows, max, color, showValue }: { rows: { key: string; label: string; count: number; color: string; value?: number }[]; max: number; color?: string; showValue?: boolean }) {
+function FunnelBars({ rows, max, color }: { rows: { key: string; label: string; count: number; color: string }[]; max: number; color?: string }) {
   return (
     <div className="funnel">
       {rows.map((r) => (
@@ -86,7 +101,6 @@ function FunnelBars({ rows, max, color, showValue }: { rows: { key: string; labe
           <span className="funnel-label">{r.label}</span>
           <div className="funnel-track" aria-hidden="true"><div className="funnel-bar" style={{ width: `${(r.count / Math.max(1, max)) * 100}%`, background: color ?? r.color }} /></div>
           <span className="funnel-count">{r.count}</span>
-          {showValue && <span className="funnel-value">{formatCurrency(r.value ?? 0)}</span>}
         </div>
       ))}
     </div>
@@ -247,6 +261,108 @@ function Attention({ d }: { d: DashData }) {
   );
 }
 
+
+// ---- Site (Google Analytics 4) -------------------------------------------------------------------------------------
+
+const CHANNEL_PT: Record<string, string> = {
+  'Organic Search': 'Busca orgânica', Direct: 'Direto', Referral: 'Sites de referência', 'Organic Social': 'Redes sociais',
+  'Paid Search': 'Busca paga', 'Paid Social': 'Redes sociais pagas', Email: 'E-mail', Display: 'Display', 'Organic Video': 'Vídeo orgânico',
+  'Paid Video': 'Vídeo pago', 'Organic Shopping': 'Shopping orgânico', 'Paid Shopping': 'Shopping pago', 'Cross-network': 'Várias redes',
+  Affiliates: 'Afiliados', SMS: 'SMS', 'Mobile Push Notifications': 'Notificações push', Audio: 'Áudio', Unassigned: 'Não atribuído', '(other)': 'Outros',
+};
+const channelPt = (c: string) => CHANNEL_PT[c] ?? c;
+const sourcePt = (s: string) => s.replace('(direct) / (none)', 'Direto').replace('(not set)', 'não definido').replace(' / organic', ' · orgânico').replace(' / referral', ' · referência').replace(' / cpc', ' · pago');
+const intPt = (n: number) => n.toLocaleString('pt-BR');
+const ratio = (cur: number, prev: number | undefined) => (prev === undefined ? null : prev > 0 ? (cur - prev) / prev : null);
+const duration = (secs: number) => { const s = Math.round(secs); return s < 60 ? `${s}s` : `${Math.floor(s / 60)}min ${String(s % 60).padStart(2, '0')}s`; };
+
+/** Estados em que não há números: sem permissão, sem servidor, GA4 não conectado, erro do Google, carregando. */
+function SiteGate({ d, children, compact = false }: { d: DashData; children: (m: SiteMetrics) => ReactNode; compact?: boolean }) {
+  const s = d.site;
+  if (s.status === 'ok') return <>{children(s.data)}</>;
+  // Nos blocos menores o aviso é curto: a explicação completa fica no resumo do site.
+  if (compact && s.status !== 'loading') return <p className="text-xs text-muted" style={{ margin: 0 }}>{s.status === 'unconfigured' ? 'Aparece quando o Google Analytics estiver conectado.' : s.status === 'forbidden' ? 'Sem permissão para ver as métricas do site.' : s.status === 'offline' ? 'Aparece com o servidor conectado.' : 'O Google Analytics não respondeu.'}</p>;
+  if (s.status === 'loading') return <div className="page-loading" role="status">Carregando o Google Analytics…</div>;
+  if (s.status === 'forbidden') return <EmptyState title="Sem permissão">Peça a permissão Ver métricas do site a um Admin.</EmptyState>;
+  if (s.status === 'offline') return <EmptyState title="Servidor desconectado">As métricas do site vêm do Google Analytics pela API do Kalidash.</EmptyState>;
+  if (s.status === 'unconfigured') return (
+    <EmptyState title="Google Analytics não conectado">
+      {s.error ?? 'A API precisa de GA4_PROPERTY_ID e GA4_SERVICE_ACCOUNT (uma conta de serviço com acesso de Leitor à propriedade do GA4).'}
+    </EmptyState>
+  );
+  return <EmptyState title="O Google Analytics não respondeu">{s.error}</EmptyState>;
+}
+
+function SiteSummary({ d }: { d: DashData }) {
+  return (
+    <section className="panel-card dash-panel">
+      <h2 className="section-title">Site · {periodLabel(d.period).toLowerCase()}</h2>
+      <SiteGate d={d}>
+        {(m) => {
+          const p = m.previous ?? undefined;
+          const has = m.previous !== null;
+          const leads = d.realLeads ? d.hero.newLeads : null;
+          const conv = leads !== null && m.totals.sessions > 0 ? leads / m.totals.sessions : null;
+          const perSession = m.totals.sessions ? (m.totals.views / m.totals.sessions).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) : '0';
+          const items: { label: string; value: ReactNode; foot: ReactNode; spark?: ReactNode }[] = [
+            { label: 'Visitantes', value: intPt(m.totals.users), foot: <Delta value={ratio(m.totals.users, p?.users)} hasPrevious={has} />, spark: <Spark values={m.daily.map((x) => x.users)} label="Visitantes por dia" /> },
+            { label: 'Sessões', value: intPt(m.totals.sessions), foot: <Delta value={ratio(m.totals.sessions, p?.sessions)} hasPrevious={has} />, spark: <Spark values={m.daily.map((x) => x.sessions)} label="Sessões por dia" /> },
+            { label: 'Páginas vistas', value: intPt(m.totals.views), foot: <span className="dash-foot">{perSession} por sessão · {duration(m.totals.avgSessionSeconds)} em média</span> },
+            { label: 'Visita → lead', value: conv === null ? '—' : `${(conv * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`, foot: <span className="dash-foot">{leads === null ? 'Aparece com o servidor conectado' : `${intPt(leads)} ${leads === 1 ? 'lead' : 'leads'} em ${intPt(m.totals.sessions)} sessões`}</span> },
+          ];
+          return (
+            <div className="dash-hero dash-hero-flat">
+              {items.map((it) => (
+                <div key={it.label} className="dash-hero-item">
+                  <div className="dash-hero-label">{it.label}</div>
+                  <div className="dash-hero-value">{it.value}</div>
+                  <div className="dash-hero-foot">{it.foot}</div>
+                  {it.spark ?? <div className="dash-spark dash-spark-empty" aria-hidden="true" />}
+                </div>
+              ))}
+            </div>
+          );
+        }}
+      </SiteGate>
+    </section>
+  );
+}
+
+/** Visitantes por dia em colunas (sem biblioteca de gráfico: é uma série curta). */
+function SiteDaily({ m }: { m: SiteMetrics }) {
+  if (m.daily.length === 0 || m.daily.every((x) => !x.users)) return <EmptyState title="Sem visitas no período">As visitas aparecem aqui, dia a dia.</EmptyState>;
+  const max = Math.max(1, ...m.daily.map((x) => x.users));
+  const fmtDay = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', '');
+  const step = Math.max(1, Math.ceil(m.daily.length / 8));
+  return (
+    <div className="site-daily" role="img" aria-label={`Visitantes por dia de ${fmtDay(m.from)} a ${fmtDay(m.to)}`}>
+      <div className="site-daily-bars">
+        {m.daily.map((x) => (
+          <div key={x.date} className="site-daily-col" title={`${fmtDay(x.date)}: ${intPt(x.users)} visitantes · ${intPt(x.sessions)} sessões`}>
+            <div className="site-daily-bar" style={{ height: `${Math.max(2, (x.users / max) * 100)}%` }} />
+          </div>
+        ))}
+      </div>
+      <div className="site-daily-axis" aria-hidden="true">
+        {m.daily.map((x, i) => <span key={x.date}>{i % step === 0 ? fmtDay(x.date) : ''}</span>)}
+      </div>
+    </div>
+  );
+}
+
+const SITE_WIDGETS: WidgetDef[] = [
+  { id: 'site-summary', title: 'Site · resumo', group: 'Site', Icon: LineIcon, description: 'Visitantes, sessões, páginas vistas e quantas visitas viraram lead, do Google Analytics.', inDefault: true, defaultOrder: 2.5, defaultSpan: 12, spans: [12], render: (d) => <SiteSummary d={d} /> },
+  panel('site-daily', 'Visitantes por dia', 'Site', BarChart3, 'Visitantes do site em cada dia do período (Google Analytics).', 8,
+    (d) => <SiteGate d={d} compact>{(m) => <SiteDaily m={m} />}</SiteGate>, (d) => `Visitantes por dia · ${periodLabel(d.period).toLowerCase()}`, [6, 8, 12], { inDefault: true, defaultOrder: 2.6 }),
+  panel('site-channels', 'Origem do tráfego', 'Site', Megaphone, 'Sessões por canal: busca, direto, redes sociais, referência… (Google Analytics).', 4,
+    (d) => <SiteGate d={d} compact>{(m) => <RankBars empty={emptyRows('Sem visitas no período', 'Os canais aparecem aqui quando houver visitas.')} rows={m.channels.map((c) => ({ key: c.label, label: channelPt(c.label), amount: c.sessions, text: intPt(c.sessions) }))} />}</SiteGate>,
+    undefined, PANEL_SPANS, { inDefault: true, defaultOrder: 2.7 }),
+  panel('site-pages', 'Páginas mais vistas', 'Site', FileSearch, 'As páginas do site com mais visualizações no período (Google Analytics).', 6,
+    (d) => <SiteGate d={d} compact>{(m) => <RankBars empty={emptyRows('Sem visitas no período', 'As páginas aparecem aqui quando houver visitas.')} rows={m.pages.map((pg) => ({ key: pg.path, label: pg.path === '/' ? 'Início (/)' : pg.path, amount: pg.views, text: intPt(pg.views) }))} />}</SiteGate>),
+  panel('site-sources', 'Origem / mídia', 'Site', GitBranch, 'Sessões por origem e mídia (google · orgânico, instagram · referência…), do Google Analytics.', 6,
+    (d) => <SiteGate d={d} compact>{(m) => <RankBars empty={emptyRows('Sem visitas no período', 'As origens aparecem aqui quando houver visitas.')} rows={m.sources.map((c) => ({ key: c.label, label: sourcePt(c.label), amount: c.sessions, text: intPt(c.sessions) }))} />}</SiteGate>),
+];
+
 export const WIDGETS: WidgetDef[] = [
   // ---- Vendas: o padrão ----
   { id: 'hero-today', title: 'Resumo do período', group: 'Vendas', Icon: TrendingUp, description: 'Valor ganho, em aberto, previsão e leads novos, com a variação contra o período anterior.', inDefault: true, defaultOrder: 1, defaultSpan: 12, spans: [12], render: (d) => <HeroToday d={d} /> },
@@ -263,13 +379,23 @@ export const WIDGETS: WidgetDef[] = [
   kpi('kpi-ticket', 'Ticket médio', 'Vendas', Trophy, 'Média do valor ganho no período.', true, (d) => <StatCard label="Ticket médio" value={formatCurrency(d.stats.averageCents / 100)} hint="Média do valor ganho no período" />, 4),
   kpi('kpi-conversion', 'Taxa de conversão', 'Vendas', Trophy, 'Ganhas sobre o total.', true, (d) => <StatCard label="Taxa de conversão" value={percent(d.stats.conversion)} hint="Ganhas sobre o total" />, 4),
   {
-    id: 'funnel', title: 'Funil por etapa', group: 'Vendas', Icon: Filter, description: 'Oportunidades e valor em cada etapa do primeiro funil ativo.', inDefault: true, defaultOrder: 5, defaultSpan: 6, spans: PANEL_SPANS,
+    id: 'funnel', title: 'Funil por etapa', group: 'Vendas', Icon: Filter, description: 'Leads e oportunidades em cada etapa do funil que você escolher.', inDefault: true, defaultOrder: 5, defaultSpan: 6, spans: PANEL_SPANS,
     render: (d) => (
-      <Panel title="Funil por etapa">
-        {d.stats.total === 0 && !d.loading
-          ? <EmptyState title="Ainda não há oportunidades">Crie a primeira em Oportunidades para ver o funil.</EmptyState>
-          : <FunnelBars showValue max={Math.max(1, ...d.stats.byStage.map((s) => s.count))} rows={d.stats.byStage.map((s) => ({ key: s.id, label: s.label, count: s.count, color: s.color, value: s.value }))} />}
-      </Panel>
+      <section className="panel-card dash-panel">
+        <div className="funnel-head">
+          <h2 className="section-title">Funil por etapa</h2>
+          {d.funnel.options.length > 1 ? (
+            <CustomSelect className="select select-sm funnel-pick" value={d.funnel.pipelineId ?? ''} onChange={(e) => d.funnel.choose(e.target.value)} aria-label="Funil mostrado">
+              {d.funnel.options.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </CustomSelect>
+          ) : d.funnel.name ? <span className="text-xs text-muted">{d.funnel.name}</span> : null}
+        </div>
+        {!d.funnel.pipelineId
+          ? <EmptyState title="Nenhum funil ativo">Crie um funil em Oportunidades para ver as etapas aqui.</EmptyState>
+          : d.stats.byStage.every((s) => s.count === 0) && !d.loading
+            ? <EmptyState title="Funil vazio">Nenhum lead ou oportunidade nas etapas de {d.funnel.name}.</EmptyState>
+            : <FunnelShape steps={d.stats.byStage.map((s) => ({ key: s.id, label: s.label, amount: s.count, text: String(s.count), sub: s.isLead ? (s.count === 1 ? 'lead' : 'leads') : formatCurrency(s.value), color: s.color }))} />}
+      </section>
     ),
   },
   {
@@ -410,6 +536,7 @@ export const WIDGETS: WidgetDef[] = [
       </Panel>
     ),
   },
+  ...SITE_WIDGETS,
   // ---- Exemplos (galeria) ----
   ...SERIES.map((s) => example(s.id, s.title, LineIcon, s.note, 12, <DemoSeries mode={s.mode} />)),
   ...OTHERS.map((o) => example(`ex-${o.id}`, o.title, o.Icon, o.note, o.span, <DemoOther id={o.id} />)),

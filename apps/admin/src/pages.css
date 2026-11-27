@@ -1684,19 +1684,21 @@ textarea.inline-input { resize: vertical; }
 .dash-grid[data-editing="true"] .dash-item { padding: 6px; border: 1px dashed var(--border-focus); background: var(--bg-surface-hover); }
 .dash-grid[data-editing="true"] .dash-body { pointer-events: none; opacity: 0.85; }
 .dash-item[data-dragging="true"] { opacity: 0.4; }
+.dash-grid:has(.dash-item[data-dragging="true"]) { cursor: grabbing; user-select: none; }
 .dash-item[data-over="true"] { outline: 2px solid var(--accent); outline-offset: 2px; }
 .dash-edit-bar { display: flex; align-items: center; gap: 4px; padding: 2px 2px 6px; min-width: 0; flex-wrap: wrap; }
-.dash-grip { display: inline-grid; place-items: center; width: 24px; height: 28px; border-radius: 6px; color: var(--text-muted); cursor: grab; touch-action: none; }
+.dash-grip { user-select: none; display: inline-grid; place-items: center; width: 24px; height: 28px; border-radius: 6px; color: var(--text-muted); cursor: grab; touch-action: none; }
 .dash-grip:hover { background: var(--bg-surface); color: inherit; }
 .dash-grip:active { cursor: grabbing; }
 .dash-edit-title { flex: 1 1 80px; min-width: 0; display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .dash-width { width: 84px; }
-@media (max-width: 1100px) {
+/* As larguras dependem do espaço da própria Dashboard (container), não da janela: com a barra lateral aberta
+   a janela pode ter 1100px e a Dashboard bem menos, ou o contrário. Só junta blocos quando não cabem. */
+.dash-wrap { container-type: inline-size; container-name: dash; }
+@container dash (max-width: 640px) {
   .dash-item[data-span="3"] { grid-column: span 6; }
-  .dash-item[data-span="4"] { grid-column: span 6; }
-  .dash-item[data-span="8"] { grid-column: span 12; }
 }
-@media (max-width: 760px) {
+@container dash (max-width: 520px) {
   .dash-grid { gap: 10px; }
   .dash-item[data-span="3"], .dash-item[data-span="4"] { grid-column: span 6; }
   .dash-item[data-span="6"], .dash-item[data-span="8"], .dash-item[data-span="12"] { grid-column: span 12; }
@@ -2008,3 +2010,38 @@ textarea.inline-input { resize: vertical; }
 .consent-redirect { display: flex; align-items: flex-start; gap: 6px; margin: 0; line-height: 1.5; }
 .consent-redirect svg { flex: none; margin-top: 2px; }
 .consent-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* Funil desenhado (components/dashboard/FunnelShape.tsx): faixas coladas formam o contorno do funil. */
+.funnel-shape { display: grid; gap: 10px; padding: 4px 0; container-type: inline-size; }
+.funnel-shape-rows { display: flex; flex-direction: column; gap: 2px; }
+.funnel-shape-row { display: grid; grid-template-columns: minmax(70px, 140px) minmax(0, 1fr) minmax(96px, auto); grid-template-areas: "label band num"; align-items: center; column-gap: 14px; }
+.funnel-shape-label { grid-area: label; font-size: 13px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.funnel-shape-band { grid-area: band; align-self: stretch; height: 42px; }
+.funnel-shape-band > div { width: 100%; height: 100%; transition: clip-path 0.35s ease; }
+.funnel-shape-num { grid-area: num; display: grid; justify-items: end; line-height: 1.3; white-space: nowrap; }
+.funnel-shape-num b { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+.funnel-shape-num small { font-size: 11.5px; color: var(--text-muted); }
+.funnel-shape-note { margin: 0; font-size: 11px; color: var(--text-muted); }
+/* Estreito (widget em 1/3 ou 1/4): o desenho à esquerda e, ao lado de cada faixa, o nome com o número embaixo.
+   As faixas continuam coladas; a % fica no balão (title). */
+@container (max-width: 420px) {
+  .funnel-shape-row { grid-template-columns: minmax(0, 1fr) minmax(104px, auto); grid-template-areas: "band label" "band num"; column-gap: 12px; }
+  .funnel-shape-band { grid-row: 1 / span 2; height: 40px; }
+  .funnel-shape-label { font-size: 12px; align-self: end; text-align: right; }
+  .funnel-shape-num { align-self: start; }
+  .funnel-shape-num .funnel-shape-rate { display: none; }
+  .funnel-shape-num b { font-size: 13.5px; }
+}
+.funnel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.funnel-head .section-title { margin: 0; }
+.funnel-pick { max-width: 200px; }
+
+/* Métricas do site (GA4) */
+.dash-hero-flat { border-top: 0; border-bottom: 0; margin: 0 -4px; }
+.site-daily { display: grid; gap: 6px; }
+.site-daily-bars { display: flex; align-items: flex-end; gap: 2px; height: 180px; padding-top: 6px; border-bottom: 1px solid var(--border-subtle); }
+.site-daily-col { flex: 1 1 0; min-width: 0; height: 100%; display: flex; align-items: flex-end; }
+.site-daily-col:hover .site-daily-bar { background: var(--accent); }
+.site-daily-bar { width: 100%; border-radius: 3px 3px 0 0; background: color-mix(in srgb, var(--accent) 70%, transparent); transition: height 0.3s ease; }
+.site-daily-axis { display: flex; gap: 2px; }
+.site-daily-axis span { flex: 1 1 0; min-width: 0; font-size: 10.5px; color: var(--text-muted); white-space: nowrap; overflow: visible; }
