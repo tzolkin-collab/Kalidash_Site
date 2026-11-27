@@ -43,21 +43,59 @@ export function channelSpend(r: SpendReport | null, channelKey: string): number 
   return byPlatform(r)[p];
 }
 
-/** Gasto do recorte da página: tudo, ou só o canal escolhido. */
+/** Moedas das plataformas ligadas que já responderam. */
+const currencies = (r: SpendReport | null) =>
+  (Object.keys(PLATFORM_CHANNEL) as SpendPlatform[]).filter((p) => r?.configured[p] && r.currency?.[p]).map((p) => [p, r!.currency![p]!] as const);
+
+/** Plataformas em moedas diferentes não se somam. */
+export const mixedCurrency = (r: SpendReport | null) => new Set(currencies(r).map(([, c]) => c)).size > 1;
+
+/** Aviso quando o gasto não está em reais (a página formata tudo como R$) ou as contas usam moedas diferentes. */
+export function currencyNote(r: SpendReport | null): string {
+  const list = currencies(r);
+  if (mixedCurrency(r)) return `As contas usam moedas diferentes (${list.map(([p, c]) => `${PLATFORM_LABEL[p]} em ${c}`).join(', ')}): o total não soma as duas e cada valor está na moeda da própria conta.`;
+  const other = list.find(([, c]) => c !== 'BRL');
+  return other ? `A conta do ${PLATFORM_LABEL[other[0]]} está em ${other[1]}: os valores de investimento estão nessa moeda, não em reais.` : '';
+}
+
+/** Gasto do recorte da página: tudo, ou só o canal escolhido. Sem total quando as moedas não batem. */
 export function totalSpend(r: SpendReport | null, channelKey = ''): number | undefined {
   if (!anyConfigured(r)) return undefined;
   if (channelKey) return channelSpend(r, channelKey) ?? 0;
+  if (mixedCurrency(r)) return undefined;
   const p = byPlatform(r);
   return p.meta + p.google;
 }
 
-export type CampaignRow = GroupRow & { spendCents?: number; platform?: SpendPlatform };
+/**
+ * Resultado só dos canais de mídia medida (Meta Ads e Google Ads ligados): é o que o investimento comprou. Lead
+ * orgânico fica fora do custo por lead qualificado e do retorno.
+ */
+export function paidTotals(channels: GroupRow[], r: SpendReport | null): { qualified: number; wonCents: number } {
+  const keys = new Set((Object.keys(PLATFORM_CHANNEL) as SpendPlatform[]).filter((p) => r?.configured[p]).map((p) => PLATFORM_CHANNEL[p]));
+  const out = { qualified: 0, wonCents: 0 };
+  for (const c of channels) if (keys.has(c.key)) { out.qualified += c.qualified; out.wonCents += c.wonCents; }
+  return out;
+}
+
+/** `otherTouchLeads`: leads da mesma linha no outro toque (remarketing aparece só no último, por exemplo). */
+export type CampaignRow = GroupRow & { spendCents?: number; platform?: SpendPlatform; otherTouchLeads?: number };
+
+/** Gastou e não trouxe lead em nenhum dos dois toques. */
+export const isIdle = (row: CampaignRow, spentCents = row.spendCents): boolean => (spentCents ?? 0) > 0 && !row.leads && !row.otherTouchLeads;
+
+function otherLeads(other: GroupRow[] | undefined, keyOf: (r: GroupRow) => string): Map<string, number> {
+  const m = new Map<string, number>();
+  for (const o of other ?? []) m.set(keyOf(o), (m.get(keyOf(o)) ?? 0) + o.leads);
+  return m;
+}
 
 /**
  * Campanhas do CRM com o gasto da plataforma ao lado. Campanha com gasto e nenhum lead entra também (com zero leads):
  * é exatamente o dinheiro que precisa de atenção. Ordem: pipeline, depois gasto, depois leads.
  */
-export function mergeCampaigns(rows: GroupRow[], r: SpendReport | null): CampaignRow[] {
+export function mergeCampaigns(rows: GroupRow[], r: SpendReport | null, other?: GroupRow[]): CampaignRow[] {
+  const elsewhere = otherLeads(other, (o) => campaignKey(o.label));
   const spend = new Map<string, { cents: number; platform: SpendPlatform; name: string }>();
   for (const c of r?.campaigns ?? []) {
     const k = campaignKey(c.name);
@@ -67,11 +105,12 @@ export function mergeCampaigns(rows: GroupRow[], r: SpendReport | null): Campaig
   const out: CampaignRow[] = rows.map((row) => {
     const s = spend.get(campaignKey(row.label));
     if (s) spend.delete(campaignKey(row.label));
-    return s ? { ...row, spendCents: s.cents, platform: s.platform } : { ...row };
+    const base: CampaignRow = { ...row, otherTouchLeads: elsewhere.get(campaignKey(row.label)) ?? 0 };
+    return s ? { ...base, spendCents: s.cents, platform: s.platform } : base;
   });
   for (const [k, s] of spend) {
     if (s.cents <= 0) continue;
-    out.push({ key: `spend:${k}`, label: s.name, group: 'pago', leads: 0, qualified: 0, opps: 0, pipelineCents: 0, won: 0, wonCents: 0, lost: 0, spendCents: s.cents, platform: s.platform });
+    out.push({ key: `spend:${k}`, label: s.name, group: 'pago', leads: 0, qualified: 0, opps: 0, pipelineCents: 0, won: 0, wonCents: 0, lost: 0, spendCents: s.cents, platform: s.platform, otherTouchLeads: elsewhere.get(k) ?? 0 });
   }
   return out.sort((a, b) => b.pipelineCents - a.pipelineCents || (b.spendCents ?? 0) - (a.spendCents ?? 0) || b.leads - a.leads);
 }
@@ -82,14 +121,14 @@ export const costPer = (spendCents: number | undefined, n: number): number | nul
 export const roas = (wonCents: number, spendCents: number | undefined): number | null => (!spendCents ? null : wonCents / spendCents);
 
 /**
- * Frase do investimento para a leitura do período: quanto custou cada lead qualificado e quanto foi gasto em
- * campanhas que não trouxeram nenhum lead. `fmt` formata centavos.
+ * Frase do investimento para a leitura do período: quanto custou cada lead qualificado da mídia paga (`paidQualified`,
+ * de paidTotals) e quanto foi gasto em campanhas que não trouxeram lead em nenhum toque. `fmt` formata centavos.
  */
-export function spendSentence(r: SpendReport | null, qualified: number, campaigns: CampaignRow[], fmt: (c: number) => string): string {
+export function spendSentence(r: SpendReport | null, paidQualified: number, campaigns: CampaignRow[], fmt: (c: number) => string): string {
   const total = totalSpend(r);
   if (total === undefined || total <= 0) return '';
-  const parts = [`Investimento de ${fmt(total)} em mídia${qualified ? `: ${fmt(total / qualified)} por lead qualificado` : ' e nenhum lead qualificado ainda'}.`];
-  const idle = campaigns.filter((c) => !c.leads && (c.spendCents ?? 0) > 0);
+  const parts = [`Investimento de ${fmt(total)} em mídia${paidQualified ? `: ${fmt(total / paidQualified)} por lead qualificado da mídia paga` : ' e nenhum lead qualificado vindo dela ainda'}.`];
+  const idle = campaigns.filter((c) => isIdle(c));
   if (idle.length) {
     const cents = idle.reduce((sum, c) => sum + (c.spendCents ?? 0), 0);
     parts.push(idle.length === 1 ? `A campanha ${idle[0].label} gastou ${fmt(cents)} sem trazer lead.` : `${idle.length} campanhas gastaram ${fmt(cents)} sem trazer lead.`);
@@ -98,13 +137,14 @@ export function spendSentence(r: SpendReport | null, qualified: number, campaign
 }
 
 /** Canais com o gasto da plataforma: Meta Ads ou Google Ads com gasto e nenhum lead no período entram com zero leads. */
-export function withSpendChannels(rows: GroupRow[], r: SpendReport | null): GroupRow[] {
-  if (!anyConfigured(r)) return rows;
+export function withSpendChannels(rows: GroupRow[], r: SpendReport | null, other?: GroupRow[]): CampaignRow[] {
+  const elsewhere = otherLeads(other, (o) => o.key);
+  const out: CampaignRow[] = rows.map((row) => ({ ...row, otherTouchLeads: elsewhere.get(row.key) ?? 0 }));
+  if (!anyConfigured(r)) return out;
   const spent = byPlatform(r);
-  const out = [...rows];
   for (const p of Object.keys(PLATFORM_CHANNEL) as SpendPlatform[]) {
     if (!r!.configured[p] || spent[p] <= 0 || out.some((row) => row.key === PLATFORM_CHANNEL[p])) continue;
-    out.push({ key: PLATFORM_CHANNEL[p], label: PLATFORM_LABEL[p], group: 'pago', leads: 0, qualified: 0, opps: 0, pipelineCents: 0, won: 0, wonCents: 0, lost: 0 });
+    out.push({ key: PLATFORM_CHANNEL[p], label: PLATFORM_LABEL[p], group: 'pago', leads: 0, qualified: 0, opps: 0, pipelineCents: 0, won: 0, wonCents: 0, lost: 0, otherTouchLeads: elsewhere.get(PLATFORM_CHANNEL[p]) ?? 0 });
   }
   return out;
 }

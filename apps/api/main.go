@@ -448,8 +448,8 @@ func main() {
 	mux.HandleFunc("/api/blog/settings", enableCORS(handleBlogSettings))
 	mux.HandleFunc("/api/blog/categories", enableCORS(handleBlogCategories))
 	mux.HandleFunc("/api/public/leads", handlePublicLead) // pública: CORS e limites próprios (public_leads.go)
-	registerAnalyticsRoutes(mux)
-	registerAnalyticsSpendRoutes(mux)                          // página Analytics do admin, só leitura (analytics.go)
+	registerAnalyticsRoutes(mux)                          // página Analytics do admin, só leitura (analytics.go)
+	registerAnalyticsSpendRoutes(mux)                     // investimento em mídia da Meta e do Google Ads (analytics_spend.go)
 	registerCampaignLinkRoutes(mux)                       // links de divulgação e links curtos /l/ (campaign_links.go)
 
 	if workflowEnabled() {

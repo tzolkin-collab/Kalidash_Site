@@ -10,12 +10,13 @@ const CODE = /^[a-z0-9]{4,16}$/i;
 
 type Resolved = { destination: string; utm: Record<string, string> };
 
-async function resolve(code: string, userAgent: string): Promise<Resolved | null> {
+async function resolve(code: string, userAgent: string, clientIp: string): Promise<Resolved | null> {
   try {
     const res = await fetch(`${API_URL.replace(/\/+$/, "")}/api/public/links/${encodeURIComponent(code.toLowerCase())}`, {
       cache: "no-store",
       // Navegador de quem clicou: a API não conta clique de robô de prévia (WhatsApp, LinkedIn...).
-      headers: { "X-Client-User-Agent": userAgent.slice(0, 400) },
+      // IP de quem clicou: a API conta uma vez o mesmo clique repetido (recarregar a página).
+      headers: { "X-Client-User-Agent": userAgent.slice(0, 400), ...(clientIp ? { "X-Client-IP": clientIp } : {}) },
       signal: AbortSignal.timeout(4000),
     });
     if (!res.ok) return null;
@@ -38,7 +39,8 @@ function redirect(to: URL): Response {
 export async function GET(request: Request, { params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
   const here = new URL(request.url);
-  const found = CODE.test(code) ? await resolve(code, request.headers.get("user-agent") ?? "") : null;
+  const clientIp = (request.headers.get("x-forwarded-for") ?? "").split(",")[0].trim().slice(0, 64);
+  const found = CODE.test(code) ? await resolve(code, request.headers.get("user-agent") ?? "", clientIp) : null;
   if (!found) return redirect(new URL("/", here));
 
   const to = new URL(found.destination, here);

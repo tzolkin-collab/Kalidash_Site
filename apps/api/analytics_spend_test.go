@@ -163,3 +163,30 @@ func TestGoogleSpendTrocaTokenELeStream(t *testing.T) {
 		t.Fatalf("Google Ads: %v %s %+v", err, cur, camps)
 	}
 }
+
+func TestMetaSpendNaoRepassaTokenELimitaPaginas(t *testing.T) {
+	var srv *httptest.Server
+	srv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Query().Get("access_token") != "" {
+			t.Errorf("token na query: %s", r.URL.RawQuery)
+		}
+		_, _ = w.Write([]byte(`{"data":[],"paging":{"next":"` + srv.URL + `/v26.0/act_123/insights?access_token=segredo&after=x"}}`))
+	}))
+	defer srv.Close()
+	oldB, oldP := metaGraphBase, metaMaxPages
+	metaGraphBase, metaMaxPages = srv.URL, 3
+	t.Cleanup(func() { metaGraphBase, metaMaxPages = oldB, oldP })
+
+	c := spendConfig{MetaToken: "tok", MetaAccount: "123", MetaVersion: "v26.0"}
+	if _, _, err := metaSpend(context.Background(), c, "2026-10-01", "2026-10-31"); err == nil || !strings.Contains(err.Error(), "incompleta") {
+		t.Errorf("limite de páginas: %v", err)
+	}
+}
+
+func TestDoJSONTiraQueryDoErroDeRede(t *testing.T) {
+	req, _ := http.NewRequest(http.MethodGet, "http://127.0.0.1:1/x?access_token=segredo", nil)
+	err := doJSON(req, &struct{}{})
+	if err == nil || strings.Contains(err.Error(), "segredo") {
+		t.Errorf("erro: %v", err)
+	}
+}

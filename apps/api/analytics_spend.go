@@ -89,6 +89,9 @@ var (
 	googleAdsBase = "https://googleads.googleapis.com"
 )
 
+// metaMaxPages limita a paginação dos insights (500 campanhas por página). Trocável nos testes.
+var metaMaxPages = 100
+
 // Busca por plataforma. Trocáveis nos testes.
 var (
 	fetchMetaSpend   = metaSpend
@@ -198,20 +201,24 @@ func handleSpend(w http.ResponseWriter, r *http.Request) {
 		platform string
 		e        spendEntry
 	}
+	// Contexto próprio: o resultado vai para o cache, então um pedido cancelado (aba fechada, troca de período) não
+	// pode virar erro guardado para os próximos.
+	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+	defer cancel()
 	var wg sync.WaitGroup
 	out := make(chan result, 2)
 	if cfg.metaOn() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			out <- result{"meta", cachedSpend("meta:"+cfg.MetaAccount, f, t, func() ([]spendCampaign, string, error) { return fetchMetaSpend(r.Context(), cfg, f, t) })}
+			out <- result{"meta", cachedSpend("meta:"+cfg.MetaAccount, f, t, func() ([]spendCampaign, string, error) { return fetchMetaSpend(ctx, cfg, f, t) })}
 		}()
 	}
 	if cfg.googleOn() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			out <- result{"google", cachedSpend("google:"+cfg.GAdsCustomer, f, t, func() ([]spendCampaign, string, error) { return fetchGoogleSpend(r.Context(), cfg, f, t) })}
+			out <- result{"google", cachedSpend("google:"+cfg.GAdsCustomer, f, t, func() ([]spendCampaign, string, error) { return fetchGoogleSpend(ctx, cfg, f, t) })}
 		}()
 	}
 	wg.Wait()
@@ -241,7 +248,10 @@ func metaSpend(ctx context.Context, c spendConfig, from, to string) ([]spendCamp
 	next := fmt.Sprintf("%s/%s/act_%s/insights?%s", metaGraphBase, c.MetaVersion, url.PathEscape(c.MetaAccount), q.Encode())
 	var out []spendCampaign
 	currency := ""
-	for page := 0; next != "" && page < 20; page++ {
+	for page := 0; next != ""; page++ {
+		if page >= metaMaxPages {
+			return nil, "", errors.New("Meta: lista de campanhas incompleta, escolha um período menor")
+		}
 		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, next, nil)
 		req.Header.Set("Authorization", "Bearer "+c.MetaToken)
 		var body struct {
@@ -274,7 +284,8 @@ func metaSpend(ctx context.Context, c spendConfig, from, to string) ([]spendCamp
 				currency = d.Currency
 			}
 		}
-		next = body.Paging.Next
+		// O token vai só no cabeçalho: tira o access_token que a Meta repete no link da próxima página.
+		next = withoutQueryParam(body.Paging.Next, "access_token")
 	}
 	return out, currency, nil
 }
@@ -354,6 +365,11 @@ func googleSpend(ctx context.Context, c spendConfig, from, to string) ([]spendCa
 func doJSON(req *http.Request, out any) error {
 	res, err := spendHTTP.Do(req)
 	if err != nil {
+		// *url.Error repete a URL inteira; a query pode trazer credencial (o link de página da Meta traz o token).
+		var ue *url.Error
+		if errors.As(err, &ue) {
+			return fmt.Errorf("%s %s: %v", ue.Op, redactURL(ue.URL), ue.Err)
+		}
 		return err
 	}
 	defer res.Body.Close()
@@ -373,6 +389,31 @@ func doJSON(req *http.Request, out any) error {
 		return errors.New("resposta inesperada da plataforma")
 	}
 	return nil
+}
+
+// redactURL tira a query (e qualquer credencial nela) de uma URL usada em mensagem de erro.
+func redactURL(raw string) string {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return "(url)"
+	}
+	u.RawQuery, u.User, u.Fragment = "", nil, ""
+	return u.String()
+}
+
+// withoutQueryParam devolve a URL sem o parâmetro `key`; URL vazia ou inválida volta vazia (fim da paginação).
+func withoutQueryParam(raw, key string) string {
+	if raw == "" {
+		return ""
+	}
+	u, err := url.Parse(raw)
+	if err != nil {
+		return ""
+	}
+	q := u.Query()
+	q.Del(key)
+	u.RawQuery = q.Encode()
+	return u.String()
 }
 
 func atoi64(s string) int64 {

@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -291,7 +292,9 @@ func handlePublicLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ua := firstNonEmpty(r.Header.Get("X-Client-User-Agent"), r.Header.Get("User-Agent"))
-	l, err := campaignLinks.Resolve(code, !previewBot.MatchString(ua))
+	ip := firstNonEmpty(strings.TrimSpace(r.Header.Get("X-Client-IP")), clientIP(r))
+	count := !previewBot.MatchString(ua) && countClick(code, ip, time.Now())
+	l, err := campaignLinks.Resolve(code, count)
 	if err != nil {
 		if !errors.Is(err, errNotFound) {
 			log.Println("⚠️ link curto:", err)
@@ -307,6 +310,56 @@ func handlePublicLink(w http.ResponseWriter, r *http.Request) {
 			"utm_content": l.UTMContent, "utm_term": l.UTMTerm,
 		},
 	})
+}
+
+// ---- contagem de cliques ----
+
+// Clique repetido da mesma pessoa (mesmo código e IP em 10 minutos) conta uma vez, e cada código conta no máximo
+// clickCapPerMinute por minuto: recarregar a página ou um script em laço não infla o número de cliques.
+const (
+	clickDedupe       = 10 * time.Minute
+	clickCapPerMinute = 60
+)
+
+var (
+	clickMu   sync.Mutex
+	clickSeen = map[string]time.Time{}   // código|ip → último clique contado
+	clickMin  = map[string][]time.Time{} // código → cliques contados no último minuto
+)
+
+func countClick(code, ip string, now time.Time) bool {
+	clickMu.Lock()
+	defer clickMu.Unlock()
+	key := code + "|" + ip
+	if t, ok := clickSeen[key]; ok && now.Sub(t) < clickDedupe {
+		return false
+	}
+	cutoff := now.Add(-time.Minute)
+	kept := clickMin[code][:0]
+	for _, t := range clickMin[code] {
+		if t.After(cutoff) {
+			kept = append(kept, t)
+		}
+	}
+	if len(kept) >= clickCapPerMinute {
+		clickMin[code] = kept
+		return false
+	}
+	clickMin[code] = append(kept, now)
+	clickSeen[key] = now
+	if len(clickSeen) > 20000 { // limpeza sob varredura
+		for k, t := range clickSeen {
+			if now.Sub(t) >= clickDedupe {
+				delete(clickSeen, k)
+			}
+		}
+		for k, v := range clickMin {
+			if len(v) == 0 || v[len(v)-1].Before(cutoff) {
+				delete(clickMin, k)
+			}
+		}
+	}
+	return true
 }
 
 // ---- MySQL ----

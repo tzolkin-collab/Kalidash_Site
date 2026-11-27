@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -190,5 +191,32 @@ func TestPublicLinkRouteScope(t *testing.T) {
 	}
 	if scope, _ := routeScope(httptest.NewRequest(http.MethodPost, "/api/blog/links", nil)); scope != "blog:write" {
 		t.Errorf("criar link: %q", scope)
+	}
+}
+
+// Recarregar o link não infla: mesmo IP conta uma vez em 10 minutos, e cada código tem teto por minuto.
+func TestCountClickDedupeETeto(t *testing.T) {
+	clickMu.Lock()
+	clickSeen, clickMin = map[string]time.Time{}, map[string][]time.Time{}
+	clickMu.Unlock()
+	now := time.Date(2026, 11, 26, 10, 0, 0, 0, time.UTC)
+	if !countClick("abc123", "1.1.1.1", now) || countClick("abc123", "1.1.1.1", now.Add(time.Minute)) {
+		t.Fatal("mesmo IP devia contar uma vez")
+	}
+	if !countClick("abc123", "1.1.1.1", now.Add(11*time.Minute)) {
+		t.Error("depois de 10 minutos conta de novo")
+	}
+	if !countClick("outro1", "1.1.1.1", now) {
+		t.Error("outro código conta à parte")
+	}
+	later := now.Add(time.Hour)
+	counted := 0
+	for i := 0; i < clickCapPerMinute+10; i++ {
+		if countClick("teto01", fmt.Sprintf("10.0.0.%d", i), later) {
+			counted++
+		}
+	}
+	if counted != clickCapPerMinute {
+		t.Errorf("teto por minuto: %d", counted)
 	}
 }

@@ -21,7 +21,7 @@ import type { CampaignLink } from '../lib/campaignLinks';
 import { loadSpend, loadTrackingHealth } from '../lib/analyticsApi';
 import type { TrackingHealth } from '../lib/analyticsApi';
 import { deliveryLayers } from '../lib/trackingHealth';
-import { PLATFORM_LABEL, anyConfigured, byPlatform, channelSpend, costPer, mergeCampaigns, platformOfChannel, roas, spendSentence, totalSpend, withSpendChannels } from '../lib/spend';
+import { PLATFORM_LABEL, anyConfigured, byPlatform, channelSpend, costPer, currencyNote, isIdle, mergeCampaigns, paidTotals, platformOfChannel, roas, spendSentence, totalSpend, withSpendChannels } from '../lib/spend';
 import type { CampaignRow, SpendPlatform, SpendReport } from '../lib/spend';
 import { Delta, Spark } from '../components/dashboard/widgets';
 import { ErrorBanner, Page, PageHeader } from '../components/ui';
@@ -90,7 +90,9 @@ function GroupTable({ rows, first, onPick, picked, spendOf }: { rows: (GroupRow 
             const group = r.group ? GROUP_LABEL[r.group] : '';
             const pick = onPick ? () => onPick(r.key) : undefined;
             const spent = spendOf?.(r);
-            const idle = spent !== undefined && spent > 0 && !r.leads;
+            const idle = spent !== undefined && isIdle(r, spent);
+            const other = 'otherTouchLeads' in r ? r.otherTouchLeads ?? 0 : 0;
+            const onlyOther = spent !== undefined && spent > 0 && !r.leads && other > 0;
             return (
               <tr
                 key={r.key}
@@ -102,7 +104,9 @@ function GroupTable({ rows, first, onPick, picked, spendOf }: { rows: (GroupRow 
               >
                 <td>
                   <span className="cell-primary">{r.label}</span>
-                  {idle ? <span className="an-sub an-warn">Gastou sem trazer lead</span> : group && group !== r.label && <span className="an-sub">{group}</span>}
+                  {idle ? <span className="an-sub an-warn">Gastou sem trazer lead</span>
+                    : onlyOther ? <span className="an-sub">Leads só no outro toque ({other})</span>
+                    : group && group !== r.label && <span className="an-sub">{group}</span>}
                 </td>
                 {withSpend && <td className="an-num">{spent === undefined ? '—' : money(spent)}</td>}
                 <td className="an-num">{r.leads}</td>
@@ -174,6 +178,10 @@ export default function Analytics() {
 
   const all = useMemo(() => outcomes(cohort(leads, win), opportunities, pipelines, touch), [leads, win, opportunities, pipelines, touch]);
   const channels = useMemo(() => byChannel(all), [all]);
+  // O outro toque só serve para não acusar "gastou sem trazer lead" em remarketing (lead que aparece só no último).
+  const otherTouch: Touch = touch === 'first' ? 'last' : 'first';
+  const allOther = useMemo(() => outcomes(cohort(leads, win), opportunities, pipelines, otherTouch), [leads, win, opportunities, pipelines, otherTouch]);
+  const campaignsOther = useMemo(() => byCampaign(allOther, otherTouch), [allOther, otherTouch]);
   const rows = useMemo(() => (channel ? all.filter((o) => o.channel.key === channel) : all), [all, channel]);
   const prevRows = useMemo(() => {
     if (!prevWin) return null;
@@ -190,18 +198,21 @@ export default function Analytics() {
     if (!spendOn || !spend) return base;
     const p = channel ? platformOfChannel(channel) : undefined;
     if (channel && !p) return base;
-    return mergeCampaigns(base, p ? { ...spend, campaigns: spend.campaigns.filter((c) => c.platform === p) } : spend);
-  }, [rows, touch, spend, spendOn, channel]);
+    return mergeCampaigns(base, p ? { ...spend, campaigns: spend.campaigns.filter((c) => c.platform === p) } : spend, campaignsOther);
+  }, [rows, touch, spend, spendOn, channel, campaignsOther]);
   const reading = useMemo(() => {
     const allSummary = summary(all);
     const base = readout(allSummary, channels, q, money);
-    const extra = spendSentence(spend, allSummary.qualified, mergeCampaigns(byCampaign(all, touch), spend), money);
+    const extra = spendSentence(spend, paidTotals(channels, spend).qualified, mergeCampaigns(byCampaign(all, touch), spend, campaignsOther), money);
     return extra ? `${base} ${extra}` : base;
-  }, [all, channels, q, spend, touch]);
-  const channelRows = useMemo(() => withSpendChannels(channels, spend), [channels, spend]);
+  }, [all, channels, q, spend, touch, campaignsOther]);
+  const channelRows = useMemo(() => withSpendChannels(channels, spend, byChannel(allOther)), [channels, spend, allOther]);
   const spent = totalSpend(spend, channel);
+  const moneyNote = currencyNote(spend);
   const platforms = byPlatform(spend);
   const pickedPlatform = channel ? platformOfChannel(channel) : undefined;
+  // Custo por qualificado e retorno contam só o que a mídia trouxe; canal sem mídia medida não tem custo.
+  const paid = channel ? (pickedPlatform ? { qualified: s.qualified, wonCents: s.wonCents } : null) : paidTotals(channels, spend);
   const organic = useMemo(() => byOrganicPiece(rows), [rows]);
   const landings = useMemo(() => byLanding(rows).slice(0, 10), [rows]);
   const signups = useMemo(() => signupsByPage(rows.map((o) => o.lead)).slice(0, 8), [rows]);
@@ -254,6 +265,8 @@ export default function Analytics() {
         <ErrorBanner key={p} title={`Não consegui ler o investimento do ${PLATFORM_LABEL[p]}`}>{e}</ErrorBanner>
       ))}
 
+      {moneyNote && <ErrorBanner title="Moeda do investimento">{moneyNote}</ErrorBanner>}
+
       <section className="dash-hero an-hero" data-cols={spendOn ? 5 : undefined} aria-label="Resumo do período">
         {spendOn && (
           <div className="dash-hero-item">
@@ -286,9 +299,9 @@ export default function Analytics() {
         </div>
         {spendOn ? (
           <div className="dash-hero-item">
-            <div className="dash-hero-label">Custo por lead qualificado</div>
-            <div className="dash-hero-value">{moneyOrDash(costPer(spent, s.qualified))}</div>
-            <div className="dash-hero-foot">Retorno {times(roas(s.wonCents, spent))} · lead → venda {pct(s.leadToWon)}</div>
+            <div className="dash-hero-label" title="Investimento ÷ leads qualificados vindos da mídia paga (Meta Ads e Google Ads); orgânico fica fora">Custo por lead qualificado</div>
+            <div className="dash-hero-value">{moneyOrDash(paid ? costPer(spent, paid.qualified) : null)}</div>
+            <div className="dash-hero-foot">{paid ? `Retorno da mídia ${times(roas(paid.wonCents, spent))}` : 'Canal sem mídia medida'} · lead → venda {pct(s.leadToWon)}</div>
           </div>
         ) : (
         <div className="dash-hero-item">
