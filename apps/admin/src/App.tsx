@@ -137,7 +137,7 @@ export default function App() {
       page = second === 'demonstracao' ? <DashboardDemo /> : <Dashboard />;
       break;
     case 'analytics':
-      page = <Analytics />;
+      page = <Analytics view={second} />;
       break;
     case 'leads':
       page = <Leads />;
