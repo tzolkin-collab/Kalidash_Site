@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<!--
+  Modelo da edição mensal da newsletter Kalidash (Resend > Broadcasts).
+  Como usar: docs/newsletter/README.md (o admin mostra e copia este modelo em Newsletter > E-mails). Troque tudo o que está entre [COLCHETES] e apague os blocos que não usar.
+  Variáveis do Resend (não traduza): {{{contact.first_name|Olá}}} e {{{RESEND_UNSUBSCRIBE_URL}}}.
+  Regras: coluna de 600px, texto de verdade (nenhum título em imagem), um CTA só, HTML abaixo de 102 KB.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Kalidash · Nº [N]</title>
+<style>
+  body { margin: 0; padding: 0; background: #f4f1ec; }
+  a { color: #8f7248; }
+  @media (max-width: 620px) {
+    .wrap { width: 100% !important; }
+    .px { padding-left: 22px !important; padding-right: 22px !important; }
+    .h1 { font-size: 26px !important; line-height: 32px !important; }
+  }
+  @media (prefers-color-scheme: dark) {
+    body, .bg { background: #141016 !important; }
+    .card { background: #1d1720 !important; }
+    .ink { color: #f1ece4 !important; }
+    .muted { color: #b9afc0 !important; }
+    .rule { border-color: #3a2f40 !important; }
+    .num { color: #d2b583 !important; }
+    a:not(.ink) { color: #d2b583 !important; }
+    .muted a { color: #b9afc0 !important; }
+    .btn { background: #d2b583 !important; }
+    .btn a { color: #1d1720 !important; }
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;background:#f4f1ec;">
+  <!-- Texto de prévia: o que aparece ao lado do assunto na caixa de entrada (até ~90 caracteres). -->
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">[PRÉVIA: uma frase que complete o assunto]&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+
+  <table role="presentation" class="bg" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f1ec;">
+    <tr><td align="center" style="padding:28px 12px;">
+
+      <table role="presentation" class="wrap card" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;background:#fdfbf8;border-radius:12px;">
+
+        <!-- 1. Cabeçalho -->
+        <tr><td class="px" style="padding:28px 40px 0;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+            <td style="font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:bold;color:#28183b;" class="ink">
+              <a href="https://kalidash.com" style="color:#28183b;text-decoration:none;" class="ink">Kalidash</a>
+            </td>
+            <td align="right" class="muted" style="font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:13px;color:#6b6270;">
+              Nº [N] · [MÊS DE 2026]
+            </td>
+          </tr></table>
+        </td></tr>
+        <tr><td class="px" style="padding:20px 40px 0;"><div class="rule" style="border-top:1px solid #e6dfd3;font-size:0;line-height:0;">&nbsp;</div></td></tr>
+
+        <!-- 2. Abertura (até 90 palavras, assinada) -->
+        <tr><td class="px" style="padding:28px 40px 0;">
+          <h1 class="h1 ink" style="margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:30px;line-height:36px;font-weight:normal;color:#28183b;">[TÍTULO DA EDIÇÃO: a ideia do mês em até 8 palavras]</h1>
+          <p class="ink" style="margin:0 0 14px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:16px;line-height:26px;color:#19171b;">{{{contact.first_name|Olá}}},</p>
+          <p class="ink" style="margin:0 0 14px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:16px;line-height:26px;color:#19171b;">[ABERTURA: 3 ou 4 frases sobre o que você viu na operação dos clientes este mês e por que importa para quem lê.]</p>
+          <p class="muted" style="margin:0;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:15px;line-height:24px;color:#6b6270;">Carol, Kalidash</p>
+        </td></tr>
+
+        <!-- 3. Do blog (2 ou 3 cartões; copie o bloco <tr> do cartão para mais um) -->
+        <tr><td class="px" style="padding:36px 40px 0;">
+          <p class="num" style="margin:0 0 4px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;color:#8f7248;">Do blog</p>
+        </td></tr>
+        <tr><td class="px" style="padding:12px 40px 0;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr><td class="rule" style="padding:16px 0;border-top:1px solid #e6dfd3;">
+              <p class="muted" style="margin:0 0 6px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:13px;color:#6b6270;">[TEMA] · [N] min de leitura</p>
+              <a href="[URL DO ARTIGO]?utm_source=newsletter&amp;utm_medium=email&amp;utm_campaign=edicao-[N]" class="ink" style="font-family:Georgia,'Times New Roman',serif;font-size:20px;line-height:27px;color:#28183b;text-decoration:none;">[TÍTULO DO ARTIGO]</a>
+              <p class="ink" style="margin:6px 0 0;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:15px;line-height:23px;color:#3c3640;">[UMA LINHA: o que o leitor ganha lendo.]</p>
+            </td></tr>
+            <tr><td class="rule" style="padding:16px 0;border-top:1px solid #e6dfd3;">
+              <p class="muted" style="margin:0 0 6px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:13px;color:#6b6270;">[TEMA] · [N] min de leitura</p>
+              <a href="[URL DO ARTIGO]?utm_source=newsletter&amp;utm_medium=email&amp;utm_campaign=edicao-[N]" class="ink" style="font-family:Georgia,'Times New Roman',serif;font-size:20px;line-height:27px;color:#28183b;text-decoration:none;">[TÍTULO DO ARTIGO]</a>
+              <p class="ink" style="margin:6px 0 0;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:15px;line-height:23px;color:#3c3640;">[UMA LINHA: o que o leitor ganha lendo.]</p>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <!-- 4. Um número (só dado aprovado para uso público) -->
+        <tr><td class="px" style="padding:28px 40px 0;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-left:3px solid #a88a58;">
+            <tr><td style="padding:4px 0 4px 18px;">
+              <p class="num" style="margin:0 0 4px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;color:#8f7248;">Um número</p>
+              <p class="ink" style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:40px;line-height:46px;color:#28183b;">[42%]</p>
+              <p class="ink" style="margin:4px 0 0;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:15px;line-height:23px;color:#3c3640;">[O QUE O NÚMERO SIGNIFICA, em uma frase, e de onde vem.]</p>
+            </td></tr>
+          </table>
+        </td></tr>
+
+        <!-- 5. Material do mês (opcional) -->
+        <tr><td class="px" style="padding:28px 40px 0;">
+          <p class="num" style="margin:0 0 4px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;color:#8f7248;">Material gratuito</p>
+          <p class="ink" style="margin:0;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:16px;line-height:25px;color:#19171b;"><a href="[URL DO ARTIGO COM O MATERIAL]?utm_source=newsletter&amp;utm_medium=email&amp;utm_campaign=edicao-[N]" style="color:#8f7248;font-weight:bold;">[NOME DO MATERIAL]</a>: [para que serve, em uma linha].</p>
+        </td></tr>
+
+        <!-- 6. CTA único -->
+        <tr><td class="px" style="padding:36px 40px 0;">
+          <div class="rule" style="border-top:1px solid #e6dfd3;font-size:0;line-height:0;">&nbsp;</div>
+          <p class="ink" style="margin:24px 0 16px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:16px;line-height:25px;color:#19171b;">[PONTE PARA O CTA: ex. "Quer saber onde a IA traz retorno primeiro na sua operação?"]</p>
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+            <td class="btn" bgcolor="#28183b" style="border-radius:8px;background:#28183b;">
+              <a href="https://kalidash.com/?utm_source=newsletter&amp;utm_medium=email&amp;utm_campaign=edicao-[N]#diagnostico" style="display:inline-block;padding:14px 26px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:16px;font-weight:bold;color:#ffffff;text-decoration:none;border-radius:8px;">Agendar um diagnóstico</a>
+            </td>
+          </tr></table>
+        </td></tr>
+
+        <!-- 7. Rodapé -->
+        <tr><td class="px" style="padding:36px 40px 32px;">
+          <p class="muted" style="margin:0 0 6px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:13px;line-height:20px;color:#6b6270;">Você recebe este e-mail porque se inscreveu no blog da Kalidash. Responda se quiser falar com a gente: lemos todas as respostas.</p>
+          <p class="muted" style="margin:0;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:13px;line-height:20px;color:#6b6270;">
+            Kalidash · Belo Horizonte, MG ·
+            <a href="https://www.linkedin.com/company/kalidash/" style="color:#6b6270;">LinkedIn</a> ·
+            <a href="https://www.instagram.com/kalidash.ai/" style="color:#6b6270;">Instagram</a> ·
+            <a href="{{{RESEND_UNSUBSCRIBE_URL}}}" style="color:#6b6270;">Sair da lista</a>
+          </p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>

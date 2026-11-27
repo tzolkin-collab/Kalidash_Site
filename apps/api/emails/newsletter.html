@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<!-- E-mails automáticos da newsletter (newsletter_emails.go): boas-vindas e entrega de material.
+     Mesmo visual do modelo das edições (emails/edicao.html). Sem .Material = boas-vindas. -->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>{{.Subject}}</title>
+<style>
+  body { margin: 0; padding: 0; background: #f4f1ec; }
+  a { color: #8f7248; }
+  @media (max-width: 620px) {
+    .wrap { width: 100% !important; }
+    .px { padding-left: 22px !important; padding-right: 22px !important; }
+    .h1 { font-size: 26px !important; line-height: 32px !important; }
+  }
+  @media (prefers-color-scheme: dark) {
+    body, .bg { background: #141016 !important; }
+    .card { background: #1d1720 !important; }
+    .ink { color: #f1ece4 !important; }
+    .muted { color: #b9afc0 !important; }
+    .rule { border-color: #3a2f40 !important; }
+    .num { color: #d2b583 !important; }
+    a:not(.ink) { color: #d2b583 !important; }
+    .muted a { color: #b9afc0 !important; }
+    .btn { background: #d2b583 !important; }
+    .btn a { color: #1d1720 !important; }
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;background:#f4f1ec;">
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">{{.Preheader}}&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+
+  <table role="presentation" class="bg" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f1ec;">
+    <tr><td align="center" style="padding:28px 12px;">
+
+      <table role="presentation" class="wrap card" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;background:#fdfbf8;border-radius:12px;">
+
+        <tr><td class="px" style="padding:28px 40px 0;">
+          <a href="{{.SiteURL}}" class="ink" style="font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:bold;color:#28183b;text-decoration:none;">Kalidash</a>
+        </td></tr>
+        <tr><td class="px" style="padding:20px 40px 0;"><div class="rule" style="border-top:1px solid #e6dfd3;font-size:0;line-height:0;">&nbsp;</div></td></tr>
+
+{{- if .Material}}
+        <tr><td class="px" style="padding:28px 40px 0;">
+          <p class="num" style="margin:0 0 8px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;color:#8f7248;">Material gratuito</p>
+          <h1 class="h1 ink" style="margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:30px;line-height:36px;font-weight:normal;color:#28183b;">{{.Material.Title}}</h1>
+          <p class="ink" style="margin:0 0 14px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:16px;line-height:26px;color:#19171b;">{{if .First}}Olá, {{.First}}{{else}}Olá{{end}}, aqui está o material que você pediu. {{.Material.Line}}</p>
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:22px 0 6px;"><tr>
+            <td class="btn" bgcolor="#28183b" style="border-radius:8px;background:#28183b;">
+              <a href="{{.Material.URL}}" style="display:inline-block;padding:14px 26px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:16px;font-weight:bold;color:#ffffff;text-decoration:none;border-radius:8px;">Abrir o material</a>
+            </td>
+          </tr></table>
+          <p class="muted" style="margin:14px 0 0;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:14px;line-height:22px;color:#6b6270;">Quer rever o contexto? <a href="{{.Material.ArticleURL}}" style="color:#8f7248;">Volte ao artigo de onde ele saiu</a>.</p>
+        </td></tr>
+        <tr><td class="px" style="padding:28px 40px 0;">
+          <p class="ink" style="margin:0 0 14px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:16px;line-height:26px;color:#19171b;">Você também passa a receber a newsletter da Kalidash: uma vez por mês, o que importa para preparar sua operação para IA, em 3 minutos de leitura.</p>
+          <p class="muted" style="margin:0;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:15px;line-height:24px;color:#6b6270;">Carol, Kalidash</p>
+        </td></tr>
+{{- else}}
+        <tr><td class="px" style="padding:28px 40px 0;">
+          <h1 class="h1 ink" style="margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:30px;line-height:36px;font-weight:normal;color:#28183b;">Que bom ter você por aqui</h1>
+          <p class="ink" style="margin:0 0 14px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:16px;line-height:26px;color:#19171b;">{{if .First}}Olá, {{.First}}{{else}}Olá{{end}},</p>
+          <p class="ink" style="margin:0 0 14px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:16px;line-height:26px;color:#19171b;">Uma vez por mês, eu mando o que importa para preparar sua operação para IA: o que estamos vendo nos clientes, os artigos novos do blog e um material para usar no dia a dia. Leitura de 3 minutos.</p>
+          <p class="ink" style="margin:0 0 14px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:16px;line-height:26px;color:#19171b;">Se quiser me contar qual desafio da sua operação você quer ver por aqui, é só responder este e-mail.</p>
+          <p class="muted" style="margin:0;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:15px;line-height:24px;color:#6b6270;">Carol, Kalidash</p>
+        </td></tr>
+        <tr><td class="px" style="padding:36px 40px 0;">
+          <p class="num" style="margin:0 0 4px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;color:#8f7248;">Para começar</p>
+        </td></tr>
+        <tr><td class="px" style="padding:12px 40px 0;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+{{- range .Reads}}
+            <tr><td class="rule" style="padding:16px 0;border-top:1px solid #e6dfd3;">
+              <p class="muted" style="margin:0 0 6px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:13px;color:#6b6270;">{{.Kicker}}</p>
+              <a href="{{.URL}}" class="ink" style="font-family:Georgia,'Times New Roman',serif;font-size:20px;line-height:27px;color:#28183b;text-decoration:none;">{{.Title}}</a>
+              <p class="ink" style="margin:6px 0 0;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:15px;line-height:23px;color:#3c3640;">{{.Line}}</p>
+            </td></tr>
+{{- end}}
+          </table>
+        </td></tr>
+{{- end}}
+
+        <tr><td class="px" style="padding:32px 40px 0;">
+          <div class="rule" style="border-top:1px solid #e6dfd3;font-size:0;line-height:0;">&nbsp;</div>
+          <p class="ink" style="margin:22px 0 0;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:15px;line-height:24px;color:#19171b;">Quer saber onde a IA traz retorno primeiro na sua operação? <a href="{{.DiagURL}}" style="color:#8f7248;font-weight:bold;">Agende um diagnóstico</a>.</p>
+        </td></tr>
+
+        <tr><td class="px" style="padding:28px 40px 32px;">
+          <p class="muted" style="margin:0 0 6px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:13px;line-height:20px;color:#6b6270;">Você recebe este e-mail porque se inscreveu no blog da Kalidash. Não quer mais receber? Responda com "sair" e tiramos você da lista.</p>
+          <p class="muted" style="margin:0;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:13px;line-height:20px;color:#6b6270;">
+            Kalidash · Belo Horizonte, MG ·
+            <a href="https://www.linkedin.com/company/kalidash/" style="color:#6b6270;">LinkedIn</a> ·
+            <a href="https://www.instagram.com/kalidash.ai/" style="color:#6b6270;">Instagram</a>
+          </p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>

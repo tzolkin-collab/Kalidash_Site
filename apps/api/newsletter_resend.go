@@ -75,8 +75,9 @@ var resendDo = func(method, path string, body any) (int, error) {
 }
 
 // syncNewsletterContact cria o contato já nos segmentos. Se o e-mail já existe no Resend (409/422), só o coloca nos
-// segmentos: não mexe no "unsubscribed", para não reinscrever quem já saiu da lista.
-func syncNewsletterContact(c newsletterContact) error {
+// segmentos: não mexe no "unsubscribed", para não reinscrever quem já saiu da lista. created diz se o contato é novo
+// (só quem é novo recebe as boas-vindas, newsletter_emails.go).
+func syncNewsletterContact(c newsletterContact) (created bool, err error) {
 	segs := make([]map[string]string, 0, len(c.Segments))
 	for _, s := range c.Segments {
 		segs = append(segs, map[string]string{"id": s})
@@ -90,36 +91,48 @@ func syncNewsletterContact(c newsletterContact) error {
 	}
 	status, err := resendDo(http.MethodPost, "/contacts", body)
 	if err != nil {
-		return err
+		return false, err
 	}
 	switch {
 	case status >= 200 && status < 300:
-		return nil
+		return true, nil
 	case status == http.StatusConflict || status == http.StatusUnprocessableEntity:
 		for _, s := range c.Segments {
 			st, err := resendDo(http.MethodPost, "/contacts/"+url.PathEscape(c.Email)+"/segments/"+url.PathEscape(s), nil)
 			if err != nil {
-				return err
+				return false, err
 			}
 			if st >= 300 {
-				return fmt.Errorf("o Resend recusou incluir o contato no segmento (%d)", st)
+				return false, fmt.Errorf("o Resend recusou incluir o contato no segmento (%d)", st)
 			}
 		}
-		return nil
+		return false, nil
 	default:
-		return fmt.Errorf("o Resend recusou o contato (%d)", status)
+		return false, fmt.Errorf("o Resend recusou o contato (%d)", status)
 	}
 }
 
 // dispatchNewsletter roda depois da resposta ao site (trocável nos testes). O log não leva o e-mail.
+// Ordem: contato no segmento e, em seguida, o e-mail automático (boas-vindas a quem é novo, ou o material pedido).
 var dispatchNewsletter = func(in leadInput) {
-	c, ok := newsletterContactFor(in)
-	if !ok {
+	c, contactOK := newsletterContactFor(in)
+	mail, mailOK := newsletterMailFor(in)
+	if !contactOK && !mailOK {
 		return
 	}
 	go func() {
-		if err := syncNewsletterContact(c); err != nil {
-			log.Printf("⚠️ newsletter → Resend (%s): %v", in.Source, err)
+		created := false
+		if contactOK {
+			var err error
+			if created, err = syncNewsletterContact(c); err != nil {
+				log.Printf("⚠️ newsletter → Resend (%s): %v", in.Source, err)
+			}
+		}
+		// Boas-vindas só para contato novo; o material vai sempre que foi pedido.
+		if mailOK && (mail.Material != nil || created) {
+			if err := sendNewsletterMail(in.Email, mail); err != nil {
+				log.Printf("⚠️ newsletter → e-mail automático (%s): %v", in.Source, err)
+			}
 		}
 	}()
 }

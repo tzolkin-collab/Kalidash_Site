@@ -5,13 +5,13 @@ import { formatDate } from '../lib/format';
 import { useStore } from '../lib/store';
 import { useCrmMode } from '../lib/crmMode';
 import { usePaged } from '../lib/usePaged';
-import { useShell } from '../lib/shell';
 import { leadsStore } from '../mocks/leads';
 import LeadSheet from '../components/LeadSheet';
 import PartySheets from '../components/PartySheets';
 import type { PartyRef } from '../components/PartySheets';
 import { CustomSelect, InfoPop, EmptyState, Page, PageHeader, Pagination, SampleBanner, SearchBox, StatCard, Tabs } from '../components/ui';
 import { LabelBadge, LeadStatusBadge } from '../components/badges';
+import NewsletterEmails from '../components/NewsletterEmails';
 
 /* Newsletter do blog. Não há cadastro à parte: cada inscrição feita no site (POST /api/public/leads com a origem
  * "blog-newsletter-…") vira um Lead no CRM, com a tag "Newsletter" e a origem do formulário em customData.formSource.
@@ -98,11 +98,10 @@ function csv(rows: Inscrito[]): string {
   return ['Nome,E-mail,Inscrito em,Onde se inscreveu,Material pedido', ...linhas].join('\n');
 }
 
-type Aba = 'todos' | 'material';
+type Aba = 'todos' | 'material' | 'emails';
 
 export default function Newsletter() {
   const crmMode = useCrmMode();
-  const { navigate } = useShell();
   const [leads] = useStore(leadsStore);
   const [aba, setAba] = useState<Aba>('todos');
   const [busca, setBusca] = useState('');
@@ -206,9 +205,9 @@ export default function Newsletter() {
         <InfoPop icon={Upload} label="Inscritos antigos" title="Quem se inscreveu antes da ligação">
           Entra pelo CSV: Resend &gt; Contacts &gt; Import.
         </InfoPop>
-        <InfoPop icon={LayoutTemplate} label="Modelos de teste" title="Modelos visuais">
-          Ficam em{' '}
-          <a href="#/emails" onClick={(e) => { e.preventDefault(); navigate('/emails'); }}>E-mails</a>.
+        <InfoPop icon={LayoutTemplate} label="Os e-mails" title="Os 3 e-mails da newsletter">
+          Newsletter mensal, boas-vindas e material gratuito: veja como chegam na aba{' '}
+          <a href="#/newsletter" onClick={(e) => { e.preventDefault(); setAba('emails'); }}>E-mails</a>.
         </InfoPop>
       </div>
 
@@ -216,11 +215,14 @@ export default function Newsletter() {
         tabs={[
           { id: 'todos' as const, label: 'Todos', count: inscritos.length },
           { id: 'material' as const, label: 'Pediram material', count: stats.material },
+          { id: 'emails' as const, label: 'E-mails', count: 3 },
         ]}
         value={aba}
         onChange={(id) => { setAba(id); paged.setPage(1); }}
       />
 
+      {aba === 'emails' ? <NewsletterEmails /> : (
+        <>
       <div className="toolbar">
         <SearchBox value={busca} onChange={setBusca} placeholder="Buscar por nome, e-mail, material ou página…" />
         <CustomSelect className="select select-sm" value={lugar} onChange={(e) => setLugar(e.target.value as '' | Lugar)} aria-label="Filtrar por onde se inscreveu">
@@ -278,6 +280,8 @@ export default function Newsletter() {
         </div>
         <Pagination page={paged.page} pageSize={paged.pageSize} total={paged.total} onPage={paged.setPage} onPageSize={paged.setPageSize} />
       </div>
+        </>
+      )}
 
       {openLead && <LeadSheet key={openLead} leadId={openLead} onClose={() => setOpenLead(null)} onOpenParty={(ref) => { setOpenLead(null); setOpenParty(ref); }} onNotice={setNotice} />}
       <PartySheets open={openParty} onOpen={setOpenParty} />

@@ -34,6 +34,7 @@ import ViewSettingsPopover from '../components/ViewSettingsPopover';
 import { EmptyState, ErrorBanner, Pagination, SearchBox } from '../components/ui';
 import { TagManagerButton } from '../components/TagsAdmin';
 import { LabelBadge } from '../components/badges';
+import { logChange } from '../lib/history';
 
 const ALL = 'Visão Geral';
 
@@ -119,7 +120,14 @@ export default function Opportunities() {
       body: JSON.stringify({ lead_id: oppId, column_id: stageId, won, ...(lost ? { lostReason: lost.reason, lostReasonNote: lost.note } : {}) }),
     })
       .then(async (res) => {
-        if (res.ok || !remote) return;
+        if (res.ok || !remote) {
+          // A cronologia da ficha (aba Etapas) lê daqui quando a oportunidade entrou em cada etapa.
+          if (original && !original.isLead && original.stage !== stageId) {
+            const name = (id: string) => pipelines.flatMap((p) => p.stages).find((s) => s.id === id)?.name ?? id;
+            logChange({ entity: 'opportunity', entityId: oppId, entityName: original.title, kind: 'edit', field: 'Etapa', from: name(original.stage), to: name(stageId) });
+          }
+          return;
+        }
         revert();
         if (res.status === 422) {
           // Regra do servidor (motivo fora da lista, etapa que não existe…): mostra o que ele disse.

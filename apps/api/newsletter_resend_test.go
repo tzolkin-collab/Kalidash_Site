@@ -57,9 +57,12 @@ func TestNewsletterContactFor(t *testing.T) {
 
 func TestSyncNewsletterContactCreates(t *testing.T) {
 	calls := stubResendContacts(t, http.StatusOK)
-	err := syncNewsletterContact(newsletterContact{Email: "ana@empresa.com", First: "Ana", Last: "Ribeiro", Segments: []string{"seg-news"}})
+	created, err := syncNewsletterContact(newsletterContact{Email: "ana@empresa.com", First: "Ana", Last: "Ribeiro", Segments: []string{"seg-news"}})
 	if err != nil {
 		t.Fatal(err)
+	}
+	if !created {
+		t.Fatal("contato novo deveria voltar created=true")
 	}
 	if len(*calls) != 1 || (*calls)[0].method != http.MethodPost || (*calls)[0].path != "/contacts" {
 		t.Fatalf("chamadas: %+v", *calls)
@@ -76,9 +79,12 @@ func TestSyncNewsletterContactCreates(t *testing.T) {
 // Contato que já existe no Resend: só entra nos segmentos, sem reinscrever quem saiu.
 func TestSyncNewsletterContactExisting(t *testing.T) {
 	calls := stubResendContacts(t, http.StatusConflict, http.StatusOK, http.StatusOK)
-	err := syncNewsletterContact(newsletterContact{Email: "ana@empresa.com", Segments: []string{"seg-news", "seg-mat"}})
+	created, err := syncNewsletterContact(newsletterContact{Email: "ana@empresa.com", Segments: []string{"seg-news", "seg-mat"}})
 	if err != nil {
 		t.Fatal(err)
+	}
+	if created {
+		t.Fatal("contato que já existia não é novo: não recebe boas-vindas de novo")
 	}
 	want := []string{"/contacts", "/contacts/ana@empresa.com/segments/seg-news", "/contacts/ana@empresa.com/segments/seg-mat"}
 	if len(*calls) != len(want) {
@@ -93,7 +99,7 @@ func TestSyncNewsletterContactExisting(t *testing.T) {
 
 func TestSyncNewsletterContactRefused(t *testing.T) {
 	stubResendContacts(t, http.StatusUnauthorized)
-	if err := syncNewsletterContact(newsletterContact{Email: "ana@empresa.com", Segments: []string{"seg-news"}}); err == nil {
+	if _, err := syncNewsletterContact(newsletterContact{Email: "ana@empresa.com", Segments: []string{"seg-news"}}); err == nil {
 		t.Fatal("401 do Resend deveria virar erro")
 	}
 }

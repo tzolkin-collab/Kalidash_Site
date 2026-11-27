@@ -26,7 +26,7 @@ Responda na ordem e pare no primeiro "sim":
 | `LabelBadge` | contorno reto, sem ponto | Venda, Pós-venda, Admin, Produção, 3 passos, v2 |
 | `SampleBadge` | contorno âmbar tracejado com frasco | Exemplo, Só neste navegador |
 | `EmptyBadge` | cinza, sem cor | Sem dono |
-| `StageBadge` | contorno na cor da etapa, ícone do tipo | Novos, Proposta, Ganho |
+| `StageBadge` | fita em seta, cheia na cor da etapa, com o ícone do tipo (só a etapa usa a seta: lê como passo de um caminho) | Novos, Proposta, Ganho |
 | `SourceBadge` | tracejado azul com bússola | Inbound · Formulário da LP |
 | `PriorityBadge` | barra lateral com bandeira | Alta, Média, Baixa |
 | `TagChip` | forma pela categoria da tag | B2B, Decisor, Feira X |

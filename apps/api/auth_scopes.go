@@ -228,6 +228,8 @@ func routeScope(r *http.Request) (scope string, public bool) {
 		return pick("leads:read", "leads:write"), false
 	case p == "/api/emails/send":
 		return "emails:send", false
+	case p == "/api/newsletter/emails":
+		return "leads:read", false // e-mails da newsletter (newsletter_admin.go): a newsletter é feita de leads
 	}
 	// Rota sem escopo mapeado: pessoas logadas passam (como antes); token nunca (nega por padrão).
 	return "", false

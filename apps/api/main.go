@@ -433,6 +433,7 @@ func main() {
 	mux.HandleFunc("/api/leads/notes", enableCORS(handleNotes))
 	mux.HandleFunc("/api/emails/send", enableCORS(handleSendEmail))
 	mux.HandleFunc("/api/emails/test", enableCORS(handleTestEmail)) // só para o e-mail de quem está logado (emails.go)
+	mux.HandleFunc("/api/newsletter/emails", enableCORS(handleNewsletterEmails)) // os 3 e-mails da newsletter para o admin (newsletter_admin.go)
 	mux.HandleFunc("/api/blog/articles", enableCORS(handleBlogArticles))
 	mux.HandleFunc("/api/blog/article", enableCORS(handleBlogArticleBySlug))
 	mux.HandleFunc("/api/blog/slug-available", enableCORS(handleBlogSlugAvailable))

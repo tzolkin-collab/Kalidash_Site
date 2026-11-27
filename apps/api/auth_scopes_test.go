@@ -71,7 +71,7 @@ func TestEfetivosSomamExtrasETiramRemovidos(t *testing.T) {
 // Cada linha: o escopo que a rota exige. É a tabela única de routeScope posta à prova.
 func TestRotaExigeEscopo(t *testing.T) {
 	cases := []struct{ method, path, scope string }{
-		{"GET", "/api/leads", "leads:read"}, {"POST", "/api/leads", "leads:write"}, {"POST", "/api/leads/move", "leads:write"},
+		{"GET", "/api/leads", "leads:read"}, {"GET", "/api/newsletter/emails", "leads:read"}, {"POST", "/api/leads", "leads:write"}, {"POST", "/api/leads/move", "leads:write"},
 		{"GET", "/api/leads/notes", "leads:read"}, {"GET", "/api/crm/leads", "leads:read"}, {"PUT", "/api/crm/leads/l1", "leads:write"},
 		{"GET", "/api/crm/people", "people:read"}, {"POST", "/api/crm/people", "people:write"}, {"DELETE", "/api/crm/people/p1", "people:write"},
 		{"GET", "/api/crm/companies", "people:read"}, {"PUT", "/api/crm/companies/c1", "people:write"},

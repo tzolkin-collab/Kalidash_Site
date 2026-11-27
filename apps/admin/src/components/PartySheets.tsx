@@ -5,7 +5,8 @@ import { saveTagCategory, useTagCatalog } from '../lib/tagSync';
 import { MAX_TAG_LENGTH } from '../lib/tags';
 import { useMemo, useRef, useState } from 'react';
 import { Archive, ArchiveRestore, Plus, Trash2, UserPlus } from 'lucide-react';
-import type { Company, Lifecycle, Person, Stakeholder } from '../domain';
+import type { Company, Lead, Lifecycle, Person, Stakeholder } from '../domain';
+import type { Opportunity } from '../types';
 import { formatCnpj, formatCpf, isValidCnpj, isValidCpf, stripDoc } from '../lib/documents';
 import { editRecord, manualLifecycle, setArchived } from '../lib/edit';
 import { emit } from '../lib/events';
@@ -20,10 +21,19 @@ import { leadsStore } from '../mocks/leads';
 import { companiesOf, companiesStore, contactTagsStore, peopleStore } from '../mocks/people';
 import CustomFieldsSection from './CustomFieldsSection';
 import { ContactListField, DocumentField, ReadOnlyField, SelectField, TagsField, TextField } from './fields';
-import { HistoryTab, TasksTab } from './RecordTabs';
+import { HistoryTab, StagesTab } from './RecordTabs';
+import type { StageRecord } from './RecordTabs';
 import RecordSheet from './RecordSheet';
 import { CustomSelect } from '../components/ui';
-import { LeadStatusBadge, LifecycleBadge, StageBadge, StatusBadge } from './badges';
+import { LeadStatusBadge, LifecycleBadge, SampleBadge, StageBadge, StatusBadge } from './badges';
+
+/** Leads ativos e oportunidades do cliente, no formato da aba Etapas (descartados e qualificados já saíram do funil de lead). */
+function stageRecords(leads: Lead[], opps: Opportunity[]): StageRecord[] {
+  return [
+    ...leads.filter((l) => l.status === 'ACTIVE' && !l.archivedAt).map((l): StageRecord => ({ kind: 'lead', id: l.id, title: l.name, pipelineId: l.pipelineId, stageId: l.stageId, createdAt: l.createdAt })),
+    ...opps.filter((o) => !o.isLead).map((o): StageRecord => ({ kind: 'opportunity', id: o.id, title: o.title, stageId: o.stage, pipelineName: o.pipeline, createdAt: o.created_at })),
+  ];
+}
 
 export type PartyRef = { kind: 'person' | 'company'; id: string } | null;
 
@@ -137,7 +147,7 @@ function PersonSheet({ personId, onOpen }: { personId: string; onOpen: (ref: Par
       onTitle={(v) => save({ name: v }, 'Nome', person.name, v)}
       badges={<><LifecycleBadge value={person.lifecycle} />{person.archivedAt && <StatusBadge tone="danger">Arquivada</StatusBadge>}</>}
       subtitle={person.role}
-      tabs={[{ id: 'overview', label: 'Visão geral' }, { id: 'links', label: 'Vínculos', count: myLeads.length + myOpps.length }, { id: 'tasks', label: 'Tarefas' }, { id: 'history', label: 'Histórico' }]}
+      tabs={[{ id: 'overview', label: 'Visão geral' }, { id: 'links', label: 'Vínculos', count: myLeads.length + myOpps.length }, { id: 'stages', label: 'Etapas' }, { id: 'history', label: 'Histórico' }]}
       tab={tab}
       onTab={setTab}
       footer={
@@ -206,10 +216,10 @@ function PersonSheet({ personId, onOpen }: { personId: string; onOpen: (ref: Par
           {myLeads.map((l) => <div key={l.id} className="relation-row"><span className="cell-primary">{l.name}</span><LeadStatusBadge status={l.status} />{l.returningClient && <StatusBadge tone="info">Cliente retornando</StatusBadge>}</div>)}
           <h3 className="sheet-section-title" style={{ marginTop: '20px' }}>Oportunidades</h3>
           {myOpps.length === 0 && <p className="text-sm text-muted">Nenhuma oportunidade.</p>}
-          {myOpps.map((o) => <div key={o.id} className="relation-row"><span className="cell-primary">{o.title}</span><StageBadge stage={o.stage} opp={o} />{o.isSample && <StatusBadge tone="warning">Exemplo</StatusBadge>}</div>)}
+          {myOpps.map((o) => <div key={o.id} className="relation-row"><span className="cell-primary">{o.title}</span><StageBadge stage={o.stage} opp={o} />{o.isSample && <SampleBadge />}</div>)}
         </div>
       )}
-      {tab === 'tasks' && <TasksTab entity="person" id={person.id} name={person.name} ctx={ctx} />}
+      {tab === 'stages' && <StagesTab entity="person" id={person.id} name={person.name} ctx={ctx} records={stageRecords(myLeads, myOpps)} />}
       {tab === 'history' && <HistoryTab entity="person" id={person.id} createdAt={person.createdAt} />}
     </RecordSheet>
   );
@@ -256,7 +266,7 @@ function CompanySheet({ companyId, onOpen }: { companyId: string; onOpen: (ref: 
       onTitle={(v) => save({ name: v }, 'Nome', company.name, v)}
       badges={<><LifecycleBadge value={company.lifecycle} />{inReview ? <StatusBadge tone="warning">Em análise</StatusBadge> : <StatusBadge tone="success">Cadastro completo</StatusBadge>}{company.archivedAt && <StatusBadge tone="danger">Arquivada</StatusBadge>}</>}
       subtitle={company.segment}
-      tabs={[{ id: 'overview', label: 'Visão geral' }, { id: 'links', label: 'Oportunidades e leads', count: myLeads.length + myOpps.length }, { id: 'tasks', label: 'Tarefas' }, { id: 'history', label: 'Histórico' }]}
+      tabs={[{ id: 'overview', label: 'Visão geral' }, { id: 'links', label: 'Oportunidades e leads', count: myLeads.length + myOpps.length }, { id: 'stages', label: 'Etapas' }, { id: 'history', label: 'Histórico' }]}
       tab={tab}
       onTab={setTab}
       footer={
@@ -295,10 +305,10 @@ function CompanySheet({ companyId, onOpen }: { companyId: string; onOpen: (ref: 
           {myLeads.map((l) => <div key={l.id} className="relation-row"><span className="cell-primary">{l.name}</span><LeadStatusBadge status={l.status} /></div>)}
           <h3 className="sheet-section-title" style={{ marginTop: '20px' }}>Oportunidades</h3>
           {myOpps.length === 0 && <p className="text-sm text-muted">Nenhuma oportunidade.</p>}
-          {myOpps.map((o) => <div key={o.id} className="relation-row"><span className="cell-primary">{o.title}</span><StageBadge stage={o.stage} opp={o} />{o.isSample && <StatusBadge tone="warning">Exemplo</StatusBadge>}</div>)}
+          {myOpps.map((o) => <div key={o.id} className="relation-row"><span className="cell-primary">{o.title}</span><StageBadge stage={o.stage} opp={o} />{o.isSample && <SampleBadge />}</div>)}
         </div>
       )}
-      {tab === 'tasks' && <TasksTab entity="company" id={company.id} name={company.name} ctx={ctx} />}
+      {tab === 'stages' && <StagesTab entity="company" id={company.id} name={company.name} ctx={ctx} records={stageRecords(myLeads, myOpps)} />}
       {tab === 'history' && <HistoryTab entity="company" id={company.id} createdAt={company.createdAt} />}
     </RecordSheet>
   );

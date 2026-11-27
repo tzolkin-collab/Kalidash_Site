@@ -16,7 +16,7 @@ import { pipelinesStore } from '../mocks/pipelines';
 //   LabelBadge    tipo, papel, classificação, conta  contorno reto, sem ponto     Venda, Admin, Produção, 3 passos, v2
 //   SampleBadge   não é real / não roda no servidor  contorno âmbar + frasco      Exemplo
 //   EmptyBadge    campo sem valor                    cinza, sem cor               Sem dono, Sem responsável
-//   StageBadge    etapa do funil                     contorno na cor da etapa     Novos, Proposta, Ganho
+//   StageBadge    etapa do funil                     fita em seta na cor da etapa Novos, Proposta, Ganho
 //   SourceBadge   origem/fonte do lead               tracejado azul + bússola     Inbound · Formulário da LP
 //   PriorityBadge prioridade                         barra lateral + bandeira     Alta, Média, Baixa
 //   TagChip       tag (texto livre do usuário)       forma pela categoria         B2B, Decisor, Feira X
@@ -108,7 +108,7 @@ const LEGACY_STAGE: Record<string, { label: string; color: string; kind: StageKi
 };
 const KIND_ICON: Record<StageKind, typeof CircleDot> = { LEAD: CircleDashed, OPEN: CircleDot, WON: CheckCircle2, LOST: XCircle };
 
-/** Etapa do funil, na cor da etapa e com o ícone do tipo. Passe `opp` para resolver pelo funil (id de etapa ou valor antigo). */
+/** Etapa do funil: a fita em seta, cheia na cor da etapa, com o ícone do tipo. Só a etapa usa a seta. Passe `opp` para resolver pelo funil (id de etapa ou valor antigo). */
 export function StageBadge({ stage, opp }: { stage: string; opp?: Pick<Opportunity, 'stage' | 'pipeline'> }) {
   const [pipelines] = useStore(pipelinesStore);
   const real = resolveStage(opp ?? { stage }, pipelines).stage;
