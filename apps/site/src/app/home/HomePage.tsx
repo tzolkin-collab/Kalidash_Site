@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./home.module.css";
@@ -23,7 +23,7 @@ import {
   WhatsApp,
 } from "./icons";
 import FlickeringGrid from "../components/FlickeringGrid";
-import AnthropicPartnerBadge, { ClaudeLogoIcon } from "./AnthropicPartnerBadge";
+import AnthropicPartnerBadge from "./AnthropicPartnerBadge";
 import {
   clients,
   config,
@@ -86,7 +86,6 @@ export default function HomePage() {
     const timeout = window.setTimeout(finish, 5000);
     return () => window.clearTimeout(timeout);
   }, []);
-  const [isBadgeHovered, setIsBadgeHovered] = useState(false);
   const logoLoop = [...clients, ...clients];
 
   return (
@@ -122,28 +121,14 @@ export default function HomePage() {
           <div className={styles.heroCopy}>
             {hero.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
           </div>
-          <div
-            className={styles.heroActions}
-            data-badge-hovered={isBadgeHovered}
-            onMouseEnter={() => setIsBadgeHovered(true)}
-            onMouseLeave={() => setIsBadgeHovered(false)}
-          >
-            <Link
-              className={styles.primaryButton}
-              href={hero.primaryCta.href}
-              onFocus={() => setIsBadgeHovered(true)}
-              onBlur={() => setIsBadgeHovered(false)}
-            >
+          <div className={styles.heroActions}>
+            <Link className={styles.primaryButton} href={hero.primaryCta.href}>
               <span>{hero.primaryCta.label}</span>
               <span className={styles.buttonIconWrap} aria-hidden="true">
-                <ClaudeLogoIcon className={styles.buttonClaudeIcon} />
                 <ArrowRight className={styles.buttonArrowIcon} />
               </span>
             </Link>
-            <AnthropicPartnerBadge
-              isHovered={isBadgeHovered}
-              onHoverChange={setIsBadgeHovered}
-            />
+            <AnthropicPartnerBadge />
           </div>
           </div>
           <div className={heroStyles.bust} aria-hidden="true">

@@ -1,5 +1,3 @@
-"use client";
-
 import styles from "./AnthropicPartnerBadge.module.css";
 
 // SVG oficial do Claude AI (fonte: svgl.app)
@@ -32,58 +30,16 @@ export function AnthropicWordmark({ className }: { className?: string }) {
   );
 }
 
-interface AnthropicPartnerBadgeProps {
-  isHovered: boolean;
-  onHoverChange: (hovered: boolean) => void;
-}
-
-export default function AnthropicPartnerBadge({
-  isHovered,
-  onHoverChange,
-}: AnthropicPartnerBadgeProps) {
+export default function AnthropicPartnerBadge() {
   return (
     <a
       href="https://www.anthropic.com"
       target="_blank"
       rel="noopener noreferrer"
       className={styles.badge}
-      data-hovered={isHovered}
-      onMouseEnter={() => onHoverChange(true)}
-      onMouseLeave={() => onHoverChange(false)}
-      onFocus={() => onHoverChange(true)}
-      onBlur={() => onHoverChange(false)}
       aria-label="Anthropic Partner Network - Verified Services Partner"
       title="Anthropic Verified Partner"
     >
-      {/* Versão Desktop: Ícone puro em repouso; expande no hover para o selo completo */}
-      <div className={styles.desktopView}>
-        <div className={styles.badgeInner}>
-          <div className={styles.topRow}>
-            {/* Logo do Claude (em repouso é só o ícone sem bg nem borda; no hover vira o box terracota) */}
-            <div className={styles.logoBox}>
-              <ClaudeLogoIcon className={styles.claudeIcon} />
-            </div>
-
-            {/* Divisor vertical */}
-            <div className={styles.divider} aria-hidden="true" />
-
-            {/* Textos ANTHROPIC e Partner Network */}
-            <div className={styles.textCol}>
-              <div className={styles.anthropicBrand}>
-                <AnthropicWordmark className={styles.anthropicWordmark} />
-              </div>
-              <span className={styles.networkLabel}>Partner Network</span>
-            </div>
-          </div>
-
-          {/* Faixa inferior: Pill Terracota */}
-          <div className={styles.bottomPill}>
-            <span>VERIFIED SERVICES PARTNER</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Versão Mobile: Design ultra-minimalista, direto e refinado */}
       <div className={styles.mobileView}>
         <div className={styles.mobilePill}>
           <ClaudeLogoIcon className={styles.mobileClaudeIcon} />
