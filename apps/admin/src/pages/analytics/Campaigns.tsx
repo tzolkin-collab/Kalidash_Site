@@ -6,7 +6,7 @@ import { MIN_BASE, byCampaign, byLanding, byOrganicPiece, rate, signupsByPage } 
 import type { GroupRow, Outcome } from '../../lib/acquisitionMetrics';
 import { attributionOf, campaignOf, landingOf } from '../../lib/channels';
 import { shortLabel } from '../../lib/campaignLinks';
-import { currencyNote } from '../../lib/spend';
+import { currencyNote, mergeCampaigns } from '../../lib/spend';
 import type { CampaignRow } from '../../lib/spend';
 import { ErrorBanner } from '../../components/ui';
 import GroupTable from '../../components/analytics/GroupTable';
@@ -48,11 +48,15 @@ export default function Campaigns({ a, go }: { a: Acquisition; go: (path: string
 
   const rows: (GroupRow | CampaignRow)[] = useMemo(() => {
     // Com um tipo escolhido, a campanha é somada só com os leads dele; o gasto da plataforma só existe nas pagas.
-    if (dim === 'campaign') return kind === 'all' ? a.campaigns : kind === 'pago' ? a.campaigns.filter((r) => r.group === 'pago') : byCampaign(base, a.touch);
+    if (dim === 'campaign') {
+      if (kind === 'all') return a.campaigns;
+      const only = byCampaign(base, a.touch);
+      return kind === 'pago' && a.spendOn && !a.channel ? mergeCampaigns(only, a.spend, a.campaignsOther) : only;
+    }
     if (dim === 'channel') return a.channelRows.filter((r) => isKind(r.group, kind));
     if (dim === 'piece') return byOrganicPiece(base);
     return byLanding(base);
-  }, [dim, kind, a.campaigns, a.channelRows, a.touch, base]);
+  }, [dim, kind, a.campaigns, a.channelRows, a.touch, a.spend, a.spendOn, a.channel, a.campaignsOther, base]);
 
   const selected = rows.find((r) => r.key === picked);
   // Leads do item escolhido, com a mesma chave que o agrupamento usa (vale para o período atual e o anterior).

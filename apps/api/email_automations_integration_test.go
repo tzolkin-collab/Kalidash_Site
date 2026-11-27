@@ -100,7 +100,8 @@ func TestIntegrationEmailAutomations(t *testing.T) {
 		t.Errorf("evento repetido: %d %v", got, err)
 	}
 
-	now := time.Now()
+	// runAt é DATETIME sem fração: o MySQL arredonda para o segundo seguinte, que pode estar à frente de agora.
+	now := time.Now().Add(time.Second)
 	if got := runEmailWorkerOnce(now); got != 1 {
 		t.Fatalf("worker processou %d", got)
 	}
@@ -122,7 +123,7 @@ func TestIntegrationEmailAutomations(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	runEmailWorkerOnce(time.Now()) // sai só o de boas-vindas da Bia
+	runEmailWorkerOnce(time.Now().Add(time.Second)) // sai só o de boas-vindas da Bia
 	if st, _, _ := jobStatus(t, "lead-follow-up", lead2.ID); st != "QUEUED" {
 		t.Errorf("follow-up saiu antes da hora: %s", st)
 	}
@@ -144,7 +145,7 @@ func TestIntegrationEmailAutomations(t *testing.T) {
 		return "", &sendError{msg: "o Resend recusou (503)", retryable: true}
 	}
 	lead3, _ := (sqlConnectStore{}).IngestLead(inboundLead{Project: Project{PipelineID: "q4", StageID: "q4:novos", SourceName: "Site"}, Name: "Caio", Email: "caio@example.com"})
-	t0 := time.Now()
+	t0 := time.Now().Add(time.Second)
 	runEmailWorkerOnce(t0)
 	if st, att, _ := jobStatus(t, "lead-boas-vindas", lead3.ID); st != "QUEUED" || att != 1 {
 		t.Errorf("falha temporária: %s %d", st, att)

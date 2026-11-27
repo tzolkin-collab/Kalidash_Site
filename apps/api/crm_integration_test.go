@@ -38,6 +38,10 @@ func crmDB(t *testing.T) {
 			}
 		}
 	}
+	// a listagem de oportunidades lê o dono em User (Prisma): num banco limpo ela precisa existir
+	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS User (id VARCHAR(64) PRIMARY KEY, name VARCHAR(255) NOT NULL, avatarUrl VARCHAR(500) NULL)`); err != nil {
+		t.Fatal(err)
+	}
 	db.Exec("DROP TABLE IF EXISTS Note")
 	if _, err := db.Exec(`CREATE TABLE Note (id VARCHAR(64) PRIMARY KEY, content TEXT NOT NULL, type VARCHAR(16) NOT NULL DEFAULT 'NOTE', opportunityId VARCHAR(64) NOT NULL, authorId VARCHAR(64) NULL, createdAt DATETIME NOT NULL)`); err != nil {
 		t.Fatal(err)

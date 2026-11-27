@@ -259,6 +259,8 @@ func TestIntegrationCicloDoLeadDescartarRestaurar(t *testing.T) {
 			t.Fatalf("restaurar: %d %s", r.code, r.body)
 		}
 		call(handleCRMLeadByID, "GET", "/x", "ld1", nil).into(t, &got)
+		got = LeadDTO{} // campo vazio não vem no JSON: sem zerar, sobraria o motivo antigo
+		call(handleCRMLeadByID, "GET", "/x", "ld1", nil).into(t, &got)
 		if got.Status != "ACTIVE" || got.DiscardReason != "" || got.DiscardNote != "" {
 			t.Errorf("restaurar volta a ACTIVE e limpa o motivo: %+v", got)
 		}

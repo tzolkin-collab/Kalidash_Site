@@ -47,6 +47,7 @@ export default function Realtime({ touch, go }: { touch: Touch; go: (path: strin
   const [companies] = useStore(companiesStore);
   const [leads, setLeads] = useState<Lead[] | null>(null);
   const [links, setLinks] = useState<CampaignLink[]>([]);
+  const [linksFailed, setLinksFailed] = useState(false);
   const [at, setAt] = useState(() => Date.now());
   const [error, setError] = useState<string | null>(null);
   const base = useRef<Map<string, number> | null>(null);
@@ -54,9 +55,11 @@ export default function Realtime({ touch, go }: { touch: Touch; go: (path: strin
 
   const load = useCallback(async () => {
     try {
-      const [l, k] = await Promise.all([fetchLeads(), listLinks().catch(() => [] as CampaignLink[])]);
-      if (!base.current) base.current = new Map(k.map((x) => [x.id, x.clicks]));
-      setClicks(new Map(k.map((x) => [x.id, Math.max(0, x.clicks - (base.current!.get(x.id) ?? 0))])));
+      const [l, read] = await Promise.all([fetchLeads(), listLinks().catch(() => null)]);
+      setLinksFailed(read === null);
+      const k = read ?? [];
+      if (read && !base.current) base.current = new Map(k.map((x) => [x.id, x.clicks]));
+      setClicks(new Map(k.map((x) => [x.id, Math.max(0, x.clicks - (base.current?.get(x.id) ?? 0))])));
       setLeads(l.filter((x) => !x.archivedAt));
       setLinks(k);
       setAt(Date.now());
@@ -150,7 +153,7 @@ export default function Realtime({ touch, go }: { touch: Touch; go: (path: strin
         </Card>
         <Card title="Links clicados" note="Total de cliques de cada link curto" action="Ver links" onAction={() => go('/trafego/links')}>
           <BarList
-            empty="Nenhum clique em link de divulgação ainda." head={['Link', 'Cliques']}
+            empty={linksFailed ? 'Não consegui ler os links (sem permissão ou a API não respondeu).' : 'Nenhum clique em link de divulgação ainda.'} head={['Link', 'Cliques']}
             rows={clicked.map((l) => ({
               key: l.id, label: l.label, icon: <BrandLogo provider={providerOfSource(l.utm_source) ?? ''} name={l.utm_source} />,
               sub: [clicks.get(l.id) ? `+${clicks.get(l.id)} agora há pouco` : '', l.lastClickAt ? `último ${ago(l.lastClickAt, at)}` : ''].filter(Boolean).join(' · ') || undefined,
