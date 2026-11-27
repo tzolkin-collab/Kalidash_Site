@@ -1,7 +1,13 @@
 import type { NextConfig } from "next";
 import { ADMIN_ORIGINS } from "./src/lib/adminOrigins";
 
+// Projeto da Kalidash no Microsoft Clarity. O ID é público (vai no HTML). Vale só no deploy de produção, para o
+// local e as prévias não gravarem sessões; a variável NEXT_PUBLIC_CLARITY_PROJECT_ID, se preenchida, tem prioridade.
+const CLARITY_PROJECT_ID =
+  process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID || (process.env.VERCEL_ENV === "production" ? "zk8398z5in" : "");
+
 const nextConfig: NextConfig = {
+  env: { NEXT_PUBLIC_CLARITY_PROJECT_ID: CLARITY_PROJECT_ID },
   images: {
     qualities: [75, 90], // 90 só na foto de abertura da Advisory
     remotePatterns: [

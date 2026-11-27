@@ -56,6 +56,9 @@ type adsReport struct {
 // metaAdsMaxDays: uma linha por anúncio e por dia cresce rápido; períodos maiores não cabem numa resposta.
 const metaAdsMaxDays = 92
 
+// metaAdsBatch: anúncios por chamada ao buscar a estrutura.
+const metaAdsBatch = 50
+
 var (
 	adsMu    sync.Mutex
 	adsCache = map[string]adsReport{}
@@ -205,21 +208,35 @@ func metaAdRows(ctx context.Context, c spendConfig, from, to string) ([]adRow, s
 	if err != nil || len(rows) == 0 {
 		return rows, currency, err
 	}
-	ads := map[string]metaAd{}
-	aq := url.Values{
-		"fields": {"id,effective_status,campaign{effective_status,daily_budget},adset{effective_status,daily_budget},creative{id,image_hash,video_id,effective_instagram_media_id,effective_object_story_id,thumbnail_url,object_type}"},
-		"limit":  {"100"},
-	}
-	err = metaPages(ctx, c, base+"/ads?"+aq.Encode(), func(raw json.RawMessage) error {
-		var a metaAd
-		if err := json.Unmarshal(raw, &a); err != nil {
-			return errors.New("Meta: resposta inesperada")
+	// Só a estrutura dos anúncios que entregaram: a conta acumula centenas de anúncios antigos, e listar todos era a
+	// parte lenta da tela. Em lotes, com o filtro por ID (o parâmetro "ids" saiu na v26).
+	var ids []string
+	seen := map[string]bool{}
+	for _, r := range rows {
+		if !seen[r.AdID] {
+			seen[r.AdID] = true
+			ids = append(ids, r.AdID)
 		}
-		ads[a.ID] = a
-		return nil
-	})
-	if err != nil {
-		return nil, "", err
+	}
+	ads := map[string]metaAd{}
+	for from := 0; from < len(ids); from += metaAdsBatch {
+		filter, _ := json.Marshal([]map[string]any{{"field": "ad.id", "operator": "IN", "value": ids[from:min(from+metaAdsBatch, len(ids))]}})
+		aq := url.Values{
+			"fields":    {"id,effective_status,campaign{effective_status,daily_budget},adset{effective_status,daily_budget},creative{id,image_hash,video_id,effective_instagram_media_id,effective_object_story_id,thumbnail_url,object_type}"},
+			"filtering": {string(filter)},
+			"limit":     {strconv.Itoa(metaAdsBatch)},
+		}
+		err = metaPages(ctx, c, base+"/ads?"+aq.Encode(), func(raw json.RawMessage) error {
+			var a metaAd
+			if err := json.Unmarshal(raw, &a); err != nil {
+				return errors.New("Meta: resposta inesperada")
+			}
+			ads[a.ID] = a
+			return nil
+		})
+		if err != nil {
+			return nil, "", err
+		}
 	}
 	for i := range rows {
 		a, ok := ads[rows[i].AdID]

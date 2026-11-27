@@ -79,7 +79,7 @@ export default function Paid({ view }: { view?: string }) {
         </CustomSelect>
       </div>
       {failure && <ErrorBanner title="Não consegui ler os anúncios" onRetry={() => setAttempt((n) => n + 1)}>{failure}</ErrorBanner>}
-      {!current_ && <p className="an-empty">Lendo os anúncios…</p>}
+      {!current_ && <p className="an-empty" role="status">Lendo os anúncios na Meta. A primeira leitura do período pode levar alguns segundos.</p>}
       {report?.currency && report.currency !== 'BRL' && <ErrorBanner title="Moeda da conta">{`A conta usa ${report.currency}: os valores de gasto não são reais.`}</ErrorBanner>}
       {joined && joined.unmatched > 0 && <p className="tr-hint">{joined.unmatched} {joined.unmatched === 1 ? 'lead de Meta Ads não foi ligado' : 'leads de Meta Ads não foram ligados'} a um anúncio (UTM fora do padrão ou anúncio sem entrega no período).</p>}
       {current_ && !failure && <><dl className="tr-summary">
